@@ -1,16 +1,38 @@
-# Virtual environments
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
 
-# Testing
+# NuGet
+packages/
+*.nupkg
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
 
 # IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.DotSettings.user
 
-# Node
+# OS
+Thumbs.db
+.DS_Store
 
-# Electron
+# Project-specific
+publish/
+*.msix
+*.appx
 
-# Logs
-
-# Audio files
+# Audio files (temp)
 *.wav
 *.mp3
 temp_audio/
@@ -19,44 +41,19 @@ temp_audio/
 .env
 .env.local
 
-# Settings
+# Logs
+logs/
 
-# OS
-
-# Generated API documentation
-
-# Internal Governance & Development (Local-Only)
+# Internal governance (local-only)
 AI_CODEX.md
 DEV_HANDOFF.md
 TASKS.md
 CLAUDE.md
 GEMINI.md
-docs/internal/
 .agent/
-
-# Auto Claude data directory
-.auto-claude/
 .claude/
+.auto-claude/
 
-# Websites (Source tracked, artifacts ignored)
-
-# Auto Claude generated files
-.auto-claude-security.json
-.auto-claude-status
-.claude_settings.json
-.worktrees/
-.security-key
-logs/security/
-nul
-
-# Local Plans
-
-# Sync Logs
-
-# Scripts
-
-# Research & Internal Notes
-**/PROMPT_ANALYSIS.md
-**/.agent/
-**/.shared/
-**/.claude/
+# Test results
+TestResults/
+coverage/
