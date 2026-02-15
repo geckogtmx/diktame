@@ -1,0 +1,62 @@
+# Virtual environments
+
+# Testing
+
+# IDE
+
+# Node
+
+# Electron
+
+# Logs
+
+# Audio files
+*.wav
+*.mp3
+temp_audio/
+
+# Environment variables
+.env
+.env.local
+
+# Settings
+
+# OS
+
+# Generated API documentation
+
+# Internal Governance & Development (Local-Only)
+AI_CODEX.md
+DEV_HANDOFF.md
+TASKS.md
+CLAUDE.md
+GEMINI.md
+docs/internal/
+.agent/
+
+# Auto Claude data directory
+.auto-claude/
+.claude/
+
+# Websites (Source tracked, artifacts ignored)
+
+# Auto Claude generated files
+.auto-claude-security.json
+.auto-claude-status
+.claude_settings.json
+.worktrees/
+.security-key
+logs/security/
+nul
+
+# Local Plans
+
+# Sync Logs
+
+# Scripts
+
+# Research & Internal Notes
+**/PROMPT_ANALYSIS.md
+**/.agent/
+**/.shared/
+**/.claude/
