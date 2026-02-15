@@ -1,8 +1,8 @@
-# SPEC_039 Phase 2: dIKta.me V2 — C# + WinUI 3 Rewrite
+# dIKta.me V2 — Development Roadmap (C# + WinUI 3 Rewrite)
 
 **Status:** DRAFT
 **Date:** 2026-02-14
-**Parent:** `SPEC_039_STRATEGIC_ROADMAP.md`
+**Parent:** V1 `SPEC_039_STRATEGIC_ROADMAP.md` (in diktate repo)
 **Supersedes:** Python modular split approach (deemed throwaway work)
 **Target:** Native Windows app — single process, modular architecture, <30MB installer
 

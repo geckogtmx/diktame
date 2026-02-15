@@ -65,7 +65,7 @@ dotnet test DiktaMe.sln
 
 - **Trunk-based** development (commits directly to `main`)
 - **Conventional Commits**: `feat(scope): description [TASK_ID]`
-- See `SPEC_039_PHASE2_PLAN.md` §9 for full strategy
+- See `DEVELOPMENT_ROADMAP.md` §9 for full strategy
 
 ## Status
 
@@ -80,4 +80,4 @@ dotnet test DiktaMe.sln
 
 ---
 
-*V2 rewrite of [dIKtate](https://github.com/geckogtmx/diktate) — see `SPEC_039_PHASE2_PLAN.md` for the full plan.*
+*V2 rewrite of [dIKtate](https://github.com/geckogtmx/diktate) — see `DEVELOPMENT_ROADMAP.md` for the full plan.*

@@ -643,4 +643,4 @@ When V2 reaches feature parity, a migration path exists for V1 users:
 
 **Document Status:** Active — Updated as implementation progresses
 **Last Updated:** 2026-02-15
-**Parent Spec:** `SPEC_039_PHASE2_PLAN.md`
+**Parent Spec:** `DEVELOPMENT_ROADMAP.md`
