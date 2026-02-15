@@ -1,4 +1,4 @@
-# ![dIKta.me](docs/images/readme_header.png)
+# ![dIKta.me](docs/images/ReadmeHead.png)
 
 # dIKta.me V2
 
