@@ -15,7 +15,7 @@
 | **STT** | Cloud (Deepgram, Gemini) + Local (Whisper.net) |
 | **LLM** | Gemini, Anthropic, OpenAI, Ollama |
 | **Data** | SQLite (Microsoft.Data.Sqlite) |
-| **Installer** | Native AOT, < 30MB |
+| **Installer** | Self-contained, trimmed |
 
 ## Solution Structure
 
@@ -75,7 +75,7 @@ dotnet test DiktaMe.sln
 |-------|--------|
 | A.0 — Git Repo Prep | ✅ Complete |
 | A.1 — Solution Scaffold | ✅ Complete |
-| A.2 — Native AOT Config | ⬜ Pending |
+| A.2 — Release Publish Config | ⬜ Pending |
 | B.x — Core Engine | ⬜ Pending |
 | C.x — STT & LLM Providers | ⬜ Pending |
 | D.x — Pipeline Orchestration | ⬜ Pending |

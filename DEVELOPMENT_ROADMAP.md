@@ -4,7 +4,7 @@
 **Date:** 2026-02-14
 **Parent:** V1 `SPEC_039_STRATEGIC_ROADMAP.md` (in diktate repo)
 **Supersedes:** Python modular split approach (deemed throwaway work)
-**Target:** Native Windows app — single process, modular architecture, <30MB installer
+**Target:** Native Windows app — single process, modular architecture, self-contained installer
 
 ---
 
@@ -35,7 +35,7 @@ Phase 2 is a **full rewrite** of dIKta.me (formerly dIKtate) from Python + Elect
 | Factor | Python Split (rejected) | C# Rewrite (chosen) |
 |--------|:-:|:-:|
 | Throwaway code | 15 days of wasted work | Zero — this is the final stack |
-| Installer size | ~100-200MB | ~20-30MB |
+| Installer size | ~100-200MB | ~70MB (compressed) |
 | Memory footprint | ~300MB (Electron + Python) | ~50-80MB |
 | Process model | 2+ processes + IPC | Single process |
 | Windows integration | Wrappers (pycaw, pynput) | Native APIs |
@@ -52,7 +52,7 @@ Phase 2 is a **full rewrite** of dIKta.me (formerly dIKtate) from Python + Elect
 
 ### Success Criteria
 
-- [ ] Single `.exe` installer < 30MB (Native AOT)
+- [ ] Self-contained installer (~70MB compressed)
 - [ ] All 6 workflow modes functional
 - [ ] Cloud-first: works out of the box with API key
 - [ ] Local Whisper as optional sidecar (Whisper.net or exe)
@@ -281,17 +281,22 @@ public interface ILLMProvider
 
 **Acceptance:** Solution builds, blank WinUI window appears.
 
-#### Task A.2: Configure Native AOT Publishing
+#### Task A.2: Configure Release Publishing (Trimmed, Self-Contained)
 **Effort:** 0.5 day
 
-**Steps:**
-1. Add `<PublishAot>true</PublishAot>` to `DiktaMe.Core.csproj`
-2. Configure trimming: `<PublishTrimmed>true</PublishTrimmed>`
-3. Add AOT-compatible attributes where needed
-4. Create `publish-release.bat`: `dotnet publish -c Release -r win-x64`
-5. Verify output size < 30MB
+> **Decision:** Native AOT (`PublishAot`) deferred — NAudio COM interop lacks AOT annotations,
+> WinUI 3 AOT is still maturing (SDK 1.6, Sep 2024), and several dependencies are incompatible.
+> IL trimming provides the size reduction without the compatibility risk. AOT can be layered on
+> later as a one-line change when the ecosystem catches up.
 
-**Acceptance:** Self-contained single-file exe runs without .NET installed.
+**Steps:**
+1. Add `<PublishTrimmed>true</PublishTrimmed>` + `<TrimMode>partial</TrimMode>` to `DiktaMe.App.csproj` (Release only)
+2. Add `TrimmerRootAssembly` entries for NAudio, InputSimulatorStandard, Notifications (trim-incompatible)
+3. Add `<IsTrimmable>true</IsTrimmable>` + `<EnableTrimAnalyzer>true</EnableTrimAnalyzer>` to `DiktaMe.Core.csproj`
+4. Create `publish-release.cmd`: `dotnet publish -c Release -r win-x64 --self-contained true`
+5. Verify published app runs and document output size
+
+**Acceptance:** Self-contained exe runs without .NET installed. Published output trimmed.
 
 ---
 
@@ -639,7 +644,7 @@ public interface ILLMProvider
 
 **Steps:**
 1. Replace all "dIKtate" references with "dIKta.me" in copy, meta tags, structured data
-2. Update download flow for new <30MB native installer (`diktame-setup.exe`)
+2. Update download flow for new native installer (`diktame-setup.exe`)
 3. Update homepage features/specs cards to reflect C# + WinUI 3 architecture
 4. Update pricing page if tiers change
 5. Remove references to "Electron + Python" stack in all marketing copy
@@ -748,7 +753,7 @@ public interface ILLMProvider
 1. `build` — `dotnet build`
 2. `test` — `dotnet test` (xUnit)
 3. `lint` — `dotnet format --verify-no-changes`
-4. `publish` — `dotnet publish -c Release` (verify AOT output)
+4. `publish` — `dotnet publish -c Release` (verify trimmed output)
 
 ---
 
@@ -762,9 +767,9 @@ public interface ILLMProvider
 - **Inno Setup** — Traditional installer, more control, smaller overhead
 
 **Steps:**
-1. Package Native AOT output into installer
+1. Package trimmed self-contained output into installer
 2. Include sound assets, icon, default prompts
-3. Target installer size: < 30MB
+3. Target installer size: ~70MB (compressed)
 4. Register auto-start in Windows Task Scheduler
 5. File associations (if needed)
 
@@ -790,7 +795,7 @@ Day 0 (Pre-Work): A.0 — Git Repo Prep & V1 Archive
 └── Clone + initial commit (README, .gitignore)
 
 Week 1: Foundation + Core Engine
-├── Day 1:   A.1 (Scaffold) + A.2 (AOT config)
+├── Day 1:   A.1 (Scaffold) + A.2 (Publish config)
 ├── Day 2:   B.1 (Audio Recording)
 ├── Day 3:   B.2 (Text Injection) + B.3 (Global Hotkeys)
 ├── Day 4:   B.4 (Mute Detection) + B.5 (System Tray)
@@ -833,7 +838,7 @@ Week 4: Testing + Distribution
 | Risk | Impact | Mitigation |
 |------|--------|------------|
 | WinUI 3 learning curve for AI agents | Medium | Extensive examples in training data; CommunityToolkit helpers |
-| Native AOT incompatible with some NuGet packages | High | Test AOT early (Day 1); have trimming workarounds ready |
+| IL trimming breaks runtime behavior | Low | Using `TrimMode=partial` (safe default); trim-incompatible packages rooted as `TrimmerRootAssembly` |
 | NAudio API differences from PyAudio | Low | NAudio is mature, well-documented, widely used |
 | Whisper.net model quality vs faster-whisper | Medium | Benchmark early; keep Python sidecar as fallback option |
 | V1 settings migration edge cases | Low | Validate with actual V1 config files from dev machine |

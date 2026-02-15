@@ -63,7 +63,7 @@ dIKta.me V2 is a **native Windows desktop application** built as a single-proces
 | Factor | V1 (Electron + Python) | V2 (C# + WinUI 3) |
 |--------|:-:|:-:|
 | Process model | 2+ processes + JSON IPC | **Single process** |
-| Installer size | ~100-200MB | **< 30MB** (Native AOT) |
+| Installer size | ~100-200MB | **~70MB** (self-contained, compressed) |
 | Memory footprint | ~300MB | **~50-80MB** |
 | Startup time | 10-12s (model warmup) | **< 3s** (cloud mode) |
 | Windows integration | Wrappers (pycaw, pynput) | **Native APIs** |
@@ -505,17 +505,19 @@ dotnet build DiktaMe.sln -c Debug
 # Run tests
 dotnet test DiktaMe.sln --verbosity normal
 
-# Release build (Native AOT)
-dotnet publish src/DiktaMe.App -c Release -r win-x64
+# Release build (trimmed, self-contained)
+publish-release.cmd
 ```
 
-### 10.3 Native AOT Publishing (Task A.2)
+### 10.3 Trimmed Publishing (Task A.2)
 
-Target: self-contained single-file `.exe` < 30MB with no .NET runtime dependency.
+Target: self-contained trimmed deployment with no .NET runtime dependency.
+Native AOT deferred — NAudio COM interop and several dependencies lack AOT compatibility.
+IL trimming is the stable prerequisite; AOT can be layered on when the ecosystem matures.
 
 ```xml
-<PublishAot>true</PublishAot>
 <PublishTrimmed>true</PublishTrimmed>
+<TrimMode>partial</TrimMode>
 ```
 
 ### 10.4 Installer
@@ -572,7 +574,7 @@ Jobs:
   build:   dotnet build
   test:    dotnet test (xUnit)
   lint:    dotnet format --verify-no-changes
-  publish: dotnet publish -c Release (verify AOT output)
+  publish: dotnet publish -c Release (verify trimmed output)
 ```
 
 ---

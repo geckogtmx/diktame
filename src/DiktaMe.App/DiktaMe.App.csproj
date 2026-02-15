@@ -16,6 +16,25 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- Release publishing: self-contained + IL trimmed -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <!-- Suppress trim warnings from third-party assemblies we don't control
+         (NAudio, Serilog, WPF/WinForms integration, Notifications, WebView2) -->
+    <NoWarn>$(NoWarn);IL2026;IL2104</NoWarn>
+  </PropertyGroup>
+
+  <!-- Assemblies that cannot be safely trimmed (COM interop, no trim annotations) -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <TrimmerRootAssembly Include="NAudio" />
+    <TrimmerRootAssembly Include="NAudio.Core" />
+    <TrimmerRootAssembly Include="NAudio.Wasapi" />
+    <TrimmerRootAssembly Include="NAudio.WinMM" />
+    <TrimmerRootAssembly Include="InputSimulatorStandard" />
+    <TrimmerRootAssembly Include="Microsoft.Toolkit.Uwp.Notifications" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.*" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />

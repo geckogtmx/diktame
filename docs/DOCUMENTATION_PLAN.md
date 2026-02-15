@@ -50,7 +50,7 @@ We will port and adapt relevant sections from `e:\git\diktate\docs`.
 - [ ] Create `docs/dev/index.md` stub.
 
 ### Phase 2: User Documentation
-- [ ] Draft `getting-started.md`: Focus on the new Native AOT installer simplicity.
+- [ ] Draft `getting-started.md`: Focus on the new self-contained installer simplicity.
 - [ ] Draft `features/dictation.md`: Explain the specialized "Dictate" mode vs "Refine" mode.
 - [ ] Draft `troubleshooting.md`: Common Windows-specific issues (Scaling, Permissions).
 
