@@ -3,6 +3,8 @@
 **Speech-to-text dictation for Windows** — C# + WinUI 3 rewrite.
 
 > Formerly *dIKtate*. Full rewrite from Python + Electron to native Windows application.
+>
+> 📚 **Docs**: [User Guide](docs/user/index.md) • [Developer Guide](docs/dev/index.md) • [Privacy](PRIVACY.md) • [Contributing](CONTRIBUTING.md)
 
 ## Tech Stack
 
