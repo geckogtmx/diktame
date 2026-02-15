@@ -1,3 +1,5 @@
+# ![dIKta.me](docs/images/readme_header.png)
+
 # dIKta.me V2
 
 **Speech-to-text dictation for Windows** — C# + WinUI 3 rewrite.
