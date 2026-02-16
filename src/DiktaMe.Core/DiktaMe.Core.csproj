@@ -25,6 +25,14 @@
     <PackageReference Include="Serilog.Sinks.File" Version="5.*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.*" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.*" />
+    <PackageReference Include="Whisper.net" Version="1.9.0" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.0" />
+    <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.9.0" />
+  </ItemGroup>
+
+  <!-- Whisper.net native runtimes must not be trimmed (P/Invoke, no trim annotations) -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <TrimmerRootAssembly Include="Whisper.net" />
   </ItemGroup>
 
 </Project>
