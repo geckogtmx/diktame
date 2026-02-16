@@ -32,6 +32,7 @@ public sealed class HotkeyManager : IDisposable
 
     private Thread? _pumpThread;
     private IntPtr _hwnd = IntPtr.Zero;
+    private readonly ManualResetEventSlim _hwndReady = new(false);
     private readonly ConcurrentDictionary<HotkeyId, HotkeyRegistration> _registrations = new();
     private readonly ConcurrentDictionary<HotkeyId, long> _lastPressTimestamps = new();
     private volatile bool _running;
@@ -54,6 +55,9 @@ public sealed class HotkeyManager : IDisposable
             Name = "HotkeyManager.MessagePump",
         };
         _pumpThread.Start();
+
+        // Wait until the background thread has created the HWND (or failed)
+        _hwndReady.Wait(TimeSpan.FromSeconds(5));
     }
 
     /// <summary>
@@ -146,10 +150,12 @@ public sealed class HotkeyManager : IDisposable
             Log.Error("HotkeyManager: failed to create message-only window (Win32 error {Error})",
                 Marshal.GetLastWin32Error());
             _running = false;
+            _hwndReady.Set(); // unblock Start() so it doesn't hang
             return;
         }
 
         Log.Debug("HotkeyManager: message pump started (hwnd=0x{Hwnd:X})", _hwnd.ToInt64());
+        _hwndReady.Set(); // signal Start() that HWND is ready
 
         try
         {
@@ -216,6 +222,7 @@ public sealed class HotkeyManager : IDisposable
             NativeMethods.PostMessage(_hwnd, NativeMethods.WmQuit, IntPtr.Zero, IntPtr.Zero);
 
         _pumpThread?.Join(millisecondsTimeout: 2000);
+        _hwndReady.Dispose();
     }
 
     // ── P/Invoke ─────────────────────────────────────────────────────────────
