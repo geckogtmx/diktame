@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.*" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.*" />
     <PackageReference Include="InputSimulatorStandard" Version="1.*" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.*" />
     <PackageReference Include="Serilog" Version="3.*" />
