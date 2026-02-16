@@ -137,12 +137,14 @@ DiktaMe.sln
 │   │   │   ├── GeminiAudioProvider.cs# Cloud STT (Gemini)
 │   │   │   └── WhisperProvider.cs    # Local STT (Whisper.net)
 │   │   ├── LLM/
-│   │   │   ├── ILLMProvider.cs       # Interface
-│   │   │   ├── LLMRouter.cs          # Routes to cloud/local
-│   │   │   ├── GeminiProvider.cs     # Cloud LLM
-│   │   │   ├── AnthropicProvider.cs  # Cloud LLM
-│   │   │   ├── OpenAIProvider.cs     # Cloud LLM
-│   │   │   └── OllamaProvider.cs     # Local LLM
+│   │   │   ├── ILLMProvider.cs              # Interface + LlmResult record
+│   │   │   ├── LLMRouter.cs                 # Primary/fallback routing
+│   │   │   ├── OpenAICompatibleProvider.cs  # OpenAI, DeepSeek, OpenRouter, Groq,
+│   │   │   │                                #   Together, Fireworks, Perplexity,
+│   │   │   │                                #   Azure OpenAI, LM Studio, vLLM, etc.
+│   │   │   ├── GeminiProvider.cs            # Gemini generateContent (API key + OAuth)
+│   │   │   ├── AnthropicProvider.cs         # Anthropic Messages API
+│   │   │   └── OllamaProvider.cs            # Local Ollama (localhost:11434)
 │   │   ├── Pipeline/
 │   │   │   ├── DictationPipeline.cs  # Orchestrates Record→STT→LLM→Inject
 │   │   │   ├── RefinePipeline.cs     # Selection + instruction flows
@@ -229,9 +231,20 @@ public interface ISTTProvider
 
 public interface ILLMProvider
 {
-    Task<string> ProcessAsync(string text, string systemPrompt, string mode);
+    Task<LlmResult> ProcessAsync(string text, string systemPrompt, string mode = "dictate");
     Task<bool> IsAvailableAsync();
     string ProviderName { get; }
+}
+
+// LlmResult (mirrors TranscriptionResult for consistency)
+public sealed record LlmResult
+{
+    public required string Text { get; init; }
+    public required string Provider { get; init; }
+    public long LatencyMs { get; init; }
+    public int? InputTokens { get; init; }
+    public int? OutputTokens { get; init; }
+    public bool IsSuccess => !string.IsNullOrWhiteSpace(Text);
 }
 ```
 
@@ -422,41 +435,42 @@ public interface ILLMProvider
 5. In-app model download with progress (or separate sidecar exe)
 6. Return transcription + detected language
 
-#### Task C.5: LLM Provider Interface & Router
-**Create:** `DiktaMe.Core/LLM/ILLMProvider.cs`, `LLMRouter.cs`
-**Effort:** 0.5 day
+#### Task C.5: LLM Provider Interface & Router ✅
+**Created:** `DiktaMe.Core/LLM/ILLMProvider.cs` (+ `LlmResult` record), `LLMRouter.cs`
 
-**Steps:**
-1. Define `ILLMProvider` interface (see §3.3)
-2. Create `LLMRouter` — per-mode provider selection (dual-profile system)
-3. Support: Gemini, Anthropic, OpenAI, Ollama
+- `ILLMProvider.ProcessAsync` returns `LlmResult` (text + latency + token counts)
+- `LLMRouter`: primary/fallback pattern (mirrors STTRouter)
 
-#### Task C.6: Cloud LLM Providers
-**Create:** `GeminiProvider.cs`, `AnthropicProvider.cs`, `OpenAIProvider.cs`
-**Effort:** 1 day
+#### Task C.6: Cloud LLM Providers ✅
+**Created:** `OpenAICompatibleProvider.cs`, `GeminiProvider.cs`, `AnthropicProvider.cs`
 
-**Port from:** `python/core/processor.py` (36KB — 4 classes)
+**Design decision:** `OpenAICompatibleProvider` replaces the single `OpenAIProvider` —
+one class covers any endpoint that speaks `POST /v1/chat/completions` with Bearer auth:
+- **OpenAI** (gpt-4o, gpt-4o-mini, o1, o3, …)
+- **DeepSeek** (deepseek-chat, deepseek-reasoner)
+- **OpenRouter** (routes to 200+ models via a single endpoint)
+- **Groq** (llama, mixtral, …)
+- **Together AI**, **Fireworks AI**, **Perplexity**
+- **Azure OpenAI** (custom base URL per deployment)
+- **LM Studio**, **vLLM**, **Llamafile** (local OpenAI-compatible servers)
+- Any future provider that adopts the OpenAI spec
 
-**Steps:**
-1. Each provider implements `ILLMProvider`
-2. `GeminiProvider`: Gemini API with OAuth and API key support
-3. `AnthropicProvider`: Messages API with `anthropic-version` header
-4. `OpenAIProvider`: Chat Completions API
-5. All use shared `HttpClient` (connection pooling)
-6. Retry logic: exponential backoff on 429/500
-7. Token/sec tracking for performance metrics
+Named constructors: `ForOpenAI()`, `ForDeepSeek()`, `ForOpenRouter()`, `ForGroq()`,
+`ForTogether()`, `ForPerplexity()`, `ForLocalServer()`.
 
-#### Task C.7: Local LLM — Ollama
-**Create:** `DiktaMe.Core/LLM/OllamaProvider.cs`
-**Effort:** 0.5 day
+`GeminiProvider`: generateContent API, API key (query param) + OAuth Bearer (ya29.*)
+`AnthropicProvider`: Messages API, `x-api-key` + `anthropic-version` headers
 
-**Port from:** `python/core/processor.py` (LocalProcessor class)
+All providers: exponential backoff retry (1s, 2s, 4s), 3 attempts, `LlmResult` with
+input/output token counts from API usage fields.
 
-**Steps:**
-1. HTTP client to `localhost:11434/api/generate`
-2. Model detection (`/api/tags`)
-3. Warmup request on startup
-4. GPU fallback detection (tokens/sec monitoring)
+#### Task C.7: Local LLM — Ollama ✅
+**Created:** `DiktaMe.Core/LLM/OllamaProvider.cs`
+
+- `POST /api/generate` with `stream: false` and `keep_alive: 10m`
+- `WarmUpAsync()`: loads model into VRAM at startup (fire-and-forget)
+- `IsAvailableAsync()`: polls `GET /api/tags` — returns false (not throws) if server down
+- `LastTokensPerSec`: tracks inference speed; warns if < 20 tok/s (CPU fallback indicator)
 5. Keep-alive session management
 
 ---

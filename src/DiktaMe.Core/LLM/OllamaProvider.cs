@@ -1,0 +1,252 @@
+namespace DiktaMe.Core.LLM;
+
+using System.Diagnostics;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using Serilog;
+
+/// <summary>
+/// LLM provider for a locally running Ollama server.
+/// Uses the Ollama generate API (<c>POST /api/generate</c>) with keep-alive session management
+/// and tokens/sec monitoring to detect CPU vs GPU inference.
+/// Port of V1's <c>LocalProcessor</c> in processor.py.
+/// </summary>
+public sealed class OllamaProvider : ILLMProvider, IDisposable
+{
+    private const string DefaultBaseUrl = "http://localhost:11434";
+
+    // Warn if inference drops below this rate — likely CPU fallback
+    private const double SlowInferenceThresholdToksPerSec = 20.0;
+
+    private readonly HttpClient _http;
+    private readonly string _generateUrl;
+    private readonly string _tagsUrl;
+    private readonly string _model;
+    private bool _disposed;
+
+    /// <inheritdoc/>
+    public string ProviderName => $"{_model} (Ollama)";
+
+    /// <summary>Last measured inference speed in tokens/sec. Null if not yet measured.</summary>
+    public double? LastTokensPerSec { get; private set; }
+
+    /// <param name="model">Ollama model tag, e.g. <c>llama3.2</c>, <c>mistral</c>, <c>phi4</c>.</param>
+    /// <param name="baseUrl">Ollama base URL (default: http://localhost:11434).</param>
+    /// <param name="httpClient">Optional shared client.</param>
+    public OllamaProvider(
+        string model,
+        string baseUrl = DefaultBaseUrl,
+        HttpClient? httpClient = null)
+    {
+        if (string.IsNullOrWhiteSpace(model))
+            throw new ArgumentException("Model must not be empty.", nameof(model));
+
+        _model = model;
+        string trimmed = baseUrl.TrimEnd('/');
+        _generateUrl = trimmed + "/api/generate";
+        _tagsUrl = trimmed + "/api/tags";
+
+        _http = httpClient ?? new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(60), // local inference can be slow on CPU
+        };
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Calls <c>GET /api/tags</c> to verify Ollama is running.
+    /// Returns <c>false</c> (not throws) if the server is unreachable.
+    /// </remarks>
+    public async Task<bool> IsAvailableAsync()
+    {
+        try
+        {
+            using var response = await _http.GetAsync(_tagsUrl).ConfigureAwait(false);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Warms up the model by sending a minimal prompt, loading it into VRAM.
+    /// Call once at startup to avoid first-request latency.
+    /// Fire-and-forget — does not throw.
+    /// </summary>
+    public async Task WarmUpAsync()
+    {
+        try
+        {
+            Log.Debug("OllamaProvider: warming up model '{Model}'", _model);
+            string body = BuildRequestJson(
+                _model,
+                "You are a text formatter. Output only the result.",
+                "ping",
+                numPredict: 1);
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, _generateUrl);
+            request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+            using var response = await _http.SendAsync(request).ConfigureAwait(false);
+
+            if (response.IsSuccessStatusCode)
+                Log.Information("OllamaProvider: model '{Model}' warmed up", _model);
+            else
+                Log.Warning("OllamaProvider: warmup returned status {S}", (int)response.StatusCode);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "OllamaProvider: warmup failed (will retry on first use)");
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<LlmResult> ProcessAsync(
+        string text,
+        string systemPrompt,
+        string mode = "dictate")
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string safeText = SanitizeInput(text);
+        string body = BuildRequestJson(_model, systemPrompt, safeText);
+
+        var sw = Stopwatch.StartNew();
+
+        const int MaxRetries = 3;
+        for (int attempt = 0; attempt < MaxRetries; attempt++)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, _generateUrl);
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                using var response = await _http.SendAsync(request).ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    Log.Warning("OllamaProvider: status {S} on attempt {A}: {Body}",
+                        (int)response.StatusCode, attempt + 1, errBody);
+
+                    if (attempt < MaxRetries - 1)
+                    {
+                        await DelayAsync(attempt).ConfigureAwait(false);
+                        continue;
+                    }
+                    throw new InvalidOperationException(
+                        $"Ollama: status {(int)response.StatusCode}: {errBody}");
+                }
+
+                sw.Stop();
+                string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                (string output, double? toksPerSec) = ParseResponse(json);
+
+                // Track and log inference speed (GPU health indicator)
+                LastTokensPerSec = toksPerSec;
+                if (toksPerSec.HasValue)
+                {
+                    if (toksPerSec.Value < SlowInferenceThresholdToksPerSec)
+                        Log.Warning("OllamaProvider: SLOW inference {T:F1} tok/s — GPU may not be active",
+                            toksPerSec.Value);
+                    else
+                        Log.Information("OllamaProvider: {T:F1} tok/s", toksPerSec.Value);
+                }
+
+                Log.Information("{Provider}: processed in {Ms}ms [{Mode}]",
+                    ProviderName, sw.ElapsedMilliseconds, mode);
+
+                return new LlmResult
+                {
+                    Text = output,
+                    Provider = ProviderName,
+                    LatencyMs = sw.ElapsedMilliseconds,
+                };
+            }
+            catch (HttpRequestException ex) when (attempt < MaxRetries - 1)
+            {
+                Log.Warning(ex, "OllamaProvider: connection error on attempt {A}/{Max}",
+                    attempt + 1, MaxRetries);
+                await DelayAsync(attempt).ConfigureAwait(false);
+            }
+        }
+
+        throw new InvalidOperationException($"Ollama: all {MaxRetries} attempts failed.");
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private static string SanitizeInput(string text)
+        => text.Replace("```", "'''").Replace("{text}", "[text]");
+
+    private static string BuildRequestJson(
+        string model,
+        string systemPrompt,
+        string userText,
+        int numPredict = 1024)
+    {
+        string escapedModel = EscapeJsonString(model);
+        string escapedPrompt = EscapeJsonString($"{systemPrompt}\n\n{userText}");
+
+        return $$"""
+            {
+              "model": "{{escapedModel}}",
+              "prompt": "{{escapedPrompt}}",
+              "stream": false,
+              "options": { "temperature": 0.1, "num_ctx": 2048, "num_predict": {{numPredict}} },
+              "keep_alive": "10m"
+            }
+            """;
+    }
+
+    /// <summary>
+    /// Parses Ollama generate response.
+    /// Path: response (text), eval_count / eval_duration (tokens/sec)
+    /// </summary>
+    private static (string Text, double? TokensPerSec) ParseResponse(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            string text = root.TryGetProperty("response", out var r)
+                ? r.GetString()?.Trim() ?? string.Empty
+                : string.Empty;
+
+            double? toksPerSec = null;
+            if (root.TryGetProperty("eval_count", out var ec) &&
+                root.TryGetProperty("eval_duration", out var ed))
+            {
+                long evalCount = ec.GetInt64();
+                long evalDuration = ed.GetInt64(); // nanoseconds
+                if (evalDuration > 0)
+                    toksPerSec = evalCount / (evalDuration / 1e9);
+            }
+
+            return (text, toksPerSec);
+        }
+        catch (JsonException ex)
+        {
+            Log.Warning(ex, "OllamaProvider: failed to parse response JSON");
+            return (string.Empty, null);
+        }
+    }
+
+    private static string EscapeJsonString(string s)
+        => s.Replace("\\", "\\\\").Replace("\"", "\\\"")
+            .Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
+
+    private static Task DelayAsync(int attempt)
+        => Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt)));
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _http.Dispose();
+    }
+}

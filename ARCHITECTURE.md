@@ -107,12 +107,14 @@ DiktaMe.sln                        # Visual Studio solution
 │       │   ├── GeminiAudioProvider.cs  # Cloud STT (Gemini multimodal)
 │       │   └── WhisperProvider.cs      # Local STT (Whisper.net / ONNX)
 │       ├── LLM/
-│       │   ├── ILLMProvider.cs         # Interface
-│       │   ├── LLMRouter.cs            # Per-mode provider routing (dual-profile)
-│       │   ├── GeminiProvider.cs       # Cloud LLM
-│       │   ├── AnthropicProvider.cs    # Cloud LLM
-│       │   ├── OpenAIProvider.cs       # Cloud LLM
-│       │   └── OllamaProvider.cs       # Local LLM (localhost:11434)
+│       │   ├── ILLMProvider.cs              # Interface + LlmResult record
+│       │   ├── LLMRouter.cs                 # Primary/fallback routing
+│       │   ├── OpenAICompatibleProvider.cs  # OpenAI, DeepSeek, OpenRouter, Groq,
+│       │   │                                #   Together, Fireworks, Perplexity,
+│       │   │                                #   Azure OpenAI, LM Studio, vLLM, etc.
+│       │   ├── GeminiProvider.cs            # Gemini generateContent (API key + OAuth)
+│       │   ├── AnthropicProvider.cs         # Anthropic Messages API
+│       │   └── OllamaProvider.cs            # Local Ollama (localhost:11434)
 │       ├── Pipeline/
 │       │   ├── DictationPipeline.cs    # Record → STT → LLM → Inject
 │       │   ├── RefinePipeline.cs       # Selection + instruction flows
@@ -265,9 +267,20 @@ public interface ISTTProvider
 
 public interface ILLMProvider
 {
-    Task<string> ProcessAsync(string text, string systemPrompt, string mode);
+    Task<LlmResult> ProcessAsync(string text, string systemPrompt, string mode = "dictate");
     Task<bool> IsAvailableAsync();
     string ProviderName { get; }
+}
+
+// LlmResult mirrors TranscriptionResult — consistent across STT and LLM layers
+public sealed record LlmResult
+{
+    public required string Text { get; init; }
+    public required string Provider { get; init; }
+    public long LatencyMs { get; init; }
+    public int? InputTokens { get; init; }
+    public int? OutputTokens { get; init; }
+    public bool IsSuccess => !string.IsNullOrWhiteSpace(Text);
 }
 ```
 
