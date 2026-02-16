@@ -1,3 +1,4 @@
+using DiktaMe.App.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Serilog;
@@ -10,6 +11,7 @@ namespace DiktaMe.App;
 public partial class App : Application
 {
     private Window? _window;
+    private TrayIconView? _trayIcon;
 
     /// <summary>
     /// Gets the current App instance.
@@ -25,6 +27,11 @@ public partial class App : Application
     /// Gets the main application window.
     /// </summary>
     public Window? MainWindow => _window;
+
+    /// <summary>
+    /// Gets the system tray icon view.
+    /// </summary>
+    public TrayIconView? TrayIcon => _trayIcon;
 
     public App()
     {
@@ -51,8 +58,24 @@ public partial class App : Application
 
         Log.Information("dIKta.me V2 starting up...");
 
+        // Create tray icon (kept alive for the duration of the app)
+        _trayIcon = new TrayIconView();
+
         // Create and activate main window
         _window = new MainWindow();
+        _window.Activate();
+    }
+
+    /// <summary>
+    /// Shows and brings the main window to the foreground.
+    /// Creates a new window if it was previously closed.
+    /// </summary>
+    public void ShowMainWindow()
+    {
+        if (_window is null)
+        {
+            _window = new MainWindow();
+        }
         _window.Activate();
     }
 

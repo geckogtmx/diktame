@@ -1,0 +1,25 @@
+<UserControl
+    x:Class="DiktaMe.App.Views.TrayIconView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:tb="using:H.NotifyIcon"
+    xmlns:local="using:DiktaMe.App.Views">
+
+    <tb:TaskbarIcon
+        x:Name="Icon"
+        ToolTipText="{x:Bind ViewModel.TooltipText, Mode=OneWay}"
+        NoLeftClickDelay="True"
+        LeftClickCommand="{x:Bind ViewModel.OpenControlPanelCommand}">
+
+        <!-- Runtime-generated icon: coloured background with "D" initial.
+             Will be replaced by real .ico assets in Task H.1 (installer). -->
+        <tb:TaskbarIcon.IconSource>
+            <tb:GeneratedIconSource
+                Text="D"
+                FontSize="12"
+                Foreground="White"
+                Background="#FF3B82F6" />
+        </tb:TaskbarIcon.IconSource>
+
+    </tb:TaskbarIcon>
+</UserControl>
