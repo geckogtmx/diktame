@@ -14,6 +14,13 @@ public sealed class TextInjector
     private readonly IInputSimulator _sim;
 
     /// <summary>
+    /// The last text passed to <see cref="InjectText"/>.
+    /// Volatile — cleared on application restart (same as V1).
+    /// Used by the Oops hotkey to re-inject the previous result.
+    /// </summary>
+    public string? LastInjectedText { get; private set; }
+
+    /// <summary>
     /// Initialises a new TextInjector with the default InputSimulator.
     /// </summary>
     public TextInjector() : this(new InputSimulator()) { }
@@ -25,6 +32,24 @@ public sealed class TextInjector
     public TextInjector(IInputSimulator simulator)
     {
         _sim = simulator;
+    }
+
+    /// <summary>
+    /// Re-injects the last text produced by <see cref="InjectText"/>.
+    /// No-op when <see cref="LastInjectedText"/> is null or empty.
+    /// </summary>
+    /// <param name="trailingSpace">Passed through to <see cref="InjectText"/>.</param>
+    /// <param name="additionalKey">Passed through to <see cref="InjectText"/>.</param>
+    public void ReInjectLast(bool trailingSpace = true, string? additionalKey = null)
+    {
+        if (string.IsNullOrEmpty(LastInjectedText))
+        {
+            Log.Information("TextInjector: ReInjectLast — nothing stored");
+            return;
+        }
+
+        Log.Information("TextInjector: re-injecting last text ({Chars} chars)", LastInjectedText.Length);
+        InjectText(LastInjectedText, trailingSpace, additionalKey);
     }
 
     /// <summary>
@@ -49,6 +74,8 @@ public sealed class TextInjector
 
         Log.Information("TextInjector: injecting {CharCount} chars (trailingSpace={TrailingSpace}, key={AdditionalKey})",
             text.Length, trailingSpace, additionalKey ?? "none");
+
+        LastInjectedText = text;   // D.4: store for Oops re-inject
 
         // 1. Save original clipboard
         string original = ClipboardManager.GetText();
