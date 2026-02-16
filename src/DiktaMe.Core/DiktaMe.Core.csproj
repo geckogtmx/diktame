@@ -11,6 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>DiktaMe.Core.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NAudio" Version="2.*" />
     <PackageReference Include="InputSimulatorStandard" Version="1.*" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.*" />
