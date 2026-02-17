@@ -92,6 +92,32 @@ public sealed record TranslateOptions
 }
 
 /// <summary>
+/// Options for the Chat pipeline (Quick Chat overlay).
+/// </summary>
+public sealed record ChatOptions
+{
+    /// <summary>System prompt that defines conversational Q&amp;A behaviour.</summary>
+    public required string SystemPrompt { get; init; }
+
+    /// <summary>
+    /// The user's question as plain text.
+    /// When set, the STT step is skipped (text was typed in the overlay).
+    /// Mutually exclusive with <see cref="AudioFilePath"/>.
+    /// </summary>
+    public string? TextInput { get; init; }
+
+    /// <summary>
+    /// Path to a WAV file recorded via the Mic button.
+    /// When set, transcription is performed in raw mode (no LLM cleanup).
+    /// Mutually exclusive with <see cref="TextInput"/>.
+    /// </summary>
+    public string? AudioFilePath { get; init; }
+
+    /// <summary>Language hint for audio transcription (default "en").</summary>
+    public string Language { get; init; } = "en";
+}
+
+/// <summary>
 /// Options for the Note pipeline.
 /// </summary>
 public sealed record NoteOptions

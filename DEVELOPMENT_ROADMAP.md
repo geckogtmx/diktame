@@ -572,22 +572,25 @@ input/output token counts from API usage fields.
 - Tests: `SnippetManagerTests.cs` — trigger matching, punctuation, multi-line, false-positive prevention, CRUD, persistence round-trip
 - Note: Settings UI (Snippets tab in F.1) deferred to Stream F. Dynamic variables (`{{date}}`) deferred to V2.1.
 
-#### Task I.2: Quick Chat Overlay (SPEC_042d)
+#### Task I.2: Quick Chat Overlay (SPEC_042d) — ✅ core complete; UI deferred to F
 **Create:** `DiktaMe.App/Views/QuickChatView.xaml`, `DiktaMe.Core/Pipeline/ChatPipeline.cs`
 **Effort:** 1 day
 
-**Steps:**
+**Completed (core):** 2026-02-17
+- `ChatOptions` record added to `PipelineOptions.cs` — `TextInput` (typed) or `AudioFilePath` (voice), `SystemPrompt`, `Language`
+- `ChatPipeline.cs` — text path skips STT; voice path does raw STT then LLM chat; no injection; follows same event/error pattern as other pipelines; `PipelineFactory.CreateChatPipeline()` added
+- `ChatPipelineTests.cs` — 11 tests: text path, empty text, LLM passthrough, voice path, empty transcription, no-STT-provider, neither input, LLM empty, cancellation, state events, latency fields
+- Build: 0 errors, 0 warnings; Tests: 343/343 passing
+
+**Remaining (Stream F):**
 1. New global hotkey: `Ctrl+Alt+C` (configurable)
 2. Small floating WinUI 3 window (~400×300px), always-on-top, not modal
 3. Input field (text) + Send button + Mic button (voice input)
 4. Response area (scrollable, supports streaming)
-5. `ChatPipeline`: routes to existing `LLMRouter` with chat system prompt
-6. Voice input: reuse existing `AudioRecorder` → `STTRouter` → populate input field
-7. Whisper-only transcription for voice (Raw mode, no LLM cleanup of the question)
-8. `Escape` or click-outside closes overlay
-9. Stateless MVP — no conversation history (multi-turn is V2.1)
+5. `Escape` or click-outside closes overlay
+6. Stateless MVP — no conversation history (multi-turn is V2.1)
 
-**Tests:** Pipeline routing, window lifecycle, voice input flow.
+**Tests:** window lifecycle (Stream F).
 
 #### Task I.3: Control Panel Configuration (SPEC_043) — ✅ V1 DONE, port only
 **Create:** Part of `SettingsView.xaml` (new "Control Panel" tab)
@@ -1107,5 +1110,5 @@ publish/
 ---
 
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, I.1, I.4, I.5 (core)
-**Next Step:** I.2 (ChatPipeline core), then Stream F (UI)
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, I.1, I.2 (core), I.4, I.5 (core)
+**Next Step:** Stream F (UI) — F.1 Settings Window, then remaining I.2/I.5 UI hooks

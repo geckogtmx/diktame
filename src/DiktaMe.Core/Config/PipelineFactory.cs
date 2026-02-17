@@ -61,6 +61,12 @@ public sealed class PipelineFactory
         return new NotePipeline(stt, llm);
     }
 
+    public ChatPipeline CreateChatPipeline(string? modeOverride = null)
+    {
+        var (stt, llm) = GetProviders("chat", modeOverride);
+        return new ChatPipeline(llm!, stt);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private (ISTTProvider Stt, ILLMProvider? Llm) GetProviders(string mode, string? modeOverride)
