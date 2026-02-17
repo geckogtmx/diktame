@@ -150,6 +150,10 @@ public partial class App : Application
             stt: sp.GetRequiredService<ISTTProvider>(),
             llm: sp.GetRequiredService<ILLMProvider>()));
 
+        services.AddTransient<ChatPipeline>(sp => new ChatPipeline(
+            llm: sp.GetRequiredService<ILLMProvider>(),
+            stt: sp.GetRequiredService<ISTTProvider>()));
+
         // ── Config & Security (E.1 / E.3) ───────────────────────────────────
         services.AddSingleton<SecureStorage>();
         services.AddSingleton<SettingsManager>();

@@ -13,7 +13,7 @@ using Serilog;
 /// Balanced scrubs PII, Full logs everything.
 /// Port of V1's HistoryManager from python/utils/history_manager.py.
 /// </summary>
-public class HistoryManager : IDisposable
+public sealed class HistoryManager : IDisposable
 {
     /// <summary>Default path to the SQLite database file.</summary>
     public static readonly string DbPath = Path.Combine(
