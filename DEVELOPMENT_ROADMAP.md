@@ -1,7 +1,7 @@
 # dIKta.me V2 — Development Roadmap (C# + WinUI 3 Rewrite)
 
-**Status:** DRAFT
-**Date:** 2026-02-14
+**Status:** IN PROGRESS — Streams A–E complete (F, G, H, I remaining)
+**Date:** 2026-02-16
 **Parent:** V1 `SPEC_039_STRATEGIC_ROADMAP.md` (in diktate repo)
 **Supersedes:** Python modular split approach (deemed throwaway work)
 **Target:** Native Windows app — single process, modular architecture, self-contained installer
@@ -519,75 +519,39 @@ input/output token counts from API usage fields.
 
 > **Execution order:** E.0 first (unblocks DI), then E.1 + E.3 in parallel (settings model and secure storage are mutually needed), then E.2.
 
-#### Task E.0: Wire DI Container ⚡ PRE-TASK
-**Modify:** `DiktaMe.App/App.xaml.cs` (`ConfigureServices`)
-**Effort:** 0.25 day
+#### Task E.0: Wire DI Container ⚡ PRE-TASK ✅
+**Modified:** `DiktaMe.App/App.xaml.cs` (`ConfigureServices`)
 
-> **Blocker:** `ConfigureServices` is currently empty — the DI container is created but no services are registered. All pipelines, providers, and hotkey handlers depend on DI resolving correctly. Nothing beyond showing the tray icon works until this is done.
+- `CancellationToken` added to `ISTTProvider` and `ILLMProvider` interfaces; propagated through all 4 STT providers + STTRouter, 5 LLM providers + LLMRouter, and all 5 pipelines
+- `ConfigureServices()` fully wired: `AudioRecorder`, `MuteDetector`, `TextInjector`, `HotkeyManager` as singletons; `WhisperProvider` + `OllamaProvider` as local defaults (no API key required at startup); all 5 pipelines as transient
+- Note: `AudioDeviceManager` and `ClipboardManager` are static utility classes — not registered in DI
 
-**Steps:**
-1. Register core engine services as singletons: `AudioRecorder`, `TextInjector`, `HotkeyManager`, `MuteDetector`
-2. Register STT providers and router: `DeepgramProvider`, `STTRouter` (default cloud)
-3. Register LLM providers and router: `GeminiProvider`, `LLMRouter` (default cloud)
-4. Register pipelines as transient: `DictationPipeline`, `RefinePipeline`, `AskPipeline`, `TranslatePipeline`, `NotePipeline`
-5. Placeholder registrations for E.1 / E.3 services (commented, ready to uncomment)
-6. Verify app still launches and tray icon appears after wiring
+#### Task E.1: Settings Manager ✅
+**Created:** `DiktaMe.Core/Config/AppSettings.cs`, `SettingsManager.cs`, `ProfileManager.cs`, `PromptRepository.cs`, `STTProviderFactory.cs`, `LLMProviderFactory.cs`, `PipelineFactory.cs`
 
-**Acceptance:** All services resolve without exception; `dotnet build` clean.
+- `AppSettings`: strongly-typed record with `GeneralSettings`, `AudioSettings`, `PrivacySettings`, `HotkeySettings`, `ModeSettings` dictionary (8 modes × 2 profiles keyed `"{mode}_{profile}"`), 16-slot `CustomPrompts[]`, `ActiveProfile`, `NotesFilePath`, `OllamaModel`; `AppSettingsContext` source-generated JSON context for trim compatibility
+- `SettingsManager`: persists to `%APPDATA%\DiktaMe\settings.json`; atomic write (`.tmp` → rename); `MergeDefaults()` for schema upgrades; `TryMigrateFromV1Async()` for dIKtate V1 electron-store migration; observable `Current` property + `SettingsChanged` event
+- `ProfileManager`: dual-profile with `GetModeSettings(mode)` returning active profile's settings
+- `PromptRepository`: CRUD over 16 prompt slots
+- `STTProviderFactory` / `LLMProviderFactory`: runtime provider construction from settings + `SecureStorage` API keys; `LLMProviderFactory` includes `NullLlmProvider` for "none"/"skip" modes
+- `PipelineFactory`: `CreateXxxPipeline()` helpers using `ProfileManager` + provider factories
+- Tests: `SettingsManagerTests.cs` (unit + integration round-trip)
 
-#### Task E.1: Settings Manager
-**Create:** `DiktaMe.Core/Config/AppSettings.cs`, `SettingsManager.cs`
-**Effort:** 1 day
+#### Task E.2: History & Metrics (SQLite) ✅
+**Created:** `DiktaMe.Core/Data/HistoryManager.cs`, `MetricsCollector.cs`, `NoteWriter.cs`
 
-**Port from:** Electron `electron-store` config
+- `HistoryManager`: SQLite at `%APPDATA%\DiktaMe\history.db`; schema: `history` table (id, timestamp, mode, text, raw_transcript, stt/llm providers, word_count, per-stage latencies, is_success) + `system_metrics` table; 90-day auto-pruning on `InitAsync`; privacy level compliance (Ghost=skip all, Stats=metrics only, Balanced=PII scrubbed, Full=verbatim); `dbPath` constructor param for test isolation
+- `MetricsCollector`: in-memory session accumulators; `GetTodayStatsAsync()` via `HistoryManager`
+- `NoteWriter`: static `AppendAsync()` helper for timestamped note file appending
+- Tests: `HistoryManagerTests.cs` using temp db path
 
-**Steps:**
-1. `AppSettings` record with all settings (strongly typed, not a dict)
-2. Persist to `%APPDATA%/DiktaMe/settings.json` using `System.Text.Json` with source generators for trim compatibility:
-   ```csharp
-   [JsonSerializable(typeof(AppSettings))]
-   public partial class AppSettingsContext : JsonSerializerContext { }
-   ```
-3. `SettingsManager` — load, save, merge defaults, migrate schema
-4. Observable properties for MVVM binding
-5. `ProfileManager` — dual-profile system (8 modes × 2 profiles)
-6. `PromptRepository` — 16 custom prompt slots
-7. Migration from V1 settings (read `electron-store` JSON, convert)
-8. `ISTTProviderFactory` and `ILLMProviderFactory` interfaces — enable runtime provider construction from settings (required for per-mode provider selection in the dual-profile system):
-   ```csharp
-   public interface ISTTProviderFactory
-   {
-       ISTTProvider CreateProvider(string providerType, string? apiKey = null);
-   }
-   public interface ILLMProviderFactory
-   {
-       ILLMProvider CreateProvider(string providerType, string? apiKey = null, string? model = null);
-   }
-   ```
-9. `PipelineFactory` — constructs pipelines with mode-aware provider selection from settings (replaces direct `new DictationPipeline(stt, llm, injector)` calls)
+#### Task E.3: Security (Secrets + PII) ✅
+**Created:** `DiktaMe.Core/Security/SecureStorage.cs`, `PIIScrubber.cs`, `ApiKeyValidator.cs`
 
-#### Task E.2: History & Metrics (SQLite)
-**Create:** `DiktaMe.Core/Data/HistoryManager.cs`, `MetricsCollector.cs`
-**Effort:** 0.5 day
-
-**Port from:** `python/utils/history_manager.py`
-
-**Steps:**
-1. SQLite database at `~/.diktate/history.db` (same location as V1)
-2. Same schema: `history` + `system_metrics` tables
-3. 90-day auto-pruning
-4. Privacy level compliance (Ghost/Stats/Balanced/Full)
-5. PII scrubber integration at Level 2+
-
-#### Task E.3: Security (Secrets + PII)
-**Create:** `DiktaMe.Core/Security/SecureStorage.cs`, `PIIScrubber.cs`
-**Effort:** 0.5 day
-
-**Steps:**
-1. `SecureStorage` — use `ProtectedData.Protect()` (DPAPI) for API keys
-2. Store encrypted keys in `%APPDATA%/DiktaMe/keys.dat`
-3. `PIIScrubber` — regex-based redaction (emails, phones, API keys)
-4. `ApiKeyValidator` — format validation per provider
+- `SecureStorage`: DPAPI via `ProtectedData.Protect/Unprotect` (`DataProtectionScope.CurrentUser`); stores at `%APPDATA%\DiktaMe\keys.dat` as encrypted JSON blob; atomic writes; zeroes byte arrays in `finally` blocks; `SecureStorageJsonContext` source-generated JSON for trim compatibility
+- `PIIScrubber`: compiled Regex patterns for email, US phone, credit card, SSN, API key prefixes; `Scrub(text) → string` replaces matches with `[REDACTED]`; `ContainsPII(text) → bool`
+- `ApiKeyValidator`: static validators for OpenAI (`sk-`, ≥48 chars), Anthropic (`sk-ant-`), Gemini (≥30 chars), Deepgram (≥30 chars)
+- Tests: `ApiKeyValidatorTests.cs`, `PIIScrubberTests.cs`, `SecureStorageTests.cs`
 
 ---
 
@@ -1151,6 +1115,6 @@ publish/
 
 ---
 
-**Document Status:** DRAFT — Ready for review
-**Next Step:** Approve plan → Run Task A.0 (Git Prep) → Begin Task A.1 (scaffold)
-**Prerequisite:** Ship V1 (dIKtate) as-is first, start collecting revenue
+**Document Status:** IN PROGRESS
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3
+**Next Step:** Stream F (UI — WinUI 3 settings, control panel, wizard) and Stream I (promoted features)
