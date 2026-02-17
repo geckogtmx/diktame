@@ -61,7 +61,7 @@ public sealed class DictationPipeline
 
             var sttSw = Stopwatch.StartNew();
             TranscriptionResult sttResult = await _stt
-                .TranscribeAsync(audioFilePath, options.Language)
+                .TranscribeAsync(audioFilePath, options.Language, cancellationToken)
                 .ConfigureAwait(false);
             sttSw.Stop();
 
@@ -104,7 +104,7 @@ public sealed class DictationPipeline
                 var llmSw = Stopwatch.StartNew();
 
                 LlmResult llmResult = await _llm!
-                    .ProcessAsync(rawText, options.SystemPrompt!, Mode)
+                    .ProcessAsync(rawText, options.SystemPrompt!, Mode, cancellationToken)
                     .ConfigureAwait(false);
 
                 llmSw.Stop();

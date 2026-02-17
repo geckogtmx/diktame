@@ -79,7 +79,7 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
     /// Returns <c>true</c> if the model file exists on disk.
     /// A <c>false</c> result means the model needs to be downloaded first.
     /// </remarks>
-    public Task<bool> IsAvailableAsync()
+    public Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
         => Task.FromResult(File.Exists(_modelPath));
 
     /// <inheritdoc/>
@@ -90,7 +90,8 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
     /// </remarks>
     public async Task<TranscriptionResult> TranscribeAsync(
         string audioFilePath,
-        string language = "en")
+        string language = "en",
+        CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 

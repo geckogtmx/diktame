@@ -77,7 +77,7 @@ public sealed class RefinePipeline
 
                 var sttSw = Stopwatch.StartNew();
                 TranscriptionResult sttResult = await _stt
-                    .TranscribeAsync(audioFilePath, options.Language)
+                    .TranscribeAsync(audioFilePath, options.Language, cancellationToken)
                     .ConfigureAwait(false);
                 sttSw.Stop();
 
@@ -131,7 +131,7 @@ public sealed class RefinePipeline
             Log.Information("RefinePipeline: calling LLM ({Provider})", _llm.ProviderName);
             var llmSw = Stopwatch.StartNew();
             LlmResult llmResult = await _llm
-                .ProcessAsync(selectedText, effectivePrompt, Mode)
+                .ProcessAsync(selectedText, effectivePrompt, Mode, cancellationToken)
                 .ConfigureAwait(false);
             llmSw.Stop();
 
@@ -217,7 +217,7 @@ public sealed class RefinePipeline
 
         var llmSw = Stopwatch.StartNew();
         LlmResult llmResult = await _llm
-            .ProcessAsync(instruction, options.SystemPrompt, "ask")
+            .ProcessAsync(instruction, options.SystemPrompt, "ask", cancellationToken)
             .ConfigureAwait(false);
         llmSw.Stop();
         total.Stop();

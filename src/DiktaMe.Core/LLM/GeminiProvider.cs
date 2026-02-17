@@ -48,14 +48,15 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
     }
 
     /// <inheritdoc/>
-    public Task<bool> IsAvailableAsync()
+    public Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
         => Task.FromResult(!string.IsNullOrWhiteSpace(_apiKey));
 
     /// <inheritdoc/>
     public async Task<LlmResult> ProcessAsync(
         string text,
         string systemPrompt,
-        string mode = "dictate")
+        string mode = "dictate",
+        CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -87,7 +88,7 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
                 if (_isOAuth)
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
-                using var response = await _http.SendAsync(request).ConfigureAwait(false);
+                using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                     throw new InvalidOperationException("Gemini: invalid API key or OAuth token (401).");

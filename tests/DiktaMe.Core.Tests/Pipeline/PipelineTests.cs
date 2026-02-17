@@ -40,7 +40,7 @@ public sealed class PipelineTests
     private static Mock<ISTTProvider> OkStt(string text = "hello world", string lang = "en")
     {
         var m = new Mock<ISTTProvider>();
-        m.Setup(s => s.TranscribeAsync(It.IsAny<string>(), It.IsAny<string>()))
+        m.Setup(s => s.TranscribeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
          .ReturnsAsync(new TranscriptionResult
          {
              Text = text,
@@ -53,7 +53,7 @@ public sealed class PipelineTests
     private static Mock<ISTTProvider> EmptyStt()
     {
         var m = new Mock<ISTTProvider>();
-        m.Setup(s => s.TranscribeAsync(It.IsAny<string>(), It.IsAny<string>()))
+        m.Setup(s => s.TranscribeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
          .ReturnsAsync(new TranscriptionResult { Text = string.Empty, Provider = "MockSTT" });
         return m;
     }
@@ -61,7 +61,7 @@ public sealed class PipelineTests
     private static Mock<ISTTProvider> ThrowingStt()
     {
         var m = new Mock<ISTTProvider>();
-        m.Setup(s => s.TranscribeAsync(It.IsAny<string>(), It.IsAny<string>()))
+        m.Setup(s => s.TranscribeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
          .ThrowsAsync(new HttpRequestException("network error"));
         return m;
     }
@@ -70,7 +70,7 @@ public sealed class PipelineTests
     {
         var m = new Mock<ILLMProvider>();
         m.SetupGet(l => l.ProviderName).Returns("MockLLM");
-        m.Setup(l => l.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        m.Setup(l => l.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
          .ReturnsAsync(new LlmResult { Text = text, Provider = "MockLLM" });
         return m;
     }
@@ -79,7 +79,7 @@ public sealed class PipelineTests
     {
         var m = new Mock<ILLMProvider>();
         m.SetupGet(l => l.ProviderName).Returns("MockLLM");
-        m.Setup(l => l.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        m.Setup(l => l.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
          .ReturnsAsync(new LlmResult { Text = string.Empty, Provider = "MockLLM" });
         return m;
     }
@@ -88,7 +88,7 @@ public sealed class PipelineTests
     {
         var m = new Mock<ILLMProvider>();
         m.SetupGet(l => l.ProviderName).Returns("MockLLM");
-        m.Setup(l => l.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        m.Setup(l => l.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
          .ThrowsAsync(new InvalidOperationException("LLM error"));
         return m;
     }
@@ -128,7 +128,7 @@ public sealed class PipelineTests
         result.IsSuccess.Should().BeTrue();
         result.Text.Should().Be("raw words");
         // LLM should never be called
-        llm.Verify(l => l.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+        llm.Verify(l => l.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 

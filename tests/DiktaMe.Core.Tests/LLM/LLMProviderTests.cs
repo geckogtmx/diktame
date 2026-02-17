@@ -427,7 +427,7 @@ public sealed class LLMRouterTests
     public async Task Process_PrimarySucceeds_ReturnsPrimaryResult()
     {
         var primary = new Mock<ILLMProvider>();
-        primary.Setup(p => p.ProcessAsync("text", "prompt", "dictate"))
+        primary.Setup(p => p.ProcessAsync("text", "prompt", "dictate", It.IsAny<CancellationToken>()))
                .ReturnsAsync(OkResult("primary output", "Primary"));
         var router = new LLMRouter(primary.Object);
 
@@ -441,12 +441,12 @@ public sealed class LLMRouterTests
     {
         var primary = new Mock<ILLMProvider>();
         primary.Setup(p => p.ProviderName).Returns("Primary");
-        primary.Setup(p => p.ProcessAsync("text", "prompt", "dictate"))
+        primary.Setup(p => p.ProcessAsync("text", "prompt", "dictate", It.IsAny<CancellationToken>()))
                .ReturnsAsync(EmptyResult("Primary"));
 
         var fallback = new Mock<ILLMProvider>();
         fallback.Setup(p => p.ProviderName).Returns("Fallback");
-        fallback.Setup(p => p.ProcessAsync("text", "prompt", "dictate"))
+        fallback.Setup(p => p.ProcessAsync("text", "prompt", "dictate", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(OkResult("fallback output", "Fallback"));
 
         var router = new LLMRouter(primary.Object, fallback.Object);
@@ -461,12 +461,12 @@ public sealed class LLMRouterTests
     {
         var primary = new Mock<ILLMProvider>();
         primary.Setup(p => p.ProviderName).Returns("Primary");
-        primary.Setup(p => p.ProcessAsync("text", "prompt", "dictate"))
+        primary.Setup(p => p.ProcessAsync("text", "prompt", "dictate", It.IsAny<CancellationToken>()))
                .ThrowsAsync(new HttpRequestException("network error"));
 
         var fallback = new Mock<ILLMProvider>();
         fallback.Setup(p => p.ProviderName).Returns("Fallback");
-        fallback.Setup(p => p.ProcessAsync("text", "prompt", "dictate"))
+        fallback.Setup(p => p.ProcessAsync("text", "prompt", "dictate", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(OkResult("fallback output", "Fallback"));
 
         var router = new LLMRouter(primary.Object, fallback.Object);
@@ -481,12 +481,12 @@ public sealed class LLMRouterTests
     {
         var primary = new Mock<ILLMProvider>();
         primary.Setup(p => p.ProviderName).Returns("Primary");
-        primary.Setup(p => p.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        primary.Setup(p => p.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                .ThrowsAsync(new HttpRequestException());
 
         var fallback = new Mock<ILLMProvider>();
         fallback.Setup(p => p.ProviderName).Returns("Fallback");
-        fallback.Setup(p => p.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        fallback.Setup(p => p.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException());
 
         var router = new LLMRouter(primary.Object, fallback.Object);
@@ -501,7 +501,7 @@ public sealed class LLMRouterTests
     public async Task IsAvailable_PrimaryAvailable_ReturnsTrue()
     {
         var primary = new Mock<ILLMProvider>();
-        primary.Setup(p => p.IsAvailableAsync()).ReturnsAsync(true);
+        primary.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
         var router = new LLMRouter(primary.Object);
         Assert.True(await router.IsAvailableAsync());
     }

@@ -56,7 +56,7 @@ public sealed class GeminiAudioProvider : ISTTProvider, IDisposable
     }
 
     /// <inheritdoc/>
-    public Task<bool> IsAvailableAsync()
+    public Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
         => Task.FromResult(!string.IsNullOrWhiteSpace(_apiKey));
 
     /// <inheritdoc/>
@@ -67,13 +67,14 @@ public sealed class GeminiAudioProvider : ISTTProvider, IDisposable
     /// </remarks>
     public async Task<TranscriptionResult> TranscribeAsync(
         string audioFilePath,
-        string language = "en")
+        string language = "en",
+        CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         var sw = Stopwatch.StartNew();
 
-        byte[] audioBytes = await File.ReadAllBytesAsync(audioFilePath).ConfigureAwait(false);
+        byte[] audioBytes = await File.ReadAllBytesAsync(audioFilePath, cancellationToken).ConfigureAwait(false);
         string audioBase64 = Convert.ToBase64String(audioBytes);
 
         string prompt = BuildTranscriptionPrompt(language);
@@ -88,7 +89,7 @@ public sealed class GeminiAudioProvider : ISTTProvider, IDisposable
         HttpResponseMessage response;
         try
         {
-            response = await _http.SendAsync(request).ConfigureAwait(false);
+            response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
         catch (HttpRequestException ex)
         {

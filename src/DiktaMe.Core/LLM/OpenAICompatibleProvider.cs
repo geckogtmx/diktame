@@ -131,14 +131,15 @@ public sealed class OpenAICompatibleProvider : ILLMProvider, IDisposable
     }
 
     /// <inheritdoc/>
-    public Task<bool> IsAvailableAsync()
+    public Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
         => Task.FromResult(!string.IsNullOrWhiteSpace(_apiKey));
 
     /// <inheritdoc/>
     public async Task<LlmResult> ProcessAsync(
         string text,
         string systemPrompt,
-        string mode = "dictate")
+        string mode = "dictate",
+        CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -156,7 +157,7 @@ public sealed class OpenAICompatibleProvider : ILLMProvider, IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
                 request.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
-                using var response = await _http.SendAsync(request).ConfigureAwait(false);
+                using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                     throw new InvalidOperationException($"{_serviceName}: invalid API key (401).");

@@ -12,12 +12,13 @@ public interface ISTTProvider
     /// <param name="audioFilePath">Path to the WAV audio file (16kHz, 16-bit mono).</param>
     /// <param name="language">Language code (e.g., "en", "es", "auto").</param>
     /// <returns>The transcription result.</returns>
-    Task<TranscriptionResult> TranscribeAsync(string audioFilePath, string language = "en");
+    Task<TranscriptionResult> TranscribeAsync(string audioFilePath, string language = "en",
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks whether this provider is currently available and configured.
     /// </summary>
-    Task<bool> IsAvailableAsync();
+    Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the display name of this provider (e.g., "Deepgram Nova-2").

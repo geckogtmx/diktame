@@ -58,11 +58,11 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
     /// Calls <c>GET /api/tags</c> to verify Ollama is running.
     /// Returns <c>false</c> (not throws) if the server is unreachable.
     /// </remarks>
-    public async Task<bool> IsAvailableAsync()
+    public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            using var response = await _http.GetAsync(_tagsUrl).ConfigureAwait(false);
+            using var response = await _http.GetAsync(_tagsUrl, cancellationToken).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
         catch
@@ -106,7 +106,8 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
     public async Task<LlmResult> ProcessAsync(
         string text,
         string systemPrompt,
-        string mode = "dictate")
+        string mode = "dictate",
+        CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -123,7 +124,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
                 using var request = new HttpRequestMessage(HttpMethod.Post, _generateUrl);
                 request.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
-                using var response = await _http.SendAsync(request).ConfigureAwait(false);
+                using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 if (!response.IsSuccessStatusCode)
                 {

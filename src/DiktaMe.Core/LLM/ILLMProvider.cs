@@ -19,13 +19,14 @@ public interface ILLMProvider
     /// Does not alter the request — callers are responsible for selecting the right prompt.
     /// </param>
     /// <returns>The processing result including output text, latency, and token counts.</returns>
-    Task<LlmResult> ProcessAsync(string text, string systemPrompt, string mode = "dictate");
+    Task<LlmResult> ProcessAsync(string text, string systemPrompt, string mode = "dictate",
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks whether this provider is currently reachable and configured.
     /// Should not throw — returns <c>false</c> on any error.
     /// </summary>
-    Task<bool> IsAvailableAsync();
+    Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Display name of this provider, including the model, e.g. "GPT-4o-mini (OpenAI)".

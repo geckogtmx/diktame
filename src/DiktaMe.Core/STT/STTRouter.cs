@@ -33,13 +33,13 @@ public sealed class STTRouter : ISTTProvider
     }
 
     /// <inheritdoc/>
-    public async Task<bool> IsAvailableAsync()
+    public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
-        if (await _primary.IsAvailableAsync().ConfigureAwait(false))
+        if (await _primary.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
             return true;
 
         if (_fallback is not null)
-            return await _fallback.IsAvailableAsync().ConfigureAwait(false);
+            return await _fallback.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
 
         return false;
     }
@@ -50,12 +50,13 @@ public sealed class STTRouter : ISTTProvider
     /// </summary>
     public async Task<TranscriptionResult> TranscribeAsync(
         string audioFilePath,
-        string language = "en")
+        string language = "en",
+        CancellationToken cancellationToken = default)
     {
         // ── Try primary ───────────────────────────────────────────────────────
         try
         {
-            var result = await _primary.TranscribeAsync(audioFilePath, language)
+            var result = await _primary.TranscribeAsync(audioFilePath, language, cancellationToken)
                 .ConfigureAwait(false);
 
             if (result.IsSuccess)
@@ -78,7 +79,7 @@ public sealed class STTRouter : ISTTProvider
         {
             try
             {
-                var fallbackResult = await _fallback.TranscribeAsync(audioFilePath, language)
+                var fallbackResult = await _fallback.TranscribeAsync(audioFilePath, language, cancellationToken)
                     .ConfigureAwait(false);
 
                 Log.Information("STTRouter: fallback {Provider} result: success={Success}",
@@ -105,11 +106,11 @@ public sealed class STTRouter : ISTTProvider
     /// <summary>
     /// Returns which providers are currently available.
     /// </summary>
-    public async Task<ProviderAvailability> GetCapabilitiesAsync()
+    public async Task<ProviderAvailability> GetCapabilitiesAsync(CancellationToken cancellationToken = default)
     {
-        bool primaryAvailable = await _primary.IsAvailableAsync().ConfigureAwait(false);
+        bool primaryAvailable = await _primary.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
         bool fallbackAvailable = _fallback is not null
-            && await _fallback.IsAvailableAsync().ConfigureAwait(false);
+            && await _fallback.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
 
         return new ProviderAvailability(
             _primary.ProviderName, primaryAvailable,

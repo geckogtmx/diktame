@@ -46,7 +46,7 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
 
     /// <inheritdoc/>
     /// <remarks>Returns <c>false</c> if the API key is not set; does not make a network call.</remarks>
-    public Task<bool> IsAvailableAsync()
+    public Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
         => Task.FromResult(!string.IsNullOrWhiteSpace(_apiKey));
 
     /// <inheritdoc/>
@@ -56,7 +56,8 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
     /// </remarks>
     public async Task<TranscriptionResult> TranscribeAsync(
         string audioFilePath,
-        string language = "en")
+        string language = "en",
+        CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -67,7 +68,7 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
             ? ListenUrl + "&detect_language=true"
             : ListenUrl + $"&language={Uri.EscapeDataString(language)}";
 
-        byte[] audioBytes = await File.ReadAllBytesAsync(audioFilePath).ConfigureAwait(false);
+        byte[] audioBytes = await File.ReadAllBytesAsync(audioFilePath, cancellationToken).ConfigureAwait(false);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Token", _apiKey);
@@ -77,7 +78,7 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
         HttpResponseMessage response;
         try
         {
-            response = await _http.SendAsync(request).ConfigureAwait(false);
+            response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
         catch (HttpRequestException ex)
         {

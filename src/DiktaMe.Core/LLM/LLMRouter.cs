@@ -28,13 +28,13 @@ public sealed class LLMRouter : ILLMProvider
     }
 
     /// <inheritdoc/>
-    public async Task<bool> IsAvailableAsync()
+    public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
-        if (await _primary.IsAvailableAsync().ConfigureAwait(false))
+        if (await _primary.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
             return true;
 
         if (_fallback is not null)
-            return await _fallback.IsAvailableAsync().ConfigureAwait(false);
+            return await _fallback.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
 
         return false;
     }
@@ -47,12 +47,13 @@ public sealed class LLMRouter : ILLMProvider
     public async Task<LlmResult> ProcessAsync(
         string text,
         string systemPrompt,
-        string mode = "dictate")
+        string mode = "dictate",
+        CancellationToken cancellationToken = default)
     {
         // ── Try primary ───────────────────────────────────────────────────────
         try
         {
-            var result = await _primary.ProcessAsync(text, systemPrompt, mode)
+            var result = await _primary.ProcessAsync(text, systemPrompt, mode, cancellationToken)
                 .ConfigureAwait(false);
 
             if (result.IsSuccess)
@@ -75,7 +76,7 @@ public sealed class LLMRouter : ILLMProvider
         {
             try
             {
-                var fallbackResult = await _fallback.ProcessAsync(text, systemPrompt, mode)
+                var fallbackResult = await _fallback.ProcessAsync(text, systemPrompt, mode, cancellationToken)
                     .ConfigureAwait(false);
 
                 Log.Information("LLMRouter: fallback {Provider} result: success={Success}",

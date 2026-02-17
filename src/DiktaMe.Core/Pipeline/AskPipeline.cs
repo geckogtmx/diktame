@@ -48,7 +48,7 @@ public sealed class AskPipeline
 
             var sttSw = Stopwatch.StartNew();
             TranscriptionResult sttResult = await _stt
-                .TranscribeAsync(audioFilePath, options.Language)
+                .TranscribeAsync(audioFilePath, options.Language, cancellationToken)
                 .ConfigureAwait(false);
             sttSw.Stop();
 
@@ -70,7 +70,7 @@ public sealed class AskPipeline
 
             var llmSw = Stopwatch.StartNew();
             LlmResult llmResult = await _llm
-                .ProcessAsync(question, options.SystemPrompt, Mode)
+                .ProcessAsync(question, options.SystemPrompt, Mode, cancellationToken)
                 .ConfigureAwait(false);
             llmSw.Stop();
             total.Stop();

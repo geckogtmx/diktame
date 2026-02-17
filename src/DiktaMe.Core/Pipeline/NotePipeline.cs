@@ -53,7 +53,7 @@ public sealed class NotePipeline
 
             sttSw = Stopwatch.StartNew();
             TranscriptionResult sttResult = await _stt
-                .TranscribeAsync(audioFilePath, options.Language)
+                .TranscribeAsync(audioFilePath, options.Language, cancellationToken)
                 .ConfigureAwait(false);
             sttSw.Stop();
 
@@ -81,7 +81,7 @@ public sealed class NotePipeline
                 Log.Information("NotePipeline: formatting via LLM ({Provider})", _llm!.ProviderName);
                 var llmSw = Stopwatch.StartNew();
                 LlmResult llmResult = await _llm!
-                    .ProcessAsync(rawText, options.SystemPrompt!, Mode)
+                    .ProcessAsync(rawText, options.SystemPrompt!, Mode, cancellationToken)
                     .ConfigureAwait(false);
                 llmSw.Stop();
                 processingMs = llmSw.ElapsedMilliseconds;

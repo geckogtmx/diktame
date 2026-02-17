@@ -1,4 +1,9 @@
 using DiktaMe.App.Views;
+using DiktaMe.Core.Audio;
+using DiktaMe.Core.Input;
+using DiktaMe.Core.LLM;
+using DiktaMe.Core.Pipeline;
+using DiktaMe.Core.STT;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Serilog;
@@ -81,11 +86,66 @@ public partial class App : Application
 
     private static void ConfigureServices(IServiceCollection services)
     {
-        // Core services will be registered here as they are implemented
-        // Example:
-        // services.AddSingleton<ISTTProvider, DeepgramProvider>();
-        // services.AddSingleton<ILLMProvider, GeminiProvider>();
+        // ── Core engine (singletons) ─────────────────────────────────────────
+        // NOTE: AudioDeviceManager and ClipboardManager are static utility classes;
+        // they do not need DI registration.
+        services.AddSingleton<AudioRecorder>();
+        services.AddSingleton<MuteDetector>();
+        services.AddSingleton<TextInjector>();
+        services.AddSingleton<HotkeyManager>();
+
+        // ── STT providers ────────────────────────────────────────────────────
+        // Local Whisper (no API key needed — requires model download)
+        services.AddSingleton<WhisperProvider>();
+
+        // Cloud providers registered as concrete types so they can be resolved
+        // by PipelineFactory (E.1) once SecureStorage provides real API keys.
+        // NOTE: Cloud providers require keys; they are deliberately NOT registered
+        // against ISTTProvider here — the router below uses WhisperProvider as
+        // the default until settings/keys are configured.
+        services.AddSingleton<ISTTProvider>(sp => new STTRouter(
+            primary: sp.GetRequiredService<WhisperProvider>()));
+
+        // ── LLM providers ────────────────────────────────────────────────────
+        // Ollama (local, no API key — works out of the box when Ollama is running)
+        services.AddSingleton<OllamaProvider>(sp => new OllamaProvider("llama3.2"));
+
+        // Register router against interface — Ollama is the default offline provider.
+        // Cloud LLM providers are created by PipelineFactory (E.1) using API keys
+        // from SecureStorage.
+        services.AddSingleton<ILLMProvider>(sp => new LLMRouter(
+            primary: sp.GetRequiredService<OllamaProvider>()));
+
+        // ── Pipelines (transient — new instance per invocation) ──────────────
+        services.AddTransient<DictationPipeline>(sp => new DictationPipeline(
+            stt: sp.GetRequiredService<ISTTProvider>(),
+            llm: sp.GetRequiredService<ILLMProvider>(),
+            injector: sp.GetRequiredService<TextInjector>()));
+
+        services.AddTransient<RefinePipeline>(sp => new RefinePipeline(
+            llm: sp.GetRequiredService<ILLMProvider>(),
+            injector: sp.GetRequiredService<TextInjector>(),
+            stt: sp.GetRequiredService<ISTTProvider>()));
+
+        services.AddTransient<AskPipeline>(sp => new AskPipeline(
+            stt: sp.GetRequiredService<ISTTProvider>(),
+            llm: sp.GetRequiredService<ILLMProvider>()));
+
+        services.AddTransient<TranslatePipeline>(sp => new TranslatePipeline(
+            stt: sp.GetRequiredService<ISTTProvider>(),
+            llm: sp.GetRequiredService<ILLMProvider>(),
+            injector: sp.GetRequiredService<TextInjector>()));
+
+        services.AddTransient<NotePipeline>(sp => new NotePipeline(
+            stt: sp.GetRequiredService<ISTTProvider>(),
+            llm: sp.GetRequiredService<ILLMProvider>()));
+
+        // ── Placeholders — uncomment as E.1/E.3 are implemented ─────────────
+        // services.AddSingleton<SecureStorage>();
         // services.AddSingleton<SettingsManager>();
-        // services.AddSingleton<AudioRecorder>();
+        // services.AddSingleton<ProfileManager>();
+        // services.AddSingleton<PromptRepository>();
+        // services.AddSingleton<PipelineFactory>();
+        // services.AddSingleton<HistoryManager>();
     }
 }

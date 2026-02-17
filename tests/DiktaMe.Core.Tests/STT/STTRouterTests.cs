@@ -57,7 +57,7 @@ public sealed class STTRouterTests
     public async Task IsAvailable_PrimaryAvailable_ReturnsTrue()
     {
         var primary = new Mock<ISTTProvider>();
-        primary.Setup(p => p.IsAvailableAsync()).ReturnsAsync(true);
+        primary.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var router = new STTRouter(primary.Object);
 
@@ -68,7 +68,7 @@ public sealed class STTRouterTests
     public async Task IsAvailable_PrimaryUnavailable_NoFallback_ReturnsFalse()
     {
         var primary = new Mock<ISTTProvider>();
-        primary.Setup(p => p.IsAvailableAsync()).ReturnsAsync(false);
+        primary.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         var router = new STTRouter(primary.Object);
 
@@ -79,10 +79,10 @@ public sealed class STTRouterTests
     public async Task IsAvailable_PrimaryUnavailable_FallbackAvailable_ReturnsTrue()
     {
         var primary = new Mock<ISTTProvider>();
-        primary.Setup(p => p.IsAvailableAsync()).ReturnsAsync(false);
+        primary.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         var fallback = new Mock<ISTTProvider>();
-        fallback.Setup(p => p.IsAvailableAsync()).ReturnsAsync(true);
+        fallback.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var router = new STTRouter(primary.Object, fallback.Object);
 
@@ -98,7 +98,7 @@ public sealed class STTRouterTests
         try
         {
             var primary = new Mock<ISTTProvider>();
-            primary.Setup(p => p.TranscribeAsync(tmpFile, "en"))
+            primary.Setup(p => p.TranscribeAsync(tmpFile, "en", It.IsAny<CancellationToken>()))
                    .ReturnsAsync(OkResult("hello", "Primary"));
 
             var router = new STTRouter(primary.Object);
@@ -123,12 +123,12 @@ public sealed class STTRouterTests
         try
         {
             var primary = new Mock<ISTTProvider>();
-            primary.Setup(p => p.TranscribeAsync(tmpFile, "en"))
+            primary.Setup(p => p.TranscribeAsync(tmpFile, "en", It.IsAny<CancellationToken>()))
                    .ReturnsAsync(EmptyResult("Primary"));
             primary.Setup(p => p.ProviderName).Returns("Primary");
 
             var fallback = new Mock<ISTTProvider>();
-            fallback.Setup(p => p.TranscribeAsync(tmpFile, "en"))
+            fallback.Setup(p => p.TranscribeAsync(tmpFile, "en", It.IsAny<CancellationToken>()))
                     .ReturnsAsync(OkResult("fallback text", "Fallback"));
             fallback.Setup(p => p.ProviderName).Returns("Fallback");
 
@@ -153,12 +153,12 @@ public sealed class STTRouterTests
         try
         {
             var primary = new Mock<ISTTProvider>();
-            primary.Setup(p => p.TranscribeAsync(tmpFile, "en"))
+            primary.Setup(p => p.TranscribeAsync(tmpFile, "en", It.IsAny<CancellationToken>()))
                    .ThrowsAsync(new HttpRequestException("network error"));
             primary.Setup(p => p.ProviderName).Returns("Primary");
 
             var fallback = new Mock<ISTTProvider>();
-            fallback.Setup(p => p.TranscribeAsync(tmpFile, "en"))
+            fallback.Setup(p => p.TranscribeAsync(tmpFile, "en", It.IsAny<CancellationToken>()))
                     .ReturnsAsync(OkResult("fallback text", "Fallback"));
             fallback.Setup(p => p.ProviderName).Returns("Fallback");
 
@@ -183,12 +183,12 @@ public sealed class STTRouterTests
         try
         {
             var primary = new Mock<ISTTProvider>();
-            primary.Setup(p => p.TranscribeAsync(tmpFile, "en"))
+            primary.Setup(p => p.TranscribeAsync(tmpFile, "en", It.IsAny<CancellationToken>()))
                    .ThrowsAsync(new HttpRequestException("error"));
             primary.Setup(p => p.ProviderName).Returns("Primary");
 
             var fallback = new Mock<ISTTProvider>();
-            fallback.Setup(p => p.TranscribeAsync(tmpFile, "en"))
+            fallback.Setup(p => p.TranscribeAsync(tmpFile, "en", It.IsAny<CancellationToken>()))
                     .ThrowsAsync(new HttpRequestException("error"));
             fallback.Setup(p => p.ProviderName).Returns("Fallback");
 
@@ -212,11 +212,11 @@ public sealed class STTRouterTests
     {
         var primary = new Mock<ISTTProvider>();
         primary.Setup(p => p.ProviderName).Returns("Deepgram");
-        primary.Setup(p => p.IsAvailableAsync()).ReturnsAsync(true);
+        primary.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var fallback = new Mock<ISTTProvider>();
         fallback.Setup(p => p.ProviderName).Returns("Gemini");
-        fallback.Setup(p => p.IsAvailableAsync()).ReturnsAsync(false);
+        fallback.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         var router = new STTRouter(primary.Object, fallback.Object);
 
