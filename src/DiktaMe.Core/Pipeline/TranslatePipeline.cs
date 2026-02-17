@@ -1,6 +1,7 @@
 namespace DiktaMe.Core.Pipeline;
 
 using System.Diagnostics;
+using DiktaMe.Core.Config;
 using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
@@ -16,6 +17,7 @@ public sealed class TranslatePipeline
     private readonly ISTTProvider _stt;
     private readonly ILLMProvider _llm;
     private readonly TextInjector _injector;
+    private readonly SnippetManager? _snippets;
 
     /// <summary>Raised when the pipeline transitions to a new stage.</summary>
     public event EventHandler<PipelineState>? StateChanged;
@@ -23,11 +25,16 @@ public sealed class TranslatePipeline
     /// <summary>Raised when the pipeline completes (success or failure).</summary>
     public event EventHandler<PipelineResult>? Completed;
 
-    public TranslatePipeline(ISTTProvider stt, ILLMProvider llm, TextInjector injector)
+    public TranslatePipeline(
+        ISTTProvider stt,
+        ILLMProvider llm,
+        TextInjector injector,
+        SnippetManager? snippets = null)
     {
         _stt = stt;
         _llm = llm;
         _injector = injector;
+        _snippets = snippets;
     }
 
     /// <summary>
@@ -85,7 +92,11 @@ public sealed class TranslatePipeline
 
             string finalText = llmResult.IsSuccess ? llmResult.Text : rawText;
 
-            // ── Stage 3: Inject ───────────────────────────────────────────
+            // ── Stage 3: Snippet expansion (post-LLM, pre-inject) ────────
+            if (_snippets is not null)
+                finalText = _snippets.ExpandSnippets(finalText);
+
+            // ── Stage 4: Inject ───────────────────────────────────────────
             SetState(PipelineState.Injecting);
             Log.Information("TranslatePipeline: injecting {Chars} chars", finalText.Length);
 

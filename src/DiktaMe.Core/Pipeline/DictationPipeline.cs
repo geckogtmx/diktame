@@ -1,6 +1,7 @@
 namespace DiktaMe.Core.Pipeline;
 
 using System.Diagnostics;
+using DiktaMe.Core.Config;
 using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
@@ -16,6 +17,7 @@ public sealed class DictationPipeline
     private readonly ISTTProvider _stt;
     private readonly ILLMProvider? _llm;
     private readonly TextInjector _injector;
+    private readonly SnippetManager? _snippets;
 
     // ── Events ────────────────────────────────────────────────────────────
 
@@ -31,11 +33,16 @@ public sealed class DictationPipeline
     /// When null the pipeline always operates in raw mode.
     /// </param>
     /// <param name="injector">Text injector for writing results to the active window.</param>
-    public DictationPipeline(ISTTProvider stt, ILLMProvider? llm, TextInjector injector)
+    public DictationPipeline(
+        ISTTProvider stt,
+        ILLMProvider? llm,
+        TextInjector injector,
+        SnippetManager? snippets = null)
     {
         _stt = stt;
         _llm = llm;
         _injector = injector;
+        _snippets = snippets;
     }
 
     /// <summary>
@@ -127,7 +134,11 @@ public sealed class DictationPipeline
                 Log.Debug("DictationPipeline: raw mode — skipping LLM");
             }
 
-            // ── Stage 3: Inject ───────────────────────────────────────────
+            // ── Stage 3: Snippet expansion (post-LLM, pre-inject) ────────
+            if (_snippets is not null)
+                finalText = _snippets.ExpandSnippets(finalText);
+
+            // ── Stage 4: Inject ───────────────────────────────────────────
             SetState(PipelineState.Injecting);
             Log.Information("DictationPipeline: injecting {Chars} chars", finalText.Length);
 

@@ -560,22 +560,17 @@ input/output token counts from API usage fields.
 > These features were originally deferred from V1 but are included in V2 from the start.
 > See §2.3 for the full list and scoping rationale.
 
-#### Task I.1: Voice Snippets — Core Engine (SPEC_026, Phase 1 only)
-**Create:** `DiktaMe.Core/Config/SnippetManager.cs`
-**Effort:** 1 day
+#### Task I.1: Voice Snippets — Core Engine (SPEC_026, Phase 1 only) ✅
+**Created:** `DiktaMe.Core/Config/SnippetManager.cs`
 
-**Scope:** Phase 1 only — core trigger matching + Settings CRUD. **Skip** dynamic variables (`{{date}}`) and cursor placement (those are V2.1).
-
-**Steps:**
-1. `SnippetManager` — load/save `snippets.json` from `%APPDATA%/DiktaMe/`
-2. Data model: `{ id, trigger, content }` (simple list)
-3. `ExpandSnippets(text)` — runs **post-LLM, pre-inject** in every pipeline
-4. Normalize trigger matching (case-insensitive, ignore trailing punctuation)
-5. Check `text.EndsWith(trigger)` — replace trigger with snippet content
-6. Settings UI: new "Snippets" tab — list view + add/edit/delete modal
-7. Limit: 100 snippets max (regex over <100 strings = <1ms)
-
-**Tests:** Trigger matching, punctuation handling, multi-line expansion, no false positives.
+- `Snippet` record: `{ Id, Trigger, Content }` (GUID id, simple list)
+- `SnippetManager`: load/save `%APPDATA%\DiktaMe\snippets.json` (atomic write); 100-snippet max; CRUD (`Add`, `Update`, `Remove`, `GetAll`)
+- `ExpandSnippets(text)`: post-LLM pre-inject expansion; case-insensitive; ignores trailing punctuation; word-boundary check prevents mid-word false positives
+- Integrated as optional `SnippetManager?` into `DictationPipeline`, `RefinePipeline`, `TranslatePipeline`, `NotePipeline`
+- Registered as singleton in `App.xaml.cs`
+- `SnippetListContext` source-generated JSON for trim compatibility
+- Tests: `SnippetManagerTests.cs` — trigger matching, punctuation, multi-line, false-positive prevention, CRUD, persistence round-trip
+- Note: Settings UI (Snippets tab in F.1) deferred to Stream F. Dynamic variables (`{{date}}`) deferred to V2.1.
 
 #### Task I.2: Quick Chat Overlay (SPEC_042d)
 **Create:** `DiktaMe.App/Views/QuickChatView.xaml`, `DiktaMe.Core/Pipeline/ChatPipeline.cs`
@@ -1116,5 +1111,5 @@ publish/
 ---
 
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3
-**Next Step:** Stream F (UI — WinUI 3 settings, control panel, wizard) and Stream I (promoted features)
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, I.1
+**Next Step:** I.4 (AudioDucker), I.5 (OllamaManager), I.2 (ChatPipeline), then Stream F (UI)

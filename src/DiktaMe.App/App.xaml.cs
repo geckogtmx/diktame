@@ -148,6 +148,7 @@ public partial class App : Application
         services.AddSingleton<SettingsManager>();
         services.AddSingleton<ProfileManager>();
         services.AddSingleton<PromptRepository>();
+        services.AddSingleton<SnippetManager>();
         services.AddSingleton<ISTTProviderFactory, STTProviderFactory>();
         services.AddSingleton<ILLMProviderFactory, LLMProviderFactory>();
         services.AddSingleton<PipelineFactory>();

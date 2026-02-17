@@ -1,6 +1,7 @@
 namespace DiktaMe.Core.Pipeline;
 
 using System.Diagnostics;
+using DiktaMe.Core.Config;
 using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
@@ -24,6 +25,7 @@ public sealed class RefinePipeline
     private readonly ISTTProvider? _stt;       // null in autopilot mode
     private readonly ILLMProvider _llm;
     private readonly TextInjector _injector;
+    private readonly SnippetManager? _snippets;
 
     /// <summary>Raised when the pipeline transitions to a new stage.</summary>
     public event EventHandler<PipelineState>? StateChanged;
@@ -37,11 +39,16 @@ public sealed class RefinePipeline
     /// STT provider for instruction mode.
     /// Pass null to use autopilot mode (no audio recording step).
     /// </param>
-    public RefinePipeline(ILLMProvider llm, TextInjector injector, ISTTProvider? stt = null)
+    public RefinePipeline(
+        ILLMProvider llm,
+        TextInjector injector,
+        ISTTProvider? stt = null,
+        SnippetManager? snippets = null)
     {
         _llm = llm;
         _injector = injector;
         _stt = stt;
+        _snippets = snippets;
     }
 
     /// <summary>
@@ -146,7 +153,11 @@ public sealed class RefinePipeline
 
             string refinedText = llmResult.Text;
 
-            // ── Stage 4: Inject ───────────────────────────────────────────
+            // ── Stage 4: Snippet expansion (post-LLM, pre-inject) ────────
+            if (_snippets is not null)
+                refinedText = _snippets.ExpandSnippets(refinedText);
+
+            // ── Stage 5: Inject ───────────────────────────────────────────
             SetState(PipelineState.Injecting);
             Log.Information("RefinePipeline: injecting {Chars} chars refined text", refinedText.Length);
 

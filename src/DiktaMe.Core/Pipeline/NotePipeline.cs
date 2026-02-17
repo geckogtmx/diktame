@@ -1,6 +1,7 @@
 namespace DiktaMe.Core.Pipeline;
 
 using System.Diagnostics;
+using DiktaMe.Core.Config;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
 using Serilog;
@@ -14,6 +15,7 @@ public sealed class NotePipeline
 {
     private readonly ISTTProvider _stt;
     private readonly ILLMProvider? _llm;
+    private readonly SnippetManager? _snippets;
 
     /// <summary>Raised when the pipeline transitions to a new stage.</summary>
     public event EventHandler<PipelineState>? StateChanged;
@@ -26,10 +28,14 @@ public sealed class NotePipeline
     /// Optional LLM for note formatting.
     /// When null (or when <see cref="NoteOptions.SystemPrompt"/> is empty), raw transcript is saved.
     /// </param>
-    public NotePipeline(ISTTProvider stt, ILLMProvider? llm = null)
+    public NotePipeline(
+        ISTTProvider stt,
+        ILLMProvider? llm = null,
+        SnippetManager? snippets = null)
     {
         _stt = stt;
         _llm = llm;
+        _snippets = snippets;
     }
 
     /// <summary>
@@ -93,7 +99,11 @@ public sealed class NotePipeline
                     Log.Warning("NotePipeline: LLM returned empty — saving raw transcript");
             }
 
-            // ── Stage 3: Append to notes file ─────────────────────────────
+            // ── Stage 3: Snippet expansion (post-LLM, pre-save) ──────────
+            if (_snippets is not null)
+                noteText = _snippets.ExpandSnippets(noteText);
+
+            // ── Stage 4: Append to notes file ─────────────────────────────
             Log.Information("NotePipeline: saving note to '{Path}'", options.NotesFilePath);
 
             string timestamp = DateTime.Now.ToString(options.TimestampFormat);
