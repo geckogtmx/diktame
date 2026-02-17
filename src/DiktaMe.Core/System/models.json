@@ -1,0 +1,22 @@
+{
+  "comment": "Minimum Ollama version required to run each model tag. Checked at startup.",
+  "models": [
+    { "tag": "llama3.2",      "minOllamaVersion": "0.3.0",  "family": "llama",   "recommended": true  },
+    { "tag": "llama3.2:1b",   "minOllamaVersion": "0.3.0",  "family": "llama",   "recommended": false },
+    { "tag": "llama3.1",      "minOllamaVersion": "0.2.0",  "family": "llama",   "recommended": false },
+    { "tag": "llama3",        "minOllamaVersion": "0.1.30", "family": "llama",   "recommended": false },
+    { "tag": "gemma3",        "minOllamaVersion": "0.6.0",  "family": "gemma",   "recommended": true  },
+    { "tag": "gemma2",        "minOllamaVersion": "0.3.0",  "family": "gemma",   "recommended": false },
+    { "tag": "gemma",         "minOllamaVersion": "0.1.20", "family": "gemma",   "recommended": false },
+    { "tag": "mistral",       "minOllamaVersion": "0.1.0",  "family": "mistral", "recommended": false },
+    { "tag": "mistral-nemo",  "minOllamaVersion": "0.3.0",  "family": "mistral", "recommended": false },
+    { "tag": "phi4",          "minOllamaVersion": "0.5.0",  "family": "phi",     "recommended": true  },
+    { "tag": "phi3.5",        "minOllamaVersion": "0.3.0",  "family": "phi",     "recommended": false },
+    { "tag": "phi3",          "minOllamaVersion": "0.2.0",  "family": "phi",     "recommended": false },
+    { "tag": "qwen2.5",       "minOllamaVersion": "0.4.0",  "family": "qwen",    "recommended": false },
+    { "tag": "deepseek-r1",   "minOllamaVersion": "0.5.0",  "family": "deepseek","recommended": false },
+    { "tag": "nomic-embed-text","minOllamaVersion": "0.1.30","family": "nomic",  "recommended": false }
+  ],
+  "fallbackModel": "gemma",
+  "fallbackMinOllamaVersion": "0.1.20"
+}

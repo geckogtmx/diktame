@@ -618,24 +618,23 @@ input/output token counts from API usage fields.
 - `AudioDuckerTests.cs` — 17 tests: defaults, property mutation, disabled guard, idempotency, event wiring, dispose safety, settings defaults
 - Build: 0 errors, 0 warnings; Tests: 312/313 passing (1 pre-existing clipboard flake)
 
-#### Task I.5: Ollama Update Management (SPEC_031)
+#### Task I.5: Ollama Update Management (SPEC_031) ✅ (core complete; UI deferred to F)
 **Create:** `DiktaMe.Core/System/OllamaManager.cs`
 **Effort:** 1.5 days
 
-**Steps:**
-1. **Version Sensing:** Query `http://localhost:11434/api/version` on startup
-2. **Pre-Flight Health Check:** Query `/api/tags` → verify selected model is pulled and ready
-3. **Compatibility Manifest:** Embedded `models.json` mapping model tags → required Ollama versions
-4. **Graceful Fallback:** If selected model requires newer Ollama → auto-select compatible fallback (Gemma) + notify user
-5. **"412 Rescue" UI:** Catch precondition-failed errors → show "Incompatible AI Engine" dialog with [Update Ollama] and [Use Fallback] buttons
-6. **Model Library Tab:** New section in Settings → Ollama tab:
-   - List installed models (name, size, family)
-   - One-click pull for recommended models
-   - Download progress bars (Ollama pull-progress API)
-   - Disk usage stats
-7. **Version-Change Smoke Test:** If version changed since last run → silent background check that pinned model still responds
+**Completed (core):** 2026-02-17
+- `OllamaManager.cs` in `DiktaMe.Core.SystemManagement` namespace (avoids BCL `System` collision)
+- `models.json` embedded resource — 15 model entries with `minOllamaVersion`, family, recommended flag
+- `CheckAsync(modelTag)` → `OllamaCheckResult` with `OllamaStatus` enum: Ready / Offline / VersionTooOld / ModelNotPulled
+- Version sensing (`/api/version`), model health check (`/api/tags`), compatibility manifest, graceful fallback selection, version-change detection (persisted to `%APPDATA%\DiktaMe\ollama_last_version.txt`)
+- `GetKnownModelsAsync()`, `GetInstalledModelTagsAsync()` — used by future Model Library UI
+- `OllamaManager` registered as singleton in `App.xaml.cs`
+- `OllamaManagerTests.cs` — 16 tests: version comparison, offline, VersionTooOld, ModelNotPulled, Ready, `:latest` normalisation, manifest loading, dispose safety; all with `FakeHttpHandler`
+- Build: 0 errors, 0 warnings; Tests: 332/332 passing
 
-**Tests:** Version parsing, compatibility checking, fallback logic, API mocking.
+**Deferred to Stream F:**
+5. **"412 Rescue" UI:** Dialog with [Update Ollama] and [Use Fallback] buttons
+6. **Model Library Tab:** List/pull/progress for installed models
 
 #### Task I.6: Website Rebrand for V2 Launch (SPEC_042) — ✅ SITE LIVE, update only
 **Create:** Updates to existing `website/` codebase (dikta.me already deployed)
@@ -1108,5 +1107,5 @@ publish/
 ---
 
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, I.1, I.4
-**Next Step:** I.5 (OllamaManager), I.2 (ChatPipeline), then Stream F (UI)
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, I.1, I.4, I.5 (core)
+**Next Step:** I.2 (ChatPipeline core), then Stream F (UI)

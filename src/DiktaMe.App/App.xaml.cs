@@ -7,6 +7,7 @@ using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
 using DiktaMe.Core.Security;
 using DiktaMe.Core.STT;
+using DiktaMe.Core.SystemManagement;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Serilog;
@@ -162,5 +163,8 @@ public partial class App : Application
         // ── Data (E.2) ───────────────────────────────────────────────────────
         services.AddSingleton<HistoryManager>();
         services.AddSingleton<MetricsCollector>();
+
+        // ── System (I.5) ──────────────────────────────────────────────────────
+        services.AddSingleton<OllamaManager>();
     }
 }
