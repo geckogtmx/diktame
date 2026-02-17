@@ -1,8 +1,11 @@
 using DiktaMe.App.Views;
 using DiktaMe.Core.Audio;
+using DiktaMe.Core.Config;
+using DiktaMe.Core.Data;
 using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
+using DiktaMe.Core.Security;
 using DiktaMe.Core.STT;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
@@ -140,12 +143,17 @@ public partial class App : Application
             stt: sp.GetRequiredService<ISTTProvider>(),
             llm: sp.GetRequiredService<ILLMProvider>()));
 
-        // ── Placeholders — uncomment as E.1/E.3 are implemented ─────────────
-        // services.AddSingleton<SecureStorage>();
-        // services.AddSingleton<SettingsManager>();
-        // services.AddSingleton<ProfileManager>();
-        // services.AddSingleton<PromptRepository>();
-        // services.AddSingleton<PipelineFactory>();
-        // services.AddSingleton<HistoryManager>();
+        // ── Config & Security (E.1 / E.3) ───────────────────────────────────
+        services.AddSingleton<SecureStorage>();
+        services.AddSingleton<SettingsManager>();
+        services.AddSingleton<ProfileManager>();
+        services.AddSingleton<PromptRepository>();
+        services.AddSingleton<ISTTProviderFactory, STTProviderFactory>();
+        services.AddSingleton<ILLMProviderFactory, LLMProviderFactory>();
+        services.AddSingleton<PipelineFactory>();
+
+        // ── Data (E.2) ───────────────────────────────────────────────────────
+        services.AddSingleton<HistoryManager>();
+        services.AddSingleton<MetricsCollector>();
     }
 }
