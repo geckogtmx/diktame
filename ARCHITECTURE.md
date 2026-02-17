@@ -115,16 +115,19 @@ DiktaMe.sln                        # Visual Studio solution
 │       │   ├── GeminiProvider.cs            # Gemini generateContent (API key + OAuth)
 │       │   ├── AnthropicProvider.cs         # Anthropic Messages API
 │       │   └── OllamaProvider.cs            # Local Ollama (localhost:11434)
-│       ├── Pipeline/
-│       │   ├── DictationPipeline.cs    # Record → STT → LLM → Inject
-│       │   ├── RefinePipeline.cs       # Selection + instruction flows
-│       │   ├── AskPipeline.cs          # Voice Q&A
-│       │   ├── TranslatePipeline.cs    # EN↔ES bidirectional
-│       │   ├── NotePipeline.cs         # Post-it notes to file
-│       │   └── ChatPipeline.cs         # Quick Chat overlay flow
+│       ├── Pipeline/                   ✅ D.1-D.4 complete
+│       │   ├── DictationPipeline.cs    # STT → LLM (optional) → Inject; raw mode bypass
+│       │   ├── RefinePipeline.cs       # Autopilot (selection→LLM→replace) + instruction mode
+│       │   ├── AskPipeline.cs          # Voice Q&A — answer returned, not injected
+│       │   ├── TranslatePipeline.cs    # STT (auto-detect lang) → LLM translate → Inject
+│       │   ├── NotePipeline.cs         # STT → LLM format → append to .md file
+│       │   ├── PipelineResult.cs       # Shared result: text, latencies, word count
+│       │   ├── PipelineState.cs        # Idle/Transcribing/Processing/Injecting/Error
+│       │   ├── PipelineOptions.cs      # Typed options records per pipeline
+│       │   └── ChatPipeline.cs         # Quick Chat overlay flow (Task I.2, not yet built)
 │       ├── Input/
 │       │   ├── HotkeyManager.cs        # Win32 RegisterHotKey P/Invoke
-│       │   ├── TextInjector.cs         # Keyboard simulation (InputSimulator)
+│       │   ├── TextInjector.cs         # Clipboard inject; LastInjectedText/ReInjectLast (Oops)
 │       │   └── ClipboardManager.cs     # Clipboard save/restore
 │       ├── Config/
 │       │   ├── AppSettings.cs          # Strongly-typed settings model
@@ -148,8 +151,23 @@ DiktaMe.sln                        # Visual Studio solution
 │       └── Capabilities.cs             # CapabilityReport model
 │
 └── tests/
-    └── DiktaMe.Core.Tests/             # xUnit + Moq + FluentAssertions
-        └── ScaffoldTests.cs             # Initial build verification tests
+    └── DiktaMe.Core.Tests/             # xUnit + Moq + FluentAssertions (224 tests)
+        ├── ScaffoldTests.cs
+        ├── Audio/
+        │   ├── AudioRecorderTests.cs
+        │   └── AudioDeviceManagerTests.cs
+        ├── Input/
+        │   ├── TextInjectorTests.cs
+        │   └── HotkeyManagerTests.cs
+        ├── STT/
+        │   ├── STTRouterTests.cs
+        │   ├── DeepgramProviderTests.cs
+        │   ├── GeminiAudioProviderTests.cs
+        │   └── WhisperProviderTests.cs
+        ├── LLM/
+        │   └── LLMProviderTests.cs     # All 4 providers + router + LlmResult
+        └── Pipeline/
+            └── PipelineTests.cs        # Dictation, Refine, Ask, Translate, Note, Oops
 ```
 
 ### Project Dependencies

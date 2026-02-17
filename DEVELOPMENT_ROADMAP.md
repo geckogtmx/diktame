@@ -224,15 +224,19 @@ DiktaMe.sln
 // The key abstraction — identical API regardless of provider
 public interface ISTTProvider
 {
-    Task<TranscriptionResult> TranscribeAsync(string audioFilePath, string language = "en");
-    Task<bool> IsAvailableAsync();
+    // NOTE: CancellationToken must be propagated through all pipelines (allows user to cancel long STT calls)
+    Task<TranscriptionResult> TranscribeAsync(string audioFilePath, string language = "en",
+        CancellationToken cancellationToken = default);
+    Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default);
     string ProviderName { get; }
 }
 
 public interface ILLMProvider
 {
-    Task<LlmResult> ProcessAsync(string text, string systemPrompt, string mode = "dictate");
-    Task<bool> IsAvailableAsync();
+    // NOTE: CancellationToken must be propagated through all pipelines
+    Task<LlmResult> ProcessAsync(string text, string systemPrompt, string mode = "dictate",
+        CancellationToken cancellationToken = default);
+    Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default);
     string ProviderName { get; }
 }
 
@@ -477,50 +481,59 @@ input/output token counts from API usage fields.
 
 ### Work Stream D: Pipeline Orchestration (Priority: HIGH)
 
-#### Task D.1: Dictation Pipeline
-**Create:** `DiktaMe.Core/Pipeline/DictationPipeline.cs`
-**Effort:** 1 day
+#### Task D.1: Dictation Pipeline ✅
+**Created:** `DiktaMe.Core/Pipeline/DictationPipeline.cs`
 
-**Port from:** `python/core/pipelines.py` (dictation flow)
+- STT → optional LLM cleanup → `TextInjector.InjectText`
+- `RawMode = true` skips LLM entirely (true passthrough — V1 "raw" mode)
+- LLM failure falls back to raw transcript (never drops output)
+- `PipelineState` events: `Transcribing → Processing → Injecting → Idle`
+- `PipelineResult` record: text, raw transcript, per-stage latencies, word count, provider names
+- No-throw contract — all errors returned as failed `PipelineResult`
 
-**Steps:**
-1. Orchestrate: Record → STT → LLM (optional cleanup) → Inject
-2. Handle "Raw" mode (skip LLM, inject transcription directly)
-3. Emit progress events: recording, transcribing, processing, injecting
-4. Performance metrics tracking (total_ms, per-stage breakdowns)
-5. Error handling: fallback to raw text if LLM fails
-6. Session logging to SQLite
+#### Task D.2: Refine Pipeline (Dual-Mode) ✅
+**Created:** `DiktaMe.Core/Pipeline/RefinePipeline.cs`
 
-#### Task D.2: Refine Pipeline (Dual-Mode)
-**Create:** `DiktaMe.Core/Pipeline/RefinePipeline.cs`
-**Effort:** 1 day
+- **Autopilot mode** (`stt = null`): `CaptureSelection → LLM cleanup → InjectText`
+- **Instruction mode** (`stt` provided): `TranscribeAudio → CaptureSelection → LLM(selection + instruction) → InjectText`
+- Fallback: if no text is selected in instruction mode, treats the spoken instruction as an Ask question (answer returned, not injected — matches V1 behaviour)
+- Autopilot with no selection aborts with failure result
 
-**Steps:**
-1. **Autopilot mode:** Capture selection → LLM cleanup → Replace
-2. **Instruction mode:** Capture selection + Record instruction → STT → LLM (selection + instruction) → Replace
-3. Fallback: if no text selected, treat as Ask mode
+#### Task D.3: Ask, Translate, Note Pipelines ✅
+**Created:** `AskPipeline.cs`, `TranslatePipeline.cs`, `NotePipeline.cs`
 
-#### Task D.3: Ask, Translate, Note Pipelines
-**Create:** `AskPipeline.cs`, `TranslatePipeline.cs`, `NotePipeline.cs`
-**Effort:** 1 day
+- **Ask:** STT → LLM Q&A → returns answer in `PipelineResult.Text` (not injected)
+- **Translate:** STT (language="auto" for auto-detection) → LLM translate → inject; falls back to raw on LLM failure
+- **Note:** STT → optional LLM formatting → `File.AppendAllTextAsync` with `## timestamp` header; creates directory if needed
 
-**Steps:**
-1. **Ask:** Record → STT → LLM (Q&A prompt) → Output (clipboard/type/notification)
-2. **Translate:** Record → STT (auto-detect language) → LLM (translate) → Inject
-3. **Note:** Record → STT → LLM (optional cleanup) → Append to file with timestamp
+#### Task D.4: Oops (Re-inject) ✅
+**Updated:** `DiktaMe.Core/Input/TextInjector.cs`
 
-#### Task D.4: Oops (Re-inject)
-**Create:** part of `TextInjector.cs`
-**Effort:** 0.25 day
-
-**Steps:**
-1. Store last injected text in memory
-2. On Oops hotkey, re-inject stored text
-3. Volatile (lost on restart) — same as V1
+- `LastInjectedText` property (null on startup, volatile — lost on restart)
+- `ReInjectLast(trailingSpace, additionalKey)` — no-op if nothing stored
+- `InjectText` now stores text before injection
 
 ---
 
 ### Work Stream E: Data & Security (Priority: HIGH)
+
+> **Execution order:** E.0 first (unblocks DI), then E.1 + E.3 in parallel (settings model and secure storage are mutually needed), then E.2.
+
+#### Task E.0: Wire DI Container ⚡ PRE-TASK
+**Modify:** `DiktaMe.App/App.xaml.cs` (`ConfigureServices`)
+**Effort:** 0.25 day
+
+> **Blocker:** `ConfigureServices` is currently empty — the DI container is created but no services are registered. All pipelines, providers, and hotkey handlers depend on DI resolving correctly. Nothing beyond showing the tray icon works until this is done.
+
+**Steps:**
+1. Register core engine services as singletons: `AudioRecorder`, `TextInjector`, `HotkeyManager`, `MuteDetector`
+2. Register STT providers and router: `DeepgramProvider`, `STTRouter` (default cloud)
+3. Register LLM providers and router: `GeminiProvider`, `LLMRouter` (default cloud)
+4. Register pipelines as transient: `DictationPipeline`, `RefinePipeline`, `AskPipeline`, `TranslatePipeline`, `NotePipeline`
+5. Placeholder registrations for E.1 / E.3 services (commented, ready to uncomment)
+6. Verify app still launches and tray icon appears after wiring
+
+**Acceptance:** All services resolve without exception; `dotnet build` clean.
 
 #### Task E.1: Settings Manager
 **Create:** `DiktaMe.Core/Config/AppSettings.cs`, `SettingsManager.cs`
@@ -530,12 +543,28 @@ input/output token counts from API usage fields.
 
 **Steps:**
 1. `AppSettings` record with all settings (strongly typed, not a dict)
-2. Persist to `%APPDATA%/DiktaMe/settings.json`
+2. Persist to `%APPDATA%/DiktaMe/settings.json` using `System.Text.Json` with source generators for trim compatibility:
+   ```csharp
+   [JsonSerializable(typeof(AppSettings))]
+   public partial class AppSettingsContext : JsonSerializerContext { }
+   ```
 3. `SettingsManager` — load, save, merge defaults, migrate schema
 4. Observable properties for MVVM binding
 5. `ProfileManager` — dual-profile system (8 modes × 2 profiles)
 6. `PromptRepository` — 16 custom prompt slots
 7. Migration from V1 settings (read `electron-store` JSON, convert)
+8. `ISTTProviderFactory` and `ILLMProviderFactory` interfaces — enable runtime provider construction from settings (required for per-mode provider selection in the dual-profile system):
+   ```csharp
+   public interface ISTTProviderFactory
+   {
+       ISTTProvider CreateProvider(string providerType, string? apiKey = null);
+   }
+   public interface ILLMProviderFactory
+   {
+       ILLMProvider CreateProvider(string providerType, string? apiKey = null, string? model = null);
+   }
+   ```
+9. `PipelineFactory` — constructs pipelines with mode-aware provider selection from settings (replaces direct `new DictationPipeline(stt, llm, injector)` calls)
 
 #### Task E.2: History & Metrics (SQLite)
 **Create:** `DiktaMe.Core/Data/HistoryManager.cs`, `MetricsCollector.cs`
@@ -759,13 +788,25 @@ input/output token counts from API usage fields.
 
 **Mocking:** Use `Moq` for all external dependencies (HTTP, audio hardware, clipboard).
 
+**Integration Tests:** Add at least one settings persistence round-trip test:
+- Serialize default `AppSettings` → write to temp file → load back → deserialize → assert equality
+- Covers JSON serialization, file I/O, and schema compatibility in one shot
+
+**Test Categorization:** Use xUnit Traits to distinguish unit tests from integration/hardware tests (allows CI to skip tests requiring real API keys or audio hardware):
+```csharp
+[Fact, Trait("Category", "Unit")]           // Pure in-process logic, always run
+[Fact, Trait("Category", "Integration")]    // Requires file I/O or real HTTP — skip in fast CI
+[Fact, Trait("Category", "Hardware")]       // Requires audio device — skip in CI entirely
+```
+Filter in CI: `dotnet test --filter "Category!=Integration&Category!=Hardware"`
+
 #### Task G.2: CI/CD Pipeline (GitHub Actions)
 **Create:** `.github/workflows/ci-v2.yml`
 **Effort:** 0.5 day
 
 **Jobs:**
 1. `build` — `dotnet build`
-2. `test` — `dotnet test` (xUnit)
+2. `test` — `dotnet test --filter "Category!=Integration&Category!=Hardware"` (unit tests only in CI)
 3. `lint` — `dotnet format --verify-no-changes`
 4. `publish` — `dotnet publish -c Release` (verify trimmed output)
 
@@ -821,29 +862,30 @@ Week 2: Providers + Pipelines
 ├── Day 7:   C.7 (Ollama) + C.4 (Whisper.net — optional)
 ├── Day 8:   D.1 (Dictation Pipeline)
 ├── Day 9:   D.2 (Refine Pipeline) + D.3 (Ask/Translate/Note) + D.4 (Oops)
-└── Day 10:  E.1 (Settings) + E.2 (History) + E.3 (Security)
+├── Day 10:  E.0 (Wire DI Container — pre-task) + E.1 + E.3 (Settings + Security, parallel)
+└── Day 11:  E.2 (History & Metrics)
                 → Tag: v2.0.0-alpha.2 ("full dictation pipeline works")
 
 Week 3: UI + Promoted Features
-├── Day 11-12: F.1 (Settings Window)
-├── Day 13:    F.2 (Control Panel) + I.3 (CP Config toggles) + I.4 (Audio Ducking)
-├── Day 14:    F.3 (Wizard) + F.4 (Loading) + F.5 (Notifications)
-├── Day 15:    I.1 (Voice Snippets) + I.2 (Quick Chat Overlay)
-└── Day 16:    I.5 (Ollama Management — start)
+├── Day 12-13: F.1 (Settings Window)
+├── Day 14:    F.2 (Control Panel) + I.3 (CP Config toggles) + I.4 (Audio Ducking)
+├── Day 15:    F.3 (Wizard) + F.4 (Loading) + F.5 (Notifications)
+├── Day 16:    I.1 (Voice Snippets) + I.2 (Quick Chat Overlay)
+└── Day 17:    I.5 (Ollama Management — start)
                 → Tag: v2.0.0-beta.1 ("feature complete, untested")
 
 Week 4: Testing + Distribution
-├── Day 17:    I.5 (Ollama Management — finish) + I.6 (Website Rebrand)
-├── Day 18-19: G.1 (Tests — complete 170+ including promoted feature tests)
-├── Day 20:    G.2 (CI/CD) + H.1 (Installer)
-├── Day 21:    H.2 (Migration) + Manual QA
-└── Day 22:    Final polish, README update, release prep
+├── Day 18:    I.5 (Ollama Management — finish) + I.6 (Website Rebrand)
+├── Day 19-20: G.1 (Tests — complete 170+ including promoted feature tests)
+├── Day 21:    G.2 (CI/CD) + H.1 (Installer)
+├── Day 22:    H.2 (Migration) + Manual QA
+└── Day 23:    Final polish, README update, release prep
                 → Tag: v2.0.0-rc1 → v2.0.0 (release)
 ```
 
-**Total: ~22 developer-days (4.5 weeks)** + Day 0 pre-work
+**Total: ~23 developer-days (4.5 weeks)** + Day 0 pre-work
 
-> *Note: Timeline increased from original 20 days due to 6 promoted deferred features (+~6 days gross, but some tasks overlap with existing work streams, net +2 days).*
+> *Note: Timeline increased from original 20 days due to 6 promoted deferred features (+~6 days gross, but some tasks overlap with existing work streams, net +3 days including E.0 DI wiring).*
 
 ---
 
@@ -1003,10 +1045,10 @@ Semantic versioning with milestone tags tied to the timeline:
 | Tag | When | Meaning |
 |-----|------|---------|
 | `v2.0.0-alpha.1` | End of Week 1 (Day 5) | Core engine works — records audio, transcribes via cloud |
-| `v2.0.0-alpha.2` | End of Week 2 (Day 10) | Full pipeline functional — dictate, refine, ask, translate all work |
-| `v2.0.0-beta.1` | End of Week 3 (Day 16) | Feature complete — all UI + promoted features, untested |
-| `v2.0.0-rc1` | Day 21 | Release candidate — tests pass, installer works |
-| `v2.0.0` | Day 22 | 🚀 **Ship it** |
+| `v2.0.0-alpha.2` | End of Week 2 (Day 11) | Full pipeline functional — dictate, refine, ask, translate all work |
+| `v2.0.0-beta.1` | End of Week 3 (Day 17) | Feature complete — all UI + promoted features, untested |
+| `v2.0.0-rc1` | Day 22 | Release candidate — tests pass, installer works |
+| `v2.0.0` | Day 23 | 🚀 **Ship it** |
 
 ```bash
 # Tagging commands
@@ -1090,6 +1132,22 @@ publish/
 *.msix
 *.appx
 ```
+
+---
+
+## 10. Post-Ship: V2.1 Priorities
+
+> These are explicitly out of scope for V2.0. Evaluate after v2.0.0 ships based on user feedback.
+
+| Priority | Feature | Why |
+|----------|---------|-----|
+| 🥇 1 | **Streaming LLM responses** | Biggest single UX improvement — token-by-token injection dramatically reduces perceived latency for Ask/Translate modes. Requires `IAsyncEnumerable<string>` streaming interface on `ILLMProvider` and WinUI 3 live-update injection. |
+| 🥈 2 | **Voice Activity Detection (VAD)** | Hands-free mode — auto-detect speech start/end (WebRTC VAD or Silero). Major differentiator vs Windows Voice Typing. |
+| 🥉 3 | **Conversation memory for Ask mode** | Optional rolling context window (last N exchanges) so follow-up questions feel natural. |
+| 4 | **Command mode** | Voice commands to control the app: "switch to Spanish", "use local model", "open settings". |
+| 5 | **Auto-language detection per-phrase** | Leverage existing `TranscriptionResult.DetectedLanguage` to auto-switch LLM prompts for bilingual users (EN/ES code-switching). Low effort — consider pulling into V2.0 late. |
+| 6 | **Voice Snippets Phase 2** | Dynamic variables (`{{date}}`, `{{clipboard}}`) and cursor placement. |
+| 7 | **Plugin/extension system** | Third-party integrations (Notion, Obsidian, VS Code). V3 territory. |
 
 ---
 
