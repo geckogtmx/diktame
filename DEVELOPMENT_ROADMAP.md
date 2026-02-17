@@ -606,20 +606,17 @@ input/output token counts from API usage fields.
 
 **Tests:** Toggle persistence, UI binding (manual verification).
 
-#### Task I.4: Audio Ducking (SPEC_043d)
+#### Task I.4: Audio Ducking (SPEC_043d) ✅
 **Create:** `DiktaMe.Core/Audio/AudioDucker.cs`
 **Effort:** 0.5 day
 
-**Steps:**
-1. Use NAudio's `MMDeviceEnumerator` + `AudioSessionManager` (WASAPI, already a dependency)
-2. `Duck()` — enumerate non-DiktaMe audio sessions, store original volumes, reduce to configurable level (default: 20%)
-3. `Restore()` — restore all sessions to original volumes
-4. Hook into `AudioRecorder.RecordingStarted` → `Duck()`, `RecordingStopped` → `Restore()`
-5. Settings: enable/disable toggle + duck level slider (0-100%)
-6. Safety: always restore in `finally` blocks; cleanup on app start for crash recovery
-7. Skip own process + system sounds when enumerating
-
-**Tests:** Duck/restore cycle, edge cases (no audio playing, rapid start/stop).
+**Completed:** 2026-02-17
+- `AudioDucker.cs` — NAudio WASAPI `MMDeviceEnumerator`; `Duck()` stores original volumes and reduces to `DuckLevel`, `Restore()` restores them; skips own PID; thread-safe via `lock`
+- `AttachTo(AudioRecorder)` / `DetachFrom(AudioRecorder)` — subscribes to `RecordingStarted`/`RecordingStopped`/`AutoStopped` events
+- `AudioDuckingSettings` record added to `AppSettings` (Enabled, DuckLevelPercent defaults 20%)
+- `AudioDucker` registered as singleton in `App.xaml.cs`; wired to `AudioRecorder` at construction
+- `AudioDuckerTests.cs` — 17 tests: defaults, property mutation, disabled guard, idempotency, event wiring, dispose safety, settings defaults
+- Build: 0 errors, 0 warnings; Tests: 312/313 passing (1 pre-existing clipboard flake)
 
 #### Task I.5: Ollama Update Management (SPEC_031)
 **Create:** `DiktaMe.Core/System/OllamaManager.cs`
@@ -1111,5 +1108,5 @@ publish/
 ---
 
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, I.1
-**Next Step:** I.4 (AudioDucker), I.5 (OllamaManager), I.2 (ChatPipeline), then Stream F (UI)
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, I.1, I.4
+**Next Step:** I.5 (OllamaManager), I.2 (ChatPipeline), then Stream F (UI)

@@ -73,6 +73,21 @@ public sealed record AudioSettings
 }
 
 /// <summary>
+/// Audio ducking settings — lowers other apps' volume while recording.
+/// </summary>
+public sealed record AudioDuckingSettings
+{
+    /// <summary>Whether audio ducking is enabled.</summary>
+    public bool Enabled { get; init; } = true;
+
+    /// <summary>
+    /// Volume level to duck other sessions to (0–100, inclusive).
+    /// Stored as integer percentage; converted to 0.0–1.0 float when applied.
+    /// </summary>
+    public int DuckLevelPercent { get; init; } = 20;
+}
+
+/// <summary>
 /// Privacy and data retention settings.
 /// </summary>
 public sealed record PrivacySettings
@@ -110,6 +125,7 @@ public sealed record AppSettings
 
     public GeneralSettings General { get; init; } = new();
     public AudioSettings Audio { get; init; } = new();
+    public AudioDuckingSettings AudioDucking { get; init; } = new();
     public PrivacySettings Privacy { get; init; } = new();
     public HotkeySettings Hotkeys { get; init; } = new();
 
@@ -146,6 +162,7 @@ public sealed record AppSettings
 [JsonSerializable(typeof(AppSettings))]
 [JsonSerializable(typeof(GeneralSettings))]
 [JsonSerializable(typeof(AudioSettings))]
+[JsonSerializable(typeof(AudioDuckingSettings))]
 [JsonSerializable(typeof(PrivacySettings))]
 [JsonSerializable(typeof(HotkeySettings))]
 [JsonSerializable(typeof(ModeSettings))]

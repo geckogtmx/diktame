@@ -93,6 +93,12 @@ public partial class App : Application
         // NOTE: AudioDeviceManager and ClipboardManager are static utility classes;
         // they do not need DI registration.
         services.AddSingleton<AudioRecorder>();
+        services.AddSingleton<AudioDucker>(sp =>
+        {
+            var ducker = new AudioDucker();
+            ducker.AttachTo(sp.GetRequiredService<AudioRecorder>());
+            return ducker;
+        });
         services.AddSingleton<MuteDetector>();
         services.AddSingleton<TextInjector>();
         services.AddSingleton<HotkeyManager>();
