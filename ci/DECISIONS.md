@@ -58,6 +58,15 @@ Decisions made to suppress or adjust CI rules, with rationale and revisit notes.
 
 ---
 
+## gitleaks — `.gitleaks.toml` allowlist
+
+### `AIzaSyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456` in ApiKeyValidatorTests.cs
+- **Why suppressed**: Synthetic test fixture value — sequential alphabet characters are clearly not a real GCP API key. Gitleaks' `gcp-api-key` rule matches the `AIzaSy` prefix + 33-char suffix regardless of entropy-based plausibility.
+- **Config**: `[allowlist]` with `regexTarget = "secret"` in `.gitleaks.toml`; `--config .gitleaks.toml` passed to the CI detect command.
+- **Revisit when**: A new test is added that looks superficially real. Only suppress values that are provably synthetic (sequential chars, all-zeros, etc.). Real-looking values should be replaced with a different pattern.
+
+---
+
 ## dotnet format — IDE1006 unfixable by `--fix`
 - `dotnet format` cannot auto-fix `IDE1006` (naming violations) because renaming fields is a refactoring, not a formatting operation.
 - The `NamingStyleCodeFixProvider` does not support "Fix All in Solution".
