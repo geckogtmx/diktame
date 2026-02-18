@@ -272,7 +272,7 @@ public sealed class OllamaManager : IDisposable
         var installed = await GetInstalledModelTagsAsync(cancellationToken).ConfigureAwait(false);
         // Ollama tags may include ":latest" suffix — strip for comparison
         string normalised = NormaliseTag(modelTag);
-        return installed.Any(t => NormaliseTag(t) == normalised);
+        return installed.Any(t => string.Equals(NormaliseTag(t), normalised, StringComparison.Ordinal));
     }
 
     private async Task<string?> FindBestFallbackAsync(
@@ -308,7 +308,7 @@ public sealed class OllamaManager : IDisposable
             }
 
             string lastVersion = (await File.ReadAllTextAsync(LastVersionFilePath).ConfigureAwait(false)).Trim();
-            if (lastVersion != currentVersion)
+            if (!string.Equals(lastVersion, currentVersion, StringComparison.Ordinal))
             {
                 await File.WriteAllTextAsync(LastVersionFilePath, currentVersion).ConfigureAwait(false);
                 return true;
@@ -351,7 +351,7 @@ public sealed class OllamaManager : IDisposable
     private static ModelEntry? FindEntry(ModelsManifest manifest, string modelTag)
     {
         string normalised = NormaliseTag(modelTag);
-        return manifest.Models.FirstOrDefault(m => NormaliseTag(m.Tag) == normalised);
+        return manifest.Models.FirstOrDefault(m => string.Equals(NormaliseTag(m.Tag), normalised, StringComparison.Ordinal));
     }
 
     /// <summary>

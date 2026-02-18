@@ -54,7 +54,7 @@ public static class AudioDeviceManager
 
         // Fall back to numeric ID
         if (!string.IsNullOrWhiteSpace(deviceId) &&
-            int.TryParse(deviceId, out int parsedId) &&
+            int.TryParse(deviceId, System.Globalization.CultureInfo.InvariantCulture, out int parsedId) &&
             parsedId >= 0 && parsedId < devices.Count)
         {
             return parsedId;

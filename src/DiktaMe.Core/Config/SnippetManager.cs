@@ -123,7 +123,7 @@ public sealed class SnippetManager
     /// </summary>
     public bool Update(string id, string trigger, string content)
     {
-        int index = _snippets.FindIndex(s => s.Id == id);
+        int index = _snippets.FindIndex(s => string.Equals(s.Id, id, StringComparison.Ordinal));
         if (index < 0) return false;
 
         _snippets[index] = _snippets[index] with
@@ -139,7 +139,7 @@ public sealed class SnippetManager
     /// </summary>
     public bool Remove(string id)
     {
-        int removed = _snippets.RemoveAll(s => s.Id == id);
+        int removed = _snippets.RemoveAll(s => string.Equals(s.Id, id, StringComparison.Ordinal));
         return removed > 0;
     }
 

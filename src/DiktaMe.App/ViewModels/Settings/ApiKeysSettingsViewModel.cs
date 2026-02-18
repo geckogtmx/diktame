@@ -41,16 +41,16 @@ public sealed partial class ApiKeysSettingsViewModel : ObservableObject
 
     // ── Commands ─────────────────────────────────────────────────────────────
 
-    [RelayCommand] private void SaveOpenAiKey() => SaveKey("openai", OpenAiKey, ApiKeyValidator.IsValidOpenAI, v => { OpenAiStatus = v; OpenAiHasKey = v == "Saved"; });
+    [RelayCommand] private void SaveOpenAiKey() => SaveKey("openai", OpenAiKey, ApiKeyValidator.IsValidOpenAI, v => { OpenAiStatus = v; OpenAiHasKey = string.Equals(v, "Saved", StringComparison.Ordinal); });
     [RelayCommand] private void DeleteOpenAiKey() => DeleteKey("openai", v => { OpenAiStatus = v; OpenAiHasKey = false; OpenAiKey = ""; });
 
-    [RelayCommand] private void SaveAnthropicKey() => SaveKey("anthropic", AnthropicKey, ApiKeyValidator.IsValidAnthropic, v => { AnthropicStatus = v; AnthropicHasKey = v == "Saved"; });
+    [RelayCommand] private void SaveAnthropicKey() => SaveKey("anthropic", AnthropicKey, ApiKeyValidator.IsValidAnthropic, v => { AnthropicStatus = v; AnthropicHasKey = string.Equals(v, "Saved", StringComparison.Ordinal); });
     [RelayCommand] private void DeleteAnthropicKey() => DeleteKey("anthropic", v => { AnthropicStatus = v; AnthropicHasKey = false; AnthropicKey = ""; });
 
-    [RelayCommand] private void SaveGeminiKey() => SaveKey("gemini", GeminiKey, ApiKeyValidator.IsValidGemini, v => { GeminiStatus = v; GeminiHasKey = v == "Saved"; });
+    [RelayCommand] private void SaveGeminiKey() => SaveKey("gemini", GeminiKey, ApiKeyValidator.IsValidGemini, v => { GeminiStatus = v; GeminiHasKey = string.Equals(v, "Saved", StringComparison.Ordinal); });
     [RelayCommand] private void DeleteGeminiKey() => DeleteKey("gemini", v => { GeminiStatus = v; GeminiHasKey = false; GeminiKey = ""; });
 
-    [RelayCommand] private void SaveDeepgramKey() => SaveKey("deepgram", DeepgramKey, ApiKeyValidator.IsValidDeepgram, v => { DeepgramStatus = v; DeepgramHasKey = v == "Saved"; });
+    [RelayCommand] private void SaveDeepgramKey() => SaveKey("deepgram", DeepgramKey, ApiKeyValidator.IsValidDeepgram, v => { DeepgramStatus = v; DeepgramHasKey = string.Equals(v, "Saved", StringComparison.Ordinal); });
     [RelayCommand] private void DeleteDeepgramKey() => DeleteKey("deepgram", v => { DeepgramStatus = v; DeepgramHasKey = false; DeepgramKey = ""; });
 
     // ── Helpers ──────────────────────────────────────────────────────────────

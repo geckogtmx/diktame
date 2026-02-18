@@ -12,7 +12,7 @@ public sealed partial class WizardReadyPage : Page, IWizardStepPage
 
     public void SetViewModel(WizardViewModel viewModel)
     {
-        string sttName = viewModel.SttChoice == "local" ? "Whisper (local)" : "Deepgram (cloud)";
+        string sttName = string.Equals(viewModel.SttChoice, "local", StringComparison.Ordinal) ? "Whisper (local)" : "Deepgram (cloud)";
         string llmName = viewModel.LlmChoice switch
         {
             "local" => "Ollama (local)",

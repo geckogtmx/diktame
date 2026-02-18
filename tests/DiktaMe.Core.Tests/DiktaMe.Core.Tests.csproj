@@ -8,6 +8,9 @@
     <IsTestProject>true</IsTestProject>
     <!-- Tests don't need to be treated as strictly -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- MA0074: FluentAssertions Contains/EndsWith/DoesNotContain are test assertions,
+         not culture-sensitive string operations — suppress for the test project only. -->
+    <NoWarn>$(NoWarn);MA0074</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

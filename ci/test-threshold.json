@@ -1,0 +1,7 @@
+{
+  "minimumTestCount": 330,
+  "publishSizeMB": {
+    "min": 130,
+    "max": 250
+  }
+}

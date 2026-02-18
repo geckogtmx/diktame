@@ -43,7 +43,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
             _ => defaultMode.LlmProvider,
         };
 
-        SttModeIndex = defaultMode.SttProvider == "whisper" ? 1 : 0;
+        SttModeIndex = string.Equals(defaultMode.SttProvider, "whisper", StringComparison.Ordinal) ? 1 : 0;
         LlmModeIndex = defaultMode.LlmProvider switch
         {
             "ollama" => 1,

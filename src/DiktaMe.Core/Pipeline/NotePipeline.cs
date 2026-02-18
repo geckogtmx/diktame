@@ -106,7 +106,7 @@ public sealed class NotePipeline
             // ── Stage 4: Append to notes file ─────────────────────────────
             Log.Information("NotePipeline: saving note to '{Path}'", options.NotesFilePath);
 
-            string timestamp = DateTime.Now.ToString(options.TimestampFormat);
+            string timestamp = DateTime.Now.ToString(options.TimestampFormat, System.Globalization.CultureInfo.InvariantCulture);
             string entry = $"\n## {timestamp}\n\n{noteText}\n";
 
             string directory = Path.GetDirectoryName(options.NotesFilePath) ?? string.Empty;

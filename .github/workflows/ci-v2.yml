@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# WinUI 3 requires Windows SDK — single windows-latest job avoids paying
+# the runner spin-up cost multiple times for parallel jobs.
+jobs:
+  ci:
+    name: Build · Test · Lint · Publish
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Full history required for gitleaks secret scan
+
+      # ── .NET setup ────────────────────────────────────────────────────
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+
+      # ── Restore ───────────────────────────────────────────────────────
+      # Fails fast on hallucinated / non-existent NuGet packages (AI safeguard #1)
+      - name: Restore
+        run: dotnet restore DiktaMe.sln
+
+      # ── Lint ──────────────────────────────────────────────────────────
+      # Enforces .editorconfig style — AI tends to drift from house style
+      - name: Lint (dotnet format)
+        run: dotnet format DiktaMe.sln --verify-no-changes --no-restore
+
+      # ── Build ─────────────────────────────────────────────────────────
+      # TreatWarningsAsErrors=true + Meziantou.Analyzer catch culture bugs,
+      # method-length violations, and string-comparison mistakes at compile time.
+      - name: Build
+        run: dotnet build DiktaMe.sln -c Release --no-restore
+
+      # ── Unit Tests ────────────────────────────────────────────────────
+      # Skips Integration (real file I/O / HTTP) and Hardware (audio devices).
+      # Coverlet collects coverage for the artifact upload at the end.
+      - name: Test
+        run: >
+          dotnet test DiktaMe.sln
+          -c Release
+          --no-build
+          --filter "Category!=Integration&Category!=Hardware"
+          --logger "trx;LogFileName=TestResults.trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory TestResults
+
+      # ── Test-count threshold ──────────────────────────────────────────
+      # AI sometimes deletes tests it thinks are redundant. If the passing
+      # test count drops below the threshold we fail CI immediately.
+      - name: Check test count threshold
+        shell: pwsh
+        run: |
+          $threshold = Get-Content ci/test-threshold.json | ConvertFrom-Json
+          $min = $threshold.minimumTestCount
+
+          $trx = Get-ChildItem -Recurse -Filter "*.trx" | Select-Object -First 1
+          if (-not $trx) { Write-Error "No TRX file found"; exit 1 }
+
+          [xml]$xml = Get-Content $trx.FullName
+          $counters = $xml.TestRun.ResultSummary.Counters
+          $passed = [int]$counters.passed
+
+          Write-Host "Tests passed: $passed  (minimum: $min)"
+          if ($passed -lt $min) {
+            Write-Error "FAIL: only $passed tests passed — below threshold of $min. Did AI delete tests?"
+            exit 1
+          }
+          Write-Host "OK: test count $passed >= $min"
+
+      # ── Secret scan ───────────────────────────────────────────────────
+      # Gitleaks scans the full git history for hardcoded API keys, tokens,
+      # and other secrets that AI may have accidentally embedded in source.
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Vulnerability audit ───────────────────────────────────────────
+      # Checks all NuGet deps (including transitive) for known CVEs.
+      # Fails on HIGH or CRITICAL severity — warns on lower severities.
+      - name: Vulnerability audit
+        shell: pwsh
+        run: |
+          $output = dotnet list package --vulnerable --include-transitive 2>&1
+          Write-Host $output
+
+          # NuGetAuditLevel=moderate in Directory.Build.props already blocks
+          # moderate+ at restore time; this step provides explicit CI feedback.
+          if ($output -match "Critical|High") {
+            Write-Error "FAIL: HIGH or CRITICAL vulnerability found in NuGet dependencies"
+            exit 1
+          }
+          Write-Host "OK: no HIGH/CRITICAL vulnerabilities"
+
+      # ── Deprecated packages ───────────────────────────────────────────
+      # AI sometimes picks deprecated packages. Log them as a warning; don't
+      # fail CI (deprecated != broken, but should be reviewed).
+      - name: Deprecated packages (informational)
+        shell: pwsh
+        run: |
+          $output = dotnet list package --deprecated 2>&1
+          Write-Host $output
+          if ($output -match "deprecated") {
+            Write-Warning "Some packages are deprecated — review and update when possible"
+          }
+        continue-on-error: true
+
+      # ── Publish ───────────────────────────────────────────────────────
+      # Trimmed, self-contained win-x64 output — mirrors publish-release.cmd
+      - name: Publish (win-x64)
+        run: >
+          dotnet publish src/DiktaMe.App/DiktaMe.App.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:Platform=x64
+          -o publish/win-x64
+          --no-restore
+
+      # ── Publish size guard ────────────────────────────────────────────
+      # A large drop in publish size (>20%) suggests AI deleted significant code.
+      # A large increase (>20%) suggests bloat worth investigating.
+      - name: Check publish size
+        shell: pwsh
+        run: |
+          $threshold = Get-Content ci/test-threshold.json | ConvertFrom-Json
+          $minMB = $threshold.publishSizeMB.min
+          $maxMB = $threshold.publishSizeMB.max
+
+          $bytes = (Get-ChildItem publish/win-x64 -Recurse | Measure-Object -Property Length -Sum).Sum
+          $mb = [math]::Round($bytes / 1MB, 1)
+
+          Write-Host "Publish size: $mb MB  (expected: $minMB–$maxMB MB)"
+
+          if ($mb -lt $minMB) {
+            Write-Error "FAIL: publish output is $mb MB — below minimum $minMB MB. Did AI delete significant code?"
+            exit 1
+          }
+          if ($mb -gt $maxMB) {
+            Write-Warning "Publish output is $mb MB — above expected maximum $maxMB MB. Possible bloat."
+          }
+          Write-Host "OK: publish size $mb MB is within expected range"
+
+      # ── Upload coverage artifact ──────────────────────────────────────
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: TestResults/**/coverage.cobertura.xml
+          retention-days: 14
+
+      # ── Upload publish artifact ───────────────────────────────────────
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: diktame-win-x64
+          path: publish/win-x64/
+          retention-days: 7

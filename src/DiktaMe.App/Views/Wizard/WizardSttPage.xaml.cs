@@ -16,7 +16,7 @@ public sealed partial class WizardSttPage : Page, IWizardStepPage
     {
         _viewModel = viewModel;
         // Restore selection from VM
-        if (viewModel.SttChoice == "local")
+        if (string.Equals(viewModel.SttChoice, "local", StringComparison.Ordinal))
             SttLocal.IsChecked = true;
         else
             SttCloud.IsChecked = true;

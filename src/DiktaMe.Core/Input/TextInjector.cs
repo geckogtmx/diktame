@@ -138,7 +138,7 @@ public sealed class TextInjector
         {
             string current = ClipboardManager.GetText();
 
-            if (current != original && !string.IsNullOrWhiteSpace(current))
+            if (!string.Equals(current, original, StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(current))
             {
                 Log.Information("TextInjector: captured {CharCount} chars", current.Length);
 

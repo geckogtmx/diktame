@@ -31,7 +31,7 @@ public sealed class NoteWriter
         if (!string.IsNullOrEmpty(dir))
             Directory.CreateDirectory(dir);
 
-        string timestamp = DateTime.Now.ToString(timestampFormat);
+        string timestamp = DateTime.Now.ToString(timestampFormat, System.Globalization.CultureInfo.InvariantCulture);
         string entry = $"\n## {timestamp}\n\n{text.Trim()}\n";
 
         await File.AppendAllTextAsync(filePath, entry, cancellationToken).ConfigureAwait(false);

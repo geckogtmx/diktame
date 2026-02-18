@@ -779,15 +779,28 @@ input/output token counts from API usage fields.
 ```
 Filter in CI: `dotnet test --filter "Category!=Integration&Category!=Hardware"`
 
-#### Task G.2: CI/CD Pipeline (GitHub Actions)
-**Create:** `.github/workflows/ci-v2.yml`
+#### Task G.2: CI/CD Pipeline (GitHub Actions) ✅
+**Created:** `.github/workflows/ci-v2.yml` — single `windows-latest` job
 **Effort:** 0.5 day
 
-**Jobs:**
-1. `build` — `dotnet build`
-2. `test` — `dotnet test --filter "Category!=Integration&Category!=Hardware"` (unit tests only in CI)
-3. `lint` — `dotnet format --verify-no-changes`
-4. `publish` — `dotnet publish -c Release` (verify trimmed output)
+**Steps (in order):**
+1. Restore — fails fast on hallucinated/non-existent NuGet packages
+2. Lint — `dotnet format --verify-no-changes` (style drift)
+3. Build — Meziantou.Analyzer + `TreatWarningsAsErrors=true` catch culture bugs, string comparisons, method-length violations at compile time
+4. Test — `dotnet test --filter "Category!=Integration&Category!=Hardware"` (330 unit tests)
+5. Test-count threshold — PowerShell parses TRX; fails if passing count < `ci/test-threshold.json` minimum (catches deleted tests)
+6. Secret scan — gitleaks full-history scan for API keys / tokens
+7. Vulnerability audit — `dotnet list package --vulnerable --include-transitive`; fails on HIGH/CRITICAL
+8. Deprecated packages — informational warning, non-blocking
+9. Publish — trimmed self-contained win-x64 output
+10. Publish size guard — PowerShell checks MB range from `ci/test-threshold.json` (catches large code deletion)
+11. Upload coverage artifact (Coverlet cobertura XML, 14-day retention)
+12. Upload publish artifact (7-day retention)
+
+**AI-coding safeguards added alongside CI:**
+- `Meziantou.Analyzer 2.*` in `Directory.Build.props` — MA0006 (string.Equals), MA0011 (IFormatProvider), MA0051 (method length), MA0074 (culture-sensitive ToString)
+- `NuGetAudit=true`, `NuGetAuditLevel=moderate` — blocks vulnerable deps at restore time
+- `ci/test-threshold.json` — minimum 330 tests, publish size 130–250 MB
 
 ---
 
@@ -1131,6 +1144,6 @@ publish/
 ---
 
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, I.1–I.5, I.2-UI
-**Remaining:** G.2 (CI/CD), H.1 (Installer), H.2 (V1 Migration), I.6 (Website Rebrand)
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, I.1–I.5, I.2-UI
+**Remaining:** H.1 (Installer), H.2 (V1 Migration), I.6 (Website Rebrand)
 **Build:** 0 errors, 0 warnings | **Tests:** 343 passing (1 pre-existing clipboard flake)

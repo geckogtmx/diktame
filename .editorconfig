@@ -73,6 +73,55 @@ dotnet_naming_symbols.private_field.applicable_accessibilities = private
 dotnet_naming_style.underscore_camel.required_prefix = _
 dotnet_naming_style.underscore_camel.capitalization = camel_case
 
+# ── Meziantou.Analyzer ──────────────────────────────────────────────────
+# AI-coding safeguards: culture sensitivity, method length, disposal, threading
+
+# MA0002: Use IEqualityComparer<string> — suppress (ordinal is fine for internal keys)
+dotnet_diagnostic.MA0002.severity = none
+
+# MA0003: Add [MethodImpl(AggressiveInlining)] — noise, micro-optimization
+dotnet_diagnostic.MA0003.severity = none
+
+# MA0004: Use ConfigureAwait(false) — disabled (WinUI 3 needs sync context)
+dotnet_diagnostic.MA0004.severity = none
+
+# MA0006: Use string.Equals — warning (AI uses == for strings without thinking about culture)
+dotnet_diagnostic.MA0006.severity = warning
+
+# MA0009: Add regex evaluation timeout — none (our regexes are short, bounded input)
+dotnet_diagnostic.MA0009.severity = none
+
+# MA0011: Use IFormatProvider — AI often forgets culture-invariant formatting
+dotnet_diagnostic.MA0011.severity = warning
+
+# MA0016: Prefer returning collection abstraction — none (we return concrete types intentionally)
+dotnet_diagnostic.MA0016.severity = none
+
+# MA0038: Use ConcurrentDictionary instead of locking Dictionary
+dotnet_diagnostic.MA0038.severity = suggestion
+
+# MA0046: Use EventHandler<T> — none (we use custom delegate signatures for pipeline events)
+dotnet_diagnostic.MA0046.severity = none
+
+# MA0048: File name must match type name — we have multi-type files intentionally
+dotnet_diagnostic.MA0048.severity = none
+
+# MA0049: Type name must match file name — same reason
+dotnet_diagnostic.MA0049.severity = none
+
+# MA0051: Method too long — AI generates bloated methods
+# Pipeline RunAsync methods are sequential stage orchestrators (inherently long).
+# 150 lines / 80 statements still catches genuinely bloated methods.
+dotnet_diagnostic.MA0051.severity = warning
+MA0051.maximum_lines_per_method = 150
+MA0051.maximum_statements_per_method = 80
+
+# MA0074: Avoid implicit culture-sensitive ToString
+dotnet_diagnostic.MA0074.severity = warning
+
+# MA0132: Do not convert implicitly to DateTimeOffset — none (not applicable)
+dotnet_diagnostic.MA0132.severity = none
+
 [*.{xml,xaml,csproj,props,targets}]
 indent_size = 2
 

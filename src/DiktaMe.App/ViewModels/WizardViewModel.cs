@@ -70,7 +70,7 @@ public sealed partial class WizardViewModel : ObservableObject
         try
         {
             // Apply STT/LLM choices to default mode settings
-            string defaultStt = SttChoice == "local" ? "whisper" : "deepgram";
+            string defaultStt = string.Equals(SttChoice, "local", StringComparison.Ordinal) ? "whisper" : "deepgram";
             string defaultLlm = LlmChoice switch
             {
                 "local" => "ollama",
@@ -93,7 +93,7 @@ public sealed partial class WizardViewModel : ObservableObject
                     {
                         SttProvider = defaultStt,
                         LlmProvider = defaultLlm,
-                        UseLlm = defaultLlm != "none",
+                        UseLlm = !string.Equals(defaultLlm, "none", StringComparison.Ordinal),
                     };
                 }
             }

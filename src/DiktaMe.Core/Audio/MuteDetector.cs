@@ -74,7 +74,7 @@ public sealed class MuteDetector : IDisposable
     /// </summary>
     public void UpdateDeviceLabel(string? newLabel)
     {
-        if (newLabel == _deviceLabel) return;
+        if (string.Equals(newLabel, _deviceLabel, StringComparison.Ordinal)) return;
         _deviceLabel = newLabel;
         _deviceCache?.Dispose();
         _deviceCache = null;
