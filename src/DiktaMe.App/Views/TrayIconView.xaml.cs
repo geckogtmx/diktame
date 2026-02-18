@@ -1,7 +1,7 @@
-namespace DiktaMe.App.Views;
 
 using Microsoft.UI.Xaml.Controls;
 
+namespace DiktaMe.App.Views;
 /// <summary>
 /// Hosts the H.NotifyIcon TaskbarIcon system tray control.
 /// Must be instantiated and kept alive for the duration of the app.

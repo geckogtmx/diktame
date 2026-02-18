@@ -1,9 +1,9 @@
-namespace DiktaMe.Core.Input;
 
 using InputSimulatorStandard;
 using InputSimulatorStandard.Native;
 using Serilog;
 
+namespace DiktaMe.Core.Input;
 /// <summary>
 /// Injects text into the active foreground application using clipboard paste.
 /// Preserves the user's existing clipboard content before and after injection.
@@ -102,7 +102,9 @@ public sealed class TextInjector
 
         // 7. Press optional additional key
         if (!string.IsNullOrWhiteSpace(additionalKey))
+        {
             PressKey(additionalKey);
+        }
     }
 
     /// <summary>
@@ -164,8 +166,8 @@ public sealed class TextInjector
         VirtualKeyCode? code = keyName.ToLowerInvariant() switch
         {
             "enter" or "return" => VirtualKeyCode.RETURN,
-            "tab"               => VirtualKeyCode.TAB,
-            _                   => null,
+            "tab" => VirtualKeyCode.TAB,
+            _ => null,
         };
 
         if (code is null)

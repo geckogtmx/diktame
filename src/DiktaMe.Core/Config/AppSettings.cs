@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.Config;
 
 using System.Text.Json.Serialization;
 
+namespace DiktaMe.Core.Config;
 /// <summary>
 /// Privacy level for history and logging. Mirrors V1's 4-tier privacy system.
 /// </summary>

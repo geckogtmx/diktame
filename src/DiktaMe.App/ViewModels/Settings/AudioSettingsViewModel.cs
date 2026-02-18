@@ -1,4 +1,3 @@
-namespace DiktaMe.App.ViewModels.Settings;
 
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -6,6 +5,7 @@ using DiktaMe.Core.Audio;
 using DiktaMe.Core.Config;
 using Serilog;
 
+namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class AudioSettingsViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
@@ -68,7 +68,10 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
 
     private void Save()
     {
-        if (_isLoading) return;
+        if (_isLoading)
+        {
+            return;
+        }
 
         string deviceName = SelectedDeviceIndex > 0 && SelectedDeviceIndex < Devices.Count
             ? Devices[SelectedDeviceIndex] : "";
@@ -90,7 +93,10 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
         };
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>
         {
-            if (t.IsFaulted) Log.Error(t.Exception, "Failed to save audio settings");
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception, "Failed to save audio settings");
+            }
         }, TaskScheduler.Default);
     }
 }

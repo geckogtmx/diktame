@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.Config;
 
 using DiktaMe.Core.STT;
 
+namespace DiktaMe.Core.Config;
 /// <summary>
 /// Creates <see cref="ISTTProvider"/> instances based on a provider type name and API key.
 /// Used by <see cref="PipelineFactory"/> to build mode-aware providers from settings.

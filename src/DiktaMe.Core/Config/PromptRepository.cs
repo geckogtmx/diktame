@@ -61,6 +61,8 @@ public sealed class PromptRepository
     private static void ValidateSlot(int slot)
     {
         if (slot < 0 || slot >= SlotCount)
+        {
             throw new ArgumentOutOfRangeException(nameof(slot), $"Slot must be 0-{SlotCount - 1}.");
+        }
     }
 }

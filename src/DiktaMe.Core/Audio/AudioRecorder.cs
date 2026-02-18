@@ -1,8 +1,8 @@
-namespace DiktaMe.Core.Audio;
 
 using NAudio.Wave;
 using Serilog;
 
+namespace DiktaMe.Core.Audio;
 /// <summary>
 /// Records audio from a microphone input device and saves it to a
 /// temporary WAV file (16 kHz, 16-bit, mono — Whisper-compatible).
@@ -71,7 +71,9 @@ public sealed class AudioRecorder : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (IsRecording)
+        {
             throw new InvalidOperationException("Recording is already in progress.");
+        }
 
         int deviceIndex = AudioDeviceManager.ResolveDeviceIndex(deviceLabel, deviceId);
         _currentFilePath = BuildTempFilePath();
@@ -114,7 +116,9 @@ public sealed class AudioRecorder : IDisposable
     public Task<string?> StopRecordingAsync()
     {
         if (!IsRecording)
+        {
             return Task.FromResult<string?>(null);
+        }
 
         StopInternal(isAutoStop: false);
         return Task.FromResult<string?>(_currentFilePath);
@@ -178,7 +182,9 @@ public sealed class AudioRecorder : IDisposable
         }
 
         if (e.Exception is not null)
+        {
             Log.Error(e.Exception, "AudioRecorder: WaveIn stopped with error");
+        }
 
         // Only raise RecordingStopped for manual stops; auto-stop raises AutoStopped separately
         if (!_stoppedByAutoStop && !_disposed)
@@ -200,7 +206,11 @@ public sealed class AudioRecorder : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
 
         _autoStopTimer?.Stop();

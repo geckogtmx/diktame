@@ -1,9 +1,9 @@
-namespace DiktaMe.Core.Input;
 
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Serilog;
 
+namespace DiktaMe.Core.Input;
 /// <summary>
 /// Registers and manages global hotkeys using Win32 RegisterHotKey / UnregisterHotKey.
 /// Hotkeys are identified by a <see cref="HotkeyId"/> enum.
@@ -46,7 +46,10 @@ public sealed class HotkeyManager : IDisposable
     public void Start()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        if (_running) return;
+        if (_running)
+        {
+            return;
+        }
 
         _running = true;
         _pumpThread = new Thread(MessagePumpLoop)
@@ -76,7 +79,9 @@ public sealed class HotkeyManager : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (_hwnd == IntPtr.Zero)
+        {
             throw new InvalidOperationException("Call Start() before registering hotkeys.");
+        }
 
         // Parse the hotkey string
         if (!HotkeyParser.TryParse(hotkeyString, out uint modifiers, out uint vk))
@@ -114,7 +119,11 @@ public sealed class HotkeyManager : IDisposable
     /// </summary>
     public void Unregister(HotkeyId id)
     {
-        if (_hwnd == IntPtr.Zero) return;
+        if (_hwnd == IntPtr.Zero)
+        {
+            return;
+        }
+
         if (_registrations.TryRemove(id, out _))
         {
             NativeMethods.UnregisterHotKey(_hwnd, (int)id);
@@ -128,7 +137,9 @@ public sealed class HotkeyManager : IDisposable
     public void UnregisterAll()
     {
         foreach (HotkeyId id in _registrations.Keys)
+        {
             Unregister(id);
+        }
     }
 
     /// <summary>
@@ -164,10 +175,14 @@ public sealed class HotkeyManager : IDisposable
                 int result = NativeMethods.GetMessage(out NativeMethods.MSG msg, _hwnd, 0, 0);
 
                 if (result == 0 || result == -1)
+                {
                     break; // WM_QUIT or error
+                }
 
                 if (msg.message == WmHotkey)
+                {
                     OnWmHotkey((int)msg.wParam);
+                }
 
                 NativeMethods.TranslateMessage(ref msg);
                 NativeMethods.DispatchMessage(ref msg);
@@ -212,14 +227,20 @@ public sealed class HotkeyManager : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
 
         _running = false;
 
         // Post WM_QUIT to unblock GetMessage
         if (_hwnd != IntPtr.Zero)
+        {
             NativeMethods.PostMessage(_hwnd, NativeMethods.WmQuit, IntPtr.Zero, IntPtr.Zero);
+        }
 
         _pumpThread?.Join(millisecondsTimeout: 2000);
         _hwndReady.Dispose();
@@ -333,12 +354,12 @@ public sealed class HotkeyManager : IDisposable
 /// </summary>
 public enum HotkeyId
 {
-    Dictate   = 1,
-    Ask       = 2,
+    Dictate = 1,
+    Ask = 2,
     Translate = 3,
-    Refine    = 4,
-    Oops      = 5,
-    Note      = 6,
+    Refine = 4,
+    Oops = 5,
+    Note = 6,
 }
 
 /// <summary>Event data for <see cref="HotkeyManager.HotkeyPressed"/>.</summary>

@@ -1,4 +1,3 @@
-namespace DiktaMe.App.ViewModels;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,6 +8,7 @@ using DiktaMe.Core.Pipeline;
 using Microsoft.UI.Dispatching;
 using Serilog;
 
+namespace DiktaMe.App.ViewModels;
 /// <summary>
 /// ViewModel for the Control Panel (HUD dashboard).
 /// Displays real-time pipeline state, session metrics, quick action toggles, and provider badges.
@@ -190,9 +190,14 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
             // Update provider badges
             if (result.SttProvider is not null)
+            {
                 SttProviderName = result.SttProvider;
+            }
+
             if (result.LlmProvider is not null)
+            {
                 LlmProviderName = result.LlmProvider;
+            }
 
             // Refresh session stats
             RefreshSessionStats();

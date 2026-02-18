@@ -1,10 +1,10 @@
-namespace DiktaMe.App.Converters;
 
 using DiktaMe.Core.Pipeline;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 
+namespace DiktaMe.App.Converters;
 public sealed class PipelineStateToColorConverter : IValueConverter
 {
     private static readonly SolidColorBrush Green = new(ColorHelper.FromArgb(255, 74, 222, 128));

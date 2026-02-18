@@ -1,10 +1,10 @@
-namespace DiktaMe.Core.Pipeline;
 
 using System.Diagnostics;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
 using Serilog;
 
+namespace DiktaMe.Core.Pipeline;
 /// <summary>
 /// Orchestrates the Ask flow: record audio → transcribe → LLM Q&amp;A → return answer.
 /// The answer is returned in the <see cref="PipelineResult"/> for the caller to display

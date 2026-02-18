@@ -1,8 +1,8 @@
-namespace DiktaMe.App.Converters;
 
 using DiktaMe.Core.Config;
 using Microsoft.UI.Xaml.Data;
 
+namespace DiktaMe.App.Converters;
 public sealed class PrivacyLevelToStringConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)

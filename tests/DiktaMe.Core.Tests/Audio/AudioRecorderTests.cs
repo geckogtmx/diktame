@@ -49,7 +49,9 @@ public class AudioRecorderTests : IDisposable
     {
         // Only runs if there is at least one audio device
         if (AudioDeviceManager.GetInputDevices().Count == 0)
+        {
             return;
+        }
 
         _recorder.StartRecording();
 
@@ -82,7 +84,9 @@ public class AudioRecorderTests : IDisposable
     public async Task StartThenStop_SetsIsRecordingCorrectly()
     {
         if (AudioDeviceManager.GetInputDevices().Count == 0)
+        {
             return;
+        }
 
         // Act
         _recorder.StartRecording();
@@ -99,7 +103,9 @@ public class AudioRecorderTests : IDisposable
     public async Task StartThenStop_RaisesRecordingStartedAndStopped()
     {
         if (AudioDeviceManager.GetInputDevices().Count == 0)
+        {
             return;
+        }
 
         bool startedFired = false;
         bool stoppedFired = false;
@@ -121,7 +127,9 @@ public class AudioRecorderTests : IDisposable
     public async Task StartThenStop_ProducesValidWavFile()
     {
         if (AudioDeviceManager.GetInputDevices().Count == 0)
+        {
             return;
+        }
 
         _recorder.StartRecording();
         await Task.Delay(300); // record ~300 ms
@@ -167,7 +175,9 @@ public class AudioRecorderTests : IDisposable
     public async Task RecordingStartedEvent_IncludesFilePath()
     {
         if (AudioDeviceManager.GetInputDevices().Count == 0)
+        {
             return;
+        }
 
         string? capturedPath = null;
         _recorder.RecordingStarted += (_, e) => capturedPath = e.FilePath;
@@ -185,7 +195,9 @@ public class AudioRecorderTests : IDisposable
     public async Task AutoStop_FiresAutoStoppedEvent_WhenDurationExceeded()
     {
         if (AudioDeviceManager.GetInputDevices().Count == 0)
+        {
             return;
+        }
 
         var autoStopFired = new TaskCompletionSource<RecordingStoppedEventArgs>();
         _recorder.AutoStopped += (_, e) => autoStopFired.TrySetResult(e);
@@ -209,7 +221,9 @@ public class AudioRecorderTests : IDisposable
     public async Task AutoStop_DoesNotFireRecordingStopped()
     {
         if (AudioDeviceManager.GetInputDevices().Count == 0)
+        {
             return;
+        }
 
         bool stoppedFired = false;
         _recorder.RecordingStopped += (_, _) => stoppedFired = true;

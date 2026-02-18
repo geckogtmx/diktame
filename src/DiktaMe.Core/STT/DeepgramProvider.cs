@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.STT;
 
 using System.Diagnostics;
 using System.Net;
@@ -7,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using Serilog;
 
+namespace DiktaMe.Core.STT;
 /// <summary>
 /// STT provider backed by Deepgram Nova-2 via the REST Listen API.
 /// API reference: https://developers.deepgram.com/reference/listen-file
@@ -35,7 +35,9 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
     public DeepgramProvider(string apiKey, HttpClient? httpClient = null)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
+        {
             throw new ArgumentException("Deepgram API key must not be empty.", nameof(apiKey));
+        }
 
         _apiKey = apiKey;
         _http = httpClient ?? new HttpClient
@@ -89,10 +91,14 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
         sw.Stop();
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
             throw new InvalidOperationException("Deepgram: invalid API key (401).");
+        }
 
         if (response.StatusCode == (HttpStatusCode)429)
+        {
             throw new InvalidOperationException("Deepgram: rate limit exceeded (429).");
+        }
 
         if (!response.IsSuccessStatusCode)
         {
@@ -134,20 +140,30 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
             var root = doc.RootElement;
 
             if (!root.TryGetProperty("results", out var results))
+            {
                 return string.Empty;
+            }
 
             if (!results.TryGetProperty("channels", out var channels))
+            {
                 return string.Empty;
+            }
 
             if (channels.GetArrayLength() == 0)
+            {
                 return string.Empty;
+            }
 
             var channel = channels[0];
             if (!channel.TryGetProperty("alternatives", out var alts))
+            {
                 return string.Empty;
+            }
 
             if (alts.GetArrayLength() == 0)
+            {
                 return string.Empty;
+            }
 
             return alts[0].TryGetProperty("transcript", out var t)
                 ? t.GetString() ?? string.Empty
@@ -171,9 +187,20 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
-            if (!root.TryGetProperty("results", out var results)) return null;
-            if (!results.TryGetProperty("channels", out var channels)) return null;
-            if (channels.GetArrayLength() == 0) return null;
+            if (!root.TryGetProperty("results", out var results))
+            {
+                return null;
+            }
+
+            if (!results.TryGetProperty("channels", out var channels))
+            {
+                return null;
+            }
+
+            if (channels.GetArrayLength() == 0)
+            {
+                return null;
+            }
 
             var channel = channels[0];
             return channel.TryGetProperty("detected_language", out var lang)
@@ -189,7 +216,11 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _http.Dispose();
     }

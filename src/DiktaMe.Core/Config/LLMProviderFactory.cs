@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.Config;
 
 using DiktaMe.Core.LLM;
 
+namespace DiktaMe.Core.Config;
 /// <summary>
 /// Creates LLM providers by name, pulling API keys from <see cref="Security.SecureStorage"/>
 /// and constructing the appropriate concrete type.

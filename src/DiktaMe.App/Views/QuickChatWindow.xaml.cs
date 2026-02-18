@@ -1,4 +1,3 @@
-namespace DiktaMe.App.Views;
 
 using DiktaMe.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 using Windows.System;
 
+namespace DiktaMe.App.Views;
 public sealed partial class QuickChatWindow : Window
 {
     public QuickChatViewModel ViewModel { get; }
@@ -29,7 +29,9 @@ public sealed partial class QuickChatWindow : Window
         ViewModel.Messages.CollectionChanged += (_, _) =>
         {
             if (MessageList.Items.Count > 0)
+            {
                 MessageList.ScrollIntoView(MessageList.Items[^1]);
+            }
         };
     }
 

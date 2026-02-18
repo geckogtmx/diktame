@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.LLM;
 
 using System.Diagnostics;
 using System.Net;
@@ -8,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using Serilog;
 
+namespace DiktaMe.Core.LLM;
 /// <summary>
 /// LLM provider backed by the Google Gemini generateContent API.
 /// Supports both API key (query param) and OAuth Bearer token auth (ya29.* tokens),
@@ -39,7 +39,9 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
         HttpClient? httpClient = null)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
+        {
             throw new ArgumentException("Gemini API key must not be empty.", nameof(apiKey));
+        }
 
         _apiKey = apiKey;
         _model = model;
@@ -86,12 +88,16 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
                 request.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
                 if (_isOAuth)
+                {
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                }
 
                 using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
                     throw new InvalidOperationException("Gemini: invalid API key or OAuth token (401).");
+                }
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -173,8 +179,15 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
             int? inTok = null, outTok = null;
             if (root.TryGetProperty("usageMetadata", out var usage))
             {
-                if (usage.TryGetProperty("promptTokenCount", out var pt)) inTok = pt.GetInt32();
-                if (usage.TryGetProperty("candidatesTokenCount", out var ct)) outTok = ct.GetInt32();
+                if (usage.TryGetProperty("promptTokenCount", out var pt))
+                {
+                    inTok = pt.GetInt32();
+                }
+
+                if (usage.TryGetProperty("candidatesTokenCount", out var ct))
+                {
+                    outTok = ct.GetInt32();
+                }
             }
 
             return (text, inTok, outTok);
@@ -196,7 +209,11 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _http.Dispose();
     }

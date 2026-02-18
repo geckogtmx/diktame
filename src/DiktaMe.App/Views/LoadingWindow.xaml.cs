@@ -1,9 +1,9 @@
-namespace DiktaMe.App.Views;
 
 using DiktaMe.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 
+namespace DiktaMe.App.Views;
 public sealed partial class LoadingWindow : Window
 {
     public LoadingViewModel ViewModel { get; }

@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.LLM;
 
 using Serilog;
 
+namespace DiktaMe.Core.LLM;
 /// <summary>
 /// Routes LLM processing requests to the correct <see cref="ILLMProvider"/>
 /// based on a configured primary provider, with automatic fallback.
@@ -31,10 +31,14 @@ public sealed class LLMRouter : ILLMProvider
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
         if (await _primary.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+        {
             return true;
+        }
 
         if (_fallback is not null)
+        {
             return await _fallback.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         return false;
     }

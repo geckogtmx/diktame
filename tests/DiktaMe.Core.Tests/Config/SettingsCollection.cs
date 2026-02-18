@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.Tests;
 
 using Xunit;
 
+namespace DiktaMe.Core.Tests;
 /// <summary>
 /// Tests that write to the real %APPDATA%\DiktaMe\settings.json must not run in
 /// parallel with each other — SettingsManager uses an atomic write-then-rename that

@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.Audio;
 
 using NAudio.Wave;
 
+namespace DiktaMe.Core.Audio;
 /// <summary>
 /// Enumerates available audio input (microphone) devices and resolves
 /// a device index from an optional label or ID, with fallback to default.
@@ -48,7 +48,9 @@ public static class AudioDeviceManager
             foreach (AudioDevice device in devices)
             {
                 if (device.Name.Contains(deviceLabel, StringComparison.OrdinalIgnoreCase))
+                {
                     return device.Index;
+                }
             }
         }
 

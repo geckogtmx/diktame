@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.Pipeline;
 
 using System.Diagnostics;
 using DiktaMe.Core.Config;
@@ -7,6 +6,7 @@ using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
 using Serilog;
 
+namespace DiktaMe.Core.Pipeline;
 /// <summary>
 /// Orchestrates the Refine flow:
 /// <list type="bullet">
@@ -155,7 +155,9 @@ public sealed class RefinePipeline
 
             // ── Stage 4: Snippet expansion (post-LLM, pre-inject) ────────
             if (_snippets is not null)
+            {
                 refinedText = _snippets.ExpandSnippets(refinedText);
+            }
 
             // ── Stage 5: Inject ───────────────────────────────────────────
             SetState(PipelineState.Injecting);

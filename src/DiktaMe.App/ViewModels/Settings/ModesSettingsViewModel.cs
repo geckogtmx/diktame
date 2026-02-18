@@ -1,10 +1,10 @@
-namespace DiktaMe.App.ViewModels.Settings;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiktaMe.Core.Config;
 using Serilog;
 
+namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class ModesSettingsViewModel : ObservableObject
 {
     private readonly ProfileManager _profileManager;
@@ -96,7 +96,10 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
 
     private void SaveModeDetail()
     {
-        if (_isLoading) return;
+        if (_isLoading)
+        {
+            return;
+        }
 
         string mode = SelectedModeIndex >= 0 && SelectedModeIndex < ModeCodes.Length
             ? ModeCodes[SelectedModeIndex] : "dictate";
@@ -114,7 +117,10 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
 
         _ = _profileManager.SetModeSettingsAsync(mode, ActiveProfileIndex, ms).ContinueWith(t =>
         {
-            if (t.IsFaulted) Log.Error(t.Exception, "Failed to save mode settings for {Mode}", mode);
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception, "Failed to save mode settings for {Mode}", mode);
+            }
         }, TaskScheduler.Default);
     }
 
@@ -123,7 +129,10 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
         var labels = new string[17]; // -1 (default) + 0-15
         labels[0] = "Default (provider built-in)";
         for (int i = 1; i <= 16; i++)
+        {
             labels[i] = $"Prompt Slot {i - 1}";
+        }
+
         return labels;
     }
 }

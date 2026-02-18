@@ -1,10 +1,10 @@
-namespace DiktaMe.App.Views;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Serilog;
 
+namespace DiktaMe.App.Views;
 /// <summary>
 /// The tray icon states, matching V1's icon state names.
 /// </summary>
@@ -83,11 +83,11 @@ public sealed partial class TrayIconViewModel : ObservableObject
 
         string status = statusSuffix ?? state switch
         {
-            TrayIconState.Idle       => "Idle",
-            TrayIconState.Recording  => "Recording...",
+            TrayIconState.Idle => "Idle",
+            TrayIconState.Recording => "Recording...",
             TrayIconState.Processing => "Processing...",
-            TrayIconState.Error      => "Error",
-            _                        => state.ToString(),
+            TrayIconState.Error => "Error",
+            _ => state.ToString(),
         };
 
         TooltipText = $"dIKta.me — {status}";

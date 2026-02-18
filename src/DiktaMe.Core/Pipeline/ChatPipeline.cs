@@ -1,10 +1,10 @@
-namespace DiktaMe.Core.Pipeline;
 
 using System.Diagnostics;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
 using Serilog;
 
+namespace DiktaMe.Core.Pipeline;
 /// <summary>
 /// Orchestrates the Quick Chat flow: optional STT (voice input) → LLM Q&amp;A → return answer.
 /// Unlike <see cref="AskPipeline"/>, the input may be plain text (typed in the overlay) or
@@ -78,8 +78,10 @@ public sealed class ChatPipeline
             {
                 // ── Voice path: raw STT (no LLM cleanup of question) ─────
                 if (_stt is null)
+                {
                     throw new InvalidOperationException(
                         "ChatPipeline: an ISTTProvider is required when AudioFilePath is set.");
+                }
 
                 SetState(PipelineState.Transcribing);
                 Log.Information("ChatPipeline: transcribing voice input");

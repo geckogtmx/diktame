@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.Pipeline;
 
 using System.Diagnostics;
 using DiktaMe.Core.Config;
@@ -7,6 +6,7 @@ using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
 using Serilog;
 
+namespace DiktaMe.Core.Pipeline;
 /// <summary>
 /// Orchestrates the core dictation flow: STT → optional LLM cleanup → text injection.
 /// The audio file is produced externally (by <c>AudioRecorder</c>) and passed in.
@@ -136,7 +136,9 @@ public sealed class DictationPipeline
 
             // ── Stage 3: Snippet expansion (post-LLM, pre-inject) ────────
             if (_snippets is not null)
+            {
                 finalText = _snippets.ExpandSnippets(finalText);
+            }
 
             // ── Stage 4: Inject ───────────────────────────────────────────
             SetState(PipelineState.Injecting);

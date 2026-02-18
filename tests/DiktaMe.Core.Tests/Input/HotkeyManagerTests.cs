@@ -129,12 +129,12 @@ public class HotkeyManagerTests : IDisposable
     {
         var ids = Enum.GetValues<HotkeyId>();
         Assert.Equal(6, ids.Length);
-        Assert.Contains(HotkeyId.Dictate,   ids);
-        Assert.Contains(HotkeyId.Ask,       ids);
+        Assert.Contains(HotkeyId.Dictate, ids);
+        Assert.Contains(HotkeyId.Ask, ids);
         Assert.Contains(HotkeyId.Translate, ids);
-        Assert.Contains(HotkeyId.Refine,    ids);
-        Assert.Contains(HotkeyId.Oops,      ids);
-        Assert.Contains(HotkeyId.Note,      ids);
+        Assert.Contains(HotkeyId.Refine, ids);
+        Assert.Contains(HotkeyId.Oops, ids);
+        Assert.Contains(HotkeyId.Note, ids);
     }
 
     // ── RegistrationFailed event args ─────────────────────────────────────────

@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.STT;
 
 using System.Diagnostics;
 using System.Net;
@@ -8,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using Serilog;
 
+namespace DiktaMe.Core.STT;
 /// <summary>
 /// STT provider that sends audio directly to Google Gemini's multimodal API.
 /// Gemini understands audio natively — no separate speech pipeline needed.
@@ -45,7 +45,9 @@ public sealed class GeminiAudioProvider : ISTTProvider, IDisposable
         HttpClient? httpClient = null)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
+        {
             throw new ArgumentException("Gemini API key must not be empty.", nameof(apiKey));
+        }
 
         _apiKey = apiKey;
         _model = model;
@@ -100,10 +102,14 @@ public sealed class GeminiAudioProvider : ISTTProvider, IDisposable
         sw.Stop();
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
             throw new InvalidOperationException("Gemini: invalid API key (401).");
+        }
 
         if (response.StatusCode == (HttpStatusCode)429)
+        {
             throw new InvalidOperationException("Gemini: rate limit exceeded (429).");
+        }
 
         if (!response.IsSuccessStatusCode)
         {
@@ -135,7 +141,9 @@ public sealed class GeminiAudioProvider : ISTTProvider, IDisposable
     private static string BuildTranscriptionPrompt(string language)
     {
         if (language.Equals("auto", StringComparison.OrdinalIgnoreCase))
+        {
             return "Transcribe the following audio exactly. Output only the transcribed text, nothing else.";
+        }
 
         return $"Transcribe the following audio exactly in {language}. Output only the transcribed text, nothing else.";
     }
@@ -179,20 +187,30 @@ public sealed class GeminiAudioProvider : ISTTProvider, IDisposable
             var root = doc.RootElement;
 
             if (!root.TryGetProperty("candidates", out var candidates))
+            {
                 return string.Empty;
+            }
 
             if (candidates.GetArrayLength() == 0)
+            {
                 return string.Empty;
+            }
 
             var candidate = candidates[0];
             if (!candidate.TryGetProperty("content", out var content))
+            {
                 return string.Empty;
+            }
 
             if (!content.TryGetProperty("parts", out var parts))
+            {
                 return string.Empty;
+            }
 
             if (parts.GetArrayLength() == 0)
+            {
                 return string.Empty;
+            }
 
             return parts[0].TryGetProperty("text", out var text)
                 ? text.GetString()?.Trim() ?? string.Empty
@@ -208,7 +226,11 @@ public sealed class GeminiAudioProvider : ISTTProvider, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _http.Dispose();
     }

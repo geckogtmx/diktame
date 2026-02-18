@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.Tests.Config;
 
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Input;
@@ -9,6 +8,7 @@ using DiktaMe.Core.Tests;
 using Moq;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.Config;
 [Trait("Category", "Unit")]
 [Collection(nameof(SettingsWriterCollection))]
 public sealed class PipelineFactoryTests
@@ -34,7 +34,9 @@ public sealed class PipelineFactoryTests
     {
         var sm = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_pf_{Guid.NewGuid()}.json"));
         if (settings is not null)
+        {
             sm.UpdateAsync(settings).GetAwaiter().GetResult();
+        }
 
         var profiles = new ProfileManager(sm);
         var sttFactory = new Mock<ISTTProviderFactory>();

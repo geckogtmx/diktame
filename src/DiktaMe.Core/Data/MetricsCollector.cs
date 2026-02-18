@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.Data;
 
 using DiktaMe.Core.Pipeline;
 
+namespace DiktaMe.Core.Data;
 /// <summary>
 /// Tracks aggregate performance metrics derived from pipeline results.
 /// Works in conjunction with <see cref="HistoryManager"/> for persistence.
@@ -25,7 +25,10 @@ public sealed class MetricsCollector
     /// </summary>
     public async Task RecordAsync(PipelineResult result, CancellationToken cancellationToken = default)
     {
-        if (!result.IsSuccess) return;
+        if (!result.IsSuccess)
+        {
+            return;
+        }
 
         _sessionWords += result.WordCount;
         _sessionCount++;

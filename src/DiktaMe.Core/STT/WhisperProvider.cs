@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.STT;
 
 using System.Diagnostics;
 using System.Net.Http;
@@ -6,6 +5,7 @@ using Serilog;
 using Whisper.net;
 using Whisper.net.Ggml;
 
+namespace DiktaMe.Core.STT;
 /// <summary>
 /// STT provider using Whisper.net (ONNX/GGML-based, fully local, no Python required).
 /// Models are stored in <c>%APPDATA%\DiktaMe\models\</c> and loaded lazily on first use.
@@ -24,12 +24,12 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
     private static readonly IReadOnlyDictionary<string, (GgmlType Type, string FileName)> ModelMap =
         new Dictionary<string, (GgmlType, string)>(StringComparer.OrdinalIgnoreCase)
         {
-            ["tiny"]   = (GgmlType.Tiny,         "ggml-tiny.bin"),
-            ["base"]   = (GgmlType.Base,          "ggml-base.bin"),
-            ["small"]  = (GgmlType.Small,         "ggml-small.bin"),
-            ["medium"] = (GgmlType.Medium,        "ggml-medium.bin"),
-            ["large"]  = (GgmlType.LargeV3,       "ggml-large-v3.bin"),
-            ["turbo"]  = (GgmlType.LargeV3Turbo,  "ggml-large-v3-turbo.bin"),
+            ["tiny"] = (GgmlType.Tiny, "ggml-tiny.bin"),
+            ["base"] = (GgmlType.Base, "ggml-base.bin"),
+            ["small"] = (GgmlType.Small, "ggml-small.bin"),
+            ["medium"] = (GgmlType.Medium, "ggml-medium.bin"),
+            ["large"] = (GgmlType.LargeV3, "ggml-large-v3.bin"),
+            ["turbo"] = (GgmlType.LargeV3Turbo, "ggml-large-v3-turbo.bin"),
         };
 
     private readonly string _modelSize;
@@ -63,9 +63,11 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
     public WhisperProvider(string modelSize = "turbo", string? modelsDirectory = null)
     {
         if (!ModelMap.ContainsKey(modelSize))
+        {
             throw new ArgumentException(
                 $"Unknown model size '{modelSize}'. Valid: {string.Join(", ", ModelMap.Keys)}",
                 nameof(modelSize));
+        }
 
         _modelSize = modelSize;
         string dir = modelsDirectory ?? ModelsDirectory;
@@ -96,9 +98,11 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (!File.Exists(_modelPath))
+        {
             throw new FileNotFoundException(
                 $"Whisper model '{_modelSize}' not found at '{_modelPath}'. " +
                 "Call DownloadModelAsync() first.", _modelPath);
+        }
 
         // Lazy-load the factory (expensive — only once)
         _factory ??= WhisperFactory.FromPath(_modelPath);
@@ -109,9 +113,13 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
 
         var builder = _factory.CreateBuilder();
         if (autoDetect)
+        {
             builder = builder.WithLanguageDetection();
+        }
         else
+        {
             builder = builder.WithLanguage(language);
+        }
 
         using var processor = builder.Build();
 
@@ -224,7 +232,11 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _factory?.Dispose();
         _factory = null;

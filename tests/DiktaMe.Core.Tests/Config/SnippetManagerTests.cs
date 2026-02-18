@@ -1,8 +1,8 @@
-namespace DiktaMe.Core.Tests.Config;
 
 using DiktaMe.Core.Config;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.Config;
 [Trait("Category", "Unit")]
 public sealed class SnippetManagerTests
 {
@@ -132,7 +132,9 @@ public sealed class SnippetManagerTests
     {
         var mgr = new SnippetManager();
         for (int i = 0; i < SnippetManager.MaxSnippets; i++)
+        {
             mgr.Add($"trigger{i}", "content");
+        }
 
         bool added = mgr.Add("one more", "content");
         Assert.False(added);
@@ -204,7 +206,10 @@ public sealed class SnippetManagerTests
         }
         finally
         {
-            if (File.Exists(tmpFile)) File.Delete(tmpFile);
+            if (File.Exists(tmpFile))
+            {
+                File.Delete(tmpFile);
+            }
         }
     }
 

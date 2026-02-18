@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.Security;
 
 using System.Security.Cryptography;
 using System.Text;
@@ -6,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Serilog;
 
+namespace DiktaMe.Core.Security;
 /// <summary>
 /// Encrypted storage for provider API keys using Windows DPAPI
 /// (<see cref="ProtectedData"/> with <see cref="DataProtectionScope.CurrentUser"/>).
@@ -98,7 +98,9 @@ public sealed class SecureStorage
     private static Dictionary<string, string> LoadDecrypted()
     {
         if (!File.Exists(KeysFilePath))
+        {
             return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
 
         byte[] encryptedBlob;
         try
@@ -162,7 +164,9 @@ public sealed class SecureStorage
 
         string? dir = Path.GetDirectoryName(KeysFilePath);
         if (!string.IsNullOrEmpty(dir))
+        {
             Directory.CreateDirectory(dir);
+        }
 
         // Atomic write: write to .tmp then rename
         string tmpPath = KeysFilePath + ".tmp";

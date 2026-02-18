@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.Data;
 
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Pipeline;
@@ -6,6 +5,7 @@ using DiktaMe.Core.Security;
 using Microsoft.Data.Sqlite;
 using Serilog;
 
+namespace DiktaMe.Core.Data;
 /// <summary>
 /// Persists pipeline session history to a SQLite database at
 /// <c>%APPDATA%\DiktaMe\history.db</c>.
@@ -41,7 +41,9 @@ public sealed class HistoryManager : IDisposable
     {
         string? dir = Path.GetDirectoryName(_dbPath);
         if (!string.IsNullOrEmpty(dir))
+        {
             Directory.CreateDirectory(dir);
+        }
 
         _connection = new SqliteConnection($"Data Source={_dbPath}");
         await _connection.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -68,7 +70,9 @@ public sealed class HistoryManager : IDisposable
         var level = _settings.Current.Privacy.Level;
 
         if (level == PrivacyLevel.Ghost)
+        {
             return;  // Log nothing at Ghost level
+        }
 
         string? text = null;
         string? rawTranscript = null;
@@ -136,7 +140,9 @@ public sealed class HistoryManager : IDisposable
         CancellationToken cancellationToken = default)
     {
         if (_connection is null)
+        {
             return (0, 0);
+        }
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = """
@@ -148,7 +154,9 @@ public sealed class HistoryManager : IDisposable
 
         using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
             return (reader.GetInt32(0), reader.GetInt32(1));
+        }
 
         return (0, 0);
     }
@@ -198,7 +206,9 @@ public sealed class HistoryManager : IDisposable
         int deleted = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
 
         if (deleted > 0)
+        {
             Log.Information("HistoryManager: pruned {N} records older than {Days} days", deleted, days);
+        }
     }
 
     // ── Wipe ──────────────────────────────────────────────────────────────────
@@ -208,7 +218,10 @@ public sealed class HistoryManager : IDisposable
     /// </summary>
     public async Task WipeAllAsync(CancellationToken cancellationToken = default)
     {
-        if (_connection is null) return;
+        if (_connection is null)
+        {
+            return;
+        }
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = "DELETE FROM history; DELETE FROM system_metrics;";
@@ -219,7 +232,11 @@ public sealed class HistoryManager : IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _connection?.Dispose();
         _connection = null;

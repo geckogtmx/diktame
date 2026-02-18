@@ -1,9 +1,9 @@
-namespace DiktaMe.App.ViewModels.Settings;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using DiktaMe.Core.Config;
 using Serilog;
 
+namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class GeneralSettingsViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
@@ -55,7 +55,10 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
 
     private void Save()
     {
-        if (_isLoading) return;
+        if (_isLoading)
+        {
+            return;
+        }
 
         var updated = _settings.Current with
         {
@@ -72,7 +75,10 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         };
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>
         {
-            if (t.IsFaulted) Log.Error(t.Exception, "Failed to save general settings");
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception, "Failed to save general settings");
+            }
         }, TaskScheduler.Default);
     }
 }

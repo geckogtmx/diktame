@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.Pipeline;
 
 using System.Diagnostics;
 using DiktaMe.Core.Config;
@@ -7,6 +6,7 @@ using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
 using Serilog;
 
+namespace DiktaMe.Core.Pipeline;
 /// <summary>
 /// Orchestrates the Translate flow:
 /// Record → STT (auto-detect language) → LLM (translate) → Inject.
@@ -94,7 +94,9 @@ public sealed class TranslatePipeline
 
             // ── Stage 3: Snippet expansion (post-LLM, pre-inject) ────────
             if (_snippets is not null)
+            {
                 finalText = _snippets.ExpandSnippets(finalText);
+            }
 
             // ── Stage 4: Inject ───────────────────────────────────────────
             SetState(PipelineState.Injecting);

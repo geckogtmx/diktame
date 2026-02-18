@@ -1,10 +1,10 @@
-namespace DiktaMe.App.Views;
 
 using DiktaMe.App.ViewModels;
 using DiktaMe.App.Views.Wizard;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 
+namespace DiktaMe.App.Views;
 public sealed partial class WizardWindow : Window
 {
     public WizardViewModel ViewModel { get; }

@@ -1,8 +1,8 @@
-namespace DiktaMe.Core.Audio;
 
 using NAudio.CoreAudioApi;
 using Serilog;
 
+namespace DiktaMe.Core.Audio;
 /// <summary>
 /// Ducks (temporarily lowers the volume of) all active audio sessions except
 /// the current process while recording is in progress, then restores them.
@@ -58,11 +58,17 @@ public sealed class AudioDucker : IDisposable
     /// </summary>
     public void Duck()
     {
-        if (!IsEnabled || _disposed) return;
+        if (!IsEnabled || _disposed)
+        {
+            return;
+        }
 
         lock (_lock)
         {
-            if (_isDucked) return;
+            if (_isDucked)
+            {
+                return;
+            }
 
             try
             {
@@ -96,11 +102,18 @@ public sealed class AudioDucker : IDisposable
     /// </summary>
     public void Restore()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         lock (_lock)
         {
-            if (!_isDucked) return;
+            if (!_isDucked)
+            {
+                return;
+            }
+
             RestoreInternal();
         }
     }
@@ -164,7 +177,10 @@ public sealed class AudioDucker : IDisposable
                 try
                 {
                     // Skip our own process
-                    if (session.GetProcessID == (uint)_ownPid) continue;
+                    if (session.GetProcessID == (uint)_ownPid)
+                    {
+                        continue;
+                    }
 
                     // Skip sessions that are already at or below duck level
                     // (nothing to duck; still save them so Restore is a no-op)
@@ -209,13 +225,19 @@ public sealed class AudioDucker : IDisposable
     /// <summary>Disposes the ducker and restores all sessions.</summary>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
 
         lock (_lock)
         {
             if (_isDucked)
+            {
                 RestoreInternal();
+            }
         }
     }
 }

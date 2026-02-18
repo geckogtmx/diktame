@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.STT;
 
 using Serilog;
 
+namespace DiktaMe.Core.STT;
 /// <summary>
 /// Routes transcription requests to the correct <see cref="ISTTProvider"/> based on
 /// the configured primary provider, with automatic fallback to a secondary provider
@@ -36,10 +36,14 @@ public sealed class STTRouter : ISTTProvider
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
         if (await _primary.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+        {
             return true;
+        }
 
         if (_fallback is not null)
+        {
             return await _fallback.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         return false;
     }

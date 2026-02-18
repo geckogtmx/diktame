@@ -1,9 +1,9 @@
-namespace DiktaMe.Core.Input;
 
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Serilog;
 
+namespace DiktaMe.Core.Input;
 /// <summary>
 /// Reads and writes plain-text clipboard content using Win32 P/Invoke.
 /// Using Win32 directly (rather than WinUI 3's DataPackage) keeps this
@@ -34,11 +34,15 @@ public static class ClipboardManager
             {
                 IntPtr handle = NativeMethods.GetClipboardData(NativeMethods.CF_UNICODETEXT);
                 if (handle == IntPtr.Zero)
+                {
                     return string.Empty;
+                }
 
                 IntPtr ptr = NativeMethods.GlobalLock(handle);
                 if (ptr == IntPtr.Zero)
+                {
                     return string.Empty;
+                }
 
                 try
                 {
@@ -88,7 +92,9 @@ public static class ClipboardManager
                     int byteCount = (text.Length + 1) * 2;
                     IntPtr hMem = NativeMethods.GlobalAlloc(NativeMethods.GMEM_MOVEABLE, (UIntPtr)byteCount);
                     if (hMem == IntPtr.Zero)
+                    {
                         throw new Win32Exception(Marshal.GetLastWin32Error(), "GlobalAlloc failed");
+                    }
 
                     IntPtr ptr = NativeMethods.GlobalLock(hMem);
                     if (ptr == IntPtr.Zero)

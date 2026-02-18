@@ -1,9 +1,9 @@
-namespace DiktaMe.Core.Config;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Serilog;
 
+namespace DiktaMe.Core.Config;
 /// <summary>
 /// A single voice snippet: a short trigger phrase that expands to longer content.
 /// Port of V1's snippet system (SPEC_026).
@@ -81,7 +81,9 @@ public sealed class SnippetManager
     {
         string? dir = Path.GetDirectoryName(_filePath);
         if (!string.IsNullOrEmpty(dir))
+        {
             Directory.CreateDirectory(dir);
+        }
 
         string tmp = _filePath + ".tmp";
         string json = JsonSerializer.Serialize(_snippets, SnippetListContext.Default.ListSnippet);
@@ -124,7 +126,10 @@ public sealed class SnippetManager
     public bool Update(string id, string trigger, string content)
     {
         int index = _snippets.FindIndex(s => string.Equals(s.Id, id, StringComparison.Ordinal));
-        if (index < 0) return false;
+        if (index < 0)
+        {
+            return false;
+        }
 
         _snippets[index] = _snippets[index] with
         {
@@ -159,7 +164,9 @@ public sealed class SnippetManager
     public string ExpandSnippets(string text)
     {
         if (string.IsNullOrWhiteSpace(text) || _snippets.Count == 0)
+        {
             return text;
+        }
 
         // Normalise: strip trailing whitespace, work on lower-case copy for matching
         string trimmed = text.TrimEnd();
@@ -168,7 +175,10 @@ public sealed class SnippetManager
         foreach (Snippet snippet in _snippets)
         {
             string trigger = snippet.Trigger.ToLowerInvariant();
-            if (string.IsNullOrWhiteSpace(trigger)) continue;
+            if (string.IsNullOrWhiteSpace(trigger))
+            {
+                continue;
+            }
 
             // Strip trailing punctuation from the text tail before comparing
             string tail = StripTrailingPunctuation(lower);
@@ -187,7 +197,9 @@ public sealed class SnippetManager
 
                 // Verify a word boundary (not in the middle of a word)
                 if (startInTrimmed > 0 && !char.IsWhiteSpace(trimmed[startInTrimmed - 1]))
+                {
                     continue;
+                }
 
                 string expanded = trimmed[..startInTrimmed] + snippet.Content;
                 Log.Debug("SnippetManager: expanded trigger '{Trigger}' → {Chars} chars",
@@ -205,7 +217,10 @@ public sealed class SnippetManager
     {
         int end = s.Length;
         while (end > 0 && char.IsPunctuation(s[end - 1]))
+        {
             end--;
+        }
+
         return s[..end];
     }
 }

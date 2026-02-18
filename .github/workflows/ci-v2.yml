@@ -160,6 +160,7 @@ jobs:
         with:
           name: coverage-report
           path: TestResults/**/coverage.cobertura.xml
+          if_no_files_found: warn
           retention-days: 14
 
       # ── Upload publish artifact ───────────────────────────────────────

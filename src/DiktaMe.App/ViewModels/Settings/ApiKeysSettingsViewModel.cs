@@ -1,10 +1,10 @@
-namespace DiktaMe.App.ViewModels.Settings;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiktaMe.Core.Security;
 using Serilog;
 
+namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class ApiKeysSettingsViewModel : ObservableObject
 {
     private readonly SecureStorage _storage;

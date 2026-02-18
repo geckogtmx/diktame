@@ -1,8 +1,8 @@
-namespace DiktaMe.Core.Tests.Security;
 
 using DiktaMe.Core.Security;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.Security;
 public sealed class PIIScrubberTests
 {
     // ── Email ─────────────────────────────────────────────────────────────────

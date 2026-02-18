@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.Tests.SystemManagement;
 
 using System.Net;
 using System.Net.Http;
@@ -6,6 +5,7 @@ using DiktaMe.Core.SystemManagement;
 using FluentAssertions;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.SystemManagement;
 /// <summary>
 /// Unit tests for <see cref="OllamaManager"/>.
 ///
@@ -18,20 +18,29 @@ public sealed class OllamaManagerTests
     // ── CompareVersions ──────────────────────────────────────────────────────
 
     [Theory]
-    [InlineData("0.6.1", "0.6.1",  0)]
-    [InlineData("0.6.1", "0.6.0",  1)]
+    [InlineData("0.6.1", "0.6.1", 0)]
+    [InlineData("0.6.1", "0.6.0", 1)]
     [InlineData("0.5.0", "0.6.0", -1)]
-    [InlineData("1.0.0", "0.9.9",  1)]
-    [InlineData("0.3",   "0.3.0",  0)]  // missing patch
-    [InlineData("v0.6.1","0.6.1",  0)]  // leading 'v'
+    [InlineData("1.0.0", "0.9.9", 1)]
+    [InlineData("0.3", "0.3.0", 0)]  // missing patch
+    [InlineData("v0.6.1", "0.6.1", 0)]  // leading 'v'
     [InlineData("0.6.1", "1.0.0", -1)]
     public void CompareVersions_ReturnsCorrectSign(string a, string b, int expectedSign)
     {
         int result = OllamaManager.CompareVersions(a, b);
 
-        if (expectedSign < 0) result.Should().BeNegative();
-        else if (expectedSign > 0) result.Should().BePositive();
-        else result.Should().Be(0);
+        if (expectedSign < 0)
+        {
+            result.Should().BeNegative();
+        }
+        else if (expectedSign > 0)
+        {
+            result.Should().BePositive();
+        }
+        else
+        {
+            result.Should().Be(0);
+        }
     }
 
     // ── CheckAsync — Offline ─────────────────────────────────────────────────
@@ -256,14 +265,18 @@ internal sealed class FakeHttpHandler : HttpMessageHandler
         CancellationToken cancellationToken)
     {
         if (_throwException)
+        {
             throw new HttpRequestException("Connection refused (fake)");
+        }
 
         string url = request.RequestUri?.AbsolutePath ?? string.Empty;
 
         if (url.EndsWith("/api/version"))
         {
             if (_versionStatus != HttpStatusCode.OK)
+            {
                 return Task.FromResult(new HttpResponseMessage(_versionStatus));
+            }
 
             string json = $$"""{"version":"{{_version}}"}""";
             return Task.FromResult(OkJson(json));

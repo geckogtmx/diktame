@@ -1,4 +1,3 @@
-namespace DiktaMe.App.ViewModels.Settings;
 
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -6,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using DiktaMe.Core.Config;
 using Serilog;
 
+namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class SnippetsSettingsViewModel : ObservableObject
 {
     private readonly SnippetManager _snippetManager;
@@ -37,7 +37,11 @@ public sealed partial class SnippetsSettingsViewModel : ObservableObject
     [RelayCommand]
     private void EditSelectedSnippet()
     {
-        if (SelectedSnippet is null) return;
+        if (SelectedSnippet is null)
+        {
+            return;
+        }
+
         IsNew = false;
         IsEditing = true;
         EditTrigger = SelectedSnippet.Trigger;
@@ -48,7 +52,9 @@ public sealed partial class SnippetsSettingsViewModel : ObservableObject
     private async Task SaveSnippetAsync()
     {
         if (string.IsNullOrWhiteSpace(EditTrigger) || string.IsNullOrWhiteSpace(EditContent))
+        {
             return;
+        }
 
         if (IsNew)
         {
@@ -73,7 +79,10 @@ public sealed partial class SnippetsSettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task DeleteSnippetAsync()
     {
-        if (SelectedSnippet is null) return;
+        if (SelectedSnippet is null)
+        {
+            return;
+        }
 
         _snippetManager.Remove(SelectedSnippet.Id);
         await _snippetManager.SaveAsync();
@@ -85,7 +94,10 @@ public sealed partial class SnippetsSettingsViewModel : ObservableObject
     {
         Snippets.Clear();
         foreach (var s in _snippetManager.GetAll())
+        {
             Snippets.Add(s);
+        }
+
         CountText = $"{Snippets.Count}/{SnippetManager.MaxSnippets}";
     }
 }

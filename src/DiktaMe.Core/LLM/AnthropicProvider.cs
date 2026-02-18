@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.LLM;
 
 using System.Diagnostics;
 using System.Net;
@@ -7,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Serilog;
 
+namespace DiktaMe.Core.LLM;
 /// <summary>
 /// LLM provider backed by the Anthropic Messages API.
 /// Supports all Claude models (claude-3-5-haiku, claude-3-5-sonnet, claude-3-opus, etc.).
@@ -35,7 +35,9 @@ public sealed class AnthropicProvider : ILLMProvider, IDisposable
         HttpClient? httpClient = null)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
+        {
             throw new ArgumentException("Anthropic API key must not be empty.", nameof(apiKey));
+        }
 
         _apiKey = apiKey;
         _model = model;
@@ -73,7 +75,9 @@ public sealed class AnthropicProvider : ILLMProvider, IDisposable
                 using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
                     throw new InvalidOperationException("Anthropic: invalid API key (401).");
+                }
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -157,8 +161,15 @@ public sealed class AnthropicProvider : ILLMProvider, IDisposable
             int? inTok = null, outTok = null;
             if (root.TryGetProperty("usage", out var usage))
             {
-                if (usage.TryGetProperty("input_tokens", out var it)) inTok = it.GetInt32();
-                if (usage.TryGetProperty("output_tokens", out var ot)) outTok = ot.GetInt32();
+                if (usage.TryGetProperty("input_tokens", out var it))
+                {
+                    inTok = it.GetInt32();
+                }
+
+                if (usage.TryGetProperty("output_tokens", out var ot))
+                {
+                    outTok = ot.GetInt32();
+                }
             }
 
             return (text, inTok, outTok);
@@ -180,7 +191,11 @@ public sealed class AnthropicProvider : ILLMProvider, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _http.Dispose();
     }

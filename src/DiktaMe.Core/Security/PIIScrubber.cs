@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.Security;
 
 using System.Text.RegularExpressions;
 
+namespace DiktaMe.Core.Security;
 /// <summary>
 /// Redacts personally identifiable information from text using compiled regex patterns.
 /// Applied at the pipeline output layer based on the user's configured privacy level.
@@ -47,7 +47,9 @@ public sealed class PIIScrubber
     public static string Scrub(string text)
     {
         if (string.IsNullOrEmpty(text))
+        {
             return text;
+        }
 
         text = ApiKeyPattern.Replace(text, Redacted);
         text = EmailPattern.Replace(text, Redacted);
@@ -65,7 +67,9 @@ public sealed class PIIScrubber
     public static bool ContainsPII(string text)
     {
         if (string.IsNullOrEmpty(text))
+        {
             return false;
+        }
 
         return ApiKeyPattern.IsMatch(text)
             || EmailPattern.IsMatch(text)

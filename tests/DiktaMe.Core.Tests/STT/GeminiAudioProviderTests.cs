@@ -1,9 +1,9 @@
-namespace DiktaMe.Core.Tests.STT;
 
 using System.Net;
 using System.Net.Http;
 using DiktaMe.Core.STT;
 
+namespace DiktaMe.Core.Tests.STT;
 /// <summary>
 /// Unit tests for <see cref="GeminiAudioProvider"/>.
 /// Uses <see cref="FakeHttpHandler"/> — no real network calls.

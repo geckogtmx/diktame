@@ -1,8 +1,8 @@
-namespace DiktaMe.App.Views.Wizard;
 
 using DiktaMe.App.ViewModels;
 using Microsoft.UI.Xaml.Controls;
 
+namespace DiktaMe.App.Views.Wizard;
 public sealed partial class WizardSttPage : Page, IWizardStepPage
 {
     private WizardViewModel? _viewModel;
@@ -17,17 +17,29 @@ public sealed partial class WizardSttPage : Page, IWizardStepPage
         _viewModel = viewModel;
         // Restore selection from VM
         if (string.Equals(viewModel.SttChoice, "local", StringComparison.Ordinal))
+        {
             SttLocal.IsChecked = true;
+        }
         else
+        {
             SttCloud.IsChecked = true;
+        }
     }
 
     private void SttRadio_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_viewModel is null) return;
+        if (_viewModel is null)
+        {
+            return;
+        }
+
         if (SttLocal.IsChecked == true)
+        {
             _viewModel.SttChoice = "local";
+        }
         else
+        {
             _viewModel.SttChoice = "cloud";
+        }
     }
 }

@@ -1,4 +1,3 @@
-namespace DiktaMe.App.Views.Wizard;
 
 using DiktaMe.App.ViewModels;
 using DiktaMe.Core.Audio;
@@ -7,6 +6,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Serilog;
 
+namespace DiktaMe.App.Views.Wizard;
 public sealed partial class WizardTestPage : Page, IWizardStepPage
 {
     private WizardViewModel? _viewModel;

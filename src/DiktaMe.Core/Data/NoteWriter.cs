@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.Data;
 
 using Serilog;
 
+namespace DiktaMe.Core.Data;
 /// <summary>
 /// Appends formatted notes to a markdown file.
 /// Used by <see cref="Pipeline.NotePipeline"/> to persist voice notes.
@@ -25,11 +25,16 @@ public sealed class NoteWriter
         string timestampFormat = DefaultTimestampFormat,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(text)) return;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
 
         string? dir = Path.GetDirectoryName(filePath);
         if (!string.IsNullOrEmpty(dir))
+        {
             Directory.CreateDirectory(dir);
+        }
 
         string timestamp = DateTime.Now.ToString(timestampFormat, System.Globalization.CultureInfo.InvariantCulture);
         string entry = $"\n## {timestamp}\n\n{text.Trim()}\n";

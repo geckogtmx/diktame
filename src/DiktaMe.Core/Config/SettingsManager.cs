@@ -1,8 +1,8 @@
-namespace DiktaMe.Core.Config;
 
 using System.Text.Json;
 using Serilog;
 
+namespace DiktaMe.Core.Config;
 /// <summary>
 /// Persists and loads <see cref="AppSettings"/> as JSON at
 /// <c>%APPDATA%\DiktaMe\settings.json</c> (or a custom path for tests).
@@ -93,7 +93,9 @@ public sealed class SettingsManager
     {
         string? dir = Path.GetDirectoryName(SettingsFilePath);
         if (!string.IsNullOrEmpty(dir))
+        {
             Directory.CreateDirectory(dir);
+        }
 
         string json = JsonSerializer.Serialize(Current, AppSettingsContext.Default.AppSettings);
 

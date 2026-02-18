@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.Tests.Pipeline;
 
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
@@ -7,6 +6,7 @@ using FluentAssertions;
 using Moq;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.Pipeline;
 /// <summary>
 /// Unit tests for <see cref="ChatPipeline"/>.
 /// Mocks <see cref="ISTTProvider"/> and <see cref="ILLMProvider"/> — no real I/O.

@@ -1,7 +1,7 @@
-namespace DiktaMe.App.Converters;
 
 using Microsoft.UI.Xaml.Data;
 
+namespace DiktaMe.App.Converters;
 public sealed class BoolNegationConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)

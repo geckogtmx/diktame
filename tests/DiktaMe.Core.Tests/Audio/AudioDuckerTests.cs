@@ -1,10 +1,10 @@
-namespace DiktaMe.Core.Tests.Audio;
 
 using DiktaMe.Core.Audio;
 using DiktaMe.Core.Config;
 using FluentAssertions;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.Audio;
 /// <summary>
 /// Unit tests for <see cref="AudioDucker"/>.
 ///

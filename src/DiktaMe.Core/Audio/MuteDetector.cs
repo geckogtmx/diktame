@@ -1,8 +1,8 @@
-namespace DiktaMe.Core.Audio;
 
 using NAudio.CoreAudioApi;
 using Serilog;
 
+namespace DiktaMe.Core.Audio;
 /// <summary>
 /// Monitors the mute state of a microphone input device using the Windows
 /// Core Audio API (via NAudio's MMDeviceEnumerator).
@@ -74,7 +74,11 @@ public sealed class MuteDetector : IDisposable
     /// </summary>
     public void UpdateDeviceLabel(string? newLabel)
     {
-        if (string.Equals(newLabel, _deviceLabel, StringComparison.Ordinal)) return;
+        if (string.Equals(newLabel, _deviceLabel, StringComparison.Ordinal))
+        {
+            return;
+        }
+
         _deviceLabel = newLabel;
         _deviceCache?.Dispose();
         _deviceCache = null;
@@ -90,7 +94,10 @@ public sealed class MuteDetector : IDisposable
         try
         {
             MMDevice? device = GetOrResolveDevice();
-            if (device is null) return null;
+            if (device is null)
+            {
+                return null;
+            }
 
             return device.AudioEndpointVolume.Mute;
         }
@@ -108,7 +115,10 @@ public sealed class MuteDetector : IDisposable
     private void PollOnce()
     {
         bool? current = CheckMuteState();
-        if (current is null) return;
+        if (current is null)
+        {
+            return;
+        }
 
         if (current != _lastKnownMuteState)
         {
@@ -122,7 +132,9 @@ public sealed class MuteDetector : IDisposable
     private MMDevice? GetOrResolveDevice()
     {
         if (_deviceCache is not null)
+        {
             return _deviceCache;
+        }
 
         using var enumerator = new MMDeviceEnumerator();
 
@@ -166,7 +178,11 @@ public sealed class MuteDetector : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
 
         _pollTimer.Stop();

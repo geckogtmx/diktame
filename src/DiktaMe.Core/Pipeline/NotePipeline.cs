@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.Pipeline;
 
 using System.Diagnostics;
 using DiktaMe.Core.Config;
@@ -6,6 +5,7 @@ using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
 using Serilog;
 
+namespace DiktaMe.Core.Pipeline;
 /// <summary>
 /// Orchestrates the Note-taking flow:
 /// Record → STT → optional LLM formatting → append to notes file.
@@ -94,14 +94,20 @@ public sealed class NotePipeline
                 llmProvider = llmResult.Provider;
 
                 if (llmResult.IsSuccess)
+                {
                     noteText = llmResult.Text;
+                }
                 else
+                {
                     Log.Warning("NotePipeline: LLM returned empty — saving raw transcript");
+                }
             }
 
             // ── Stage 3: Snippet expansion (post-LLM, pre-save) ──────────
             if (_snippets is not null)
+            {
                 noteText = _snippets.ExpandSnippets(noteText);
+            }
 
             // ── Stage 4: Append to notes file ─────────────────────────────
             Log.Information("NotePipeline: saving note to '{Path}'", options.NotesFilePath);
@@ -111,7 +117,9 @@ public sealed class NotePipeline
 
             string directory = Path.GetDirectoryName(options.NotesFilePath) ?? string.Empty;
             if (!string.IsNullOrEmpty(directory))
+            {
                 Directory.CreateDirectory(directory);
+            }
 
             await File.AppendAllTextAsync(options.NotesFilePath, entry, cancellationToken)
                 .ConfigureAwait(false);

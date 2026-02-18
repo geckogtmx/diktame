@@ -1,9 +1,9 @@
-namespace DiktaMe.App.Services;
 
 using DiktaMe.Core.Config;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Serilog;
 
+namespace DiktaMe.App.Services;
 /// <summary>
 /// Notification types for toast and sound feedback.
 /// </summary>
@@ -40,7 +40,9 @@ public sealed class NotificationService
                 .Show();
 
             if (_settings.Current.General.SoundFeedback)
+            {
                 PlaySound(type);
+            }
         }
         catch (Exception ex)
         {
@@ -54,7 +56,9 @@ public sealed class NotificationService
     public void PlaySound(NotificationType type)
     {
         if (!_settings.Current.General.SoundFeedback)
+        {
             return;
+        }
 
         try
         {

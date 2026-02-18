@@ -1,4 +1,3 @@
-namespace DiktaMe.App.ViewModels.Settings;
 
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,6 +6,7 @@ using DiktaMe.Core.Config;
 using DiktaMe.Core.SystemManagement;
 using Serilog;
 
+namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class OllamaSettingsViewModel : ObservableObject
 {
     private readonly OllamaManager _ollamaManager;
@@ -59,7 +59,9 @@ public sealed partial class OllamaSettingsViewModel : ObservableObject
             var installed = await _ollamaManager.GetInstalledModelTagsAsync();
             InstalledModels.Clear();
             foreach (var tag in installed)
+            {
                 InstalledModels.Add(tag);
+            }
         }
         catch (Exception ex)
         {

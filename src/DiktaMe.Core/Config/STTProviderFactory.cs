@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.Config;
 
 using DiktaMe.Core.STT;
 
+namespace DiktaMe.Core.Config;
 /// <summary>
 /// Creates STT providers by name, pulling API keys from <see cref="Security.SecureStorage"/>
 /// and constructing the appropriate concrete type.

@@ -1,8 +1,8 @@
-namespace DiktaMe.App.ViewModels.Settings;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using DiktaMe.Core.Config;
 
+namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class AIEngineSettingsViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;

@@ -1,4 +1,3 @@
-namespace DiktaMe.App.ViewModels;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using DiktaMe.Core.Config;
@@ -6,6 +5,7 @@ using DiktaMe.Core.Data;
 using DiktaMe.Core.SystemManagement;
 using Serilog;
 
+namespace DiktaMe.App.ViewModels;
 public sealed partial class LoadingViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;

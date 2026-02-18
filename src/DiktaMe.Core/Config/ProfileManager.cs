@@ -47,7 +47,9 @@ public sealed class ProfileManager
     public async Task SwitchProfileAsync(int profile, CancellationToken cancellationToken = default)
     {
         if (profile is not (0 or 1))
+        {
             throw new ArgumentOutOfRangeException(nameof(profile), "Profile must be 0 or 1.");
+        }
 
         var updated = _settings.Current with { ActiveProfile = profile };
         await _settings.UpdateAsync(updated, cancellationToken).ConfigureAwait(false);

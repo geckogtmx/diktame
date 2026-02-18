@@ -1,10 +1,10 @@
-namespace DiktaMe.Core.Tests.LLM;
 
 using System.Net;
 using System.Net.Http;
 using DiktaMe.Core.LLM;
 using Moq;
 
+namespace DiktaMe.Core.Tests.LLM;
 // ── Shared fake handler (scoped to LLM tests) ─────────────────────────────────
 
 /// <summary>Stub HTTP handler that returns a fixed response.</summary>
@@ -25,9 +25,14 @@ internal sealed class LlmFakeHandler(HttpStatusCode statusCode, string body)
         LastAuthScheme = request.Headers.Authorization?.Scheme;
         LastAuthParameter = request.Headers.Authorization?.Parameter;
         if (request.Headers.TryGetValues("x-api-key", out var vals))
+        {
             LastApiKeyHeader = string.Join(",", vals);
+        }
+
         if (request.Content is not null)
+        {
             LastBody = await request.Content.ReadAsStringAsync(cancellationToken);
+        }
 
         return new HttpResponseMessage(statusCode)
         {
@@ -394,12 +399,16 @@ public sealed class LLMRouterTests
 {
     private static LlmResult OkResult(string text, string provider) => new()
     {
-        Text = text, Provider = provider, LatencyMs = 5
+        Text = text,
+        Provider = provider,
+        LatencyMs = 5
     };
 
     private static LlmResult EmptyResult(string provider) => new()
     {
-        Text = string.Empty, Provider = provider, LatencyMs = 0
+        Text = string.Empty,
+        Provider = provider,
+        LatencyMs = 0
     };
 
     [Fact]

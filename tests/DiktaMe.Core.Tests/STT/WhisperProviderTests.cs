@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.Tests.STT;
 
 using DiktaMe.Core.STT;
 
+namespace DiktaMe.Core.Tests.STT;
 /// <summary>
 /// Unit tests for <see cref="WhisperProvider"/>.
 /// Tests that require a real GGML model file (hundreds of MB) are skipped

@@ -29,7 +29,9 @@ public class AudioDeviceManagerTests
 
         // Assert
         foreach (AudioDevice device in devices)
+        {
             Assert.NotNull(device.Name);
+        }
     }
 
     [Fact]
@@ -40,7 +42,9 @@ public class AudioDeviceManagerTests
 
         // Assert — each device's Index matches its position in the list
         for (int i = 0; i < devices.Count; i++)
+        {
             Assert.Equal(i, devices[i].Index);
+        }
     }
 
     // ── ResolveDeviceIndex ────────────────────────────────────────────────────
@@ -120,7 +124,9 @@ public class AudioDeviceManagerTests
         // Only meaningful if there are at least 1 devices on this machine
         IReadOnlyList<AudioDevice> devices = AudioDeviceManager.GetInputDevices();
         if (devices.Count == 0)
+        {
             return; // Skip on headless CI with no audio devices
+        }
 
         // Act — resolve device 0 by numeric ID
         int index = AudioDeviceManager.ResolveDeviceIndex(deviceId: "0");
@@ -135,7 +141,9 @@ public class AudioDeviceManagerTests
         // Only meaningful if there are devices to match against
         IReadOnlyList<AudioDevice> devices = AudioDeviceManager.GetInputDevices();
         if (devices.Count == 0)
+        {
             return;
+        }
 
         // Arrange — get first device name and uppercase it entirely
         string upperName = devices[0].Name.ToUpperInvariant();

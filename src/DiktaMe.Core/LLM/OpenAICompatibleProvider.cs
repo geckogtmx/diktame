@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.LLM;
 
 using System.Diagnostics;
 using System.Net;
@@ -8,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using Serilog;
 
+namespace DiktaMe.Core.LLM;
 /// <summary>
 /// LLM provider for any endpoint that speaks the OpenAI Chat Completions API
 /// (<c>POST {baseUrl}/v1/chat/completions</c> with <c>Authorization: Bearer {key}</c>).
@@ -116,11 +116,19 @@ public sealed class OpenAICompatibleProvider : ILLMProvider, IDisposable
         HttpClient? httpClient = null)
     {
         if (string.IsNullOrWhiteSpace(baseUrl))
+        {
             throw new ArgumentException("Base URL must not be empty.", nameof(baseUrl));
+        }
+
         if (string.IsNullOrWhiteSpace(apiKey))
+        {
             throw new ArgumentException("API key must not be empty.", nameof(apiKey));
+        }
+
         if (string.IsNullOrWhiteSpace(model))
+        {
             throw new ArgumentException("Model must not be empty.", nameof(model));
+        }
 
         _apiKey = apiKey;
         _model = model;
@@ -160,7 +168,9 @@ public sealed class OpenAICompatibleProvider : ILLMProvider, IDisposable
                 using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
                     throw new InvalidOperationException($"{_serviceName}: invalid API key (401).");
+                }
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -256,8 +266,15 @@ public sealed class OpenAICompatibleProvider : ILLMProvider, IDisposable
             int? inTok = null, outTok = null;
             if (root.TryGetProperty("usage", out var usage))
             {
-                if (usage.TryGetProperty("prompt_tokens", out var pt)) inTok = pt.GetInt32();
-                if (usage.TryGetProperty("completion_tokens", out var ct)) outTok = ct.GetInt32();
+                if (usage.TryGetProperty("prompt_tokens", out var pt))
+                {
+                    inTok = pt.GetInt32();
+                }
+
+                if (usage.TryGetProperty("completion_tokens", out var ct))
+                {
+                    outTok = ct.GetInt32();
+                }
             }
 
             return (text, inTok, outTok);
@@ -279,7 +296,11 @@ public sealed class OpenAICompatibleProvider : ILLMProvider, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _http.Dispose();
     }

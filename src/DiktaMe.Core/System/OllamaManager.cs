@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.SystemManagement;
 
 using System.Net.Http;
 using System.Reflection;
@@ -6,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Serilog;
 
+namespace DiktaMe.Core.SystemManagement;
 // ── DTOs ─────────────────────────────────────────────────────────────────────
 
 /// <summary>Result of an <see cref="OllamaManager"/> preflight check.</summary>
@@ -163,7 +163,9 @@ public sealed class OllamaManager : IDisposable
         // 2. Version-change detection
         bool versionChanged = await DetectVersionChangeAsync(version).ConfigureAwait(false);
         if (versionChanged)
+        {
             Log.Information("OllamaManager: version changed since last run (new={Version})", version);
+        }
 
         // 3. Compatibility manifest check
         var manifest = await LoadManifestAsync().ConfigureAwait(false);
@@ -256,7 +258,9 @@ public sealed class OllamaManager : IDisposable
 
             using var doc = JsonDocument.Parse(json);
             if (doc.RootElement.TryGetProperty("version", out var v))
+            {
                 return v.GetString();
+            }
 
             return null;
         }
@@ -287,7 +291,9 @@ public sealed class OllamaManager : IDisposable
             var entry = FindEntry(manifest, candidate);
             string minVer = entry?.MinOllamaVersion ?? "0.0.0";
             if (CompareVersions(ollamaVersion, minVer) >= 0)
+            {
                 return NormaliseTag(candidate);
+            }
         }
 
         // Fall back to the manifest default
@@ -325,7 +331,10 @@ public sealed class OllamaManager : IDisposable
 
     private async Task<ModelsManifest> LoadManifestAsync()
     {
-        if (_manifest is not null) return _manifest;
+        if (_manifest is not null)
+        {
+            return _manifest;
+        }
 
         try
         {
@@ -361,7 +370,10 @@ public sealed class OllamaManager : IDisposable
     {
         tag = tag.Trim();
         if (tag.EndsWith(":latest", StringComparison.OrdinalIgnoreCase))
+        {
             tag = tag[..^7];
+        }
+
         return tag;
     }
 
@@ -395,7 +407,9 @@ public sealed class OllamaManager : IDisposable
         {
             using var doc = JsonDocument.Parse(json);
             if (!doc.RootElement.TryGetProperty("models", out var models))
+            {
                 return Array.Empty<string>();
+            }
 
             var tags = new List<string>();
             foreach (var model in models.EnumerateArray())
@@ -403,7 +417,10 @@ public sealed class OllamaManager : IDisposable
                 if (model.TryGetProperty("name", out var name))
                 {
                     string? tag = name.GetString();
-                    if (tag is not null) tags.Add(tag);
+                    if (tag is not null)
+                    {
+                        tags.Add(tag);
+                    }
                 }
             }
             return tags;
@@ -420,8 +437,15 @@ public sealed class OllamaManager : IDisposable
     /// <summary>Disposes the internal <see cref="HttpClient"/> if owned.</summary>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
-        if (_ownsClient) _http.Dispose();
+        if (_ownsClient)
+        {
+            _http.Dispose();
+        }
     }
 }

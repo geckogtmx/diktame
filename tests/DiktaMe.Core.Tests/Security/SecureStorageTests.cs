@@ -1,8 +1,8 @@
-namespace DiktaMe.Core.Tests.Security;
 
 using DiktaMe.Core.Security;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.Security;
 /// <summary>
 /// Tests for <see cref="SecureStorage"/> using a temp file to avoid touching
 /// the real %APPDATA%\DiktaMe\keys.dat.
@@ -109,6 +109,8 @@ public sealed class SecureStorageTests : IDisposable
     public void Dispose()
     {
         if (Directory.Exists(_testDir))
+        {
             Directory.Delete(_testDir, recursive: true);
+        }
     }
 }

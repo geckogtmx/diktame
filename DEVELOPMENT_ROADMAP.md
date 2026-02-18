@@ -797,7 +797,14 @@ Filter in CI: `dotnet test --filter "Category!=Integration&Category!=Hardware"`
 **AI-coding safeguards added alongside CI:**
 - `Meziantou.Analyzer 2.*` in `Directory.Build.props` — MA0006 (string.Equals), MA0011 (IFormatProvider), MA0051 (method length), MA0074 (culture-sensitive ToString)
 - `NuGetAudit=true`, `NuGetAuditLevel=moderate` — blocks vulnerable deps at restore time
-- `ci/test-threshold.json` — minimum 330 tests, publish size 130–250 MB
+- `ci/test-threshold.json` — minimum 370 tests (updated after G.1 gap-fill), publish size 130–250 MB
+
+**Suppression decisions log:** `ci/DECISIONS.md` — records every rule suppressed, the reason, and when it should be revisited. Key suppressions: MA0004 (ConfigureAwait — WinUI 3 sync-context requirement), MA0051 limits raised to 150 lines/80 statements (pipeline orchestrators), MA0074 in test project only (FluentAssertions false positives). Private `static`/`const` fields use PascalCase per convention; editorconfig `_camelCase` rule scoped to instance fields only.
+
+**First real CI run (2026-02-18) caught:**
+- `dotnet format` violations: `using` directives inside namespace declarations (auto-fixed), missing braces on `if`/`else` (auto-fixed), whitespace alignment (auto-fixed)
+- Editorconfig naming rule too broad: `_camelCase` rule fired on `private static readonly` and `private const` fields — fixed by adding PascalCase rule for static fields at higher priority
+- Coverage artifact warning: non-fatal (format lint ran before tests, so no TRX/coverage generated on that run)
 
 ---
 

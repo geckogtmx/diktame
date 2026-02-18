@@ -1,9 +1,9 @@
-namespace DiktaMe.Core.Tests.Config;
 
 using System.Text.Json;
 using DiktaMe.Core.Config;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.Config;
 public sealed class SettingsManagerTests : IDisposable
 {
     private readonly string _testFile;
@@ -15,8 +15,15 @@ public sealed class SettingsManagerTests : IDisposable
 
     public void Dispose()
     {
-        if (File.Exists(_testFile)) File.Delete(_testFile);
-        if (File.Exists(_testFile + ".tmp")) File.Delete(_testFile + ".tmp");
+        if (File.Exists(_testFile))
+        {
+            File.Delete(_testFile);
+        }
+
+        if (File.Exists(_testFile + ".tmp"))
+        {
+            File.Delete(_testFile + ".tmp");
+        }
     }
 
     // ── Unit tests (no I/O) ───────────────────────────────────────────────────
@@ -221,7 +228,10 @@ public sealed class SettingsManagerTests : IDisposable
         }
         finally
         {
-            if (Directory.Exists(v1Dir)) Directory.Delete(v1Dir, recursive: true);
+            if (Directory.Exists(v1Dir))
+            {
+                Directory.Delete(v1Dir, recursive: true);
+            }
         }
     }
 

@@ -1,8 +1,8 @@
-namespace DiktaMe.Core.Tests.STT;
 
 using DiktaMe.Core.STT;
 using Moq;
 
+namespace DiktaMe.Core.Tests.STT;
 /// <summary>
 /// Unit tests for <see cref="STTRouter"/>.
 /// All providers are mocked — no network calls.

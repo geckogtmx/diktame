@@ -1,9 +1,9 @@
-namespace DiktaMe.App.Views;
 
 using DiktaMe.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 
+namespace DiktaMe.App.Views;
 public sealed partial class ControlPanelPage : Page
 {
     public ControlPanelViewModel ViewModel { get; }

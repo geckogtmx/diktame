@@ -1,10 +1,10 @@
-namespace DiktaMe.Core.Tests.Data;
 
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Data;
 using DiktaMe.Core.Pipeline;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.Data;
 [Trait("Category", "Integration")]
 public sealed class HistoryManagerTests : IAsyncDisposable
 {
@@ -279,6 +279,9 @@ public sealed class HistoryManagerTests : IAsyncDisposable
     {
         _history.Dispose();
         await Task.CompletedTask;
-        if (File.Exists(_dbPath)) File.Delete(_dbPath);
+        if (File.Exists(_dbPath))
+        {
+            File.Delete(_dbPath);
+        }
     }
 }

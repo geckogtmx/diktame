@@ -1,10 +1,10 @@
-namespace DiktaMe.Core.Config;
 
 using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
 using DiktaMe.Core.STT;
 
+namespace DiktaMe.Core.Config;
 /// <summary>
 /// Constructs pipeline instances with mode-aware provider selection based on
 /// the active profile in <see cref="SettingsManager"/>.

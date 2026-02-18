@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.Tests.Pipeline;
 
 using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
@@ -9,6 +8,7 @@ using InputSimulatorStandard;
 using InputSimulatorStandard.Native;
 using Moq;
 
+namespace DiktaMe.Core.Tests.Pipeline;
 /// <summary>
 /// Unit tests for all Work Stream D pipelines.
 /// Uses Moq mocks for ISTTProvider and ILLMProvider, and a
@@ -353,7 +353,10 @@ public sealed class PipelineTests
         }
         finally
         {
-            if (File.Exists(tmpFile)) File.Delete(tmpFile);
+            if (File.Exists(tmpFile))
+            {
+                File.Delete(tmpFile);
+            }
         }
     }
 
@@ -375,7 +378,10 @@ public sealed class PipelineTests
         }
         finally
         {
-            if (File.Exists(tmpFile)) File.Delete(tmpFile);
+            if (File.Exists(tmpFile))
+            {
+                File.Delete(tmpFile);
+            }
         }
     }
 
@@ -395,7 +401,10 @@ public sealed class PipelineTests
         }
         finally
         {
-            if (File.Exists(tmpFile)) File.Delete(tmpFile);
+            if (File.Exists(tmpFile))
+            {
+                File.Delete(tmpFile);
+            }
         }
     }
 

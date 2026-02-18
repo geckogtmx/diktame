@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.LLM;
 
 using System.Diagnostics;
 using System.Net.Http;
@@ -6,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Serilog;
 
+namespace DiktaMe.Core.LLM;
 /// <summary>
 /// LLM provider for a locally running Ollama server.
 /// Uses the Ollama generate API (<c>POST /api/generate</c>) with keep-alive session management
@@ -40,7 +40,9 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
         HttpClient? httpClient = null)
     {
         if (string.IsNullOrWhiteSpace(model))
+        {
             throw new ArgumentException("Model must not be empty.", nameof(model));
+        }
 
         _model = model;
         string trimmed = baseUrl.TrimEnd('/');
@@ -92,9 +94,13 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
             using var response = await _http.SendAsync(request).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
+            {
                 Log.Information("OllamaProvider: model '{Model}' warmed up", _model);
+            }
             else
+            {
                 Log.Warning("OllamaProvider: warmup returned status {S}", (int)response.StatusCode);
+            }
         }
         catch (Exception ex)
         {
@@ -150,10 +156,14 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
                 if (toksPerSec.HasValue)
                 {
                     if (toksPerSec.Value < SlowInferenceThresholdToksPerSec)
+                    {
                         Log.Warning("OllamaProvider: SLOW inference {T:F1} tok/s — GPU may not be active",
                             toksPerSec.Value);
+                    }
                     else
+                    {
                         Log.Information("OllamaProvider: {T:F1} tok/s", toksPerSec.Value);
+                    }
                 }
 
                 Log.Information("{Provider}: processed in {Ms}ms [{Mode}]",
@@ -224,7 +234,9 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
                 long evalCount = ec.GetInt64();
                 long evalDuration = ed.GetInt64(); // nanoseconds
                 if (evalDuration > 0)
+                {
                     toksPerSec = evalCount / (evalDuration / 1e9);
+                }
             }
 
             return (text, toksPerSec);
@@ -246,7 +258,11 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _http.Dispose();
     }

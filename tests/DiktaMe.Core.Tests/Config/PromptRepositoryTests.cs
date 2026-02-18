@@ -1,9 +1,9 @@
-namespace DiktaMe.Core.Tests.Config;
 
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Tests;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.Config;
 [Trait("Category", "Unit")]
 [Collection(nameof(SettingsWriterCollection))]
 public sealed class PromptRepositoryTests

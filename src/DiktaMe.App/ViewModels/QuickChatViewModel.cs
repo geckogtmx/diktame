@@ -1,4 +1,3 @@
-namespace DiktaMe.App.ViewModels;
 
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -8,6 +7,7 @@ using DiktaMe.Core.Pipeline;
 using Microsoft.UI.Dispatching;
 using Serilog;
 
+namespace DiktaMe.App.ViewModels;
 public sealed partial class QuickChatViewModel : ObservableObject
 {
     private readonly PipelineFactory _pipelineFactory;
@@ -28,7 +28,10 @@ public sealed partial class QuickChatViewModel : ObservableObject
     private async Task SendAsync()
     {
         string question = InputText.Trim();
-        if (string.IsNullOrEmpty(question) || IsBusy) return;
+        if (string.IsNullOrEmpty(question) || IsBusy)
+        {
+            return;
+        }
 
         // Add user message
         Messages.Add(new ChatMessage(question, IsUser: true));

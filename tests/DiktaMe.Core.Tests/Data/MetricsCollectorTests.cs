@@ -1,4 +1,3 @@
-namespace DiktaMe.Core.Tests.Data;
 
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Data;
@@ -7,6 +6,7 @@ using DiktaMe.Core.Tests;
 using Moq;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.Data;
 [Trait("Category", "Unit")]
 [Collection(nameof(SettingsWriterCollection))]
 public sealed class MetricsCollectorTests
@@ -76,7 +76,10 @@ public sealed class MetricsCollectorTests
         Assert.Equal(2, stats.Sessions);
 
         history.Dispose();
-        if (File.Exists(dbPath)) File.Delete(dbPath);
+        if (File.Exists(dbPath))
+        {
+            File.Delete(dbPath);
+        }
     }
 
     [Fact]
@@ -99,7 +102,10 @@ public sealed class MetricsCollectorTests
         Assert.Equal(0, stats.Sessions);
 
         history.Dispose();
-        if (File.Exists(dbPath)) File.Delete(dbPath);
+        if (File.Exists(dbPath))
+        {
+            File.Delete(dbPath);
+        }
     }
 
     [Fact]
@@ -121,7 +127,10 @@ public sealed class MetricsCollectorTests
         Assert.Equal(200.0, stats.AverageLatencyMs);
 
         history.Dispose();
-        if (File.Exists(dbPath)) File.Delete(dbPath);
+        if (File.Exists(dbPath))
+        {
+            File.Delete(dbPath);
+        }
     }
 
     [Fact]
@@ -135,7 +144,10 @@ public sealed class MetricsCollectorTests
         Assert.Equal(0.0, stats.AverageLatencyMs);
 
         history.Dispose();
-        if (File.Exists(dbPath)) File.Delete(dbPath);
+        if (File.Exists(dbPath))
+        {
+            File.Delete(dbPath);
+        }
     }
 
     // ── SessionStats record ───────────────────────────────────────────────────

@@ -1,8 +1,8 @@
-namespace DiktaMe.App.Views;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
+namespace DiktaMe.App.Views;
 /// <summary>
 /// Tabbed settings window with NavigationView sidebar.
 /// </summary>
@@ -21,7 +21,9 @@ public sealed partial class SettingsWindow : Window
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
         if (args.SelectedItem is not NavigationViewItem item)
+        {
             return;
+        }
 
         string tag = item.Tag?.ToString() ?? "general";
         Type? pageType = tag switch

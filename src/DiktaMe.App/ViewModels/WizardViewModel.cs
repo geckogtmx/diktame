@@ -1,10 +1,10 @@
-namespace DiktaMe.App.ViewModels;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiktaMe.Core.Config;
 using Serilog;
 
+namespace DiktaMe.App.ViewModels;
 public sealed partial class WizardViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;

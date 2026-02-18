@@ -1,8 +1,8 @@
-namespace DiktaMe.Core.Tests.Data;
 
 using DiktaMe.Core.Data;
 using Xunit;
 
+namespace DiktaMe.Core.Tests.Data;
 [Trait("Category", "Integration")]
 public sealed class NoteWriterTests : IDisposable
 {
@@ -18,7 +18,9 @@ public sealed class NoteWriterTests : IDisposable
     public void Dispose()
     {
         if (Directory.Exists(_testDir))
+        {
             Directory.Delete(_testDir, recursive: true);
+        }
     }
 
     // ── Basic append ──────────────────────────────────────────────────────────

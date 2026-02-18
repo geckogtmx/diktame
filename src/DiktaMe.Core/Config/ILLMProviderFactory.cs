@@ -1,7 +1,7 @@
-namespace DiktaMe.Core.Config;
 
 using DiktaMe.Core.LLM;
 
+namespace DiktaMe.Core.Config;
 /// <summary>
 /// Creates <see cref="ILLMProvider"/> instances based on provider type, API key, and model.
 /// Used by <see cref="PipelineFactory"/> to build mode-aware providers from settings.

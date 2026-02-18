@@ -6,19 +6,19 @@ namespace DiktaMe.Core.Input;
 internal static class HotkeyParser
 {
     // Win32 modifier flags (fsModifiers parameter of RegisterHotKey)
-    private const uint ModAlt     = 0x0001;
+    private const uint ModAlt = 0x0001;
     private const uint ModControl = 0x0002;
-    private const uint ModShift   = 0x0004;
-    private const uint ModWin     = 0x0008;
+    private const uint ModShift = 0x0004;
+    private const uint ModWin = 0x0008;
 
     // Modifier token normalisation map
     private static readonly Dictionary<string, uint> ModifierMap = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["ctrl"]    = ModControl,
+        ["ctrl"] = ModControl,
         ["control"] = ModControl,
-        ["alt"]     = ModAlt,
-        ["shift"]   = ModShift,
-        ["win"]     = ModWin,
+        ["alt"] = ModAlt,
+        ["shift"] = ModShift,
+        ["win"] = ModWin,
         ["windows"] = ModWin,
     };
 
@@ -29,23 +29,44 @@ internal static class HotkeyParser
     // Named key map for special keys
     private static readonly Dictionary<string, uint> NamedKeyMap = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["f1"]     = 0x70, ["f2"]  = 0x71, ["f3"]  = 0x72, ["f4"]  = 0x73,
-        ["f5"]     = 0x74, ["f6"]  = 0x75, ["f7"]  = 0x76, ["f8"]  = 0x77,
-        ["f9"]     = 0x78, ["f10"] = 0x79, ["f11"] = 0x7A, ["f12"] = 0x7B,
-        ["space"]  = 0x20,
-        ["enter"]  = 0x0D,
+        ["f1"] = 0x70,
+        ["f2"] = 0x71,
+        ["f3"] = 0x72,
+        ["f4"] = 0x73,
+        ["f5"] = 0x74,
+        ["f6"] = 0x75,
+        ["f7"] = 0x76,
+        ["f8"] = 0x77,
+        ["f9"] = 0x78,
+        ["f10"] = 0x79,
+        ["f11"] = 0x7A,
+        ["f12"] = 0x7B,
+        ["space"] = 0x20,
+        ["enter"] = 0x0D,
         ["return"] = 0x0D,
-        ["tab"]    = 0x09,
-        ["esc"]    = 0x1B, ["escape"] = 0x1B,
-        ["home"]   = 0x24, ["end"]    = 0x23,
-        ["pageup"] = 0x21, ["pagedown"] = 0x22,
-        ["left"]   = 0x25, ["right"]  = 0x27,
-        ["up"]     = 0x26, ["down"]   = 0x28,
-        ["insert"] = 0x2D, ["delete"] = 0x2E,
+        ["tab"] = 0x09,
+        ["esc"] = 0x1B,
+        ["escape"] = 0x1B,
+        ["home"] = 0x24,
+        ["end"] = 0x23,
+        ["pageup"] = 0x21,
+        ["pagedown"] = 0x22,
+        ["left"] = 0x25,
+        ["right"] = 0x27,
+        ["up"] = 0x26,
+        ["down"] = 0x28,
+        ["insert"] = 0x2D,
+        ["delete"] = 0x2E,
         ["backspace"] = 0x08,
-        ["numpad0"] = 0x60, ["numpad1"] = 0x61, ["numpad2"] = 0x62,
-        ["numpad3"] = 0x63, ["numpad4"] = 0x64, ["numpad5"] = 0x65,
-        ["numpad6"] = 0x66, ["numpad7"] = 0x67, ["numpad8"] = 0x68,
+        ["numpad0"] = 0x60,
+        ["numpad1"] = 0x61,
+        ["numpad2"] = 0x62,
+        ["numpad3"] = 0x63,
+        ["numpad4"] = 0x64,
+        ["numpad5"] = 0x65,
+        ["numpad6"] = 0x66,
+        ["numpad7"] = 0x67,
+        ["numpad8"] = 0x68,
         ["numpad9"] = 0x69,
     };
 
@@ -64,11 +85,15 @@ internal static class HotkeyParser
         vk = 0;
 
         if (string.IsNullOrWhiteSpace(hotkeyString))
+        {
             return false;
+        }
 
         string[] parts = hotkeyString.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (parts.Length == 0)
+        {
             return false;
+        }
 
         uint keyCode = 0;
 
@@ -84,11 +109,15 @@ internal static class HotkeyParser
 
             // Last non-modifier token is the key itself
             if (!TryParseKey(part, out keyCode))
+            {
                 return false;
+            }
         }
 
         if (keyCode == 0)
+        {
             return false;
+        }
 
         vk = keyCode;
         return true;
@@ -116,7 +145,9 @@ internal static class HotkeyParser
 
         // Named keys (F1-F12, Enter, Space, etc.)
         if (NamedKeyMap.TryGetValue(token, out vk))
+        {
             return true;
+        }
 
         return false;
     }
