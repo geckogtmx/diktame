@@ -717,44 +717,65 @@ input/output token counts from API usage fields.
 
 ### Work Stream G: Testing (Priority: HIGH)
 
-#### Task G.1: Core Unit Tests (xUnit)
-**Create:** `DiktaMe.Core.Tests/`
-**Effort:** 2 days
+#### Task G.1: Core Unit Tests (xUnit) ✅ (343 tests, coverage gaps below)
+**Created:** `DiktaMe.Core.Tests/` — 25 test classes
+**Effort:** Built incrementally alongside each stream
 
-**Target: 150+ tests minimum** (matching V1 coverage)
+**Current state: 343 tests passing** (1 pre-existing clipboard flake in TextInjectorTests).
 
-| Test File | Coverage |
-|-----------|----------|
-| `AudioRecorderTests.cs` | Recording lifecycle, auto-stop, device selection |
-| `TextInjectorTests.cs` | Clipboard save/restore, key simulation |
-| `STTRouterTests.cs` | Provider routing, fallback logic |
-| `DeepgramProviderTests.cs` | API request/response, error handling |
-| `LLMRouterTests.cs` | Per-mode provider selection, dual-profile |
-| `GeminiProviderTests.cs` | API calls, retry logic |
-| `AnthropicProviderTests.cs` | Headers, response parsing |
-| `OllamaProviderTests.cs` | localhost detection, warmup |
-| `DictationPipelineTests.cs` | Full flow, fallback, raw mode |
-| `RefinePipelineTests.cs` | Both modes, selection capture |
-| `SettingsManagerTests.cs` | Load, save, migrate, defaults |
-| `HistoryManagerTests.cs` | SQLite CRUD, privacy levels, retention |
-| `PIIScrubberTests.cs` | Regex patterns, edge cases |
-| `CapabilityDetectorTests.cs` | All stack combinations |
-| `SnippetManagerTests.cs` | Trigger matching, punctuation, multi-line, false positives |
-| `ChatPipelineTests.cs` | LLM routing, system prompt, voice input flow |
-| `AudioDuckerTests.cs` | Duck/restore cycle, no-audio edge cases |
-| `OllamaManagerTests.cs` | Version parsing, compatibility, fallback logic |
+**Well-covered areas (no action needed):**
 
-**Mocking:** Use `Moq` for all external dependencies (HTTP, audio hardware, clipboard).
+| Test Class | Tests | Coverage |
+|-----------|:---:|----------|
+| PipelineTests | 27 | All 5 pipelines: full flow, fallback, raw mode, events, word count |
+| ChatPipelineTests | 11 | Text + voice paths, cancellation, state events, error handling |
+| HotkeyParserTests | 26 | All key combos, modifiers, edge cases |
+| ApiKeyValidatorTests | 24 | All 5 providers × valid/invalid/edge |
+| WhisperProviderTests | 19 | Model sizes, availability, download, dispose |
+| SnippetManagerTests | 19 | CRUD, trigger matching, expansion, persistence |
+| TextInjectorTests | 18 | Clipboard, injection, +Key, re-inject |
+| AudioDuckerTests | 17 | Duck/restore, disabled, dispose, event wiring |
+| PIIScrubberTests | 15 | Email, phone, SSN, credit card, API keys |
+| DeepgramProviderTests | 14 | Auth, errors, language, response parsing |
+| GeminiAudioProviderTests | 13 | Auth, errors, language, response parsing |
+| STTRouterTests | 10 | Primary/fallback routing, capabilities |
+| OpenAICompatibleProviderTests | 12 | Auth, endpoint, sanitization, errors |
+| HotkeyManagerTests | 12 | Register/unregister, lifecycle, events |
+| AudioRecorderTests | 11 | Lifecycle, auto-stop, device resolution |
+| AudioDeviceManagerTests | 11 | Enumeration, device properties |
+| MuteDetectorTests | 12 | Polling, device matching, events |
+| OllamaManagerTests | 16 | Version comparison, health check, manifest, fallback |
+| LLMRouterTests | 7 | Primary/fallback routing |
+| ClipboardManagerTests | 7 | Set/get, Unicode, save/restore |
+| GeminiProviderTests | 6 | Auth, model, response parsing |
+| OllamaProviderTests | 6 | Availability, localhost, warmup |
+| AnthropicProviderTests | 5 | Headers, auth, response parsing |
+| SecureStorageTests | 5 | CRUD, round-trip, overwrite |
+| LlmResultTests | 3 | IsSuccess, empty, whitespace |
+| SettingsManagerTests | 5 | Defaults, round-trip, atomic write |
+| HistoryManagerTests | 4 | Init, logging, stats, wipe |
+| ScaffoldTests | 5 | CapabilityReport, TranscriptionResult |
 
-**Integration Tests:** Add at least one settings persistence round-trip test:
-- Serialize default `AppSettings` → write to temp file → load back → deserialize → assert equality
-- Covers JSON serialization, file I/O, and schema compatibility in one shot
+**Coverage gaps to address:**
 
-**Test Categorization:** Use xUnit Traits to distinguish unit tests from integration/hardware tests (allows CI to skip tests requiring real API keys or audio hardware):
+| Area | What's Missing | Priority |
+|------|---------------|:---:|
+| **SettingsManager** | V1 migration, schema upgrade, concurrent access, corrupt file recovery | Medium |
+| **HistoryManager** | Privacy level filtering (Ghost/Stats/Balanced/Full), 90-day retention pruning, stats aggregation across sessions | Medium |
+| **MetricsCollector** | No dedicated tests — only indirectly tested via HistoryManager | Low |
+| **NoteWriter** | No dedicated tests — only indirectly tested via NotePipeline | Low |
+| **ProfileManager** | No dedicated tests — dual-profile switching, active profile, mode key lookup | Medium |
+| **PromptRepository** | No dedicated tests — CRUD on 16 prompt slots | Low |
+| **PipelineFactory** | No dedicated tests — provider wiring, mode override | Medium |
+| **SecureStorage** | Corruption recovery, file-not-found, concurrent access | Low |
+
+**Mocking:** `Moq` for all external dependencies (HTTP, audio hardware, clipboard).
+
+**Test Categorization:** Use xUnit Traits for CI filtering:
 ```csharp
 [Fact, Trait("Category", "Unit")]           // Pure in-process logic, always run
-[Fact, Trait("Category", "Integration")]    // Requires file I/O or real HTTP — skip in fast CI
-[Fact, Trait("Category", "Hardware")]       // Requires audio device — skip in CI entirely
+[Fact, Trait("Category", "Integration")]    // Requires file I/O or real HTTP
+[Fact, Trait("Category", "Hardware")]       // Requires audio device — skip in CI
 ```
 Filter in CI: `dotnet test --filter "Category!=Integration&Category!=Hardware"`
 
@@ -1110,5 +1131,6 @@ publish/
 ---
 
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, I.1, I.2 (core), I.4, I.5 (core)
-**Next Step:** Stream F (UI) — F.1 Settings Window, then remaining I.2/I.5 UI hooks
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, I.1–I.5, I.2-UI
+**Remaining:** G.2 (CI/CD), H.1 (Installer), H.2 (V1 Migration), I.6 (Website Rebrand)
+**Build:** 0 errors, 0 warnings | **Tests:** 343 passing (1 pre-existing clipboard flake)
