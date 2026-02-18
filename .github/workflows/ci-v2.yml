@@ -25,7 +25,7 @@ jobs:
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.x
+          dotnet-version: 8.0.418
 
       # ── Restore ───────────────────────────────────────────────────────
       # Fails fast on hallucinated / non-existent NuGet packages (AI safeguard #1)
@@ -160,7 +160,7 @@ jobs:
         with:
           name: coverage-report
           path: TestResults/**/coverage.cobertura.xml
-          if_no_files_found: warn
+          if-no-files-found: warn
           retention-days: 14
 
       # ── Upload publish artifact ───────────────────────────────────────
