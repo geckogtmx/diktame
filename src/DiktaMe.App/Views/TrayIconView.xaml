@@ -21,5 +21,16 @@
                 Background="#FF3B82F6" />
         </tb:TaskbarIcon.IconSource>
 
+        <!-- Right-click context menu -->
+        <tb:TaskbarIcon.ContextFlyout>
+            <MenuFlyout>
+                <MenuFlyoutItem Text="Control Panel" Command="{x:Bind ViewModel.OpenControlPanelCommand}"/>
+                <MenuFlyoutItem Text="Quick Chat" Command="{x:Bind ViewModel.OpenQuickChatCommand}"/>
+                <MenuFlyoutItem Text="Settings" Command="{x:Bind ViewModel.OpenSettingsCommand}"/>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Quit" Command="{x:Bind ViewModel.QuitCommand}"/>
+            </MenuFlyout>
+        </tb:TaskbarIcon.ContextFlyout>
+
     </tb:TaskbarIcon>
 </UserControl>

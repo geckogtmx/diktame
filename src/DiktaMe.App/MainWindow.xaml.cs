@@ -3,7 +3,7 @@ using Microsoft.UI.Xaml;
 namespace DiktaMe.App;
 
 /// <summary>
-/// The main application window. Will host the Control Panel view.
+/// The main application window. Hosts the Control Panel dashboard.
 /// </summary>
 public sealed partial class MainWindow : Window
 {
@@ -11,9 +11,8 @@ public sealed partial class MainWindow : Window
     {
         this.InitializeComponent();
 
-        // Set minimum window size
         var appWindow = this.AppWindow;
-        appWindow.Resize(new Windows.Graphics.SizeInt32(480, 320));
+        appWindow.Resize(new Windows.Graphics.SizeInt32(520, 480));
         appWindow.Title = "dIKta.me";
     }
 }

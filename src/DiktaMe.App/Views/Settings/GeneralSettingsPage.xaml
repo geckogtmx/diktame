@@ -1,0 +1,50 @@
+<Page x:Class="DiktaMe.App.Views.Settings.GeneralSettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <ScrollViewer Padding="24,24,24,32">
+        <StackPanel Spacing="24" MaxWidth="600">
+            <TextBlock Text="General" FontSize="24" FontWeight="SemiBold"/>
+
+            <!-- Language -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Language" FontWeight="SemiBold"/>
+                <TextBlock Text="Interface and default transcription language" FontSize="12" Opacity="0.6"/>
+                <ComboBox ItemsSource="{x:Bind ViewModel.Languages}"
+                          SelectedIndex="{x:Bind ViewModel.SelectedLanguageIndex, Mode=TwoWay}"
+                          HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <!-- Auto-start -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Auto-Start" FontWeight="SemiBold"/>
+                <TextBlock Text="Launch dIKta.me when Windows starts" FontSize="12" Opacity="0.6"/>
+                <ToggleSwitch IsOn="{x:Bind ViewModel.AutoStart, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- Sound Feedback -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Sound Feedback" FontWeight="SemiBold"/>
+                <TextBlock Text="Play sounds for recording start/stop and notifications" FontSize="12" Opacity="0.6"/>
+                <ToggleSwitch IsOn="{x:Bind ViewModel.SoundFeedback, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- Additional Key -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Additional Key After Injection" FontWeight="SemiBold"/>
+                <TextBlock Text="Optionally press a key after text is injected" FontSize="12" Opacity="0.6"/>
+                <ComboBox ItemsSource="{x:Bind ViewModel.AdditionalKeyOptions}"
+                          SelectedIndex="{x:Bind ViewModel.SelectedAdditionalKeyIndex, Mode=TwoWay}"
+                          HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <!-- Trailing Space -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Trailing Space" FontWeight="SemiBold"/>
+                <TextBlock Text="Add a space after injected text" FontSize="12" Opacity="0.6"/>
+                <ToggleSwitch IsOn="{x:Bind ViewModel.TrailingSpace, Mode=TwoWay}"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

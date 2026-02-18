@@ -1,0 +1,48 @@
+<Window x:Class="DiktaMe.App.Views.QuickChatWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DiktaMe.App.ViewModels"
+        xmlns:converters="using:DiktaMe.App.Converters"
+        Title="Quick Chat">
+
+    <Grid Padding="16" RowSpacing="12">
+        <Grid.Resources>
+            <converters:BoolNegationConverter x:Key="BoolNeg"/>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Message list -->
+        <ListView x:Name="MessageList" ItemsSource="{x:Bind ViewModel.Messages}"
+                  SelectionMode="None" Padding="0,0,0,8">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="vm:ChatMessage">
+                    <Border Padding="10,6" Margin="0,2" CornerRadius="8">
+                        <TextBlock Text="{x:Bind Text}" TextWrapping="Wrap" FontSize="13"
+                                   MaxWidth="320"/>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <!-- Input row -->
+        <Grid Grid.Row="1" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="InputBox"
+                     Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     PlaceholderText="Type a message..."
+                     KeyDown="InputBox_KeyDown"/>
+
+            <Button Grid.Column="1" Content="Send"
+                    Command="{x:Bind ViewModel.SendCommand}"
+                    Style="{ThemeResource AccentButtonStyle}"/>
+        </Grid>
+    </Grid>
+</Window>

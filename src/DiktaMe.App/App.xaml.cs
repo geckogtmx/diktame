@@ -21,6 +21,8 @@ public partial class App : Application
 {
     private Window? _window;
     private TrayIconView? _trayIcon;
+    private Views.SettingsWindow? _settingsWindow;
+    private Views.QuickChatWindow? _quickChatWindow;
 
     /// <summary>
     /// Gets the current App instance.
@@ -70,9 +72,10 @@ public partial class App : Application
         // Create tray icon (kept alive for the duration of the app)
         _trayIcon = new TrayIconView();
 
-        // Create and activate main window
-        _window = new MainWindow();
-        _window.Activate();
+        // Show loading screen and run async initialization
+        var loading = new Views.LoadingWindow();
+        loading.Activate();
+        loading.StartLoading();
     }
 
     /// <summary>
@@ -86,6 +89,36 @@ public partial class App : Application
             _window = new MainWindow();
         }
         _window.Activate();
+    }
+
+    /// <summary>
+    /// Shows the Settings window. Creates a singleton instance if needed.
+    /// </summary>
+    public void ShowSettings()
+    {
+        if (_settingsWindow is null)
+        {
+            _settingsWindow = new Views.SettingsWindow();
+            _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+        }
+        _settingsWindow.Activate();
+    }
+
+    /// <summary>
+    /// Toggles the Quick Chat overlay window (show/hide).
+    /// </summary>
+    public void ToggleQuickChat()
+    {
+        if (_quickChatWindow is not null)
+        {
+            _quickChatWindow.Close();
+            _quickChatWindow = null;
+            return;
+        }
+
+        _quickChatWindow = new Views.QuickChatWindow();
+        _quickChatWindow.Closed += (_, _) => _quickChatWindow = null;
+        _quickChatWindow.Activate();
     }
 
     private static void ConfigureServices(IServiceCollection services)
@@ -170,5 +203,23 @@ public partial class App : Application
 
         // ── System (I.5) ──────────────────────────────────────────────────────
         services.AddSingleton<OllamaManager>();
+
+        // ── UI Services (F.5) ──────────────────────────────────────────────────
+        services.AddSingleton<Services.NotificationService>();
+
+        // ── UI ViewModels (F.2+) ───────────────────────────────────────────────
+        services.AddSingleton<ViewModels.ControlPanelViewModel>();
+        services.AddTransient<ViewModels.Settings.GeneralSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.AIEngineSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.AudioSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.ModesSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.PrivacySettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.ApiKeysSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.OllamaSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.SnippetsSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.ControlPanelConfigViewModel>();
+        services.AddTransient<ViewModels.WizardViewModel>();
+        services.AddTransient<ViewModels.LoadingViewModel>();
+        services.AddSingleton<ViewModels.QuickChatViewModel>();
     }
 }

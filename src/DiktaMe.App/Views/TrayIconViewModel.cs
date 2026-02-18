@@ -53,8 +53,15 @@ public sealed partial class TrayIconViewModel : ObservableObject
     [RelayCommand]
     private void OpenSettings()
     {
-        Log.Information("TrayIcon: OpenSettings (not yet implemented)");
-        App.Current.ShowMainWindow();
+        Log.Information("TrayIcon: OpenSettings");
+        App.Current.ShowSettings();
+    }
+
+    [RelayCommand]
+    private void OpenQuickChat()
+    {
+        Log.Information("TrayIcon: OpenQuickChat");
+        App.Current.ToggleQuickChat();
     }
 
     [RelayCommand]

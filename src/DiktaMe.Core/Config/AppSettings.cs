@@ -98,6 +98,17 @@ public sealed record PrivacySettings
 }
 
 /// <summary>
+/// Control Panel HUD visibility toggles (SPEC_043).
+/// </summary>
+public sealed record ControlPanelSettings
+{
+    public bool ShowModesRow { get; init; } = true;
+    public bool ShowActionsRow { get; init; } = true;
+    public bool ShowSessionStats { get; init; } = true;
+    public bool ShowPerformanceStats { get; init; } = true;
+}
+
+/// <summary>
 /// Global hotkey configuration. Default values match V1.
 /// </summary>
 public sealed record HotkeySettings
@@ -128,6 +139,7 @@ public sealed record AppSettings
     public AudioDuckingSettings AudioDucking { get; init; } = new();
     public PrivacySettings Privacy { get; init; } = new();
     public HotkeySettings Hotkeys { get; init; } = new();
+    public ControlPanelSettings ControlPanel { get; init; } = new();
 
     /// <summary>
     /// Per-mode settings for 2 profiles.
@@ -165,6 +177,7 @@ public sealed record AppSettings
 [JsonSerializable(typeof(AudioDuckingSettings))]
 [JsonSerializable(typeof(PrivacySettings))]
 [JsonSerializable(typeof(HotkeySettings))]
+[JsonSerializable(typeof(ControlPanelSettings))]
 [JsonSerializable(typeof(ModeSettings))]
 [JsonSerializable(typeof(Dictionary<string, ModeSettings>))]
 public partial class AppSettingsContext : JsonSerializerContext { }

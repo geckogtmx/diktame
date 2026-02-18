@@ -1,0 +1,43 @@
+<Window x:Class="DiktaMe.App.Views.WizardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="dIKta.me — Setup Wizard">
+
+    <Grid RowSpacing="16" Padding="32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Progress indicator -->
+        <StackPanel Spacing="8">
+            <TextBlock x:Name="StepLabel" Text="Step 1 of 5" FontSize="12" Opacity="0.5"/>
+            <ProgressBar x:Name="StepProgress" Minimum="0" Maximum="4" Value="0" Height="4"/>
+        </StackPanel>
+
+        <!-- Content frame -->
+        <Frame x:Name="ContentFrame" Grid.Row="1"/>
+
+        <!-- Navigation buttons -->
+        <Grid Grid.Row="2" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Content="Skip" Command="{x:Bind ViewModel.SkipWizardCommand}" Opacity="0.6"/>
+
+            <Button x:Name="BackButton" Grid.Column="2" Content="Back"
+                    Command="{x:Bind ViewModel.GoBackCommand}"
+                    Visibility="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"/>
+
+            <Button x:Name="NextButton" Grid.Column="3"
+                    Content="{x:Bind ViewModel.NextButtonText, Mode=OneWay}"
+                    Command="{x:Bind ViewModel.GoNextCommand}"
+                    Style="{ThemeResource AccentButtonStyle}"/>
+        </Grid>
+    </Grid>
+</Window>

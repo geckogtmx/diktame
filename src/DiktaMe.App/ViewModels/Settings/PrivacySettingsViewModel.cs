@@ -1,0 +1,109 @@
+namespace DiktaMe.App.ViewModels.Settings;
+
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DiktaMe.Core.Config;
+using DiktaMe.Core.Data;
+using DiktaMe.Core.Security;
+using Serilog;
+
+public sealed partial class PrivacySettingsViewModel : ObservableObject
+{
+    private readonly SettingsManager _settings;
+    private readonly HistoryManager _history;
+    private readonly SecureStorage _secureStorage;
+    private bool _isLoading;
+
+    [ObservableProperty]
+    private double _privacyLevel = 2; // Slider value 0-3
+
+    [ObservableProperty]
+    private string _privacyLevelLabel = "Balanced";
+
+    [ObservableProperty]
+    private bool _piiScrubEnabled = true;
+
+    [ObservableProperty]
+    private double _historyRetentionDays = 90;
+
+    [ObservableProperty]
+    private bool _isWiping;
+
+    public PrivacySettingsViewModel(SettingsManager settings, HistoryManager history, SecureStorage secureStorage)
+    {
+        _settings = settings;
+        _history = history;
+        _secureStorage = secureStorage;
+        LoadFromSettings();
+    }
+
+    private void LoadFromSettings()
+    {
+        _isLoading = true;
+        var p = _settings.Current.Privacy;
+        PrivacyLevel = (int)p.Level;
+        PiiScrubEnabled = p.PiiScrubEnabled;
+        HistoryRetentionDays = p.HistoryRetentionDays;
+        UpdateLabel();
+        _isLoading = false;
+    }
+
+    partial void OnPrivacyLevelChanged(double value)
+    {
+        UpdateLabel();
+        Save();
+    }
+
+    partial void OnPiiScrubEnabledChanged(bool value) => Save();
+    partial void OnHistoryRetentionDaysChanged(double value) => Save();
+
+    [RelayCommand]
+    private async Task WipeAllDataAsync()
+    {
+        IsWiping = true;
+        try
+        {
+            await _history.WipeAllAsync();
+            Log.Information("All history data wiped by user");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to wipe data");
+        }
+        finally
+        {
+            IsWiping = false;
+        }
+    }
+
+    private void UpdateLabel()
+    {
+        PrivacyLevelLabel = (int)PrivacyLevel switch
+        {
+            0 => "Ghost — No data stored",
+            1 => "Stats Only — Metrics without text",
+            2 => "Balanced — PII scrubbed history",
+            3 => "Full — Complete history",
+            _ => "Balanced",
+        };
+    }
+
+    private void Save()
+    {
+        if (_isLoading) return;
+
+        var updated = _settings.Current with
+        {
+            Privacy = new PrivacySettings
+            {
+                Level = (PrivacyLevel)(int)PrivacyLevel,
+                PiiScrubEnabled = PiiScrubEnabled,
+                HistoryRetentionDays = (int)HistoryRetentionDays,
+            }
+        };
+        _ = _settings.UpdateAsync(updated).ContinueWith(t =>
+        {
+            if (t.IsFaulted) Log.Error(t.Exception, "Failed to save privacy settings");
+        }, TaskScheduler.Default);
+    }
+}

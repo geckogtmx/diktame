@@ -1,0 +1,28 @@
+<Page x:Class="DiktaMe.App.Views.Wizard.WizardReadyPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16" MaxWidth="400">
+        <FontIcon Glyph="&#xE73E;" FontSize="48" HorizontalAlignment="Center"
+                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+
+        <TextBlock Text="You're All Set!" FontSize="24" FontWeight="SemiBold"
+                   HorizontalAlignment="Center"/>
+
+        <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="14" Opacity="0.7"
+                   Text="dIKta.me is ready to use. Your chosen providers have been configured for all modes."/>
+
+        <StackPanel Spacing="4" Margin="0,16,0,0"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="8" Padding="16">
+            <TextBlock x:Name="SttSummary" FontSize="13"/>
+            <TextBlock x:Name="LlmSummary" FontSize="13"/>
+        </StackPanel>
+
+        <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Opacity="0.5"
+                   Text="You can change these settings anytime from the system tray menu."/>
+
+        <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="13" Opacity="0.7" Margin="0,8,0,0"
+                   Text="Click Finish to start using dIKta.me."/>
+    </StackPanel>
+</Page>

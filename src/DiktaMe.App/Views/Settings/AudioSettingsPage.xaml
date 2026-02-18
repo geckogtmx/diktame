@@ -1,0 +1,49 @@
+<Page x:Class="DiktaMe.App.Views.Settings.AudioSettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <ScrollViewer Padding="24,24,24,32">
+        <StackPanel Spacing="24" MaxWidth="600">
+            <TextBlock Text="Audio" FontSize="24" FontWeight="SemiBold"/>
+
+            <!-- Input Device -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Recording Device" FontWeight="SemiBold"/>
+                <TextBlock Text="Microphone used for voice input" FontSize="12" Opacity="0.6"/>
+                <ComboBox ItemsSource="{x:Bind ViewModel.Devices}"
+                          SelectedIndex="{x:Bind ViewModel.SelectedDeviceIndex, Mode=TwoWay}"
+                          HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <!-- Max Recording Duration -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Maximum Recording Duration" FontWeight="SemiBold"/>
+                <TextBlock Text="Auto-stop recording after this duration" FontSize="12" Opacity="0.6"/>
+                <ComboBox ItemsSource="{x:Bind ViewModel.DurationLabels}"
+                          SelectedIndex="{x:Bind ViewModel.SelectedDurationIndex, Mode=TwoWay}"
+                          HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <!-- Audio Ducking -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Audio Ducking" FontWeight="SemiBold"/>
+                <TextBlock Text="Lower other app volumes while recording" FontSize="12" Opacity="0.6"/>
+                <ToggleSwitch IsOn="{x:Bind ViewModel.DuckingEnabled, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- Duck Level Slider -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Duck Level" FontWeight="SemiBold"/>
+                <TextBlock FontSize="12" Opacity="0.6">
+                    <Run Text="Other apps reduced to"/>
+                    <Run Text="{x:Bind ViewModel.DuckLevelPercent, Mode=OneWay}"/>
+                    <Run Text="% volume"/>
+                </TextBlock>
+                <Slider Minimum="0" Maximum="100" StepFrequency="5"
+                        Value="{x:Bind ViewModel.DuckLevelPercent, Mode=TwoWay}"
+                        IsEnabled="{x:Bind ViewModel.DuckingEnabled, Mode=OneWay}"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

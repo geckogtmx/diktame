@@ -1,0 +1,30 @@
+<Page x:Class="DiktaMe.App.Views.Settings.AboutPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <ScrollViewer Padding="24,24,24,32">
+        <StackPanel Spacing="24" MaxWidth="600">
+            <TextBlock Text="About" FontSize="24" FontWeight="SemiBold"/>
+
+            <TextBlock Text="dIKta.me" FontSize="36" FontWeight="Bold"
+                       Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+
+            <TextBlock Text="Version 2.0.0" FontSize="16" Opacity="0.7"/>
+
+            <TextBlock TextWrapping="Wrap" FontSize="13" Opacity="0.8"
+                       Text="A native Windows dictation engine with voice-to-text, AI-powered text processing, and multi-provider support. Built with C# + WinUI 3 + .NET 8."/>
+
+            <StackPanel Spacing="8" Margin="0,16,0,0">
+                <TextBlock Text="Technology Stack" FontWeight="SemiBold"/>
+                <TextBlock Text="WinUI 3 + Windows App SDK 1.6" FontSize="13" Opacity="0.7"/>
+                <TextBlock Text=".NET 8 (self-contained, x64)" FontSize="13" Opacity="0.7"/>
+                <TextBlock Text="NAudio (audio capture + WASAPI)" FontSize="13" Opacity="0.7"/>
+                <TextBlock Text="SQLite (session history)" FontSize="13" Opacity="0.7"/>
+                <TextBlock Text="DPAPI (secure key storage)" FontSize="13" Opacity="0.7"/>
+            </StackPanel>
+
+            <HyperlinkButton Content="dikta.me" NavigateUri="https://dikta.me" Margin="0,8,0,0"/>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -1,0 +1,88 @@
+<Page x:Class="DiktaMe.App.Views.Settings.ModesSettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid Padding="24" ColumnSpacing="24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="180"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left: Mode list -->
+        <StackPanel Spacing="8">
+            <TextBlock Text="Modes" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"/>
+            <ListView ItemsSource="{x:Bind ViewModel.ModeNames}"
+                      SelectedIndex="{x:Bind ViewModel.SelectedModeIndex, Mode=TwoWay}"
+                      SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <TextBlock Text="{x:Bind}" Padding="4,6"/>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
+
+        <!-- Right: Mode detail -->
+        <ScrollViewer Grid.Column="1">
+            <StackPanel Spacing="20" MaxWidth="480">
+                <!-- Profile toggle -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Active Profile" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.ProfileLabels}"
+                              SelectedIndex="{x:Bind ViewModel.ActiveProfileIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+                <!-- STT Provider -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="STT Provider" FontWeight="SemiBold"/>
+                    <TextBlock Text="Speech-to-text engine for this mode" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.SttProviderLabels}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedSttProviderIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+                <!-- LLM Provider -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="LLM Provider" FontWeight="SemiBold"/>
+                    <TextBlock Text="Language model for text processing" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.LlmProviderLabels}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedLlmProviderIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+                <!-- LLM Model Override -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Model Override" FontWeight="SemiBold"/>
+                    <TextBlock Text="Leave empty to use provider default" FontSize="12" Opacity="0.6"/>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{x:Bind ViewModel.LlmModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="e.g. gpt-4o, claude-3-opus"/>
+                        <Button Grid.Column="1" Content="Apply" Command="{x:Bind ViewModel.SaveModelCommand}"/>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Prompt Slot -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="System Prompt" FontWeight="SemiBold"/>
+                    <TextBlock Text="Select a custom prompt slot or use provider default" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.PromptSlotLabels}"
+                              SelectedIndex="{x:Bind ViewModel.PromptSlot, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+                <!-- Use LLM toggle -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Use LLM" FontWeight="SemiBold"/>
+                    <TextBlock Text="Disable for raw STT output (no AI processing)" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.UseLlm, Mode=TwoWay}"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>
