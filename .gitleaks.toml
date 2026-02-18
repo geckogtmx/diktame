@@ -1,0 +1,15 @@
+# gitleaks configuration
+# https://github.com/gitleaks/gitleaks#configuration
+
+title = "dIKta.me gitleaks config"
+
+[extend]
+# Use the default ruleset
+useDefault = true
+
+[allowlist]
+description = "Test fixture keys in unit test files — synthetic values used in ApiKeyValidator tests"
+regexTarget = "secret"
+regexes = [
+  '''AIzaSyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456'''
+]

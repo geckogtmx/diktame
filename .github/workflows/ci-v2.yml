@@ -92,7 +92,7 @@ jobs:
           Invoke-WebRequest -Uri $url -OutFile $zip
           Expand-Archive -Path $zip -DestinationPath "$env:TEMP\gitleaks" -Force
           $exe = "$env:TEMP\gitleaks\gitleaks.exe"
-          & $exe detect --source . --redact --no-git=false --exit-code 1
+          & $exe detect --source . --config .gitleaks.toml --redact --no-git=false --exit-code 1
           if ($LASTEXITCODE -eq 1) {
             Write-Error "FAIL: gitleaks detected secrets in the repository"
             exit 1
