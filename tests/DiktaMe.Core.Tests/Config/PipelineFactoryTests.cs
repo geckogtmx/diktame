@@ -32,7 +32,7 @@ public sealed class PipelineFactoryTests
     private static (PipelineFactory Factory, Mock<ISTTProviderFactory> SttFactory, Mock<ILLMProviderFactory> LlmFactory)
         MakeFactory(AppSettings? settings = null)
     {
-        var sm = new SettingsManager();
+        var sm = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_pf_{Guid.NewGuid()}.json"));
         if (settings is not null)
             sm.UpdateAsync(settings).GetAwaiter().GetResult();
 
@@ -188,7 +188,7 @@ public sealed class PipelineFactoryTests
                 ["dictate_1"] = new ModeSettings { SttProvider = "whisper" },
             },
         };
-        var sm = new SettingsManager();
+        var sm = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_pf_{Guid.NewGuid()}.json"));
         await sm.UpdateAsync(settings);
         var profiles = new ProfileManager(sm);
 

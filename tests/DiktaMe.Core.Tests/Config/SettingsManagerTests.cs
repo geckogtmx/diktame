@@ -178,7 +178,7 @@ public sealed class SettingsManagerTests : IDisposable
     public async Task TryMigrateFromV1Async_IsNoOp_WhenV1FileAbsent()
     {
         // V1 path won't exist in test env — migration should be a no-op without throwing.
-        var manager = new SettingsManager();
+        var manager = new SettingsManager(_testFile);
         var ex = await Record.ExceptionAsync(() => manager.TryMigrateFromV1Async());
         Assert.Null(ex);
     }
@@ -228,7 +228,7 @@ public sealed class SettingsManagerTests : IDisposable
     [Fact, Trait("Category", "Integration")]
     public async Task SettingsChanged_Event_RaisedOnUpdate()
     {
-        var manager = new SettingsManager();
+        var manager = new SettingsManager(_testFile);
         AppSettings? received = null;
         manager.SettingsChanged += (_, s) => received = s;
 

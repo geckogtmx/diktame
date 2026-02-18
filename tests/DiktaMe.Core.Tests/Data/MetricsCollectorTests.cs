@@ -20,7 +20,7 @@ public sealed class MetricsCollectorTests
         // For unit-level tests we skip LogSessionAsync side effects by using a Ghost
         // privacy level so the DB insert is a no-op.
         historyMock = new Mock<HistoryManager>(
-            new SettingsManager(),
+            new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_mc_{Guid.NewGuid()}.json")),
             Path.Combine(Path.GetTempPath(), $"metrics_test_{Guid.NewGuid()}.db"))
         {
             CallBase = true,
@@ -33,7 +33,8 @@ public sealed class MetricsCollectorTests
     [Fact]
     public void GetSessionStats_InitialState_IsAllZero()
     {
-        var collector = new MetricsCollector(new HistoryManager(new SettingsManager(),
+        var collector = new MetricsCollector(new HistoryManager(
+            new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_mc_{Guid.NewGuid()}.json")),
             Path.Combine(Path.GetTempPath(), $"mc_{Guid.NewGuid()}.db")));
 
         var stats = collector.GetSessionStats();
@@ -47,7 +48,7 @@ public sealed class MetricsCollectorTests
     public async Task RecordAsync_AccumulatesWords()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), $"mc_{Guid.NewGuid()}.db");
-        var settings = new SettingsManager();
+        var settings = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_mc_{Guid.NewGuid()}.json"));
         await settings.UpdateAsync(new AppSettings
         {
             Privacy = new PrivacySettings { Level = PrivacyLevel.Ghost },
@@ -82,7 +83,7 @@ public sealed class MetricsCollectorTests
     public async Task RecordAsync_FailedResult_IsSkipped()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), $"mc_{Guid.NewGuid()}.db");
-        var history = new HistoryManager(new SettingsManager(), dbPath);
+        var history = new HistoryManager(new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_mc_{Guid.NewGuid()}.json")), dbPath);
         var collector = new MetricsCollector(history);
 
         await collector.RecordAsync(new PipelineResult
@@ -105,7 +106,7 @@ public sealed class MetricsCollectorTests
     public async Task GetSessionStats_AverageLatency_IsCorrect()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), $"mc_{Guid.NewGuid()}.db");
-        var settings = new SettingsManager();
+        var settings = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_mc_{Guid.NewGuid()}.json"));
         await settings.UpdateAsync(new AppSettings
         {
             Privacy = new PrivacySettings { Level = PrivacyLevel.Ghost },
@@ -127,7 +128,7 @@ public sealed class MetricsCollectorTests
     public void GetSessionStats_NoSessions_AverageIsZero()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), $"mc_{Guid.NewGuid()}.db");
-        var history = new HistoryManager(new SettingsManager(), dbPath);
+        var history = new HistoryManager(new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_mc_{Guid.NewGuid()}.json")), dbPath);
         var collector = new MetricsCollector(history);
 
         var stats = collector.GetSessionStats();

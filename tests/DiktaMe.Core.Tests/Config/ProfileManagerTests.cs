@@ -10,7 +10,7 @@ public sealed class ProfileManagerTests
 {
     private static (SettingsManager Settings, ProfileManager Manager) Make(AppSettings? initial = null)
     {
-        var sm = new SettingsManager();
+        var sm = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_profile_{Guid.NewGuid()}.json"));
         if (initial is not null)
         {
             // UpdateAsync fires SettingsChanged; we use the sync-compatible path here

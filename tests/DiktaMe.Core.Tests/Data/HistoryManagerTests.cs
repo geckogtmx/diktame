@@ -15,7 +15,7 @@ public sealed class HistoryManagerTests : IAsyncDisposable
     public HistoryManagerTests()
     {
         _dbPath = Path.Combine(Path.GetTempPath(), $"diktame_test_{Guid.NewGuid()}.db");
-        _settings = new SettingsManager();
+        _settings = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_hm_{Guid.NewGuid()}.json"));
         _history = new HistoryManager(_settings, _dbPath);
     }
 

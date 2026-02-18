@@ -10,7 +10,7 @@ public sealed class PromptRepositoryTests
 {
     private static (SettingsManager Settings, PromptRepository Repo) Make()
     {
-        var sm = new SettingsManager();
+        var sm = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_prompt_{Guid.NewGuid()}.json"));
         return (sm, new PromptRepository(sm));
     }
 

@@ -5,16 +5,25 @@ using Serilog;
 
 /// <summary>
 /// Persists and loads <see cref="AppSettings"/> as JSON at
-/// <c>%APPDATA%\DiktaMe\settings.json</c>.
+/// <c>%APPDATA%\DiktaMe\settings.json</c> (or a custom path for tests).
 /// Provides defaults for missing fields, schema migration from V1,
 /// and observable change notification for MVVM.
 /// </summary>
 public sealed class SettingsManager
 {
-    /// <summary>Path to the settings file.</summary>
-    public static readonly string SettingsFilePath = Path.Combine(
+    /// <summary>Default path to the settings file.</summary>
+    public static readonly string DefaultSettingsFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "DiktaMe", "settings.json");
+
+    /// <summary>Path to the settings file used by this instance.</summary>
+    public string SettingsFilePath { get; }
+
+    /// <summary>Initializes a new instance. Pass a custom path in tests to avoid shared-file collisions.</summary>
+    public SettingsManager(string? filePath = null)
+    {
+        SettingsFilePath = filePath ?? DefaultSettingsFilePath;
+    }
 
     private AppSettings _current = new();
 
