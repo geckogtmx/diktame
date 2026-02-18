@@ -83,9 +83,21 @@ jobs:
       # Gitleaks scans the full git history for hardcoded API keys, tokens,
       # and other secrets that AI may have accidentally embedded in source.
       - name: Secret scan (gitleaks)
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          # Install gitleaks via winget (available on windows-latest)
+          $version = "8.21.2"
+          $url = "https://github.com/gitleaks/gitleaks/releases/download/v$version/gitleaks_${version}_windows_x64.zip"
+          $zip = "$env:TEMP\gitleaks.zip"
+          Invoke-WebRequest -Uri $url -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath "$env:TEMP\gitleaks" -Force
+          $exe = "$env:TEMP\gitleaks\gitleaks.exe"
+          & $exe detect --source . --redact --no-git=false --exit-code 1
+          if ($LASTEXITCODE -eq 1) {
+            Write-Error "FAIL: gitleaks detected secrets in the repository"
+            exit 1
+          }
+          Write-Host "OK: no secrets detected"
 
       # ── Vulnerability audit ───────────────────────────────────────────
       # Checks all NuGet deps (including transitive) for known CVEs.
