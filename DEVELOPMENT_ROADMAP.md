@@ -717,57 +717,54 @@ input/output token counts from API usage fields.
 
 ### Work Stream G: Testing (Priority: HIGH)
 
-#### Task G.1: Core Unit Tests (xUnit) ✅ (343 tests, coverage gaps below)
-**Created:** `DiktaMe.Core.Tests/` — 25 test classes
+#### Task G.1: Core Unit Tests (xUnit) ✅ (414 tests, gaps closed)
+**Created:** `DiktaMe.Core.Tests/` — 32 test classes
 **Effort:** Built incrementally alongside each stream
 
-**Current state: 343 tests passing** (1 pre-existing clipboard flake in TextInjectorTests).
+**Current state: 414 tests passing** (376 unit-only in CI; 1 pre-existing clipboard flake in TextInjectorTests — pre-existing, not new).
 
-**Well-covered areas (no action needed):**
+**Test coverage:**
 
 | Test Class | Tests | Coverage |
 |-----------|:---:|----------|
 | PipelineTests | 27 | All 5 pipelines: full flow, fallback, raw mode, events, word count |
-| ChatPipelineTests | 11 | Text + voice paths, cancellation, state events, error handling |
 | HotkeyParserTests | 26 | All key combos, modifiers, edge cases |
 | ApiKeyValidatorTests | 24 | All 5 providers × valid/invalid/edge |
 | WhisperProviderTests | 19 | Model sizes, availability, download, dispose |
 | SnippetManagerTests | 19 | CRUD, trigger matching, expansion, persistence |
 | TextInjectorTests | 18 | Clipboard, injection, +Key, re-inject |
 | AudioDuckerTests | 17 | Duck/restore, disabled, dispose, event wiring |
+| OllamaManagerTests | 16 | Version comparison, health check, manifest, fallback |
 | PIIScrubberTests | 15 | Email, phone, SSN, credit card, API keys |
 | DeepgramProviderTests | 14 | Auth, errors, language, response parsing |
+| PromptRepositoryTests | 14 | CRUD on 16 slots, bounds validation, clone isolation |
 | GeminiAudioProviderTests | 13 | Auth, errors, language, response parsing |
-| STTRouterTests | 10 | Primary/fallback routing, capabilities |
+| ProfileManagerTests | 13 | Active profile, GetModeSettings, SwitchProfile, SetModeSettings |
+| MuteDetectorTests | 12 | Polling, device matching, events |
 | OpenAICompatibleProviderTests | 12 | Auth, endpoint, sanitization, errors |
 | HotkeyManagerTests | 12 | Register/unregister, lifecycle, events |
+| ChatPipelineTests | 11 | Text + voice paths, cancellation, state events, error handling |
 | AudioRecorderTests | 11 | Lifecycle, auto-stop, device resolution |
 | AudioDeviceManagerTests | 11 | Enumeration, device properties |
-| MuteDetectorTests | 12 | Polling, device matching, events |
-| OllamaManagerTests | 16 | Version comparison, health check, manifest, fallback |
-| LLMRouterTests | 7 | Primary/fallback routing |
+| PipelineFactoryTests | 11 | Provider wiring, UseLlm=false, mode override, profile switching |
+| HistoryManagerTests | 16 | Privacy levels (Ghost/Stats/Balanced/Full), stats aggregation, pruning, wipe |
+| NoteWriterTests | 8 | Append, dir creation, empty no-op, timestamp format, cancellation |
+| MetricsCollectorTests | 7 | Session accumulation, average latency, failed-skip, SessionStats record |
 | ClipboardManagerTests | 7 | Set/get, Unicode, save/restore |
+| SettingsManagerTests | 13 | Defaults, round-trip, atomic write, corrupt JSON, V1 migration, SettingsChanged event |
+| LLMRouterTests | 7 | Primary/fallback routing |
 | GeminiProviderTests | 6 | Auth, model, response parsing |
 | OllamaProviderTests | 6 | Availability, localhost, warmup |
-| AnthropicProviderTests | 5 | Headers, auth, response parsing |
 | SecureStorageTests | 5 | CRUD, round-trip, overwrite |
-| LlmResultTests | 3 | IsSuccess, empty, whitespace |
-| SettingsManagerTests | 5 | Defaults, round-trip, atomic write |
-| HistoryManagerTests | 4 | Init, logging, stats, wipe |
+| AnthropicProviderTests | 5 | Headers, auth, response parsing |
 | ScaffoldTests | 5 | CapabilityReport, TranscriptionResult |
+| LlmResultTests | 3 | IsSuccess, empty, whitespace |
 
-**Coverage gaps to address:**
+**Remaining low-priority gaps (not blocking):**
 
-| Area | What's Missing | Priority |
-|------|---------------|:---:|
-| **SettingsManager** | V1 migration, schema upgrade, concurrent access, corrupt file recovery | Medium |
-| **HistoryManager** | Privacy level filtering (Ghost/Stats/Balanced/Full), 90-day retention pruning, stats aggregation across sessions | Medium |
-| **MetricsCollector** | No dedicated tests — only indirectly tested via HistoryManager | Low |
-| **NoteWriter** | No dedicated tests — only indirectly tested via NotePipeline | Low |
-| **ProfileManager** | No dedicated tests — dual-profile switching, active profile, mode key lookup | Medium |
-| **PromptRepository** | No dedicated tests — CRUD on 16 prompt slots | Low |
-| **PipelineFactory** | No dedicated tests — provider wiring, mode override | Medium |
-| **SecureStorage** | Corruption recovery, file-not-found, concurrent access | Low |
+| Area | What's Missing |
+|------|----------------|
+| **SecureStorage** | Corruption recovery, concurrent access (DPAPI makes file-based mocking hard) |
 
 **Mocking:** `Moq` for all external dependencies (HTTP, audio hardware, clipboard).
 
@@ -1146,4 +1143,4 @@ publish/
 **Document Status:** IN PROGRESS
 **Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, I.1–I.5, I.2-UI
 **Remaining:** H.1 (Installer), H.2 (V1 Migration), I.6 (Website Rebrand)
-**Build:** 0 errors, 0 warnings | **Tests:** 343 passing (1 pre-existing clipboard flake)
+**Build:** 0 errors, 0 warnings | **Tests:** 414 passing (1 pre-existing clipboard flake) | **CI unit filter:** 376

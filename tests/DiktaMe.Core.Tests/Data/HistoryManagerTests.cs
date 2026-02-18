@@ -19,12 +19,24 @@ public sealed class HistoryManagerTests : IAsyncDisposable
         _history = new HistoryManager(_settings, _dbPath);
     }
 
+    // ── Init ──────────────────────────────────────────────────────────────────
+
     [Fact]
     public async Task InitAsync_CreatesDatabase()
     {
         await _history.InitAsync();
         Assert.True(File.Exists(_dbPath));
     }
+
+    [Fact]
+    public async Task InitAsync_IsIdempotent()
+    {
+        await _history.InitAsync();
+        var ex = await Record.ExceptionAsync(() => _history.InitAsync());
+        Assert.Null(ex);
+    }
+
+    // ── Logging ───────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task LogSessionAsync_RecordsSuccessfulResult()
@@ -53,22 +65,105 @@ public sealed class HistoryManagerTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task WipeAllAsync_DeletesAllRecords()
+    public async Task LogSessionAsync_GhostLevel_LogsNothing()
     {
+        await _settings.UpdateAsync(new AppSettings
+        {
+            Privacy = new PrivacySettings { Level = PrivacyLevel.Ghost },
+        });
         await _history.InitAsync();
 
-        var result = new PipelineResult
+        await _history.LogSessionAsync(new PipelineResult
         {
-            Text = "test",
+            Text = "secret text",
             Mode = "dictate",
             IsSuccess = true,
-        };
-        await _history.LogSessionAsync(result);
-        await _history.WipeAllAsync();
+        });
 
-        var (_, sessions) = await _history.GetStatsAsync(DateTimeOffset.UtcNow.AddDays(-1));
+        var (_, sessions) = await _history.GetStatsAsync(DateTimeOffset.UtcNow.AddMinutes(-1));
         Assert.Equal(0, sessions);
     }
+
+    [Fact]
+    public async Task LogSessionAsync_StatsLevel_RecordsMetrics()
+    {
+        await _settings.UpdateAsync(new AppSettings
+        {
+            Privacy = new PrivacySettings { Level = PrivacyLevel.Stats },
+        });
+        await _history.InitAsync();
+
+        await _history.LogSessionAsync(new PipelineResult
+        {
+            Text = "some text",
+            Mode = "dictate",
+            IsSuccess = true,
+        });
+
+        var (words, sessions) = await _history.GetStatsAsync(DateTimeOffset.UtcNow.AddMinutes(-1));
+        Assert.Equal(1, sessions);
+        Assert.Equal(2, words); // "some text" = 2 words (computed)
+    }
+
+    [Fact]
+    public async Task LogSessionAsync_BalancedLevel_StoresScrubbed()
+    {
+        await _settings.UpdateAsync(new AppSettings
+        {
+            Privacy = new PrivacySettings
+            {
+                Level = PrivacyLevel.Balanced,
+                PiiScrubEnabled = true,
+            },
+        });
+        await _history.InitAsync();
+
+        await _history.LogSessionAsync(new PipelineResult
+        {
+            Text = "normal text without PII",
+            Mode = "dictate",
+            IsSuccess = true,
+        });
+
+        var (words, sessions) = await _history.GetStatsAsync(DateTimeOffset.UtcNow.AddMinutes(-1));
+        Assert.Equal(1, sessions);
+        Assert.Equal(4, words); // "normal text without PII" = 4 words
+    }
+
+    [Fact]
+    public async Task LogSessionAsync_FullLevel_StoresVerbatim()
+    {
+        await _settings.UpdateAsync(new AppSettings
+        {
+            Privacy = new PrivacySettings { Level = PrivacyLevel.Full },
+        });
+        await _history.InitAsync();
+
+        await _history.LogSessionAsync(new PipelineResult
+        {
+            Text = "verbatim text",
+            Mode = "ask",
+            IsSuccess = true,
+        });
+
+        var (words, sessions) = await _history.GetStatsAsync(DateTimeOffset.UtcNow.AddMinutes(-1));
+        Assert.Equal(1, sessions);
+        Assert.Equal(2, words); // "verbatim text" = 2 words
+    }
+
+    [Fact]
+    public async Task LogSessionAsync_BeforeInit_DoesNotThrow()
+    {
+        var ex = await Record.ExceptionAsync(() => _history.LogSessionAsync(new PipelineResult
+        {
+            Text = "text",
+            Mode = "dictate",
+            IsSuccess = true,
+        }));
+        Assert.Null(ex);
+    }
+
+    // ── Stats ─────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetStatsAsync_ReturnsZero_WhenNoRecords()
@@ -78,6 +173,106 @@ public sealed class HistoryManagerTests : IAsyncDisposable
         var (words, sessions) = await _history.GetStatsAsync(DateTimeOffset.UtcNow.AddMinutes(-1));
         Assert.Equal(0, words);
         Assert.Equal(0, sessions);
+    }
+
+    [Fact]
+    public async Task GetStatsAsync_SumsMultipleSessions()
+    {
+        await _history.InitAsync();
+
+        for (int i = 0; i < 3; i++)
+        {
+            await _history.LogSessionAsync(new PipelineResult
+            {
+                Text = "hello world",
+                Mode = "dictate",
+                IsSuccess = true,
+            });
+        }
+
+        var (words, sessions) = await _history.GetStatsAsync(DateTimeOffset.UtcNow.AddMinutes(-1));
+        Assert.Equal(3, sessions);
+        Assert.Equal(6, words);
+    }
+
+    [Fact]
+    public async Task GetStatsAsync_ExcludesFailedSessions()
+    {
+        await _history.InitAsync();
+
+        await _history.LogSessionAsync(new PipelineResult
+        {
+            Text = "success",
+            Mode = "dictate",
+            IsSuccess = true,
+        });
+        await _history.LogSessionAsync(new PipelineResult
+        {
+            Text = "failed attempt",
+            Mode = "dictate",
+            IsSuccess = false,
+        });
+
+        var (words, sessions) = await _history.GetStatsAsync(DateTimeOffset.UtcNow.AddMinutes(-1));
+        Assert.Equal(1, sessions); // only the successful one
+        Assert.Equal(1, words);   // "success" = 1 word
+    }
+
+    [Fact]
+    public async Task GetStatsAsync_ExcludesOldRecords()
+    {
+        await _history.InitAsync();
+
+        await _history.LogSessionAsync(new PipelineResult
+        {
+            Text = "old text",
+            Mode = "dictate",
+            IsSuccess = true,
+        });
+
+        // Future cutoff — record is older than cutoff
+        var (_, sessions) = await _history.GetStatsAsync(DateTimeOffset.UtcNow.AddMinutes(1));
+        Assert.Equal(0, sessions);
+    }
+
+    // ── Pruning ───────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task InitAsync_Pruning_DoesNotThrow()
+    {
+        await _settings.UpdateAsync(new AppSettings
+        {
+            Privacy = new PrivacySettings { HistoryRetentionDays = 1 },
+        });
+        await _history.InitAsync();
+        var ex = await Record.ExceptionAsync(() => _history.InitAsync());
+        Assert.Null(ex);
+    }
+
+    // ── Wipe ──────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task WipeAllAsync_DeletesAllRecords()
+    {
+        await _history.InitAsync();
+
+        await _history.LogSessionAsync(new PipelineResult
+        {
+            Text = "test",
+            Mode = "dictate",
+            IsSuccess = true,
+        });
+        await _history.WipeAllAsync();
+
+        var (_, sessions) = await _history.GetStatsAsync(DateTimeOffset.UtcNow.AddDays(-1));
+        Assert.Equal(0, sessions);
+    }
+
+    [Fact]
+    public async Task WipeAllAsync_BeforeInit_DoesNotThrow()
+    {
+        var ex = await Record.ExceptionAsync(() => _history.WipeAllAsync());
+        Assert.Null(ex);
     }
 
     public async ValueTask DisposeAsync()
