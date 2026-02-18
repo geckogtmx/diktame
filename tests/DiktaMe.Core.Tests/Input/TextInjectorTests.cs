@@ -7,8 +7,10 @@ namespace DiktaMe.Core.Tests.Input;
 
 /// <summary>
 /// Tests for TextInjector logic using a mocked IInputSimulator.
-/// Clipboard interactions use the real Win32 clipboard.
+/// Clipboard interactions use the real Win32 clipboard — requires an
+/// interactive Windows session, so the class is tagged Hardware.
 /// </summary>
+[Trait("Category", "Hardware")]
 public class TextInjectorTests
 {
     private readonly Mock<IInputSimulator> _simMock;
