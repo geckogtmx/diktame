@@ -34,7 +34,7 @@ DiktaMe.sln
 │       ├── Config/            # Settings, profiles, snippets
 │       ├── Data/              # SQLite history, metrics
 │       ├── Security/          # DPAPI secrets, PII scrubber
-│       └── System/            # Capabilities, Ollama management
+│       └── System/            # Ollama management
 └── tests/
     └── DiktaMe.Core.Tests/    # xUnit + Moq + FluentAssertions
 ```

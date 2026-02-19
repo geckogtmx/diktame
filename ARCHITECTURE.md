@@ -115,7 +115,7 @@ DiktaMe.sln                        # Visual Studio solution
 │       │   ├── GeminiProvider.cs            # Gemini generateContent (API key + OAuth)
 │       │   ├── AnthropicProvider.cs         # Anthropic Messages API
 │       │   └── OllamaProvider.cs            # Local Ollama (localhost:11434)
-│       ├── Pipeline/                   ✅ D.1-D.4 complete
+│       ├── Pipeline/
 │       │   ├── DictationPipeline.cs    # STT → LLM (optional) → Inject; raw mode bypass
 │       │   ├── RefinePipeline.cs       # Autopilot (selection→LLM→replace) + instruction mode
 │       │   ├── AskPipeline.cs          # Voice Q&A — answer returned, not injected
@@ -124,9 +124,10 @@ DiktaMe.sln                        # Visual Studio solution
 │       │   ├── PipelineResult.cs       # Shared result: text, latencies, word count
 │       │   ├── PipelineState.cs        # Idle/Transcribing/Processing/Injecting/Error
 │       │   ├── PipelineOptions.cs      # Typed options records per pipeline
-│       │   └── ChatPipeline.cs         # Quick Chat overlay flow (Task I.2, not yet built)
+│       │   └── ChatPipeline.cs         # Quick Chat overlay flow (text + voice → LLM)
 │       ├── Input/
 │       │   ├── HotkeyManager.cs        # Win32 RegisterHotKey P/Invoke
+│       │   ├── HotkeyParser.cs         # String-to-key combo parser
 │       │   ├── TextInjector.cs         # Clipboard inject; LastInjectedText/ReInjectLast (Oops)
 │       │   └── ClipboardManager.cs     # Clipboard save/restore
 │       ├── Config/
@@ -134,7 +135,12 @@ DiktaMe.sln                        # Visual Studio solution
 │       │   ├── SettingsManager.cs      # JSON persistence + migration
 │       │   ├── PromptRepository.cs     # 16 custom system prompt slots
 │       │   ├── ProfileManager.cs       # Dual-profile system (8 × 2)
-│       │   └── SnippetManager.cs       # Voice snippets CRUD + matching
+│       │   ├── SnippetManager.cs       # Voice snippets CRUD + matching
+│       │   ├── ISTTProviderFactory.cs  # STT factory interface
+│       │   ├── STTProviderFactory.cs   # Instantiate STT from config
+│       │   ├── ILLMProviderFactory.cs  # LLM factory interface
+│       │   ├── LLMProviderFactory.cs   # Instantiate LLM from config
+│       │   └── PipelineFactory.cs      # Instantiate pipelines from config
 │       ├── Data/
 │       │   ├── HistoryManager.cs       # SQLite session logging (90-day)
 │       │   ├── MetricsCollector.cs     # Performance tracking
@@ -143,31 +149,48 @@ DiktaMe.sln                        # Visual Studio solution
 │       │   ├── PIIScrubber.cs          # Regex-based PII redaction
 │       │   ├── SecureStorage.cs        # DPAPI for API keys
 │       │   └── ApiKeyValidator.cs      # Format validation per provider
-│       ├── System/
-│       │   ├── CapabilityDetector.cs   # Runtime hardware/software detection
-│       │   ├── SystemMonitor.cs        # CPU/GPU/memory metrics
-│       │   ├── StartupManager.cs       # Auto-start registration
-│       │   └── OllamaManager.cs        # Version sensing + model library
-│       └── Capabilities.cs             # CapabilityReport model
+│       └── System/
+│           └── OllamaManager.cs        # Version sensing + model library
 │
 └── tests/
-    └── DiktaMe.Core.Tests/             # xUnit + Moq + FluentAssertions (224 tests)
+    └── DiktaMe.Core.Tests/             # xUnit + Moq + FluentAssertions (414+ tests)
         ├── ScaffoldTests.cs
         ├── Audio/
         │   ├── AudioRecorderTests.cs
-        │   └── AudioDeviceManagerTests.cs
+        │   ├── AudioDeviceManagerTests.cs
+        │   ├── AudioDuckerTests.cs
+        │   └── MuteDetectorTests.cs
+        ├── Config/
+        │   ├── PipelineFactoryTests.cs
+        │   ├── ProfileManagerTests.cs
+        │   ├── PromptRepositoryTests.cs
+        │   ├── SettingsManagerTests.cs
+        │   └── SnippetManagerTests.cs
+        ├── Data/
+        │   ├── HistoryManagerTests.cs
+        │   ├── MetricsCollectorTests.cs
+        │   └── NoteWriterTests.cs
         ├── Input/
-        │   ├── TextInjectorTests.cs
-        │   └── HotkeyManagerTests.cs
+        │   ├── ClipboardManagerTests.cs
+        │   ├── HotkeyManagerTests.cs
+        │   ├── HotkeyParserTests.cs
+        │   └── TextInjectorTests.cs    # [Trait("Category","Hardware")] — CI-excluded
         ├── STT/
         │   ├── STTRouterTests.cs
         │   ├── DeepgramProviderTests.cs
         │   ├── GeminiAudioProviderTests.cs
         │   └── WhisperProviderTests.cs
         ├── LLM/
-        │   └── LLMProviderTests.cs     # All 4 providers + router + LlmResult
-        └── Pipeline/
-            └── PipelineTests.cs        # Dictation, Refine, Ask, Translate, Note, Oops
+        │   └── LLMProviderTests.cs     # All providers + router + LlmResult
+        ├── Pipeline/
+        │   ├── PipelineTests.cs        # Dictation, Refine, Ask, Translate, Note, Oops
+        │   └── ChatPipelineTests.cs
+        ├── Security/
+        │   ├── ApiKeyValidatorTests.cs
+        │   ├── PIIScrubberTests.cs
+        │   └── SecureStorageTests.cs
+        └── System/
+            └── OllamaManagerTests.cs
 ```
 
 ### Project Dependencies
@@ -190,7 +213,7 @@ The `App` project depends on `Core` for all business logic. `Core` has **zero de
 | **Runtime** | .NET | 8.0 |
 | **Target OS** | Windows 10+ | 10.0.19041 (2004) minimum |
 | **Language** | C# | 12.0 |
-| **UI Framework** | WinUI 3 (Windows App SDK) | 1.5 |
+| **UI Framework** | WinUI 3 (Windows App SDK) | 1.6 |
 | **MVVM Toolkit** | CommunityToolkit.Mvvm | 8.3.2 |
 | **Packaging** | Unpackaged (WindowsPackageType=None) | — |
 
@@ -211,7 +234,7 @@ The `App` project depends on `Core` for all business logic. `Core` has **zero de
 
 | Package | Purpose |
 |---------|---------|
-| `Microsoft.WindowsAppSDK` 1.5 | WinUI 3 runtime |
+| `Microsoft.WindowsAppSDK` 1.6 | WinUI 3 runtime |
 | `Microsoft.Windows.SDK.BuildTools` 10.x | Windows SDK build integration |
 | `H.NotifyIcon.WinUI` 2.1.0 | System tray icon + context menu |
 | `CommunityToolkit.Mvvm` 8.3.2 | ObservableObject, RelayCommand, source generators |
@@ -571,42 +594,41 @@ Options being evaluated:
 ### 11.2 Test Organization
 
 ```
-tests/DiktaMe.Core.Tests/
-├── Audio/
-│   ├── AudioRecorderTests.cs
-│   └── AudioDuckerTests.cs
-├── STT/
-│   ├── STTRouterTests.cs
-│   └── DeepgramProviderTests.cs
-├── LLM/
-│   ├── LLMRouterTests.cs
-│   ├── GeminiProviderTests.cs
-│   └── OllamaProviderTests.cs
-├── Pipeline/
-│   ├── DictationPipelineTests.cs
-│   └── RefinePipelineTests.cs
-├── Config/
-│   ├── SettingsManagerTests.cs
-│   └── SnippetManagerTests.cs
-├── Data/
-│   └── HistoryManagerTests.cs
-├── Security/
-│   └── PIIScrubberTests.cs
-└── System/
-    └── OllamaManagerTests.cs
+tests/DiktaMe.Core.Tests/       # 31 test classes, 414+ tests
+├── Audio/                       # AudioRecorder, AudioDeviceManager, AudioDucker, MuteDetector
+├── Config/                      # SettingsManager, ProfileManager, PromptRepository,
+│                                #   SnippetManager, PipelineFactory
+├── Data/                        # HistoryManager, MetricsCollector, NoteWriter
+├── Input/                       # HotkeyManager, HotkeyParser, ClipboardManager,
+│                                #   TextInjector (Hardware-tagged, CI-excluded)
+├── LLM/                         # All providers + LLMRouter + LlmResult
+├── Pipeline/                    # Dictation, Refine, Ask, Translate, Note, Oops, Chat
+├── Security/                    # PIIScrubber, SecureStorage, ApiKeyValidator
+├── STT/                         # STTRouter, Deepgram, GeminiAudio, Whisper
+└── System/                      # OllamaManager
 ```
 
-**Target: 170+ tests** (matching or exceeding V1's 255 test count).
+**Current: 414 tests passing** (376 in CI unit filter; Hardware/Integration traits excluded).
 
 ### 11.3 CI/CD (GitHub Actions)
 
-```yaml
-Jobs:
-  build:   dotnet build
-  test:    dotnet test (xUnit)
-  lint:    dotnet format --verify-no-changes
-  publish: dotnet publish -c Release (verify trimmed output)
-```
+Single-job pipeline in `.github/workflows/ci-v2.yml` (runs on `windows-latest`):
+
+| Step | Purpose |
+|------|---------|
+| **Restore** | `dotnet restore` — fails fast on hallucinated NuGet packages |
+| **Lint** | `dotnet format --verify-no-changes` — enforces `.editorconfig` style |
+| **Build** | `dotnet build -c Release` — `TreatWarningsAsErrors` + Meziantou.Analyzer |
+| **Test** | `dotnet test` — excludes `Category=Integration` and `Category=Hardware` traits |
+| **Test-count threshold** | Fails if passing tests drop below `ci/test-threshold.json` minimum |
+| **Secret scan** | gitleaks v8.21.2 — full git history scan (`.gitleaks.toml` allowlist) |
+| **Vulnerability audit** | `dotnet list package --vulnerable` — fails on High/Critical CVEs |
+| **Deprecated packages** | `dotnet list package --deprecated` — informational warning only |
+| **Publish** | Trimmed self-contained win-x64 build |
+| **Publish size guard** | Fails if output deviates >20% from expected range |
+| **Artifact upload** | Coverage report + publish output as GitHub Actions artifacts |
+
+See `ci/DECISIONS.md` for suppression rationale and `ci/test-threshold.json` for thresholds.
 
 ---
 
@@ -674,6 +696,6 @@ When V2 reaches feature parity, a migration path exists for V1 users:
 
 ---
 
-**Document Status:** Active — Updated as implementation progresses
-**Last Updated:** 2026-02-15
+**Document Status:** Active — Feature complete (Streams A–G, I); H remaining
+**Last Updated:** 2026-02-19
 **Parent Spec:** `DEVELOPMENT_ROADMAP.md`

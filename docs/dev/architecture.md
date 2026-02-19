@@ -9,7 +9,7 @@
 ### 1. The Triad
 - **Engine (App)**: The host process (WinUI 3).
 - **Ears (STT)**: Speech-to-Text providers (Deepgram, Gemini, Whisper).
-- **Brain (LLM)**: Large Language Models (Gemini, OpenAI, Ollama).
+- **Brain (LLM)**: Large Language Models (Gemini, OpenAI, Anthropic, Ollama).
 
 ### 2. Dependency Injection
 All services are defined in `DiktaMe.Core` interfaces and injected into `DiktaMe.App` ViewModels.
