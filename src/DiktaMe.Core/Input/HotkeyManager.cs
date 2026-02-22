@@ -35,6 +35,7 @@ public sealed class HotkeyManager : IDisposable
     private readonly ManualResetEventSlim _hwndReady = new(false);
     private readonly ConcurrentDictionary<HotkeyId, HotkeyRegistration> _registrations = new();
     private readonly ConcurrentDictionary<HotkeyId, long> _lastPressTimestamps = new();
+    private readonly System.Collections.Concurrent.BlockingCollection<Action> _actionQueue = new();
     private volatile bool _running;
     private bool _disposed;
 
@@ -83,7 +84,7 @@ public sealed class HotkeyManager : IDisposable
             throw new InvalidOperationException("Call Start() before registering hotkeys.");
         }
 
-        // Parse the hotkey string
+        // Parse the hotkey string on calling thread
         if (!HotkeyParser.TryParse(hotkeyString, out uint modifiers, out uint vk))
         {
             Log.Warning("HotkeyManager: cannot parse hotkey string '{HotkeyString}' for {Id}", hotkeyString, id);
@@ -92,25 +93,44 @@ public sealed class HotkeyManager : IDisposable
             return false;
         }
 
-        // Unregister any existing registration for this ID
-        Unregister(id);
+        Log.Debug("HotkeyManager: parsed '{HotkeyString}' → modifiers=0x{Modifiers:X}, vk=0x{Vk:X} (hwnd=0x{Hwnd:X})",
+            hotkeyString, modifiers, vk, _hwnd.ToInt64());
 
-        int intId = (int)id;
-        bool ok = NativeMethods.RegisterHotKey(_hwnd, intId, modifiers, vk);
+        // CRITICAL: RegisterHotKey must be called from the thread that owns the HWND
+        // Queue the actual Win32 call to the message pump thread
+        bool result = false;
+        var completedEvent = new ManualResetEventSlim(false);
 
-        if (!ok)
+        _actionQueue.Add(() =>
         {
-            int err = Marshal.GetLastWin32Error();
-            Log.Warning("HotkeyManager: RegisterHotKey failed for {Id} ('{HotkeyString}'), Win32 error {Error}",
-                id, hotkeyString, err);
-            RegistrationFailed?.Invoke(this, new HotkeyRegistrationFailedEventArgs(id, hotkeyString,
-                $"Win32 RegisterHotKey failed (error {err}) — another app may be using '{hotkeyString}'"));
-            return false;
-        }
+            // Unregister any existing registration for this ID
+            UnregisterOnPumpThread(id);
 
-        _registrations[id] = new HotkeyRegistration(id, hotkeyString, modifiers, vk);
-        Log.Information("HotkeyManager: registered {Id} → '{HotkeyString}'", id, hotkeyString);
-        return true;
+            int intId = (int)id;
+            bool ok = NativeMethods.RegisterHotKey(_hwnd, intId, modifiers, vk);
+
+            if (!ok)
+            {
+                int err = Marshal.GetLastWin32Error();
+                Log.Warning("HotkeyManager: RegisterHotKey failed for {Id} ('{HotkeyString}'), Win32 error {Error}",
+                    id, hotkeyString, err);
+                RegistrationFailed?.Invoke(this, new HotkeyRegistrationFailedEventArgs(id, hotkeyString,
+                    $"Win32 RegisterHotKey failed (error {err}) — another app may be using '{hotkeyString}'"));
+                result = false;
+            }
+            else
+            {
+                _registrations[id] = new HotkeyRegistration(id, hotkeyString, modifiers, vk);
+                Log.Information("HotkeyManager: registered {Id} → '{HotkeyString}'", id, hotkeyString);
+                result = true;
+            }
+
+            completedEvent.Set();
+        });
+
+        // Wait for the message pump thread to complete the registration
+        completedEvent.Wait(TimeSpan.FromSeconds(2));
+        return result;
     }
 
     /// <summary>
@@ -124,6 +144,21 @@ public sealed class HotkeyManager : IDisposable
             return;
         }
 
+        // Marshal to message pump thread
+        var completedEvent = new ManualResetEventSlim(false);
+        _actionQueue.Add(() =>
+        {
+            UnregisterOnPumpThread(id);
+            completedEvent.Set();
+        });
+        completedEvent.Wait(TimeSpan.FromSeconds(1));
+    }
+
+    /// <summary>
+    /// Internal helper: Unregister on the message pump thread (already marshaled).
+    /// </summary>
+    private void UnregisterOnPumpThread(HotkeyId id)
+    {
         if (_registrations.TryRemove(id, out _))
         {
             NativeMethods.UnregisterHotKey(_hwnd, (int)id);
@@ -172,20 +207,33 @@ public sealed class HotkeyManager : IDisposable
         {
             while (_running)
             {
-                int result = NativeMethods.GetMessage(out NativeMethods.MSG msg, _hwnd, 0, 0);
-
-                if (result == 0 || result == -1)
+                // Process any queued actions (Register/Unregister calls from other threads)
+                while (_actionQueue.TryTake(out Action? action, millisecondsTimeout: 0))
                 {
-                    break; // WM_QUIT or error
+                    action?.Invoke();
                 }
 
-                if (msg.message == WmHotkey)
+                // Wait for next message with timeout so we can process queued actions
+                if (NativeMethods.PeekMessage(out NativeMethods.MSG msg, _hwnd, 0, 0, 1)) // PM_REMOVE = 1
                 {
-                    OnWmHotkey((int)msg.wParam);
-                }
+                    if (msg.message == 0x0012) // WM_QUIT
+                    {
+                        break;
+                    }
 
-                NativeMethods.TranslateMessage(ref msg);
-                NativeMethods.DispatchMessage(ref msg);
+                    if (msg.message == WmHotkey)
+                    {
+                        OnWmHotkey((int)msg.wParam);
+                    }
+
+                    NativeMethods.TranslateMessage(ref msg);
+                    NativeMethods.DispatchMessage(ref msg);
+                }
+                else
+                {
+                    // No messages, wait a bit before checking again
+                    Thread.Sleep(10);
+                }
             }
         }
         finally
@@ -261,6 +309,10 @@ public sealed class HotkeyManager : IDisposable
 
         [DllImport("user32.dll", SetLastError = true)]
         internal static extern int GetMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool PeekMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
 
         [DllImport("user32.dll")]
         internal static extern bool TranslateMessage(ref MSG lpMsg);
