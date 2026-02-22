@@ -111,16 +111,19 @@ public sealed class AudioRecorder : IDisposable
     /// Stops recording and flushes the WAV file.
     /// </summary>
     /// <returns>
-    /// The path of the saved WAV file, or <c>null</c> if no recording was active.
+    /// The path of the saved WAV file, or <c>null</c> if no recording was ever started.
+    /// If the recording already stopped (e.g., via auto-stop), returns the file path from that recording.
     /// </returns>
     public Task<string?> StopRecordingAsync()
     {
-        if (!IsRecording)
+        // If still recording, stop it now
+        if (IsRecording)
         {
-            return Task.FromResult<string?>(null);
+            StopInternal(isAutoStop: false);
         }
 
-        StopInternal(isAutoStop: false);
+        // Return the file path from current or most recent recording
+        // (handles case where auto-stop already stopped the recording)
         return Task.FromResult<string?>(_currentFilePath);
     }
 
@@ -223,6 +226,7 @@ public sealed class AudioRecorder : IDisposable
         WaveFileWriter? writer = _writer;
         _waveIn = null;
         _writer = null;
+        _currentFilePath = null; // Clear file path on dispose
         IsRecording = false;
 
         if (waveIn is not null)
