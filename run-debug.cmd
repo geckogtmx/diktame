@@ -1,7 +1,6 @@
 @echo off
 REM Quick script to run Debug build with console output
-echo Deleting old settings to trigger wizard...
-del "%APPDATA%\DiktaMe\settings.json" 2>nul
+REM (Settings preserved - delete %APPDATA%\DiktaMe\settings.json to reset wizard)
 
 echo.
 echo Building Debug version...

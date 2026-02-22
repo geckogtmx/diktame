@@ -69,12 +69,10 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
         string userContent = $"{systemPrompt}\n\n{safeText}";
         string body = BuildRequestJson(userContent);
 
-        string modelPath = _model.StartsWith("models/", StringComparison.OrdinalIgnoreCase)
-            ? _model
-            : $"models/{_model}";
-
+        // OAuth path needs full "models/{model}" because ApiBase gets "/models" stripped
+        // API key path uses raw model name because ApiBase already ends with "/models"
         string url = _isOAuth
-            ? $"{ApiBase.Replace("/models", "")}/{modelPath}:generateContent"
+            ? $"{ApiBase.Replace("/models", "", StringComparison.Ordinal)}/models/{_model}:generateContent"
             : $"{ApiBase}/{_model}:generateContent?key={_apiKey}";
 
         var sw = Stopwatch.StartNew();
