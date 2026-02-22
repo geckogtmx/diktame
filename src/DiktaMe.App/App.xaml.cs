@@ -11,6 +11,7 @@ using DiktaMe.Core.SystemManagement;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Serilog;
+using System.Runtime.InteropServices;
 
 namespace DiktaMe.App;
 
@@ -49,8 +50,26 @@ public partial class App : Application
         this.InitializeComponent();
     }
 
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool AllocConsole();
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool AttachConsole(int dwProcessId);
+
+    private const int ATTACH_PARENT_PROCESS = -1;
+
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        // Allocate a console window for debugging (only in Debug builds or when debugger attached)
+#if DEBUG
+        AllocConsole();
+#else
+        if (System.Diagnostics.Debugger.IsAttached)
+        {
+            AllocConsole();
+        }
+#endif
+
         // Configure DI
         var services = new ServiceCollection();
         ConfigureServices(services);
