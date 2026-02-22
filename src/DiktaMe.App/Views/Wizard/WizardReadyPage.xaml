@@ -15,8 +15,8 @@
         <StackPanel Spacing="4" Margin="0,16,0,0"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     CornerRadius="8" Padding="16">
-            <TextBlock x:Name="SttSummary" FontSize="13"/>
-            <TextBlock x:Name="LlmSummary" FontSize="13"/>
+            <TextBlock x:Name="SttSummary" FontSize="13" TextWrapping="Wrap"/>
+            <TextBlock x:Name="LlmSummary" FontSize="13" TextWrapping="Wrap"/>
         </StackPanel>
 
         <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Opacity="0.5"

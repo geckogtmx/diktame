@@ -2,12 +2,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiktaMe.Core.Config;
+using DiktaMe.Core.Security;
 using Serilog;
 
 namespace DiktaMe.App.ViewModels;
 public sealed partial class WizardViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
+    private readonly SecureStorage _secureStorage;
 
     [ObservableProperty] private int _currentStep;
     [ObservableProperty] private bool _canGoBack;
@@ -20,14 +22,19 @@ public sealed partial class WizardViewModel : ObservableObject
     // Step 2: LLM choice
     [ObservableProperty] private string _llmChoice = "cloud";
 
-    public const int TotalSteps = 5;
+    // Step 3: API Keys (only shown if cloud providers selected)
+    [ObservableProperty] private string _deepgramApiKey = "";
+    [ObservableProperty] private string _geminiApiKey = "";
+
+    public const int TotalSteps = 6;
 
     public event Action? StepChanged;
     public event Action? WizardCompleted;
 
-    public WizardViewModel(SettingsManager settings)
+    public WizardViewModel(SettingsManager settings, SecureStorage secureStorage)
     {
         _settings = settings;
+        _secureStorage = secureStorage;
     }
 
     [RelayCommand]
@@ -100,6 +107,19 @@ public sealed partial class WizardViewModel : ObservableObject
 
             updated = updated with { ModeProfiles = profiles };
             await _settings.UpdateAsync(updated);
+
+            // Save API keys if provided
+            if (!string.IsNullOrWhiteSpace(DeepgramApiKey))
+            {
+                _secureStorage.StoreKey("deepgram", DeepgramApiKey);
+                Log.Information("Wizard: saved Deepgram API key");
+            }
+            if (!string.IsNullOrWhiteSpace(GeminiApiKey))
+            {
+                _secureStorage.StoreKey("gemini", GeminiApiKey);
+                Log.Information("Wizard: saved Gemini API key");
+            }
+
             Log.Information("Wizard completed: STT={Stt}, LLM={Llm}", defaultStt, defaultLlm);
         }
         catch (Exception ex)

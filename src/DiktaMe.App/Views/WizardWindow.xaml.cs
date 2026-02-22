@@ -14,6 +14,7 @@ public sealed partial class WizardWindow : Window
         typeof(WizardWelcomePage),
         typeof(WizardSttPage),
         typeof(WizardLlmPage),
+        typeof(WizardApiKeysPage),
         typeof(WizardTestPage),
         typeof(WizardReadyPage),
     };

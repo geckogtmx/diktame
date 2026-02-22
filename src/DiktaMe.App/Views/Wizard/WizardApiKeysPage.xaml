@@ -1,0 +1,50 @@
+<Page x:Class="DiktaMe.App.Views.Wizard.WizardApiKeysPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer Padding="24,0">
+        <StackPanel VerticalAlignment="Center" Spacing="16" MaxWidth="500">
+            <TextBlock Text="API Keys" FontSize="24" FontWeight="SemiBold"/>
+            <TextBlock TextWrapping="Wrap" FontSize="14" Opacity="0.7"
+                       Text="Enter your API keys for the cloud services you selected. Keys are stored securely and encrypted."/>
+
+            <!-- STT API Key (shown only if cloud STT selected) -->
+            <StackPanel x:Name="SttKeyPanel" Spacing="8" Visibility="Collapsed">
+                <TextBlock Text="Speech-to-Text API Key" FontWeight="SemiBold" FontSize="15"/>
+                <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.6" Margin="0,0,0,4">
+                    <Run Text="For Deepgram, get your key from: "/>
+                    <Hyperlink NavigateUri="https://console.deepgram.com">console.deepgram.com</Hyperlink>
+                </TextBlock>
+                <PasswordBox x:Name="SttKeyBox"
+                             PlaceholderText="Enter Deepgram API key"
+                             PasswordChanged="SttKeyBox_PasswordChanged"
+                             Password=""/>
+            </StackPanel>
+
+            <!-- LLM API Key (shown only if cloud LLM selected) -->
+            <StackPanel x:Name="LlmKeyPanel" Spacing="8" Visibility="Collapsed">
+                <TextBlock Text="AI Processing API Key" FontWeight="SemiBold" FontSize="15"/>
+                <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.6" Margin="0,0,0,4">
+                    <Run Text="For Gemini, get your key from: "/>
+                    <Hyperlink NavigateUri="https://aistudio.google.com/apikey">aistudio.google.com/apikey</Hyperlink>
+                </TextBlock>
+                <PasswordBox x:Name="LlmKeyBox"
+                             PlaceholderText="Enter Gemini API key"
+                             PasswordChanged="LlmKeyBox_PasswordChanged"
+                             Password=""/>
+            </StackPanel>
+
+            <!-- Info -->
+            <InfoBar Severity="Informational"
+                     IsOpen="True"
+                     IsClosable="False"
+                     Margin="0,8,0,0"
+                     Message="Your API keys are stored encrypted in Windows Credential Manager. You can change them later in Settings → API Keys."/>
+
+            <!-- Skip option -->
+            <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.6" Margin="0,8,0,0">
+                You can skip this step and add API keys later from Settings. The Quick Test will be skipped.
+            </TextBlock>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

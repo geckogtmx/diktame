@@ -10,13 +10,13 @@
         <RadioButtons x:Name="LlmRadio" MaxColumns="1" SelectionChanged="LlmRadio_SelectionChanged">
             <RadioButton x:Name="LlmCloud" Tag="cloud" IsChecked="True">
                 <StackPanel Spacing="2">
-                    <TextBlock Text="Cloud (Gemini)" FontWeight="SemiBold"/>
-                    <TextBlock Text="Best quality, requires API key and internet" FontSize="12" Opacity="0.6"/>
+                    <TextBlock Text="Cloud AI" FontWeight="SemiBold"/>
+                    <TextBlock Text="Best quality, requires API key (Gemini, Claude, GPT, etc.)" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
             </RadioButton>
             <RadioButton x:Name="LlmLocal" Tag="local">
                 <StackPanel Spacing="2">
-                    <TextBlock Text="Local (Ollama)" FontWeight="SemiBold"/>
+                    <TextBlock Text="Local AI (Ollama)" FontWeight="SemiBold"/>
                     <TextBlock Text="Runs offline, requires Ollama installed with a model" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
             </RadioButton>

@@ -10,13 +10,13 @@
         <RadioButtons x:Name="SttRadio" MaxColumns="1" SelectionChanged="SttRadio_SelectionChanged">
             <RadioButton x:Name="SttCloud" Tag="cloud" IsChecked="True">
                 <StackPanel Spacing="2">
-                    <TextBlock Text="Cloud (Deepgram)" FontWeight="SemiBold"/>
-                    <TextBlock Text="Best accuracy, requires API key and internet" FontSize="12" Opacity="0.6"/>
+                    <TextBlock Text="Cloud STT" FontWeight="SemiBold"/>
+                    <TextBlock Text="High accuracy, requires API key (Deepgram, OpenAI, etc.)" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
             </RadioButton>
             <RadioButton x:Name="SttLocal" Tag="local">
                 <StackPanel Spacing="2">
-                    <TextBlock Text="Local (Whisper)" FontWeight="SemiBold"/>
+                    <TextBlock Text="Local STT (Whisper)" FontWeight="SemiBold"/>
                     <TextBlock Text="Runs offline, no API key needed, requires model download" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
             </RadioButton>
