@@ -9,20 +9,24 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="dIKta.me" FontSize="28" FontWeight="Bold"
+        <Image Grid.Row="0" Source="ms-appx:///Assets/loading-logo.png"
+               Width="120" Height="120" HorizontalAlignment="Center"/>
+
+        <TextBlock Grid.Row="1" Text="dIKta.me" FontSize="28" FontWeight="Bold"
                    HorizontalAlignment="Center"
                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
 
-        <ProgressRing Grid.Row="1" IsActive="True" Width="48" Height="48"
+        <ProgressRing Grid.Row="2" IsActive="True" Width="48" Height="48"
                       HorizontalAlignment="Center"/>
 
-        <ProgressBar Grid.Row="2" Width="250"
+        <ProgressBar Grid.Row="3" Width="250"
                      Minimum="0" Maximum="100"
                      Value="{x:Bind ViewModel.Progress, Mode=OneWay}"/>
 
-        <TextBlock Grid.Row="3"
+        <TextBlock Grid.Row="4"
                    Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
                    FontSize="13" Opacity="0.7" HorizontalAlignment="Center"/>
     </Grid>

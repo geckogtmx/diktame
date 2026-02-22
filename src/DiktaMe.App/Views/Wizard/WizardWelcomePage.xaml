@@ -3,6 +3,9 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16" MaxWidth="400">
+        <Image Source="ms-appx:///Assets/loading-logo.png"
+               Width="140" Height="140" HorizontalAlignment="Center"/>
+
         <TextBlock Text="dIKta.me" FontSize="36" FontWeight="Bold"
                    HorizontalAlignment="Center"
                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>

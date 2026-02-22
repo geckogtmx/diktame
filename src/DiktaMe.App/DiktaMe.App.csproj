@@ -48,9 +48,12 @@
     <ProjectReference Include="..\DiktaMe.Core\DiktaMe.Core.csproj" />
   </ItemGroup>
 
-  <!-- Tray icon asset -->
+  <!-- Asset files -->
   <ItemGroup>
     <Content Include="Assets\tray-icon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\loading-logo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -14,6 +14,13 @@ public sealed partial class SettingsWindow : Window
         AppWindow.Resize(new Windows.Graphics.SizeInt32(900, 700));
         AppWindow.Title = "dIKta.me — Settings";
 
+        // Set window icon
+        var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "tray-icon.ico");
+        if (System.IO.File.Exists(iconPath))
+        {
+            AppWindow.SetIcon(iconPath);
+        }
+
         // Select first tab on load
         NavView.SelectedItem = NavView.MenuItems[0];
     }

@@ -28,6 +28,13 @@ public sealed partial class WizardWindow : Window
         var appWindow = this.AppWindow;
         appWindow.Resize(new Windows.Graphics.SizeInt32(600, 500));
 
+        // Set window icon
+        var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "tray-icon.ico");
+        if (System.IO.File.Exists(iconPath))
+        {
+            appWindow.SetIcon(iconPath);
+        }
+
         ViewModel.StepChanged += OnStepChanged;
         ViewModel.WizardCompleted += OnWizardCompleted;
 

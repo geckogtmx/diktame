@@ -19,6 +19,13 @@ public sealed partial class QuickChatWindow : Window
         var appWindow = this.AppWindow;
         appWindow.Resize(new Windows.Graphics.SizeInt32(420, 340));
 
+        // Set window icon
+        var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "tray-icon.ico");
+        if (System.IO.File.Exists(iconPath))
+        {
+            appWindow.SetIcon(iconPath);
+        }
+
         var presenter = appWindow.Presenter as Microsoft.UI.Windowing.OverlappedPresenter;
         if (presenter is not null)
         {
