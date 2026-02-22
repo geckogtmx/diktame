@@ -1,5 +1,10 @@
 ### Section 1: First-Run Experience (Wizard Flow)
 
+- EGT - Wizard said " Recording completed but no audio file was produced" on the Test. I think we need to configure the mic first maybe. 
+- EGT -  Also, on the API key section, we need to test before saving, make sure it will work after the wizard is finished. Not wait for a fail after
+- EGT - No Hotkey seems to trigger anything at all
+-----
+
 - EGT: No brand icons or logo on UI, We need a "Branding" run.
 - EGT: Only Deepgram is shown on STT options, it should just say "Cloud" and a text explaining provider selection is next step
 - EGT: Wizard asks for the Deepgram and Gemini options but did not request any API keys, not sure if this are required for the "Quick Test" screen as it mentions "chosen providers are working" - If we want this to "Just Work" we need to ask them for keys at that point making sure that is 100% safe.

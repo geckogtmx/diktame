@@ -15,10 +15,26 @@
                     <Run Text="For Deepgram, get your key from: "/>
                     <Hyperlink NavigateUri="https://console.deepgram.com">console.deepgram.com</Hyperlink>
                 </TextBlock>
-                <PasswordBox x:Name="SttKeyBox"
-                             PlaceholderText="Enter Deepgram API key"
-                             PasswordChanged="SttKeyBox_PasswordChanged"
-                             Password=""/>
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <PasswordBox x:Name="SttKeyBox"
+                                 Grid.Column="0"
+                                 PlaceholderText="Enter Deepgram API key"
+                                 PasswordChanged="SttKeyBox_PasswordChanged"
+                                 Password=""/>
+                    <Button x:Name="TestSttKeyButton"
+                            Grid.Column="1"
+                            Content="Test"
+                            Click="TestSttKeyButton_Click"
+                            IsEnabled="False"/>
+                </Grid>
+                <StackPanel x:Name="SttKeyStatus" Spacing="4" Visibility="Collapsed">
+                    <ProgressRing x:Name="SttKeyProgress" Width="20" Height="20" IsActive="False"/>
+                    <TextBlock x:Name="SttKeyStatusText" FontSize="12" TextWrapping="Wrap"/>
+                </StackPanel>
             </StackPanel>
 
             <!-- LLM API Key (shown only if cloud LLM selected) -->
@@ -28,10 +44,26 @@
                     <Run Text="For Gemini, get your key from: "/>
                     <Hyperlink NavigateUri="https://aistudio.google.com/apikey">aistudio.google.com/apikey</Hyperlink>
                 </TextBlock>
-                <PasswordBox x:Name="LlmKeyBox"
-                             PlaceholderText="Enter Gemini API key"
-                             PasswordChanged="LlmKeyBox_PasswordChanged"
-                             Password=""/>
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <PasswordBox x:Name="LlmKeyBox"
+                                 Grid.Column="0"
+                                 PlaceholderText="Enter Gemini API key"
+                                 PasswordChanged="LlmKeyBox_PasswordChanged"
+                                 Password=""/>
+                    <Button x:Name="TestLlmKeyButton"
+                            Grid.Column="1"
+                            Content="Test"
+                            Click="TestLlmKeyButton_Click"
+                            IsEnabled="False"/>
+                </Grid>
+                <StackPanel x:Name="LlmKeyStatus" Spacing="4" Visibility="Collapsed">
+                    <ProgressRing x:Name="LlmKeyProgress" Width="20" Height="20" IsActive="False"/>
+                    <TextBlock x:Name="LlmKeyStatusText" FontSize="12" TextWrapping="Wrap"/>
+                </StackPanel>
             </StackPanel>
 
             <!-- Info -->

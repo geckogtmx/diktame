@@ -133,16 +133,17 @@ public partial class App : Application
 
     private static void ConfigureServices(IServiceCollection services)
     {
-        // ── Core engine (singletons) ─────────────────────────────────────────
+        // ── Core engine ──────────────────────────────────────────────────────
         // NOTE: AudioDeviceManager and ClipboardManager are static utility classes;
         // they do not need DI registration.
-        services.AddSingleton<AudioRecorder>();
-        services.AddSingleton<AudioDucker>(sp =>
-        {
-            var ducker = new AudioDucker();
-            ducker.AttachTo(sp.GetRequiredService<AudioRecorder>());
-            return ducker;
-        });
+
+        // AudioRecorder is Transient because it implements IDisposable and cannot be reused
+        // after disposal. Each usage (wizard test, pipeline run) needs a fresh instance.
+        services.AddTransient<AudioRecorder>();
+
+        // AudioDucker is Singleton but no longer auto-attached to AudioRecorder.
+        // Pipelines will attach it manually when recording starts.
+        services.AddSingleton<AudioDucker>();
         services.AddSingleton<MuteDetector>();
         services.AddSingleton<TextInjector>();
         services.AddSingleton<HotkeyManager>();

@@ -9,7 +9,17 @@
 
         <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="8" Padding="16" Margin="0,8,0,0">
-            <StackPanel Spacing="12" HorizontalAlignment="Center">
+            <StackPanel Spacing="12">
+                <!-- Microphone selector -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Microphone" FontSize="13" Opacity="0.7"/>
+                    <ComboBox x:Name="MicrophoneComboBox"
+                              HorizontalAlignment="Stretch"
+                              DisplayMemberPath="Name"
+                              SelectedIndex="0"/>
+                </StackPanel>
+
+                <!-- Record button -->
                 <Button x:Name="RecordButton" Content="Record (3 seconds)"
                         HorizontalAlignment="Center"
                         Style="{ThemeResource AccentButtonStyle}"

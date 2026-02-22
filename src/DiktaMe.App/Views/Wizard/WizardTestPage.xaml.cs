@@ -14,11 +14,32 @@ public sealed partial class WizardTestPage : Page, IWizardStepPage
     public WizardTestPage()
     {
         this.InitializeComponent();
+        LoadMicrophones();
     }
 
     public void SetViewModel(WizardViewModel viewModel)
     {
         _viewModel = viewModel;
+    }
+
+    private void LoadMicrophones()
+    {
+        try
+        {
+            var devices = AudioDeviceManager.GetInputDevices();
+            MicrophoneComboBox.ItemsSource = devices;
+
+            // Select default device (index 0) if available
+            if (devices.Count > 0)
+            {
+                MicrophoneComboBox.SelectedIndex = 0;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load microphone devices");
+            ResultText.Text = "Warning: Could not load microphone list";
+        }
     }
 
     private async void RecordButton_Click(object sender, RoutedEventArgs e)
@@ -31,8 +52,14 @@ public sealed partial class WizardTestPage : Page, IWizardStepPage
         {
             var recorder = App.Current.Services.GetRequiredService<AudioRecorder>();
 
-            // Record for 3 seconds using default device
-            recorder.StartRecording(maxDurationSeconds: 3);
+            // Get selected device index from ComboBox
+            var selectedDevice = MicrophoneComboBox.SelectedItem as AudioDevice;
+            int deviceIndex = selectedDevice?.Index ?? 0;
+
+            // Record for 3 seconds using selected device
+            recorder.StartRecording(
+                deviceId: deviceIndex.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                maxDurationSeconds: 3);
             await Task.Delay(3500); // Wait a bit longer than max duration
 
             string? filePath = await recorder.StopRecordingAsync();
