@@ -40,7 +40,7 @@ public partial class App : Application
     public Window? MainWindow => _window;
 
     /// <summary>
-    /// Gets the system tray icon view.
+    /// Gets the system tray icon view (standalone, created at app startup).
     /// </summary>
     public TrayIconView? TrayIcon => _trayIcon;
 
@@ -69,7 +69,9 @@ public partial class App : Application
 
         Log.Information("dIKta.me V2 starting up...");
 
-        // Create tray icon (kept alive for the duration of the app)
+        // Create tray icon standalone — not inside any window's visual tree.
+        // H.NotifyIcon's TaskbarIcon creates its own hidden Win32 message window
+        // internally; it does not need a WinUI visual tree parent.
         _trayIcon = new TrayIconView();
 
         // Show loading screen and run async initialization
@@ -87,7 +89,15 @@ public partial class App : Application
         if (_window is null)
         {
             _window = new MainWindow();
+            // Intercept close: hide instead of destroying, so the tray icon keeps the app alive.
+            _window.AppWindow.Closing += (s, e) =>
+            {
+                e.Cancel = true;
+                _window.AppWindow.Hide();
+            };
         }
+
+        _window.AppWindow.Show();
         _window.Activate();
     }
 
@@ -212,6 +222,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.Settings.GeneralSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.AIEngineSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.AudioSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.HotkeysSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.ModesSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.PrivacySettingsViewModel>();
         services.AddTransient<ViewModels.Settings.ApiKeysSettingsViewModel>();

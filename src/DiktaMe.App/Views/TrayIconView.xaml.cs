@@ -1,64 +1,126 @@
 
+using System.Drawing;
+using H.NotifyIcon;
+using H.NotifyIcon.Core;
 using Microsoft.UI.Xaml.Controls;
+using Serilog;
 
 namespace DiktaMe.App.Views;
 /// <summary>
-/// Hosts the H.NotifyIcon TaskbarIcon system tray control.
-/// Must be instantiated and kept alive for the duration of the app.
+/// Manages the system tray icon via H.NotifyIcon.
+/// The TaskbarIcon is created entirely in code (no XAML) so it works
+/// without a WinUI visual tree — critical for standalone creation in App.OnLaunched.
 /// Port of src/services/trayManager.ts from V1.
 /// </summary>
-public sealed partial class TrayIconView : UserControl
+public sealed partial class TrayIconView : UserControl, IDisposable
 {
+    private readonly TrayIcon _trayIcon;
+    private Icon? _icon; // Must stay alive — disposing it invalidates the HICON handle.
+
     /// <summary>Gets the ViewModel backing this tray icon.</summary>
     public TrayIconViewModel ViewModel { get; } = new TrayIconViewModel();
 
     public TrayIconView()
     {
         this.InitializeComponent();
-        InitContextMenu();
+
+        // Create the native tray icon directly via H.NotifyIcon.Core.TrayIcon
+        // (the low-level Win32 wrapper — no XAML/rendering needed).
+        _trayIcon = new TrayIcon();
+
+        // Load .ico from disk next to the exe.
+        // The Icon object must NOT be disposed — it owns the HICON handle.
+        var icoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "tray-icon.ico");
+        if (File.Exists(icoPath))
+        {
+            _icon = new Icon(icoPath);
+            _trayIcon.Icon = _icon.Handle;
+            Log.Information("TrayIcon: loaded icon from {Path}", icoPath);
+        }
+        else
+        {
+            Log.Warning("TrayIcon: icon file not found at {Path}", icoPath);
+        }
+
+        _trayIcon.ToolTip = "dIKta.me — Idle";
+
+        // Wire up mouse events
+        _trayIcon.MessageWindow.MouseEventReceived += OnMouseEvent;
+
+        // Show the icon in the system tray
+        _trayIcon.Create();
+
+        Log.Information("TrayIcon: created and visible");
     }
 
-    private void InitContextMenu()
+    private void OnMouseEvent(object? sender, MessageWindow.MouseEventReceivedEventArgs e)
     {
-        // Build the right-click context menu as a WinUI MenuFlyout and attach
-        // it to the TaskbarIcon via ContextFlyout (standard WinUI mechanism).
-        var flyout = new MenuFlyout();
+        switch (e.MouseEvent)
+        {
+            case MouseEvent.IconLeftMouseUp:
+                Log.Debug("TrayIcon: left click");
+                ViewModel.OpenControlPanelCommand.Execute(null);
+                break;
 
-        flyout.Items.Add(new MenuFlyoutItem
-        {
-            Text = "Open Control Panel",
-            Command = ViewModel.OpenControlPanelCommand,
-        });
-        flyout.Items.Add(new MenuFlyoutItem
-        {
-            Text = "Settings",
-            Command = ViewModel.OpenSettingsCommand,
-        });
-        flyout.Items.Add(new MenuFlyoutSeparator());
-        flyout.Items.Add(new MenuFlyoutItem
-        {
-            Text = "Quit dIKta.me",
-            Command = ViewModel.QuitCommand,
-        });
+            case MouseEvent.IconRightMouseUp:
+                Log.Debug("TrayIcon: right click — showing context menu");
+                ShowContextMenu(e.Point);
+                break;
+        }
+    }
 
-        Icon.ContextFlyout = flyout;
+    private void ShowContextMenu(System.Drawing.Point cursorPosition)
+    {
+        var menu = new PopupMenu();
+
+        menu.Items.Add(new PopupMenuItem("Open Control Panel", (_, _) =>
+        {
+            ViewModel.OpenControlPanelCommand.Execute(null);
+        }));
+        menu.Items.Add(new PopupMenuItem("Quick Chat", (_, _) =>
+        {
+            ViewModel.OpenQuickChatCommand.Execute(null);
+        }));
+        menu.Items.Add(new PopupMenuItem("Settings", (_, _) =>
+        {
+            ViewModel.OpenSettingsCommand.Execute(null);
+        }));
+        menu.Items.Add(new PopupMenuSeparator());
+        menu.Items.Add(new PopupMenuItem("Quit dIKta.me", (_, _) =>
+        {
+            ViewModel.QuitCommand.Execute(null);
+        }));
+
+        menu.Show(
+            ownerHandle: _trayIcon.MessageWindow.Handle,
+            x: cursorPosition.X,
+            y: cursorPosition.Y);
     }
 
     /// <summary>
     /// Updates the displayed icon state and tooltip.
-    /// Safe to call from any thread — dispatches to the UI thread.
     /// </summary>
     public void SetState(TrayIconState state, string? statusSuffix = null)
     {
         ViewModel.SetState(state, statusSuffix);
+        _trayIcon.ToolTip = ViewModel.TooltipText;
     }
 
     /// <summary>
-    /// Updates the tooltip to reflect the active STT + LLM provider combination,
-    /// e.g. "dIKta.me — Cloud STT + Gemini LLM".
+    /// Updates the tooltip to reflect the active STT + LLM provider combination.
     /// </summary>
     public void SetCapabilityTooltip(string capabilitySummary)
     {
         ViewModel.TooltipText = $"dIKta.me — {capabilitySummary}";
+        _trayIcon.ToolTip = ViewModel.TooltipText;
+    }
+
+    public void Dispose()
+    {
+        _trayIcon.MessageWindow.MouseEventReceived -= OnMouseEvent;
+        _trayIcon.Remove();
+        _trayIcon.Dispose();
+        _icon?.Dispose();
+        _icon = null;
     }
 }
