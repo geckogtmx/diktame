@@ -75,6 +75,9 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
             ? $"{ApiBase.Replace("/models", "", StringComparison.Ordinal)}/models/{_model}:generateContent"
             : $"{ApiBase}/{_model}:generateContent?key={_apiKey}";
 
+        Log.Debug("GeminiProvider: calling URL={Url}, isOAuth={IsOAuth}, model={Model}",
+            url.Replace(_apiKey, "***"), _isOAuth, _model);
+
         var sw = Stopwatch.StartNew();
 
         const int MaxRetries = 3;

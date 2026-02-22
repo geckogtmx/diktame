@@ -29,38 +29,38 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
         {
             "gemini" => new GeminiProvider(
                 key ?? throw new InvalidOperationException("Gemini API key not configured."),
-                model: model ?? "gemini-2.5-flash"),
+                model: string.IsNullOrWhiteSpace(model) ? "gemini-2.5-flash" : model),
 
             "anthropic" or "claude" => new AnthropicProvider(
                 key ?? throw new InvalidOperationException("Anthropic API key not configured."),
-                model: model ?? "claude-3-5-haiku-20241022"),
+                model: string.IsNullOrWhiteSpace(model) ? "claude-3-5-haiku-20241022" : model),
 
             "openai" => OpenAICompatibleProvider.ForOpenAI(
                 key ?? throw new InvalidOperationException("OpenAI API key not configured."),
-                model: model ?? "gpt-4o-mini"),
+                model: string.IsNullOrWhiteSpace(model) ? "gpt-4o-mini" : model),
 
             "deepseek" => OpenAICompatibleProvider.ForDeepSeek(
                 key ?? throw new InvalidOperationException("DeepSeek API key not configured."),
-                model: model ?? "deepseek-chat"),
+                model: string.IsNullOrWhiteSpace(model) ? "deepseek-chat" : model),
 
             "openrouter" => OpenAICompatibleProvider.ForOpenRouter(
                 key ?? throw new InvalidOperationException("OpenRouter API key not configured."),
-                model: model ?? "openai/gpt-4o-mini"),
+                model: string.IsNullOrWhiteSpace(model) ? "openai/gpt-4o-mini" : model),
 
             "groq" => OpenAICompatibleProvider.ForGroq(
                 key ?? throw new InvalidOperationException("Groq API key not configured."),
-                model: model ?? "llama-3.3-70b-versatile"),
+                model: string.IsNullOrWhiteSpace(model) ? "llama-3.3-70b-versatile" : model),
 
             "together" => OpenAICompatibleProvider.ForTogether(
                 key ?? throw new InvalidOperationException("Together AI API key not configured."),
-                model: model ?? "meta-llama/Llama-3.3-70B-Instruct-Turbo"),
+                model: string.IsNullOrWhiteSpace(model) ? "meta-llama/Llama-3.3-70B-Instruct-Turbo" : model),
 
             "perplexity" => OpenAICompatibleProvider.ForPerplexity(
                 key ?? throw new InvalidOperationException("Perplexity API key not configured."),
-                model: model ?? "sonar-pro"),
+                model: string.IsNullOrWhiteSpace(model) ? "sonar-pro" : model),
 
             "ollama" => new OllamaProvider(
-                model: model ?? _settings.Current.OllamaModel),
+                model: string.IsNullOrWhiteSpace(model) ? _settings.Current.OllamaModel : model),
 
             "none" or "skip" => new NullLlmProvider(),
 
