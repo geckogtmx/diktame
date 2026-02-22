@@ -15,7 +15,7 @@ namespace DiktaMe.Core.LLM;
 /// </summary>
 public sealed class GeminiProvider : ILLMProvider, IDisposable
 {
-    private const string DefaultModel = "gemini-2.0-flash";
+    private const string DefaultModel = "gemini-2.5-flash";
     private const string ApiBase =
         "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -31,7 +31,7 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
     /// <param name="apiKey">
     /// Gemini API key (AIza…) or OAuth Bearer token (ya29.…).
     /// </param>
-    /// <param name="model">Gemini model ID (default: gemini-2.0-flash).</param>
+    /// <param name="model">Gemini model ID (default: gemini-2.5-flash).</param>
     /// <param name="httpClient">Optional shared client.</param>
     public GeminiProvider(
         string apiKey,

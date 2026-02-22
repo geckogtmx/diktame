@@ -29,7 +29,7 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
         {
             "gemini" => new GeminiProvider(
                 key ?? throw new InvalidOperationException("Gemini API key not configured."),
-                model: model ?? "gemini-2.0-flash"),
+                model: model ?? "gemini-2.5-flash"),
 
             "anthropic" or "claude" => new AnthropicProvider(
                 key ?? throw new InvalidOperationException("Anthropic API key not configured."),

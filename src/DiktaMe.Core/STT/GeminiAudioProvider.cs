@@ -19,7 +19,7 @@ namespace DiktaMe.Core.STT;
 public sealed class GeminiAudioProvider : ISTTProvider, IDisposable
 {
     // Default model — fast and capable for transcription
-    private const string DefaultModel = "gemini-2.0-flash";
+    private const string DefaultModel = "gemini-2.5-flash";
     private const string ApiBase =
         "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -35,7 +35,7 @@ public sealed class GeminiAudioProvider : ISTTProvider, IDisposable
     /// Initialises the provider with an API key and optional model override.
     /// </summary>
     /// <param name="apiKey">Google AI API key.</param>
-    /// <param name="model">Gemini model identifier (default: <c>gemini-2.0-flash</c>).</param>
+    /// <param name="model">Gemini model identifier (default: <c>gemini-2.5-flash</c>).</param>
     /// <param name="httpClient">
     /// Optional shared <see cref="HttpClient"/> (for testing / connection pooling).
     /// </param>
