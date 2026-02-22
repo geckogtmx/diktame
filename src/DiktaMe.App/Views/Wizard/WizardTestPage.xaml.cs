@@ -10,6 +10,7 @@ namespace DiktaMe.App.Views.Wizard;
 public sealed partial class WizardTestPage : Page, IWizardStepPage
 {
     private WizardViewModel? _viewModel;
+    private AudioRecorder? _currentRecorder;
 
     public WizardTestPage()
     {
@@ -48,36 +49,48 @@ public sealed partial class WizardTestPage : Page, IWizardStepPage
         RecordingProgress.IsActive = true;
         ResultText.Text = "Recording...";
 
+        // Dispose previous recorder if any
+        _currentRecorder?.Dispose();
+
         try
         {
-            var recorder = App.Current.Services.GetRequiredService<AudioRecorder>();
+            // Get fresh recorder instance and keep it alive as a field
+            _currentRecorder = App.Current.Services.GetRequiredService<AudioRecorder>();
 
             // Get selected device index from ComboBox
             var selectedDevice = MicrophoneComboBox.SelectedItem as AudioDevice;
             int deviceIndex = selectedDevice?.Index ?? 0;
 
+            Log.Information("WizardTestPage: Starting recording with device {DeviceIndex}", deviceIndex);
+
             // Record for 3 seconds using selected device
-            recorder.StartRecording(
+            _currentRecorder.StartRecording(
                 deviceId: deviceIndex.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 maxDurationSeconds: 3);
-            await Task.Delay(3500); // Wait a bit longer than max duration
 
-            string? filePath = await recorder.StopRecordingAsync();
+            // Wait for auto-stop (3 seconds max duration + buffer)
+            await Task.Delay(3500);
+
+            string? filePath = await _currentRecorder.StopRecordingAsync();
+
+            Log.Information("WizardTestPage: Recording stopped, filePath={FilePath}", filePath ?? "(null)");
 
             if (filePath is not null)
             {
                 var fileInfo = new System.IO.FileInfo(filePath);
-                ResultText.Text = $"Captured {fileInfo.Length / 1024} KB of audio. Your microphone is working!";
+                ResultText.Text = $"✓ Captured {fileInfo.Length / 1024} KB of audio. Your microphone is working!";
+                Log.Information("WizardTestPage: Recording success, file size={Size} bytes", fileInfo.Length);
             }
             else
             {
-                ResultText.Text = "Recording completed but no audio file was produced.";
+                ResultText.Text = "✗ Recording completed but no audio file was produced.";
+                Log.Warning("WizardTestPage: Recording returned null file path");
             }
         }
         catch (Exception ex)
         {
-            ResultText.Text = $"Recording failed: {ex.Message}";
-            Log.Warning(ex, "Wizard test recording failed");
+            ResultText.Text = $"✗ Recording failed: {ex.Message}";
+            Log.Error(ex, "Wizard test recording failed");
         }
         finally
         {

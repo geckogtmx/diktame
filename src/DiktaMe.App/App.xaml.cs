@@ -56,7 +56,7 @@ public partial class App : Application
         ConfigureServices(services);
         Services = services.BuildServiceProvider();
 
-        // Configure logging
+        // Configure logging (file + console for debugging)
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.File(
@@ -65,6 +65,7 @@ public partial class App : Application
                     "DiktaMe", "logs", "diktame_.log"),
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 7)
+            .WriteTo.Console()
             .CreateLogger();
 
         Log.Information("dIKta.me V2 starting up...");

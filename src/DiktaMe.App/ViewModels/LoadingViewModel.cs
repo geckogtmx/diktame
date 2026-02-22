@@ -89,15 +89,23 @@ public sealed partial class LoadingViewModel : ObservableObject
     {
         try
         {
+            Log.Information("Starting hotkey initialization...");
+
             // Start the background message pump
             _hotkeyManager.Start();
+            Log.Information("HotkeyManager.Start() completed");
 
             // Subscribe to events
             _hotkeyManager.HotkeyPressed += OnHotkeyPressed;
             _hotkeyManager.RegistrationFailed += OnHotkeyRegistrationFailed;
+            Log.Information("Event handlers subscribed");
 
             // Register all configured hotkeys
-            RegisterAllHotkeys(_settings.Current.Hotkeys);
+            var hotkeys = _settings.Current.Hotkeys;
+            Log.Information("Registering hotkeys: Dictate={Dictate}, Chat={Chat}, etc.",
+                hotkeys.Dictate, hotkeys.Chat);
+
+            RegisterAllHotkeys(hotkeys);
 
             // Re-register when settings change
             _settings.SettingsChanged += (_, newSettings) =>
@@ -116,13 +124,27 @@ public sealed partial class LoadingViewModel : ObservableObject
 
     private void RegisterAllHotkeys(HotkeySettings hotkeys)
     {
-        _hotkeyManager.Register(HotkeyId.Dictate, hotkeys.Dictate);
-        _hotkeyManager.Register(HotkeyId.Refine, hotkeys.Refine);
-        _hotkeyManager.Register(HotkeyId.Ask, hotkeys.Ask);
-        _hotkeyManager.Register(HotkeyId.Translate, hotkeys.Translate);
-        _hotkeyManager.Register(HotkeyId.Oops, hotkeys.Oops);
-        _hotkeyManager.Register(HotkeyId.Note, hotkeys.Note);
-        _hotkeyManager.Register(HotkeyId.Chat, hotkeys.Chat);
+        bool success;
+        success = _hotkeyManager.Register(HotkeyId.Dictate, hotkeys.Dictate);
+        Log.Debug("Register Dictate ({Hotkey}): {Success}", hotkeys.Dictate, success);
+
+        success = _hotkeyManager.Register(HotkeyId.Refine, hotkeys.Refine);
+        Log.Debug("Register Refine ({Hotkey}): {Success}", hotkeys.Refine, success);
+
+        success = _hotkeyManager.Register(HotkeyId.Ask, hotkeys.Ask);
+        Log.Debug("Register Ask ({Hotkey}): {Success}", hotkeys.Ask, success);
+
+        success = _hotkeyManager.Register(HotkeyId.Translate, hotkeys.Translate);
+        Log.Debug("Register Translate ({Hotkey}): {Success}", hotkeys.Translate, success);
+
+        success = _hotkeyManager.Register(HotkeyId.Oops, hotkeys.Oops);
+        Log.Debug("Register Oops ({Hotkey}): {Success}", hotkeys.Oops, success);
+
+        success = _hotkeyManager.Register(HotkeyId.Note, hotkeys.Note);
+        Log.Debug("Register Note ({Hotkey}): {Success}", hotkeys.Note, success);
+
+        success = _hotkeyManager.Register(HotkeyId.Chat, hotkeys.Chat);
+        Log.Debug("Register Chat ({Hotkey}): {Success}", hotkeys.Chat, success);
     }
 
     private void OnHotkeyPressed(object? sender, HotkeyPressedEventArgs e)
