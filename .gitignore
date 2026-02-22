@@ -54,6 +54,15 @@ GEMINI.md
 .claude/
 .auto-claude/
 
+# Obsidian (personal vault config)
+.obsidian/
+
 # Test results
 TestResults/
 coverage/
+
+# Manual testing artifacts
+test-session-log.md
+tests/fixtures/downloads/
+*.srt
+nul

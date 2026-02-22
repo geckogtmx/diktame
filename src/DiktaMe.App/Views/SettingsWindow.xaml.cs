@@ -32,6 +32,7 @@ public sealed partial class SettingsWindow : Window
             "aiengine" => typeof(Settings.AIEngineSettingsPage),
             "modes" => typeof(Settings.ModesSettingsPage),
             "audio" => typeof(Settings.AudioSettingsPage),
+            "hotkeys" => typeof(Settings.HotkeysSettingsPage),
             "privacy" => typeof(Settings.PrivacySettingsPage),
             "apikeys" => typeof(Settings.ApiKeysSettingsPage),
             "ollama" => typeof(Settings.OllamaSettingsPage),

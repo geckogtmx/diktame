@@ -360,6 +360,7 @@ public enum HotkeyId
     Refine = 4,
     Oops = 5,
     Note = 6,
+    Chat = 7,
 }
 
 /// <summary>Event data for <see cref="HotkeyManager.HotkeyPressed"/>.</summary>
