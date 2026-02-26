@@ -1,18 +1,11 @@
 ### Section 1: First-Run Experience (Wizard Flow)
 - EGT - Wizard keeps showing up after the first run. 
-
 - EGT - No Hotkey seems to trigger anything at all
------
-
-
-- EGT: Only Deepgram is shown on STT options, it should just say "Cloud" and a text explaining provider selection is next step
-- EGT: Wizard asks for the Deepgram and Gemini options but did not request any API keys, not sure if this are required for the "Quick Test" screen as it mentions "chosen providers are working" - If we want this to "Just Work" we need to ask them for keys at that point making sure that is 100% safe.
 - EGT: The "You´re All Set" Page has some overlapping text at the bottom that cant be read without adjusting the window manually, make sure all windows show all the text within the designated space
 
 ----
 
-- EGT: There is no System Tray loading. Control Panel and Settings should be independent of the App running. It should always be present as a tray icon, double click opens Control panel, which can be minimized and closed without affecting the app. Tray Icon has menu for opening Settings, Control panel , Updates, close, etc....
-- EGT: There is no Hotkey Setting anywhere, this is CRITICAL.
+
 
 ---
 
