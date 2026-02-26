@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using DiktaMe.App.Views;
 using DiktaMe.Core.Audio;
 using DiktaMe.Core.Config;
@@ -11,7 +12,6 @@ using DiktaMe.Core.SystemManagement;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Serilog;
-using System.Runtime.InteropServices;
 
 namespace DiktaMe.App;
 

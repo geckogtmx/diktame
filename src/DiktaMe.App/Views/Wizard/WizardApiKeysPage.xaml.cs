@@ -1,9 +1,8 @@
-
+using System.Net.Http;
 using DiktaMe.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Serilog;
-using System.Net.Http;
 
 namespace DiktaMe.App.Views.Wizard;
 public sealed partial class WizardApiKeysPage : Page, IWizardStepPage

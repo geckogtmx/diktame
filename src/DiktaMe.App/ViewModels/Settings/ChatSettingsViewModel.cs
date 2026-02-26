@@ -66,7 +66,7 @@ public sealed partial class ChatSettingsViewModel : ObservableObject
         ShowTimestamps = chatSettings.ShowTimestamps;
         EnableMarkdown = chatSettings.EnableMarkdown;
         SelectedThemeIndex = Array.IndexOf(ThemeOptions, chatSettings.Theme);
-        if (SelectedThemeIndex < 0) SelectedThemeIndex = 0; // Default to "System"
+        if (SelectedThemeIndex < 0) { SelectedThemeIndex = 0; } // Default to "System"
 
         // Load pipeline prompts
         var pipeline = _pipelineManager.GetPipelineByType("chat");

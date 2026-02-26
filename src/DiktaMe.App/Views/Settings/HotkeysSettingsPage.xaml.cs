@@ -117,10 +117,10 @@ public sealed partial class HotkeysSettingsPage : Page
 
         // Build hotkey string
         var parts = new System.Collections.Generic.List<string>();
-        if (ctrl) parts.Add("Ctrl");
-        if (alt) parts.Add("Alt");
-        if (shift) parts.Add("Shift");
-        if (win) parts.Add("Win");
+        if (ctrl) { parts.Add("Ctrl"); }
+        if (alt) { parts.Add("Alt"); }
+        if (shift) { parts.Add("Shift"); }
+        if (win) { parts.Add("Win"); }
 
         // Map key to string
         string keyName = MapKeyToString(key);
