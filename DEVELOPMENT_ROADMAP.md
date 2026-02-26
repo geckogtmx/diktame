@@ -704,14 +704,19 @@ input/output token counts from API usage fields.
 2. Progress indicators per component
 3. Skip straight to main app if cloud-only (no warmup needed)
 
-#### Task F.5: Notification System
+#### Task F.5: Notification System ✅
 **Create:** Toast notifications via Windows APIs
 **Effort:** 0.25 day
 
 **Steps:**
 1. Use `Microsoft.Toolkit.Uwp.Notifications` for toast notifications
-2. Sound feedback using `System.Media.SoundPlayer` or NAudio
+2. Sound feedback using `Windows.Media.Playback.MediaPlayer` for custom WAV files
 3. Map all V1 notification types (success, error, mode change)
+4. ✅ `SoundSettings` record with per-pipeline sound selection (StartSound, StopSound, UtilitySound)
+5. ✅ `PlayCustomSound(stem)` resolves stem → `Assets\Sounds\{stem}.wav`, validates with `SafeStemPattern` regex
+6. ✅ `GetAvailableSounds()` enumerates WAV files from Assets\Sounds\ directory
+7. ✅ Audio settings page: sound enable toggle, start/stop/utility sound pickers with preview buttons
+8. ✅ Removed toast popup during normal dictation — only start/stop sounds play (toasts reserved for errors)
 
 ---
 
@@ -1776,6 +1781,6 @@ These are out of scope for initial CRUD implementation:
 ---
 
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅
 **Remaining:** H.1 (Installer), H.2 (V1 Migration), I.6 (Website Rebrand)
 **Build:** 0 errors, 0 warnings | **Tests:** 521 passing | **CI unit filter:** 376

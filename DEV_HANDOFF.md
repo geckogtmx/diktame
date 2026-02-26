@@ -1,12 +1,37 @@
 # Developer Handoff
 
-## Session Summary: 2026-02-25 (Session 8)
+## Session Summary: 2026-02-26 (Session 9)
 
-### Project Status: Stream J Complete + Notes/Chat Pages Added ✅
+### Project Status: Sound Feedback + Audio Page Fixed + Pipeline Polish ✅
 
-All Stream J issues have been resolved and two new settings pages (Notes and Chat) have been implemented. The build is **green** and all tests pass.
+Dictation pipeline fully wired end-to-end with custom sound feedback, Audio settings page crash fixed, and toast spam removed.
 
-### ✅ Session 8 Accomplishments
+### ✅ Session 9 Accomplishments
+
+**Sound Feedback System:**
+- ✅ `SoundSettings` record added to `AppSettings` (StartSound, StopSound, UtilitySound stems)
+- ✅ `NotificationService.PlayCustomSound(stem)` — plays WAV from `Assets\Sounds\{stem}.wav` with input validation
+- ✅ `NotificationService.GetAvailableSounds()` — enumerates available sound files
+- ✅ `Assets\Sounds\*.wav` included in build output via csproj Content glob
+- ✅ `RecordAudioAsync()` now plays start/stop sounds per pipeline type (dictate vs utility)
+
+**Audio Settings Page (Crash Fix + Sound UI):**
+- ✅ Fixed `NullReferenceException` crash — `settings.json` had `"Sound": null` which overrides C# record defaults on deserialization; null-coalesced with `?? new()`
+- ✅ Fixed `x:Bind` on `Run.Text` — replaced with horizontal StackPanel + separate TextBlocks (known WinUI 3 limitation)
+- ✅ Added sound feedback section: Enable toggle, start/stop/utility sound ComboBox pickers, preview buttons
+- ✅ Sound selection saved to `SoundSettings` and persisted
+
+**Pipeline Polish:**
+- ✅ Removed toast notification on recording start (was `ShowToast("Recording", ...)`) — only sounds now
+- ✅ Removed `PlaySound(NotificationType.Success)` from dictation/refine/translate success paths — redundant with stop sound
+- ✅ Added try-catch around `SettingsWindow.ContentFrame.Navigate()` for resilience (logs to Serilog instead of crashing)
+
+**Build & CI Status:**
+- Build: ✅ 0 errors, 0 warnings
+- Tests: ✅ All 521 tests pass
+- Commits: `ff1febb` (pipeline functional), `3866b5b` (sound feedback + audio page fix)
+
+### Previous Session (Session 8)
 
 **Phase 1 Fixes (J.6 Issues Resolved):**
 - ✅ Fixed 3 CS0103 build errors (removed `_pipelineManager` references)
@@ -17,30 +42,8 @@ All Stream J issues have been resolved and two new settings pages (Notes and Cha
 - ✅ Renamed "Dictation Modes" → "Dictation Presets" throughout UI
 
 **Phase 2 Features (New Settings Pages):**
-- ✅ **Notes Settings Page** - Complete V1 parity:
-  - File path with Browse button (WinUI FileSavePicker)
-  - LLM Processing toggle
-  - Timestamp format editor with Live Preview
-  - Cloud & Local system prompt editors
-  - Save/Reset buttons
-- ✅ **Chat Settings Page** - New UI configuration:
-  - Font size slider (10-24pt)
-  - Window opacity slider (0.5-1.0)
-  - Theme selector (System/Light/Dark)
-  - **Forget on Close** toggle (privacy mode)
-  - Max history messages limit
-  - Show timestamps toggle
-  - Enable markdown rendering toggle
-  - Cloud & Local system prompt editors
-- ✅ Added NoteSettings and ChatSettings records to AppSettings
-- ✅ Navigation updated: separate menu items for Notes and Chat
-- ✅ ModesSettingsPage now shows only Ask/Refine/Translate
-- ✅ All ViewModels registered in DI container
-
-**Build & CI Status:**
-- Build: ✅ 0 errors, 0 warnings
-- Tests: ✅ All 521 tests pass
-- Pushed to GitHub: ✅ Commit `9834d79`
+- ✅ Notes Settings Page, Chat Settings Page, NoteSettings/ChatSettings records
+- ✅ Navigation updated, ModesSettingsPage filtered, ViewModels registered
 
 ### 📊 Current Metrics
 
@@ -49,9 +52,10 @@ All Stream J issues have been resolved and two new settings pages (Notes and Cha
 | **Tests** | 521 passing |
 | **Coverage** | ~74% line, ~52% branch (DiktaMe.Core) |
 | **Build** | ✅ PASSING (0 errors, 0 warnings) |
-| **CI** | ✅ Pushed to main |
+| **CI** | ✅ main branch |
 | **Publish size** | ~173MB uncompressed, ~70MB compressed (win-x64, self-contained, trimmed) |
 | **Branch** | main |
+| **Latest commit** | `3866b5b` — feat(audio): sound feedback settings + Audio page crash fix |
 
 ### ✅ Completed Streams
 
@@ -188,6 +192,18 @@ Before release, verify:
 - [ ] Edit system prompts
 - [ ] Save and verify settings persist
 
+**Audio & Sound Feedback:**
+- [x] Audio settings page opens without crash
+- [x] Sound enable/disable toggle works
+- [ ] Select different start/stop/utility sounds from ComboBox
+- [ ] Preview buttons play selected sound
+- [ ] Sound selection persists after app restart
+- [ ] Dictation start plays start sound (no toast)
+- [ ] Dictation stop plays stop sound (no toast)
+- [ ] Utility pipelines (Ask, Refine, etc.) play utility sound
+- [ ] Duck level slider updates label dynamically
+- [ ] Recording device dropdown shows available devices
+
 **Model Dropdown:**
 - [ ] Verify Cloud profile shows only cloud models (no Ollama)
 - [ ] Verify local models don't appear in Cloud dropdown
@@ -205,10 +221,11 @@ Before release, verify:
 - No streaming LLM responses yet — `IAsyncEnumerable<string>` deferred to V2.1
 - No Voice Activity Detection (VAD) — hands-free mode deferred to V2.1
 - Legacy `ProfileManager` and `PromptRepository` marked deprecated but still used in ModesSettingsPage (can be refactored post-release)
+- **JSON null overrides C# record defaults** — When new record properties are added to `AppSettings`, existing `settings.json` may have `"PropertyName": null`. Deserialization sets to `null` despite `= new()` default. All ViewModel code reading sub-records must null-coalesce: `?? new()`
 
 ### 🎯 Next Session Goals
 
-1. **Manual Testing** - Test Notes and Chat pages thoroughly
+1. **Manual Testing** - Full end-to-end testing of all pipelines and settings pages
 2. **Installer** (H.1) - Choose MSIX or Inno Setup, package release build
 3. **Migration** (H.2) - Implement V1 → V2 settings migration
 4. **Tag v2.0.0** - Create release tag when H.1 + H.2 complete
@@ -242,17 +259,22 @@ Before release, verify:
 - TextInjectorTests + ClipboardManagerTests: Fixed via `[Collection("Clipboard")]` with `DisableParallelization = true`
 - `LLMRouter.ProcessAsync(text, prompt, modelName)` is ambiguous with `ProcessAsync(text, prompt, mode)` — always use named parameter `modelName:`
 
-### 📦 Latest Commit
+### 📦 Latest Commits
 
-**Commit:** `9834d79` - `feat(settings): add Notes and Chat pages, fix J.6 build failures [J.6-fix]`
-- 47 files changed, 5,581 insertions, 87 deletions
-- All J.6 issues resolved
-- Notes and Chat settings pages fully implemented
-- Build: 0 errors, 0 warnings
-- Tests: 521 passing
+**Commit:** `3866b5b` - `feat(audio): add sound feedback settings and fix Audio page crash`
+- SoundSettings model + per-pipeline sound selection
+- Audio settings page: sound enable, pickers, preview buttons
+- Fixed NullReferenceException (null sub-records from JSON deserialization)
+- Fixed x:Bind on Run.Text (WinUI 3 limitation)
+- Removed toast spam during recording, replaced with start/stop sounds only
+- SettingsWindow navigation wrapped in try-catch for resilience
+
+**Commit:** `ff1febb` - `fix(pipeline): dictation hotkey-to-injection pipeline fully functional`
+- Full hotkey → record → STT → LLM → inject pipeline wired and working
+- RecordAudioAsync refactored with isDictate param for sound routing
 
 ### 🚀 Ready for Final Sprint
 
-All core functionality is complete. Only installer and migration remain. The project is **production-ready** pending final packaging and migration implementation.
+All core functionality is complete and the dictation pipeline works end-to-end. Only installer and migration remain. The project is **production-ready** pending final packaging and migration implementation.
 
 **Estimated Time to v2.0.0:** 1.5 days
