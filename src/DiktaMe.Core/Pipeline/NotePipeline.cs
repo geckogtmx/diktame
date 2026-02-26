@@ -87,7 +87,7 @@ public sealed class NotePipeline
                 Log.Information("NotePipeline: formatting via LLM ({Provider})", _llm!.ProviderName);
                 var llmSw = Stopwatch.StartNew();
                 LlmResult llmResult = await _llm!
-                    .ProcessAsync(rawText, options.SystemPrompt!, Mode, cancellationToken)
+                    .ProcessWithModelAsync(rawText, options.SystemPrompt!, options.ModelName, Mode, cancellationToken)
                     .ConfigureAwait(false);
                 llmSw.Stop();
                 processingMs = llmSw.ElapsedMilliseconds;

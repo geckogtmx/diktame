@@ -125,13 +125,14 @@ public class HotkeyManagerTests : IDisposable
     // ── HotkeyId enum values ──────────────────────────────────────────────────
 
     [Fact]
-    public void HotkeyId_AllSixSlotsAreDefined()
+    public void HotkeyId_AllSevenSlotsAreDefined()
     {
         var ids = Enum.GetValues<HotkeyId>();
-        Assert.Equal(6, ids.Length);
+        Assert.Equal(7, ids.Length);
         Assert.Contains(HotkeyId.Dictate, ids);
         Assert.Contains(HotkeyId.Ask, ids);
         Assert.Contains(HotkeyId.Translate, ids);
+        Assert.Contains(HotkeyId.Chat, ids);
         Assert.Contains(HotkeyId.Refine, ids);
         Assert.Contains(HotkeyId.Oops, ids);
         Assert.Contains(HotkeyId.Note, ids);

@@ -185,10 +185,10 @@ public partial class App : Application
         services.AddSingleton<OllamaProvider>(sp => new OllamaProvider("llama3.2"));
 
         // Register router against interface — Ollama is the default offline provider.
-        // Cloud LLM providers are created by PipelineFactory (E.1) using API keys
-        // from SecureStorage.
+        // Cloud LLM providers are created dynamically by LLMRouter (J.5) for per-mode model selection.
         services.AddSingleton<ILLMProvider>(sp => new LLMRouter(
-            primary: sp.GetRequiredService<OllamaProvider>()));
+            primary: sp.GetRequiredService<OllamaProvider>(),
+            factory: sp.GetRequiredService<ILLMProviderFactory>()));
 
         // ── Pipelines (transient — new instance per invocation) ──────────────
         services.AddTransient<DictationPipeline>(sp => new DictationPipeline(
@@ -218,14 +218,19 @@ public partial class App : Application
             llm: sp.GetRequiredService<ILLMProvider>(),
             stt: sp.GetRequiredService<ISTTProvider>()));
 
-        // ── Config & Security (E.1 / E.3) ───────────────────────────────────
+        // ── Config & Security (E.1 / E.3 / J.2) ─────────────────────────────
         services.AddSingleton<SecureStorage>();
         services.AddSingleton<SettingsManager>();
-        services.AddSingleton<ProfileManager>();
-        services.AddSingleton<PromptRepository>();
+        services.AddSingleton<ProfileManager>(); // DEPRECATED: Use DictationModeManager instead
+        services.AddSingleton<PromptRepository>(); // DEPRECATED: Prompts now in DictationProfile.SystemPrompt
+        services.AddSingleton<DictationModeManager>(); // J.2: CRUD for dictation modes
+        services.AddSingleton<PipelineConfigManager>(); // J.2: CRUD for utility pipelines
         services.AddSingleton<SnippetManager>();
         services.AddSingleton<ISTTProviderFactory, STTProviderFactory>();
         services.AddSingleton<ILLMProviderFactory, LLMProviderFactory>();
+        services.AddSingleton(sp => new ModelListService( // J.5: Multi-provider model discovery
+            sp.GetRequiredService<SecureStorage>(),
+            sp.GetRequiredService<SettingsManager>()));
         services.AddSingleton<PipelineFactory>();
 
         // ── Data (E.2) ───────────────────────────────────────────────────────
@@ -244,7 +249,10 @@ public partial class App : Application
         services.AddTransient<ViewModels.Settings.AIEngineSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.AudioSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.HotkeysSettingsViewModel>();
-        services.AddTransient<ViewModels.Settings.ModesSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.ModesSettingsViewModel>(); // DEPRECATED: legacy modes page
+        services.AddTransient<ViewModels.Settings.DictationModesSettingsViewModel>(); // J.6: CRUD modes page
+        services.AddTransient<ViewModels.Settings.NotesSettingsViewModel>(); // Note pipeline config
+        services.AddTransient<ViewModels.Settings.ChatSettingsViewModel>(); // Chat overlay config
         services.AddTransient<ViewModels.Settings.PrivacySettingsViewModel>();
         services.AddTransient<ViewModels.Settings.ApiKeysSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.OllamaSettingsViewModel>();

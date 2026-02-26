@@ -1147,7 +1147,634 @@ publish/
 
 ---
 
+---
+
+## 11. Stream J: CRUD Dictation Modes (Post-MVP Enhancement)
+
+> **Status:** ✅ COMPLETE — All tasks (J.1–J.7) finished
+> **Effort:** 13-16 hours (est.), ~12 hours spent
+> **Context:** After completing hotkey pipeline integration (Stream I), user requested transformation of dictation modes from fixed presets into a CRUD system with dual-profile architecture.
+
+### 11.1 Context & Problem Statement
+
+**V1 Dictation Modes (Fixed):**
+- 4 built-in modes: Standard, Prompt, Professional, RAW
+- Each mode had a system prompt + optional LLM processing
+- Users could NOT create custom modes or rename built-ins
+- Mode selection via hotkeys + UI toggle buttons
+
+**V2 Current State:**
+- `ModeSettings` record in `AppSettings` with `PromptSlot` field (0-15 for custom, -1 for default)
+- `PromptDefaults.cs` provides 6 built-in templates (Dictate, Refine, Ask, Translate, Note, Chat)
+- 16 custom prompt slots in `PromptRepository` (slots 0-15)
+- Dual-profile system (Cloud vs Local) per mode
+- **Gap:** Users still can't create/rename/delete dictation modes as first-class entities
+
+**User Request:**
+> "Make modes CRUD. With a title that can be changed by the user (examples: Standard, Prompt, Professional). Need 'Dual Profile' for Local and Cloud, with Cloud option having per-mode model selection. Remember these are **Dictation Modes only** — other pipelines (Ask, Refine, Note) are still managed independently."
+
+**Key Clarifications:**
+- **CRUD only for dictation modes** — Ask, Refine, Translate, Note, Chat remain as fixed utility pipelines
+- **Cloud profiles support per-mode model selection** — different LLM model per dictation mode
+- **Local profiles use global Ollama model** — switching models on-the-fly is difficult with Ollama
+- **STT provider resolved by profile** — Cloud uses Deepgram/Gemini, Local uses Whisper
+
+### 11.2 Architecture Design
+
+#### 11.2.1 Core Records
+
+**File:** [src/DiktaMe.Core/Config/DictationMode.cs](src/DiktaMe.Core/Config/DictationMode.cs) (NEW)
+
+```csharp
+namespace DiktaMe.Core.Config;
+
+/// <summary>
+/// User-configurable dictation mode with dual-profile support.
+/// Represents a named workflow (e.g., "Standard", "Professional", "Custom Interview Mode").
+/// </summary>
+public sealed record DictationMode
+{
+    /// <summary>Unique ID (GUID) for this mode.</summary>
+    public required string Id { get; init; }
+
+    /// <summary>User-visible title (e.g., "Standard", "Professional", "Interview Notes").</summary>
+    public required string Title { get; init; }
+
+    /// <summary>Cloud profile configuration (Cloud STT + Cloud LLM).</summary>
+    public required DictationProfile CloudProfile { get; init; }
+
+    /// <summary>Local profile configuration (Whisper + Ollama).</summary>
+    public required DictationProfile LocalProfile { get; init; }
+
+    /// <summary>Whether this is a built-in mode (cannot be deleted).</summary>
+    public bool IsBuiltIn { get; init; }
+
+    /// <summary>Sort order for UI display (0-based).</summary>
+    public int SortOrder { get; init; }
+}
+
+/// <summary>
+/// Profile-specific configuration for a dictation mode.
+/// Cloud profiles support per-mode model selection; Local profiles use global Ollama model.
+/// </summary>
+public sealed record DictationProfile
+{
+    /// <summary>System prompt for LLM processing (or null for raw mode).</summary>
+    public string? SystemPrompt { get; init; }
+
+    /// <summary>Whether to use LLM processing (false = raw transcription).</summary>
+    public bool UseLlm { get; init; } = true;
+
+    /// <summary>
+    /// LLM model name (Cloud profiles only).
+    /// Examples: "gpt-4o", "claude-sonnet-4", "gemini-2.0-flash".
+    /// For Local profiles, this is ignored (Ollama uses global model from AppSettings).
+    /// </summary>
+    public string? ModelName { get; init; }
+
+    /// <summary>Hotkey string (e.g., "Ctrl+Alt+D"). Null = no hotkey assigned.</summary>
+    public string? Hotkey { get; init; }
+}
+```
+
+**File:** [src/DiktaMe.Core/Config/PipelineConfig.cs](src/DiktaMe.Core/Config/PipelineConfig.cs) (NEW)
+
+```csharp
+namespace DiktaMe.Core.Config;
+
+/// <summary>
+/// Fixed configuration for utility pipelines (Ask, Refine, Translate, Note, Chat).
+/// These are NOT user-creatable — they have fixed behaviors with dual-profile customization.
+/// </summary>
+public sealed record PipelineConfig
+{
+    /// <summary>Pipeline type (e.g., "ask", "refine", "translate").</summary>
+    public required string PipelineType { get; init; }
+
+    /// <summary>Cloud profile (prompt + model).</summary>
+    public required UtilityProfile CloudProfile { get; init; }
+
+    /// <summary>Local profile (prompt only; Ollama model is global).</summary>
+    public required UtilityProfile LocalProfile { get; init; }
+
+    /// <summary>Hotkey string (e.g., "Ctrl+Alt+A" for Ask).</summary>
+    public string? Hotkey { get; init; }
+}
+
+/// <summary>
+/// Profile configuration for utility pipelines.
+/// Simpler than DictationProfile (no UseLlm flag, LLM is always used except for Note's optional mode).
+/// </summary>
+public sealed record UtilityProfile
+{
+    /// <summary>System prompt (required for Ask/Refine/Translate/Chat, optional for Note).</summary>
+    public string? SystemPrompt { get; init; }
+
+    /// <summary>LLM model name (Cloud profiles only).</summary>
+    public string? ModelName { get; init; }
+}
+```
+
+#### 11.2.2 AppSettings Integration
+
+**File:** [src/DiktaMe.Core/Config/AppSettings.cs](src/DiktaMe.Core/Config/AppSettings.cs) (MODIFY)
+
+Add these properties:
+
+```csharp
+/// <summary>User's dictation modes (CRUD). Serialized as JSON array.</summary>
+public List<DictationMode> DictationModes { get; init; } = [];
+
+/// <summary>Fixed utility pipeline configs (Ask, Refine, Translate, Note, Chat).</summary>
+public List<PipelineConfig> UtilityPipelines { get; init; } = [];
+
+/// <summary>Active profile (Cloud or Local).</summary>
+public string ActiveProfile { get; init; } = "Cloud"; // "Cloud" or "Local"
+```
+
+Remove deprecated fields:
+- `CustomPrompts` (replaced by `DictationMode.CloudProfile.SystemPrompt` / `LocalProfile.SystemPrompt`)
+- Mode-specific settings in nested `ModeSettings` records (replaced by `DictationProfile` / `UtilityProfile`)
+
+#### 11.2.3 Default Mode Factory
+
+**File:** [src/DiktaMe.Core/Config/DictationModeDefaults.cs](src/DiktaMe.Core/Config/DictationModeDefaults.cs) (NEW)
+
+```csharp
+namespace DiktaMe.Core.Config;
+
+/// <summary>
+/// Factory for creating the 4 built-in dictation modes.
+/// Called by SettingsManager when initializing AppSettings for the first time.
+/// </summary>
+public static class DictationModeDefaults
+{
+    public static List<DictationMode> CreateBuiltInModes()
+    {
+        return
+        [
+            new DictationMode
+            {
+                Id = "dictate-standard",
+                Title = "Standard",
+                IsBuiltIn = true,
+                SortOrder = 0,
+                CloudProfile = new DictationProfile
+                {
+                    SystemPrompt = PromptDefaults.Dictate,
+                    UseLlm = true,
+                    ModelName = "gpt-4o-mini", // default Cloud model
+                    Hotkey = "Ctrl+Alt+D",
+                },
+                LocalProfile = new DictationProfile
+                {
+                    SystemPrompt = PromptDefaults.Dictate,
+                    UseLlm = true,
+                    ModelName = null, // Ollama model from AppSettings.OllamaModelName
+                    Hotkey = "Ctrl+Alt+D",
+                },
+            },
+
+            new DictationMode
+            {
+                Id = "dictate-prompt",
+                Title = "Prompt",
+                IsBuiltIn = true,
+                SortOrder = 1,
+                CloudProfile = new DictationProfile
+                {
+                    SystemPrompt = "Follow the user's custom instruction exactly. Return ONLY the result.",
+                    UseLlm = true,
+                    ModelName = "gpt-4o",
+                    Hotkey = "Ctrl+Alt+P",
+                },
+                LocalProfile = new DictationProfile
+                {
+                    SystemPrompt = "Follow the user's custom instruction exactly. Return ONLY the result.",
+                    UseLlm = true,
+                    ModelName = null,
+                    Hotkey = "Ctrl+Alt+P",
+                },
+            },
+
+            new DictationMode
+            {
+                Id = "dictate-professional",
+                Title = "Professional",
+                IsBuiltIn = true,
+                SortOrder = 2,
+                CloudProfile = new DictationProfile
+                {
+                    SystemPrompt = "Transform this into formal, professional business writing. Fix grammar, remove filler words, use active voice. Return ONLY the polished text.",
+                    UseLlm = true,
+                    ModelName = "claude-sonnet-4",
+                    Hotkey = "Ctrl+Alt+Shift+D",
+                },
+                LocalProfile = new DictationProfile
+                {
+                    SystemPrompt = "Transform this into formal, professional business writing. Fix grammar, remove filler words, use active voice. Return ONLY the polished text.",
+                    UseLlm = true,
+                    ModelName = null,
+                    Hotkey = "Ctrl+Alt+Shift+D",
+                },
+            },
+
+            new DictationMode
+            {
+                Id = "dictate-raw",
+                Title = "RAW",
+                IsBuiltIn = true,
+                SortOrder = 3,
+                CloudProfile = new DictationProfile
+                {
+                    SystemPrompt = null,
+                    UseLlm = false, // raw transcription, no LLM
+                    ModelName = null,
+                    Hotkey = "Ctrl+Alt+R",
+                },
+                LocalProfile = new DictationProfile
+                {
+                    SystemPrompt = null,
+                    UseLlm = false,
+                    ModelName = null,
+                    Hotkey = "Ctrl+Alt+R",
+                },
+            },
+        ];
+    }
+
+    public static List<PipelineConfig> CreateBuiltInUtilityPipelines()
+    {
+        return
+        [
+            new PipelineConfig
+            {
+                PipelineType = "ask",
+                Hotkey = "Ctrl+Alt+A",
+                CloudProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.Ask,
+                    ModelName = "gpt-4o-mini",
+                },
+                LocalProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.Ask,
+                    ModelName = null, // Ollama global model
+                },
+            },
+
+            new PipelineConfig
+            {
+                PipelineType = "refine",
+                Hotkey = "Ctrl+Alt+F",
+                CloudProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.Refine,
+                    ModelName = "gpt-4o-mini",
+                },
+                LocalProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.Refine,
+                    ModelName = null,
+                },
+            },
+
+            new PipelineConfig
+            {
+                PipelineType = "translate",
+                Hotkey = "Ctrl+Alt+T",
+                CloudProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.Translate,
+                    ModelName = "gpt-4o-mini",
+                },
+                LocalProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.Translate,
+                    ModelName = null,
+                },
+            },
+
+            new PipelineConfig
+            {
+                PipelineType = "note",
+                Hotkey = "Ctrl+Alt+N",
+                CloudProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.Note,
+                    ModelName = "gpt-4o-mini",
+                },
+                LocalProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.Note,
+                    ModelName = null,
+                },
+            },
+
+            new PipelineConfig
+            {
+                PipelineType = "chat",
+                Hotkey = "Ctrl+Alt+C",
+                CloudProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.Chat,
+                    ModelName = "gpt-4o",
+                },
+                LocalProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.Chat,
+                    ModelName = null,
+                },
+            },
+        ];
+    }
+}
+```
+
+### 11.3 Implementation Tasks
+
+#### Task J.1: Core Data Models ✅
+**Effort:** 2 hours | **Tests:** 23 new (DictationModeDefaultsTests, PromptDefaultsTests)
+**Create:**
+1. [src/DiktaMe.Core/Config/DictationMode.cs](src/DiktaMe.Core/Config/DictationMode.cs) — `DictationMode` and `DictationProfile` records
+2. [src/DiktaMe.Core/Config/PipelineConfig.cs](src/DiktaMe.Core/Config/PipelineConfig.cs) — `PipelineConfig` and `UtilityProfile` records
+3. [src/DiktaMe.Core/Config/DictationModeDefaults.cs](src/DiktaMe.Core/Config/DictationModeDefaults.cs) — Factory for 4 built-in dictation modes + 5 utility pipelines
+
+**Modify:**
+4. [src/DiktaMe.Core/Config/AppSettings.cs](src/DiktaMe.Core/Config/AppSettings.cs) — Add `List<DictationMode>`, `List<PipelineConfig>`, `ActiveProfile` properties; remove deprecated `CustomPrompts` and mode-specific settings
+
+**Tests:**
+- Unit tests for default factory (4 built-in modes, correct prompts, sort order)
+- Serialization round-trip (JSON → AppSettings → JSON)
+
+---
+
+#### Task J.2: DictationModeManager (CRUD Service) ✅
+**Effort:** 2.5 hours | **Tests:** 23 new (DictationModeManagerTests)
+**Create:** [src/DiktaMe.Core/Config/DictationModeManager.cs](src/DiktaMe.Core/Config/DictationModeManager.cs), [src/DiktaMe.Core/Config/PipelineConfigManager.cs](src/DiktaMe.Core/Config/PipelineConfigManager.cs)
+
+**Methods:**
+```csharp
+public sealed class DictationModeManager
+{
+    private readonly SettingsManager _settings;
+
+    public List<DictationMode> GetAllModes();
+    public DictationMode? GetModeById(string id);
+    public DictationMode CreateMode(string title, DictationProfile cloudProfile, DictationProfile localProfile);
+    public void UpdateMode(string id, string title, DictationProfile cloudProfile, DictationProfile localProfile);
+    public void DeleteMode(string id); // throws if IsBuiltIn = true
+    public void ReorderModes(List<string> orderedIds); // update SortOrder
+    public DictationProfile GetActiveProfile(string modeId); // returns CloudProfile or LocalProfile based on AppSettings.ActiveProfile
+}
+```
+
+**Tests:**
+- Create custom mode, verify ID generation (GUID)
+- Update mode, verify changes persist
+- Delete built-in mode → throws exception
+- Delete custom mode → removed from AppSettings.DictationModes
+- Reorder modes → SortOrder updated correctly
+- GetActiveProfile("Cloud") → returns CloudProfile
+- GetActiveProfile("Local") → returns LocalProfile
+
+---
+
+#### Task J.3: Settings Migration (V1 → V2 CRUD Format) ✅
+**Effort:** 2 hours
+**Modify:** [src/DiktaMe.Core/Config/SettingsManager.cs](src/DiktaMe.Core/Config/SettingsManager.cs)
+
+**Migration logic:**
+- On first load, if `AppSettings.DictationModes` is empty → call `DictationModeDefaults.CreateBuiltInModes()`
+- If loading settings from disk with old format (CustomPrompts array) → migrate to new format:
+  - Map `CustomPrompts[0]` to first custom dictation mode's CloudProfile.SystemPrompt
+  - Map old `ModeSettings` records to `DictationProfile` / `UtilityProfile`
+- Write migrated settings back to disk with new JSON schema
+
+**Tests:**
+- Load empty settings → auto-populate 4 built-in modes
+- Load V1 settings JSON → migrate to CRUD format, verify prompts preserved
+- Migration idempotency (running twice doesn't duplicate modes)
+
+---
+
+#### Task J.4: Pipeline Integration (LoadingViewModel Updates) ✅
+**Effort:** 2 hours
+**Modify:** [src/DiktaMe.App/ViewModels/LoadingViewModel.cs](src/DiktaMe.App/ViewModels/LoadingViewModel.cs)
+
+**Changes:**
+- Replace `_profiles.GetModeSettings("dictate")` with `_dictationModes.GetActiveProfile(modeId)`
+- Pass `DictationProfile.ModelName` to `LLMRouter` (Cloud profiles only)
+- Update hotkey registration loop to iterate over `AppSettings.DictationModes` + `AppSettings.UtilityPipelines`
+
+**Example:**
+```csharp
+private async Task RunDictationPipelineAsync(string modeId)
+{
+    DictationProfile profile = _dictationModes.GetActiveProfile(modeId);
+
+    var options = new DictationOptions
+    {
+        SystemPrompt = profile.UseLlm ? profile.SystemPrompt : null,
+        RawMode = !profile.UseLlm,
+        Language = _settings.Current.General.Language,
+        ModelName = profile.ModelName, // NEW: per-mode model (Cloud only)
+        Injection = new PipelineInjectionOptions { /* ... */ },
+    };
+
+    var pipeline = _pipelineFactory.CreateDictationPipeline();
+    var result = await pipeline.RunAsync(audioFile, options, ct);
+}
+```
+
+**Tests:**
+- Cloud profile with custom model → verify `ModelName` passed to LLMRouter
+- Local profile → verify `ModelName` is null (global Ollama model used)
+- RAW mode (UseLlm=false) → verify LLM step skipped
+
+---
+
+#### Task J.5: LLMRouter Per-Mode Model Support ✅
+**Effort:** 1.5 hours | **Tests:** 35 new (ModelListServiceTests, LLMProviderExtensionsTests, LLMRouterTests)
+**Create:**
+1. [src/DiktaMe.Core/LLM/ModelInfo.cs](src/DiktaMe.Core/LLM/ModelInfo.cs) — `ModelInfo` record (ModelId, DisplayName, Provider, IsAvailable, ContextWindow)
+2. [src/DiktaMe.Core/LLM/ModelListService.cs](src/DiktaMe.Core/LLM/ModelListService.cs) — Queries real API endpoints for all configured providers in parallel
+
+**Modify:**
+3. [src/DiktaMe.Core/Pipeline/PipelineOptions.cs](src/DiktaMe.Core/Pipeline/PipelineOptions.cs) — Added `ModelName` to all 6 options records
+4. [src/DiktaMe.Core/LLM/LLMRouter.cs](src/DiktaMe.Core/LLM/LLMRouter.cs) — New `ProcessAsync(text, prompt, modelName, mode, ct)` overload; takes `ILLMProviderFactory` for dynamic provider resolution
+5. [src/DiktaMe.Core/LLM/ILLMProvider.cs](src/DiktaMe.Core/LLM/ILLMProvider.cs) — Added `LLMProviderExtensions.ProcessWithModelAsync()` extension method
+6. All 6 pipeline files — Use `ProcessWithModelAsync()` for transparent model routing
+7. [src/DiktaMe.App/ViewModels/LoadingViewModel.cs](src/DiktaMe.App/ViewModels/LoadingViewModel.cs) — All 5 handlers pass `ModelName = profile.ModelName`
+
+**Architecture:**
+- `ModelListService` queries real API model-list endpoints (OpenAI `/v1/models`, Anthropic `/v1/models`, Gemini `/v1beta/models`, OpenRouter `/api/v1/models`, Ollama `/api/tags`)
+- `ResolveProviderFromModelId()` maps model prefixes to providers (`gpt-*` → openai, `claude-*` → anthropic, `gemini-*` → gemini, `deepseek-*` → deepseek, `*/` → openrouter, unknown → ollama)
+- `LLMRouter.ResolveProviderForModel()` delegates to `ILLMProviderFactory.CreateProvider()` which handles API key retrieval from SecureStorage
+
+---
+
+#### Task J.6: UI — Dictation Modes Settings Tab (CRUD Interface) ✅
+**Effort:** 3-4 hours (actual: ~3.5 hours)
+**Created:**
+1. [src/DiktaMe.App/Views/Settings/DictationModesSettingsPage.xaml](src/DiktaMe.App/Views/Settings/DictationModesSettingsPage.xaml)
+2. [src/DiktaMe.App/Views/Settings/DictationModesSettingsPage.xaml.cs](src/DiktaMe.App/Views/Settings/DictationModesSettingsPage.xaml.cs)
+3. [src/DiktaMe.App/ViewModels/Settings/DictationModesSettingsViewModel.cs](src/DiktaMe.App/ViewModels/Settings/DictationModesSettingsViewModel.cs)
+
+**Modified:**
+1. [src/DiktaMe.Core/Config/DictationModeManager.cs](src/DiktaMe.Core/Config/DictationModeManager.cs) — Removed built-in mode edit restriction
+2. [tests/DiktaMe.Core.Tests/Config/DictationModeManagerTests.cs](tests/DiktaMe.Core.Tests/Config/DictationModeManagerTests.cs) — Updated test expectations
+3. [src/DiktaMe.App/Views/SettingsWindow.xaml.cs](src/DiktaMe.App/Views/SettingsWindow.xaml.cs) — Replaced legacy ModesSettingsPage
+4. [src/DiktaMe.App/App.xaml.cs](src/DiktaMe.App/App.xaml.cs) — Registered DictationModesSettingsViewModel in DI
+
+**Implemented Features:**
+- **Left sidebar (200px):** ListView of dictation modes + utility pipelines
+  - Dictation modes (CRUD): Standard, Prompt, Professional, RAW + custom modes
+  - Separator: "── Utility Pipelines ──"
+  - Utility pipelines (update-only): Ask, Refine, Translate, Note, Chat
+  - Built-in modes show lock icon 🔒 (can edit but not delete)
+  - Each item shows: Title, Subtitle ("Built-in", "Custom", "Utility")
+- **Right panel (520px max-width):** Unified editor for selected mode/pipeline
+  - **Title** TextField (editable for all)
+  - **Cloud Profile section:**
+    - Model ComboBox with real-time API discovery via `ModelListService`
+    - Refresh button + loading spinner
+    - System Prompt TextBox (120-200px, multiline, auto-wrap)
+    - "Use LLM" ToggleSwitch (dictation modes only)
+    - Hotkey TextField (e.g., "Ctrl+Alt+D")
+  - **Local Profile section:**
+    - InfoBar banner: "Local profile uses global Ollama model"
+    - System Prompt TextBox
+    - "Use LLM" ToggleSwitch (dictation modes only)
+    - Hotkey TextField
+  - **Save** button (Accent style, right-aligned)
+- **Bottom toolbar (left sidebar):**
+  - [+] New Mode → creates custom mode with default prompt
+  - [↑] Move Up → reorders dictation modes
+  - [↓] Move Down → reorders dictation modes
+  - [🗑️] Delete → deletes custom modes (disabled for built-ins/pipelines)
+
+**Commands Implemented:**
+- `CreateModeCommand` → `DictationModeManager.CreateModeAsync()`
+- `SaveCommand` → `DictationModeManager.UpdateModeAsync()` or `PipelineConfigManager.UpdatePipelineAsync()`
+- `DeleteModeCommand` → `DictationModeManager.DeleteModeAsync()` (throws for built-ins)
+- `MoveUpCommand` / `MoveDownCommand` → `DictationModeManager.ReorderModesAsync()`
+- `RefreshModelsCommand` → `ModelListService.GetAvailableModelsAsync()`
+
+**Key Behaviors:**
+- Model list auto-loads on page open (async, parallel API queries)
+- Built-in mode editing now allowed (only deletion is blocked)
+- Unified view for dictation modes (CRUD) + utility pipelines (update-only)
+- No auto-save (explicit Save button to prevent accidental overwrites)
+- Dispatcher queue for cross-thread ObservableCollection updates
+
+---
+
+#### Task J.7: Documentation & Roadmap Update ✅
+**Effort:** 0.5 hours
+**Modified:**
+1. [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md) — Updated Stream J status, J.6 implementation details
+2. [MEMORY.md](C:\Users\gecko\.claude\projects\e--git-diktame\memory\MEMORY.md) — Added Stream J completion, new WinUI gotchas
+
+---
+
+### 11.4 Critical Files
+
+**Files to Create (7):**
+1. [src/DiktaMe.Core/Config/DictationMode.cs](src/DiktaMe.Core/Config/DictationMode.cs)
+2. [src/DiktaMe.Core/Config/PipelineConfig.cs](src/DiktaMe.Core/Config/PipelineConfig.cs)
+3. [src/DiktaMe.Core/Config/DictationModeDefaults.cs](src/DiktaMe.Core/Config/DictationModeDefaults.cs)
+4. [src/DiktaMe.Core/Config/DictationModeManager.cs](src/DiktaMe.Core/Config/DictationModeManager.cs)
+5. [src/DiktaMe.App/Views/DictationModesView.xaml](src/DiktaMe.App/Views/DictationModesView.xaml)
+6. [src/DiktaMe.App/ViewModels/DictationModesViewModel.cs](src/DiktaMe.App/ViewModels/DictationModesViewModel.cs)
+7. [tests/DiktaMe.Core.Tests/Config/DictationModeManagerTests.cs](tests/DiktaMe.Core.Tests/Config/DictationModeManagerTests.cs)
+
+**Files to Modify (4):**
+1. [src/DiktaMe.Core/Config/AppSettings.cs](src/DiktaMe.Core/Config/AppSettings.cs) — Add `DictationModes`, `UtilityPipelines`, `ActiveProfile` properties
+2. [src/DiktaMe.Core/Config/SettingsManager.cs](src/DiktaMe.Core/Config/SettingsManager.cs) — Migration logic for old settings format
+3. [src/DiktaMe.Core/LLM/LLMRouter.cs](src/DiktaMe.Core/LLM/LLMRouter.cs) — Add `modelName` parameter for per-mode model override
+4. [src/DiktaMe.App/ViewModels/LoadingViewModel.cs](src/DiktaMe.App/ViewModels/LoadingViewModel.cs) — Use `DictationModeManager.GetActiveProfile()` instead of `ProfileManager.GetModeSettings()`
+
+---
+
+### 11.5 Verification Steps
+
+**Unit Tests:**
+1. DictationModeManagerTests — CRUD operations, reorder, delete built-in throws, active profile resolution
+2. DictationModeDefaultsTests — verify 4 built-in modes created with correct prompts and sort order
+3. SettingsManagerTests — migration from V1 format to CRUD format, idempotency
+4. LLMRouterTests — per-mode model override, fallback to global model
+
+**Manual Tests:**
+1. **Create Custom Mode:**
+   - Open Settings → Dictation Modes → click [+ New Mode]
+   - Set title: "Interview Notes"
+   - Cloud: Model="gpt-4o", Prompt="Summarize this interview snippet as bullet points."
+   - Local: Prompt="Summarize this interview snippet as bullet points."
+   - Assign hotkey: "Ctrl+Alt+I"
+   - Save → verify mode appears in list
+   - Press Ctrl+Alt+I → record audio → verify custom prompt used
+
+2. **Edit Built-In Mode:**
+   - Select "Standard" mode
+   - Change Cloud model from "gpt-4o-mini" to "claude-sonnet-4"
+   - Save → verify model change persists after app restart
+   - Verify delete button is disabled (built-in mode)
+
+3. **Delete Custom Mode:**
+   - Select custom mode "Interview Notes"
+   - Click delete → confirm dialog → mode removed from list
+   - Verify hotkey Ctrl+Alt+I no longer registered
+
+4. **Reorder Modes:**
+   - Drag "Professional" mode to top position
+   - Save → verify sort order persists (Professional now SortOrder=0)
+
+5. **Profile Switching:**
+   - Set active profile to "Cloud"
+   - Press Ctrl+Alt+D → verify Cloud model used (check logs: "Using model: gpt-4o-mini")
+   - Switch to "Local" profile
+   - Press Ctrl+Alt+D → verify Ollama model used (check logs: "Using model: llama3.2:3b")
+
+6. **Settings Migration:**
+   - Copy old V1 settings JSON with `CustomPrompts` array
+   - Launch app → verify auto-migration to CRUD format
+   - Verify old custom prompts now appear as DictationMode.CloudProfile.SystemPrompt
+
+---
+
+### 11.6 Success Criteria
+
+**All criteria met ✅**
+
+✅ Users can create unlimited custom dictation modes with unique titles
+✅ Each mode has independent Cloud and Local profiles
+✅ Cloud profiles support per-mode model selection (real-time API discovery via ModelListService)
+✅ Local profiles use global Ollama model (no per-mode model switching)
+✅ Built-in modes (Standard, Prompt, Professional, RAW) can be edited but not deleted
+✅ Custom modes can be deleted
+✅ Mode reordering via up/down buttons updates SortOrder
+✅ Hotkeys editable in UI (dynamic registration deferred to hotkey manager)
+✅ Utility pipelines (Ask, Refine, Translate, Note, Chat) shown in unified view with update-only support
+✅ Settings migration from V1 format works seamlessly (J.3 complete)
+✅ All 521 unit tests pass (including updated DictationModeManager test for built-in mode editing)
+✅ Full WinUI 3 Settings tab with left sidebar ListView + right panel editor
+
+---
+
+### 11.7 Deferred Features
+
+These are out of scope for initial CRUD implementation:
+
+1. **Mode Templates** — Pre-built mode templates users can clone (e.g., "Meeting Notes", "Email Drafts", "Code Comments")
+2. **Mode Import/Export** — JSON export for sharing custom modes with other users
+3. **Per-Mode Audio Settings** — Different max duration or input device per mode
+4. **Mode Groups** — Organize modes into folders (e.g., "Work", "Personal", "Experimental")
+5. **Conditional Mode Selection** — Auto-switch mode based on active window title or process name
+
+---
+
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, I.1–I.5, I.2-UI
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**
 **Remaining:** H.1 (Installer), H.2 (V1 Migration), I.6 (Website Rebrand)
-**Build:** 0 errors, 0 warnings | **Tests:** 414 passing (1 pre-existing clipboard flake) | **CI unit filter:** 376
+**Build:** 0 errors, 0 warnings | **Tests:** 521 passing | **CI unit filter:** 376

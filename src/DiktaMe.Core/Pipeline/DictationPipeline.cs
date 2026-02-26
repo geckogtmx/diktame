@@ -109,11 +109,9 @@ public sealed class DictationPipeline
             {
                 Log.Information("DictationPipeline: sending to LLM ({Provider})", _llm!.ProviderName);
                 var llmSw = Stopwatch.StartNew();
-
                 LlmResult llmResult = await _llm!
-                    .ProcessAsync(rawText, options.SystemPrompt!, Mode, cancellationToken)
+                    .ProcessWithModelAsync(rawText, options.SystemPrompt!, options.ModelName, Mode, cancellationToken)
                     .ConfigureAwait(false);
-
                 llmSw.Stop();
                 processingMs = llmSw.ElapsedMilliseconds;
                 llmProvider = llmResult.Provider;

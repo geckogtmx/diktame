@@ -35,6 +35,12 @@ public sealed record DictationOptions
     /// </summary>
     public bool RawMode { get; init; }
 
+    /// <summary>
+    /// Override LLM model for this pipeline run (Cloud profiles only).
+    /// When null, uses the global model from AppSettings.
+    /// </summary>
+    public string? ModelName { get; init; }
+
     /// <summary>Language hint passed to the STT provider (default "en").</summary>
     public string Language { get; init; } = "en";
 
@@ -54,6 +60,12 @@ public sealed record RefineOptions
     /// </summary>
     public required string SystemPrompt { get; init; }
 
+    /// <summary>
+    /// Override LLM model for this pipeline run (Cloud profiles only).
+    /// When null, uses the global model from AppSettings.
+    /// </summary>
+    public string? ModelName { get; init; }
+
     /// <summary>Language hint for audio transcription (default "en").</summary>
     public string Language { get; init; } = "en";
 
@@ -69,6 +81,12 @@ public sealed record AskOptions
     /// <summary>System prompt that defines Q&amp;A behaviour.</summary>
     public required string SystemPrompt { get; init; }
 
+    /// <summary>
+    /// Override LLM model for this pipeline run (Cloud profiles only).
+    /// When null, uses the global model from AppSettings.
+    /// </summary>
+    public string? ModelName { get; init; }
+
     /// <summary>Language hint for audio transcription (default "en").</summary>
     public string Language { get; init; } = "en";
 }
@@ -80,6 +98,12 @@ public sealed record TranslateOptions
 {
     /// <summary>System prompt that includes the target-language translation instruction.</summary>
     public required string SystemPrompt { get; init; }
+
+    /// <summary>
+    /// Override LLM model for this pipeline run (Cloud profiles only).
+    /// When null, uses the global model from AppSettings.
+    /// </summary>
+    public string? ModelName { get; init; }
 
     /// <summary>
     /// Language hint for the STT provider. "auto" enables auto-detection
@@ -98,6 +122,12 @@ public sealed record ChatOptions
 {
     /// <summary>System prompt that defines conversational Q&amp;A behaviour.</summary>
     public required string SystemPrompt { get; init; }
+
+    /// <summary>
+    /// Override LLM model for this pipeline run (Cloud profiles only).
+    /// When null, uses the global model from AppSettings.
+    /// </summary>
+    public string? ModelName { get; init; }
 
     /// <summary>
     /// The user's question as plain text.
@@ -124,6 +154,12 @@ public sealed record NoteOptions
 {
     /// <summary>System prompt for note formatting (pass null to skip LLM).</summary>
     public string? SystemPrompt { get; init; }
+
+    /// <summary>
+    /// Override LLM model for this pipeline run (Cloud profiles only).
+    /// When null, uses the global model from AppSettings.
+    /// </summary>
+    public string? ModelName { get; init; }
 
     /// <summary>Language hint for audio transcription (default "en").</summary>
     public string Language { get; init; } = "en";

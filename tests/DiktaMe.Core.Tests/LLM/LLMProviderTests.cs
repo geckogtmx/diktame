@@ -1,6 +1,7 @@
 
 using System.Net;
 using System.Net.Http;
+using DiktaMe.Core.Config;
 using DiktaMe.Core.LLM;
 using Moq;
 
@@ -411,12 +412,14 @@ public sealed class LLMRouterTests
         LatencyMs = 0
     };
 
+    private static Mock<ILLMProviderFactory> MockFactory() => new();
+
     [Fact]
     public void ProviderName_NullFallback_ReturnsPrimaryName()
     {
         var primary = new Mock<ILLMProvider>();
         primary.Setup(p => p.ProviderName).Returns("Primary");
-        var router = new LLMRouter(primary.Object);
+        var router = new LLMRouter(primary.Object, MockFactory().Object);
         Assert.Equal("Primary", router.ProviderName);
     }
 
@@ -427,7 +430,7 @@ public sealed class LLMRouterTests
         primary.Setup(p => p.ProviderName).Returns("Primary");
         var fallback = new Mock<ILLMProvider>();
         fallback.Setup(p => p.ProviderName).Returns("Fallback");
-        var router = new LLMRouter(primary.Object, fallback.Object);
+        var router = new LLMRouter(primary.Object, MockFactory().Object, fallback.Object);
         Assert.Contains("Primary", router.ProviderName);
         Assert.Contains("Fallback", router.ProviderName);
     }
@@ -438,7 +441,7 @@ public sealed class LLMRouterTests
         var primary = new Mock<ILLMProvider>();
         primary.Setup(p => p.ProcessAsync("text", "prompt", "dictate", It.IsAny<CancellationToken>()))
                .ReturnsAsync(OkResult("primary output", "Primary"));
-        var router = new LLMRouter(primary.Object);
+        var router = new LLMRouter(primary.Object, MockFactory().Object);
 
         var result = await router.ProcessAsync("text", "prompt");
 
@@ -458,7 +461,7 @@ public sealed class LLMRouterTests
         fallback.Setup(p => p.ProcessAsync("text", "prompt", "dictate", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(OkResult("fallback output", "Fallback"));
 
-        var router = new LLMRouter(primary.Object, fallback.Object);
+        var router = new LLMRouter(primary.Object, MockFactory().Object, fallback.Object);
 
         var result = await router.ProcessAsync("text", "prompt");
 
@@ -478,7 +481,7 @@ public sealed class LLMRouterTests
         fallback.Setup(p => p.ProcessAsync("text", "prompt", "dictate", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(OkResult("fallback output", "Fallback"));
 
-        var router = new LLMRouter(primary.Object, fallback.Object);
+        var router = new LLMRouter(primary.Object, MockFactory().Object, fallback.Object);
 
         var result = await router.ProcessAsync("text", "prompt");
 
@@ -498,7 +501,7 @@ public sealed class LLMRouterTests
         fallback.Setup(p => p.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException());
 
-        var router = new LLMRouter(primary.Object, fallback.Object);
+        var router = new LLMRouter(primary.Object, MockFactory().Object, fallback.Object);
 
         var result = await router.ProcessAsync("text", "prompt");
 
@@ -511,8 +514,45 @@ public sealed class LLMRouterTests
     {
         var primary = new Mock<ILLMProvider>();
         primary.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
-        var router = new LLMRouter(primary.Object);
+        var router = new LLMRouter(primary.Object, MockFactory().Object);
         Assert.True(await router.IsAvailableAsync());
+    }
+
+    [Fact]
+    public async Task ProcessWithModel_DelegatesToFactory()
+    {
+        var primary = new Mock<ILLMProvider>();
+        primary.Setup(p => p.ProviderName).Returns("Primary");
+
+        var resolved = new Mock<ILLMProvider>();
+        resolved.Setup(p => p.ProviderName).Returns("OpenAI");
+        resolved.Setup(p => p.ProcessAsync("text", "prompt", "dictate", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(OkResult("model output", "OpenAI"));
+
+        var factory = new Mock<ILLMProviderFactory>();
+        factory.Setup(f => f.CreateProvider("openai", null, "gpt-4o-mini")).Returns(resolved.Object);
+
+        var router = new LLMRouter(primary.Object, factory.Object);
+        var result = await router.ProcessAsync("text", "prompt", modelName: "gpt-4o-mini");
+
+        Assert.Equal("model output", result.Text);
+        factory.Verify(f => f.CreateProvider("openai", null, "gpt-4o-mini"), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessWithModel_NullModelName_UsesPrimary()
+    {
+        var primary = new Mock<ILLMProvider>();
+        primary.Setup(p => p.ProcessAsync("text", "prompt", "dictate", It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OkResult("primary output", "Primary"));
+
+        var factory = new Mock<ILLMProviderFactory>();
+        var router = new LLMRouter(primary.Object, factory.Object);
+
+        var result = await router.ProcessAsync("text", "prompt", modelName: null);
+
+        Assert.Equal("primary output", result.Text);
+        factory.Verify(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string?>()), Times.Never);
     }
 }
 

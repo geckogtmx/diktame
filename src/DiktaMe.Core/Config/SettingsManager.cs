@@ -158,6 +158,10 @@ public sealed class SettingsManager
                     MaxDurationSeconds = GetInt(root, "maxDuration", 60),
                 },
                 OllamaModel = GetString(root, "ollamaModel", "llama3.2"),
+                // Populate built-in modes and pipelines for V1 users
+                DictationModes = DictationModeDefaults.CreateBuiltInModes(),
+                UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
+                ActiveProfileName = "Cloud", // V1 default
             };
 
             Current = migrated;
@@ -174,8 +178,39 @@ public sealed class SettingsManager
 
     private static AppSettings MigrateIfNeeded(AppSettings loaded)
     {
-        // Currently only schema version 1 exists — nothing to migrate.
-        return loaded;
+        var migrated = loaded;
+
+        // Migration 1: Populate built-in modes/pipelines if empty (first load or pre-Stream J settings)
+        if (migrated.DictationModes.Count == 0)
+        {
+            migrated = migrated with
+            {
+                DictationModes = DictationModeDefaults.CreateBuiltInModes(),
+            };
+            Log.Information("SettingsManager: populated {Count} built-in dictation modes", migrated.DictationModes.Count);
+        }
+
+        if (migrated.UtilityPipelines.Count == 0)
+        {
+            migrated = migrated with
+            {
+                UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
+            };
+            Log.Information("SettingsManager: populated {Count} built-in utility pipelines", migrated.UtilityPipelines.Count);
+        }
+
+        // Migration 2: Convert old ActiveProfile (0/1) to ActiveProfileName ("Cloud"/"Local")
+        if (string.IsNullOrEmpty(migrated.ActiveProfileName) && migrated.ActiveProfile >= 0)
+        {
+            migrated = migrated with
+            {
+                ActiveProfileName = migrated.ActiveProfile == 0 ? "Cloud" : "Local",
+            };
+            Log.Information("SettingsManager: migrated ActiveProfile={Index} to ActiveProfileName={Name}",
+                loaded.ActiveProfile, migrated.ActiveProfileName);
+        }
+
+        return migrated;
     }
 
     private static string GetString(JsonElement root, string key, string defaultValue)

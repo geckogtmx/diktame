@@ -58,3 +58,30 @@ public sealed record LlmResult
     /// <summary>Whether the result contains non-empty output text.</summary>
     public bool IsSuccess => !string.IsNullOrWhiteSpace(Text);
 }
+
+/// <summary>
+/// Extension methods for <see cref="ILLMProvider"/> that provide model-aware routing.
+/// </summary>
+public static class LLMProviderExtensions
+{
+    /// <summary>
+    /// Processes text through the LLM with optional per-mode model override.
+    /// If the provider is a <see cref="LLMRouter"/> and a model name is specified,
+    /// uses the model-aware overload. Otherwise falls back to the standard call.
+    /// </summary>
+    public static Task<LlmResult> ProcessWithModelAsync(
+        this ILLMProvider provider,
+        string text,
+        string systemPrompt,
+        string? modelName,
+        string mode = "dictate",
+        CancellationToken cancellationToken = default)
+    {
+        if (provider is LLMRouter router && !string.IsNullOrWhiteSpace(modelName))
+        {
+            return router.ProcessAsync(text, systemPrompt, modelName, mode, cancellationToken);
+        }
+
+        return provider.ProcessAsync(text, systemPrompt, mode, cancellationToken);
+    }
+}

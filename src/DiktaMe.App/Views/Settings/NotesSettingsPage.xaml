@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page x:Class="DiktaMe.App.Views.Settings.NotesSettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Padding="32" Spacing="24" MaxWidth="800">
+
+            <!-- Page header -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="📝 Post-It Notes" FontSize="28" FontWeight="SemiBold"/>
+                <TextBlock Text="Configure voice-to-note pipeline with automatic timestamps and LLM formatting"
+                           Opacity="0.6" TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <!-- Note File Path -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Note File Path" FontWeight="SemiBold"/>
+                <TextBlock Text="Choose where your notes are saved (.md or .txt)" FontSize="12" Opacity="0.6"/>
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0"
+                             Text="{x:Bind ViewModel.FilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="C:\Users\...\diktame-notes.md"/>
+                    <Button Grid.Column="1" Content="Browse" Command="{x:Bind ViewModel.BrowseFilePathCommand}"/>
+                </Grid>
+            </StackPanel>
+
+            <!-- LLM Processing Toggle -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="LLM Processing" FontWeight="SemiBold"/>
+                <TextBlock Text="Clean up transcription into a professional note" FontSize="12" Opacity="0.6"/>
+                <ToggleSwitch IsOn="{x:Bind ViewModel.UseLlmProcessing, Mode=TwoWay}"
+                              OnContent="Enabled (AI formatting)"
+                              OffContent="Disabled (raw transcription)"/>
+            </StackPanel>
+
+            <!-- Timestamp Format -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Timestamp Format" FontWeight="SemiBold"/>
+                <TextBlock FontSize="12" Opacity="0.6" TextWrapping="Wrap">
+                    <Run Text="How dates appear in your notes (C# DateTime format). Example: "/>
+                    <Run Text="yyyy-MM-dd HH:mm:ss" FontFamily="Consolas"/>
+                </TextBlock>
+                <TextBox Text="{x:Bind ViewModel.TimestampFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="yyyy-MM-dd HH:mm:ss"
+                         FontFamily="Consolas"/>
+            </StackPanel>
+
+            <!-- Live Preview -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Live Preview" FontWeight="SemiBold"/>
+                <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="16"
+                        MinHeight="120">
+                    <TextBlock Text="{x:Bind ViewModel.PreviewText, Mode=OneWay}"
+                               FontFamily="Consolas"
+                               TextWrapping="Wrap"/>
+                </Border>
+            </StackPanel>
+
+            <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,8"/>
+
+            <!-- Cloud Profile System Prompt -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Cloud Profile — Note System Prompt" FontSize="18" FontWeight="SemiBold"/>
+                <TextBlock Text="This prompt guides the AI in formatting your voice notes (Cloud profile only)."
+                           FontSize="12" Opacity="0.6" TextWrapping="Wrap"/>
+                <TextBox Text="{x:Bind ViewModel.CloudSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         MinHeight="150"
+                         MaxHeight="250"
+                         PlaceholderText="Enter system prompt for Cloud profile..."/>
+            </StackPanel>
+
+            <!-- Local Profile System Prompt -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Local Profile — Note System Prompt" FontSize="18" FontWeight="SemiBold"/>
+                <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Margin="0,0,0,8"
+                         Message="Local profile uses the global Ollama model configured in the AI Engine tab."/>
+                <TextBox Text="{x:Bind ViewModel.LocalSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         MinHeight="150"
+                         MaxHeight="250"
+                         PlaceholderText="Enter system prompt for Local profile..."/>
+            </StackPanel>
+
+            <!-- Save and Reset buttons -->
+            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                <Button Content="Reset to Defaults" Command="{x:Bind ViewModel.ResetCommand}"/>
+                <Button Content="Save" Style="{StaticResource AccentButtonStyle}" Command="{x:Bind ViewModel.SaveCommand}"/>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

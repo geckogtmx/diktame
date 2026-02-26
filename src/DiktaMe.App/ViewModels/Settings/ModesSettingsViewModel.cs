@@ -16,8 +16,10 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _selectedModeIndex;
 
-    public string[] ModeNames { get; } = ["Dictate", "Refine", "Ask", "Translate", "Note", "Chat"];
-    public string[] ModeCodes { get; } = ["dictate", "refine", "ask", "translate", "note", "chat"];
+    // Note: Dictate, Note, and Chat have moved to separate pages
+    // This page now shows only utility pipelines: Ask, Refine, Translate
+    public string[] ModeNames { get; } = ["Ask", "Refine", "Translate"];
+    public string[] ModeCodes { get; } = ["ask", "refine", "translate"];
 
     // ── Profile selector ────────────────────────────────────────────────────
 

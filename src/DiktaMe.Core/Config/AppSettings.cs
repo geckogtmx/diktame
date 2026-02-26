@@ -123,6 +123,53 @@ public sealed record HotkeySettings
 }
 
 /// <summary>
+/// Note pipeline configuration (voice-to-note with timestamp and LLM processing).
+/// </summary>
+public sealed record NoteSettings
+{
+    /// <summary>File path where notes are saved (.md or .txt).</summary>
+    public string FilePath { get; init; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+        "diktame-notes.md");
+
+    /// <summary>Whether to use LLM to clean up transcription into professional notes.</summary>
+    public bool UseLlmProcessing { get; init; } = true;
+
+    /// <summary>
+    /// Timestamp format string (C# DateTime format).
+    /// Default: "%Y-%m-%d %H:%M:%S" from V1.
+    /// </summary>
+    public string TimestampFormat { get; init; } = "yyyy-MM-dd HH:mm:ss";
+}
+
+/// <summary>
+/// Chat overlay UI configuration.
+/// </summary>
+public sealed record ChatSettings
+{
+    /// <summary>Font size for chat messages (in points).</summary>
+    public int FontSize { get; init; } = 14;
+
+    /// <summary>Whether to clear chat history when closing the overlay.</summary>
+    public bool ForgetOnClose { get; init; } = false;
+
+    /// <summary>Maximum number of messages to keep in history (0 = unlimited).</summary>
+    public int MaxHistoryMessages { get; init; } = 50;
+
+    /// <summary>Chat window opacity (0.0-1.0).</summary>
+    public double WindowOpacity { get; init; } = 0.95;
+
+    /// <summary>Whether to show timestamps next to each message.</summary>
+    public bool ShowTimestamps { get; init; } = true;
+
+    /// <summary>Enable markdown rendering in chat messages.</summary>
+    public bool EnableMarkdown { get; init; } = true;
+
+    /// <summary>Theme for chat UI ("Light", "Dark", "System").</summary>
+    public string Theme { get; init; } = "System";
+}
+
+/// <summary>
 /// Root settings model for dIKta.me V2.
 /// Strongly-typed (not a dictionary) for trim-safety and compile-time correctness.
 /// </summary>
@@ -140,6 +187,8 @@ public sealed record AppSettings
     public PrivacySettings Privacy { get; init; } = new();
     public HotkeySettings Hotkeys { get; init; } = new();
     public ControlPanelSettings ControlPanel { get; init; } = new();
+    public NoteSettings Note { get; init; } = new();
+    public ChatSettings Chat { get; init; } = new();
 
     /// <summary>
     /// Per-mode settings for 2 profiles.
@@ -150,11 +199,15 @@ public sealed record AppSettings
 
     /// <summary>
     /// 16 custom prompt slots (indices 0-15). Null = use built-in default.
+    /// DEPRECATED: Replaced by DictationMode.CloudProfile/LocalProfile.SystemPrompt in Stream J.
+    /// Kept for backwards compatibility during migration.
     /// </summary>
     public string?[] CustomPrompts { get; init; } = new string?[16];
 
     /// <summary>
     /// Currently active profile index (0 or 1). Maps to the ModeProfiles key suffix.
+    /// DEPRECATED: Replaced by ActiveProfile (string "Cloud" or "Local") in Stream J.
+    /// Kept for backwards compatibility during migration.
     /// </summary>
     public int ActiveProfile { get; init; } = 0;
 
@@ -165,6 +218,27 @@ public sealed record AppSettings
 
     /// <summary>Ollama model to use as the default local LLM.</summary>
     public string OllamaModel { get; init; } = "llama3.2";
+
+    // ── Stream J: CRUD Dictation Modes (NEW) ──────────────────────────────────
+
+    /// <summary>
+    /// User's dictation modes (CRUD-capable). Serialized as JSON array.
+    /// Populated by DictationModeDefaults.CreateBuiltInModes() on first run.
+    /// </summary>
+    public List<DictationMode> DictationModes { get; init; } = [];
+
+    /// <summary>
+    /// Fixed utility pipeline configs (Ask, Refine, Translate, Note, Chat).
+    /// These cannot be created/deleted by users, only configured.
+    /// Populated by DictationModeDefaults.CreateBuiltInUtilityPipelines() on first run.
+    /// </summary>
+    public List<PipelineConfig> UtilityPipelines { get; init; } = [];
+
+    /// <summary>
+    /// Active profile name ("Cloud" or "Local").
+    /// Determines which profile (CloudProfile vs LocalProfile) is used for each mode.
+    /// </summary>
+    public string ActiveProfileName { get; init; } = "Cloud";
 }
 
 /// <summary>
@@ -180,4 +254,10 @@ public sealed record AppSettings
 [JsonSerializable(typeof(ControlPanelSettings))]
 [JsonSerializable(typeof(ModeSettings))]
 [JsonSerializable(typeof(Dictionary<string, ModeSettings>))]
+[JsonSerializable(typeof(DictationMode))]
+[JsonSerializable(typeof(DictationProfile))]
+[JsonSerializable(typeof(PipelineConfig))]
+[JsonSerializable(typeof(UtilityProfile))]
+[JsonSerializable(typeof(List<DictationMode>))]
+[JsonSerializable(typeof(List<PipelineConfig>))]
 public partial class AppSettingsContext : JsonSerializerContext { }

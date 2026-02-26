@@ -5,7 +5,9 @@ namespace DiktaMe.Core.Tests.Input;
 /// <summary>
 /// Tests for ClipboardManager Win32 clipboard read/write.
 /// Requires a real Windows clipboard (not headless/locked session).
+/// Tests must run serially (not in parallel) to avoid clipboard race conditions.
 /// </summary>
+[Collection("Clipboard")] // Disable parallel execution - real clipboard is shared resource
 public class ClipboardManagerTests
 {
     // ── SetText / GetText roundtrip ───────────────────────────────────────────

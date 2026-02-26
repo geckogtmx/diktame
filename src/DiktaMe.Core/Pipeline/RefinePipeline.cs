@@ -138,7 +138,7 @@ public sealed class RefinePipeline
             Log.Information("RefinePipeline: calling LLM ({Provider})", _llm.ProviderName);
             var llmSw = Stopwatch.StartNew();
             LlmResult llmResult = await _llm
-                .ProcessAsync(selectedText, effectivePrompt, Mode, cancellationToken)
+                .ProcessWithModelAsync(selectedText, effectivePrompt, options.ModelName, Mode, cancellationToken)
                 .ConfigureAwait(false);
             llmSw.Stop();
 
@@ -230,7 +230,7 @@ public sealed class RefinePipeline
 
         var llmSw = Stopwatch.StartNew();
         LlmResult llmResult = await _llm
-            .ProcessAsync(instruction, options.SystemPrompt, "ask", cancellationToken)
+            .ProcessWithModelAsync(instruction, options.SystemPrompt, options.ModelName, "ask", cancellationToken)
             .ConfigureAwait(false);
         llmSw.Stop();
         total.Stop();

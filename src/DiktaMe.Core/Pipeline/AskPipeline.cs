@@ -70,7 +70,7 @@ public sealed class AskPipeline
 
             var llmSw = Stopwatch.StartNew();
             LlmResult llmResult = await _llm
-                .ProcessAsync(question, options.SystemPrompt, Mode, cancellationToken)
+                .ProcessWithModelAsync(question, options.SystemPrompt, options.ModelName, Mode, cancellationToken)
                 .ConfigureAwait(false);
             llmSw.Stop();
             total.Stop();

@@ -9,8 +9,10 @@ namespace DiktaMe.Core.Tests.Input;
 /// Tests for TextInjector logic using a mocked IInputSimulator.
 /// Clipboard interactions use the real Win32 clipboard — requires an
 /// interactive Windows session, so the class is tagged Hardware.
+/// Tests must run serially (not in parallel) to avoid clipboard race conditions.
 /// </summary>
 [Trait("Category", "Hardware")]
+[Collection("Clipboard")] // Disable parallel execution - real clipboard is shared resource
 public class TextInjectorTests
 {
     private readonly Mock<IInputSimulator> _simMock;
@@ -71,6 +73,10 @@ public class TextInjectorTests
 
         _injector.InjectText(text, trailingSpace: true);
 
+        // Wait for clipboard restore to complete (InjectText uses Thread.Sleep(50+30) internally)
+        // Add extra margin to avoid race conditions even when Windows is slow
+        Thread.Sleep(200);
+
         // The clipboard is immediately restored after the paste.
         // Verify by observing what was set during injection via the known sequence:
         // We cannot intercept the intermediate SetText call easily, but we can verify
@@ -84,6 +90,7 @@ public class TextInjectorTests
     {
         ClipboardManager.SetText("original");
         _injector.InjectText("hello", trailingSpace: false);
+        Thread.Sleep(200); // Wait for clipboard restore to complete
         Assert.Equal("original", ClipboardManager.GetText());
     }
 
@@ -96,6 +103,7 @@ public class TextInjectorTests
         ClipboardManager.SetText(original);
 
         _injector.InjectText("dictated text");
+        Thread.Sleep(200); // Wait for clipboard restore to complete
 
         Assert.Equal(original, ClipboardManager.GetText());
     }
@@ -106,6 +114,7 @@ public class TextInjectorTests
         ClipboardManager.SetText(null);
 
         _injector.InjectText("hello");
+        Thread.Sleep(200); // Wait for clipboard restore to complete
 
         Assert.Equal(string.Empty, ClipboardManager.GetText());
     }
