@@ -1,161 +1,145 @@
 # Developer Handoff
 
-## Session Summary: 2026-02-25 (Session 7)
+## Session Summary: 2026-02-25 (Session 8)
 
-### Project Status: Stream J Complete, UI Fix Required
+### Project Status: Stream J Complete + Notes/Chat Pages Added ✅
 
-Stream J (CRUD Dictation Modes) was completed but the UI implementation (J.6) introduced architectural issues that need immediate correction. The build currently FAILS due to missing references in DictationModesSettingsViewModel.
+All Stream J issues have been resolved and two new settings pages (Notes and Chat) have been implemented. The build is **green** and all tests pass.
 
-### ⚠️ IMMEDIATE ACTION REQUIRED
+### ✅ Session 8 Accomplishments
 
-**Build Status:** ❌ FAILING (3 CS0103 errors - `_pipelineManager` does not exist)
+**Phase 1 Fixes (J.6 Issues Resolved):**
+- ✅ Fixed 3 CS0103 build errors (removed `_pipelineManager` references)
+- ✅ Removed utility pipeline code from DictationModesSettingsViewModel
+- ✅ Removed duplicate hotkey fields from Dictation Presets page
+- ✅ Fixed model dropdown dispatcher race condition
+- ✅ Filtered Ollama models from Cloud profile dropdown
+- ✅ Renamed "Dictation Modes" → "Dictation Presets" throughout UI
 
-**Critical Issue:** The J.6 implementation incorrectly replaced the old ModesSettingsPage (utility pipeline configuration) with DictationModesSettingsPage, causing:
-1. Lost access to Ask/Refine/Translate/Note/Chat configuration
-2. Build failures due to incomplete refactoring
-3. Duplicate hotkey configuration UI
-4. Corrupted settings.json (missing built-in modes)
+**Phase 2 Features (New Settings Pages):**
+- ✅ **Notes Settings Page** - Complete V1 parity:
+  - File path with Browse button (WinUI FileSavePicker)
+  - LLM Processing toggle
+  - Timestamp format editor with Live Preview
+  - Cloud & Local system prompt editors
+  - Save/Reset buttons
+- ✅ **Chat Settings Page** - New UI configuration:
+  - Font size slider (10-24pt)
+  - Window opacity slider (0.5-1.0)
+  - Theme selector (System/Light/Dark)
+  - **Forget on Close** toggle (privacy mode)
+  - Max history messages limit
+  - Show timestamps toggle
+  - Enable markdown rendering toggle
+  - Cloud & Local system prompt editors
+- ✅ Added NoteSettings and ChatSettings records to AppSettings
+- ✅ Navigation updated: separate menu items for Notes and Chat
+- ✅ ModesSettingsPage now shows only Ask/Refine/Translate
+- ✅ All ViewModels registered in DI container
 
-**Fix Plan Available:** See [MODES_PAGE_FIX.md](MODES_PAGE_FIX.md) for detailed step-by-step fix plan.
-
-**Quick Summary:**
-- Revert SettingsWindow navigation "modes" tag back to ModesSettingsPage
-- Add new "Dictation Modes" navigation item
-- Remove utility pipeline code from DictationModesSettingsViewModel (fix build)
-- Remove hotkey fields from DictationModesSettingsPage
-- Update ModesSettingsPage to show only Ask/Refine/Translate (remove Note/Chat)
-- Delete corrupted settings.json to trigger fresh migration
-- Note and Chat will get their own pages in Phase 2 (future task)
-
-### ✅ Completed (All Sessions)
-
-| Stream | Scope | Sessions |
-|--------|-------|----------|
-| **A** — Scaffolding | Solution scaffold, build config, publish pipeline | 1 |
-| **B** — Core Engine | Audio recording, device management, hotkeys, text injection, mute detection | 1–2 |
-| **C** — STT & LLM Providers | Deepgram, Gemini Audio, Whisper.net, OpenAI-compatible, Anthropic, Ollama | 3 |
-| **D** — Pipeline Orchestration | Dictation, Refine, Ask, Translate, Note, Oops pipelines | 3 |
-| **E** — Data & Security | SettingsManager, ProfileManager, PromptRepository, HistoryManager, MetricsCollector, NoteWriter, SecureStorage, PIIScrubber, ApiKeyValidator, DI wiring | 4 |
-| **F** — UI (WinUI 3) | Settings (10 tabs), Control Panel, Wizard, Loading Screen, Quick Chat overlay, Notifications, Tray icon | 5 |
-| **G** — Testing & CI/CD | 521 unit tests, GitHub Actions CI (12-step pipeline), coverage tracking | 5–6 |
-| **I** — Promoted Features | SnippetManager, AudioDucker, ChatPipeline, OllamaManager | 4–5 |
-| **J** — CRUD Dictation Modes | DictationMode/PipelineConfig models, Managers, Migration, Pipeline integration, Per-mode model selection, UI (needs fix) | 7 |
+**Build & CI Status:**
+- Build: ✅ 0 errors, 0 warnings
+- Tests: ✅ All 521 tests pass
+- Pushed to GitHub: ✅ Commit `9834d79`
 
 ### 📊 Current Metrics
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 521 passing locally (before UI break) |
+| **Tests** | 521 passing |
 | **Coverage** | ~74% line, ~52% branch (DiktaMe.Core) |
-| **Build** | ❌ FAILING (3 errors in DictationModesSettingsViewModel) |
-| **CI** | Not pushed (build broken) |
+| **Build** | ✅ PASSING (0 errors, 0 warnings) |
+| **CI** | ✅ Pushed to main |
 | **Publish size** | ~173MB uncompressed, ~70MB compressed (win-x64, self-contained, trimmed) |
-| **Branch** | main (trunk-based, uncommitted changes) |
+| **Branch** | main |
 
-### 🔧 Stream J: CRUD Dictation Modes (Status: 95% Complete, UI Fix Required)
+### ✅ Completed Streams
 
-#### ✅ J.1: Core Data Models
-- `DictationMode` (id, title, cloud/local profiles, sort order, IsBuiltIn flag)
-- `DictationProfile` (system prompt, UseLlm, ModelName, Hotkey)
-- `PipelineConfig` (for Ask/Refine/Translate/Note/Chat utility pipelines)
-- `UtilityProfile` (system prompt, ModelName)
-- `DictationModeDefaults` (4 built-in modes: Standard, Prompt, Professional, Raw)
+| Stream | Scope | Status |
+|--------|-------|--------|
+| **A** — Scaffolding | Solution scaffold, build config, publish pipeline | ✅ Complete |
+| **B** — Core Engine | Audio recording, device management, hotkeys, text injection, mute detection | ✅ Complete |
+| **C** — STT & LLM Providers | Deepgram, Gemini Audio, Whisper.net, OpenAI-compatible, Anthropic, Ollama | ✅ Complete |
+| **D** — Pipeline Orchestration | Dictation, Refine, Ask, Translate, Note, Oops pipelines | ✅ Complete |
+| **E** — Data & Security | SettingsManager, ProfileManager, PromptRepository, HistoryManager, MetricsCollector, NoteWriter, SecureStorage, PIIScrubber, ApiKeyValidator, DI wiring | ✅ Complete |
+| **F** — UI (WinUI 3) | Settings (12 tabs including Notes/Chat), Control Panel, Wizard, Loading Screen, Quick Chat overlay, Notifications, Tray icon | ✅ Complete |
+| **G** — Testing & CI/CD | 521 unit tests, GitHub Actions CI (12-step pipeline), coverage tracking | ✅ Complete |
+| **I** — Promoted Features | SnippetManager, AudioDucker, ChatPipeline, OllamaManager | ✅ Complete |
+| **J** — CRUD Dictation Modes | DictationMode/PipelineConfig models, Managers, Migration, Pipeline integration, Per-mode model selection, UI (fixed) | ✅ Complete |
 
-#### ✅ J.2: CRUD Services
-- `DictationModeManager` (GetAll, GetById, GetActiveProfile, Create, Update, Delete, Reorder)
-- `PipelineConfigManager` (GetAll, GetByType, UpdatePipeline)
-- Built-in modes can be edited but not deleted
-- Custom modes fully CRUD-able
+### 📋 Remaining Work (Stream H)
 
-#### ✅ J.3: Settings Migration
-- Auto-populate DictationModes and UtilityPipelines on first run
-- Migrate `ActiveProfile` → `ActiveProfileName` ("Cloud" or "Local")
-- `SettingsMigrationService.MigrateAsync()` handles defaults
+Only **2 tasks** remain before v2.0.0 release:
 
-#### ✅ J.4: Pipeline Integration
-- `LoadingViewModel` uses `DictationModeManager.GetActiveProfile()` for mode-specific settings
-- Pipelines receive mode-specific system prompts and model names
-- Legacy `ProfileManager` marked deprecated but still used in old ModesSettingsPage
+#### H.1: Installer (MSIX or Inno Setup)
+**Effort:** 1 day
+- Package trimmed self-contained output into installer
+- Include sound assets, icon, default prompts
+- Target installer size: ~70MB (compressed)
+- Register auto-start in Windows Task Scheduler
+- **Options:** MSIX (Store-ready) or Inno Setup (traditional)
 
-#### ✅ J.5: LLMRouter Per-Mode Model Support
-- `ModelListService` queries all providers (OpenAI, Anthropic, Gemini, OpenRouter, Ollama)
-- Returns `List<ModelInfo>` with DisplayName, ModelId, Provider
-- `LLMRouter.ProcessWithModelAsync(modelName:)` overload for per-mode model selection
-- Cloud profile can specify different model per dictation mode
+#### H.2: V1 → V2 Migration
+**Effort:** 0.5 day
+- Detect existing V1 installation (`%APPDATA%/diktate/config.json`)
+- Convert V1 settings to V2 AppSettings format
+- Migrate API keys from Electron `safeStorage` to DPAPI
+- Preserve history database (same SQLite schema)
+- Preserve custom prompts, hotkey bindings, privacy settings
+- Show "Welcome to V2" migration summary
 
-#### ⚠️ J.6: UI — Dictation Modes Settings Tab (BROKEN - FIX REQUIRED)
-- **Created:** DictationModesSettingsPage.xaml + DictationModesSettingsViewModel
-- **Issue:** Replaced ModesSettingsPage entirely, losing Ask/Refine/Translate/Note/Chat config
-- **Build Error:** References `_pipelineManager` field that doesn't exist (lines 240, 355)
-- **Hotkey Duplication:** Included hotkey fields that are already in Hotkeys tab
-- **Settings Corruption:** settings.json has wrong data (1 GUID mode instead of 4 built-ins)
+### 🔍 Settings Navigation Structure
 
-#### ✅ J.7: Documentation
-- DEVELOPMENT_ROADMAP.md updated (Stream J marked complete with caveat)
-- MEMORY.md updated with Stream J completion and new gotchas
-- **NEW:** MODES_PAGE_FIX.md created with detailed fix plan
+**Current V2 (Final):**
+- General
+- AI Engine
+- **Modes** (Ask, Refine, Translate only)
+- **Dictation Presets** (Standard, Prompt, Professional, Raw + custom CRUD)
+- **Notes** (file path, timestamp, LLM processing, system prompts)
+- **Chat** (UI customization, forget-on-close, system prompts)
+- Audio
+- Hotkeys
+- Privacy
+- API Keys
+- Ollama
+- Snippets
+- Control Panel
+- About
 
-### 📋 Next Steps (Priority Order)
+**Total:** 14 settings tabs (up from V1's 9)
 
-#### 1. **IMMEDIATE: Fix J.6 UI Issues** (Phase 1 - This Must Be Done First)
-See [MODES_PAGE_FIX.md](MODES_PAGE_FIX.md) for complete plan. Summary:
+### 🔧 Technical Highlights
 
-1. Fix build failures in DictationModesSettingsViewModel (remove `_pipelineManager` references)
-2. Revert SettingsWindow navigation "modes" tag back to ModesSettingsPage
-3. Add "Dictation Modes" navigation item to SettingsWindow.xaml
-4. Remove hotkey fields from DictationModesSettingsPage (XAML + ViewModel)
-5. Update ModesSettingsPage to show only Ask/Refine/Translate (remove Note/Chat from sidebar)
-6. Delete `C:\Users\gecko\AppData\Roaming\DiktaMe\settings.json` to trigger migration
-7. Fix model dropdown dispatcher issue
-8. Verify 521 tests still pass
+#### Stream J Architecture
+- **DictationMode** - User-creatable presets with dual profiles (Cloud/Local)
+- **PipelineConfig** - Fixed utility pipelines (Ask, Refine, Translate, Note, Chat)
+- **DictationModeManager** - Full CRUD (Create, Read, Update, Delete, Reorder)
+- **PipelineConfigManager** - Update-only (no create/delete)
+- **ModelListService** - Live API model discovery from 5 providers:
+  - OpenAI, Anthropic, Gemini, OpenRouter, Ollama
+  - Filters Ollama (local) from Cloud profile dropdowns
+- **Settings Migration** - Auto-populate defaults on first run
+- **Per-Mode Model Selection** - Cloud profiles can specify different models per preset
 
-#### 2. **Create Note and Chat Settings Pages** (Phase 2 - Future Task)
-- Create NotesSettingsPage + ViewModel (V1 had this)
-  - File path with Browse button
-  - LLM Processing toggle
-  - Timestamp format input
-  - Note System Prompt editor
-  - Live preview
-- Create ChatSettingsPage + ViewModel (new for V2)
-  - Chat configuration options (TBD)
-- Add navigation items for both
-- Consider migrating Note/Chat out of UtilityPipelines array
-
-#### 3. **Work Stream H — Distribution**
-- H.1: Installer (MSIX or Inno Setup)
-- H.2: V1 Migration
+#### Notes & Chat Pages
+- **NoteSettings** record: FilePath, UseLlmProcessing, TimestampFormat
+- **ChatSettings** record: FontSize, ForgetOnClose, MaxHistoryMessages, WindowOpacity, ShowTimestamps, EnableMarkdown, Theme
+- Both pages have dual-profile system prompt editors
+- Live preview for Notes timestamp format
+- WinUI FileSavePicker for file path selection
 
 ### 🔍 Key Context
 
-#### Architecture
-- **ARCHITECTURE.md** — Complete architectural spec (14 sections, up to date)
+#### Architecture Docs
+- **ARCHITECTURE.md** — Complete architectural spec (14 sections)
 - **DEVELOPMENT_ROADMAP.md** — Full task breakdown with V1 "Port from" references
-- **MODES_PAGE_FIX.md** — Fix plan for current UI issues
-- **ci/DECISIONS.md** — All CI rule suppressions with rationale and revisit conditions
-
-#### Settings Navigation Structure
-
-**Current V2 (BROKEN):**
-- General, Hotkeys, AI Engine, **Modes** (broken - shows DictationModesSettingsPage), Audio, Privacy, API Keys, Ollama, Snippets, Control Panel, About
-
-**After Phase 1 Fix:**
-- General, Hotkeys, AI Engine, **Modes** (Ask/Refine/Translate only), **Dictation Modes** (Standard/Prompt/Professional/Raw + custom), Audio, Privacy, API Keys, Ollama, Snippets, Control Panel, About
-
-**After Phase 2 (Future):**
-- General, Hotkeys, AI Engine, **Modes** (Ask/Refine/Translate), **Dictation Modes** (CRUD), **Notes** (file config + prompt), **Chat** (TBD), Audio, Privacy, API Keys, Ollama, Snippets, Control Panel, About
-
-**V1 Reference:**
-- General, Audio, **Modes**, **Notes**, Control Panel, Ollama, API Keys, Privacy, About
+- **MODES_PAGE_FIX.md** — Historical record of J.6 fix plan (now resolved)
+- **ci/DECISIONS.md** — All CI rule suppressions with rationale
 
 #### Build & Test Commands
 ```bash
-# WILL FAIL until Phase 1 fix is complete
-dotnet build DiktaMe.sln -c Release          # Currently FAILS (3 errors)
-dotnet test DiktaMe.sln                       # Cannot run (build broken)
-
-# After fix:
-dotnet build DiktaMe.sln -c Release          # Should: 0 errors, 0 warnings
-dotnet test DiktaMe.sln                       # Should: 521 tests pass
+dotnet build DiktaMe.sln -c Release          # 0 errors, 0 warnings
+dotnet test DiktaMe.sln                       # 521 tests pass
 publish-release.cmd                           # Trimmed self-contained win-x64
 ```
 
@@ -166,83 +150,109 @@ Restore → Lint → Build → Test → Test-count threshold → Secret scan →
 #### Key Files
 | File | Purpose |
 |------|---------|
-| `MODES_PAGE_FIX.md` | **NEW:** Step-by-step fix plan for J.6 UI issues |
 | `Directory.Build.props` | Shared build config (C# 12, nullable, TreatWarningsAsErrors) |
 | `.editorconfig` | Code style rules (Meziantou.Analyzer + naming) |
 | `global.json` | SDK pin to 8.0.418 (dotnet format consistency) |
 | `.gitleaks.toml` | Allowlist for test-fixture false positive |
-| `ci/test-threshold.json` | Minimum test count (521 after J.1-J.5) + publish size bounds |
+| `ci/test-threshold.json` | Minimum test count (521) + publish size bounds |
 | `ci/DECISIONS.md` | CI suppression rationale |
 
-#### Git Status (Uncommitted Changes)
-**Modified files:**
-- `DEVELOPMENT_ROADMAP.md` (Stream J marked complete)
-- `src/DiktaMe.App/App.xaml.cs` (DictationModeManager DI registration)
-- `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` (Uses CRUD system)
-- `src/DiktaMe.App/Views/SettingsWindow.xaml.cs` (Points to DictationModesSettingsPage - needs revert)
-- `src/DiktaMe.Core/Config/AppSettings.cs` (DictationModes + UtilityPipelines arrays)
-- `src/DiktaMe.Core/Config/SettingsManager.cs` (Migration logic)
-- Multiple pipeline files (mode-specific options)
-- Multiple test files (521 tests now)
+### 📝 Manual Testing Checklist
 
-**New files:**
-- `src/DiktaMe.Core/Config/DictationMode.cs`
-- `src/DiktaMe.Core/Config/PipelineConfig.cs`
-- `src/DiktaMe.Core/Config/DictationModeDefaults.cs`
-- `src/DiktaMe.Core/Config/DictationModeManager.cs`
-- `src/DiktaMe.Core/Config/PipelineConfigManager.cs`
-- `src/DiktaMe.Core/Config/PromptDefaults.cs`
-- `src/DiktaMe.Core/LLM/ModelInfo.cs`
-- `src/DiktaMe.Core/LLM/ModelListService.cs`
-- `src/DiktaMe.App/ViewModels/Settings/DictationModesSettingsViewModel.cs` (BROKEN)
-- `src/DiktaMe.App/Views/Settings/DictationModesSettingsPage.xaml` (BROKEN)
-- `src/DiktaMe.App/Views/Settings/DictationModesSettingsPage.xaml.cs`
-- `tests/DiktaMe.Core.Tests/Config/DictationModeDefaultsTests.cs`
-- `tests/DiktaMe.Core.Tests/Config/DictationModeManagerTests.cs`
-- `tests/DiktaMe.Core.Tests/Config/PromptDefaultsTests.cs`
-- `tests/DiktaMe.Core.Tests/LLM/ModelListServiceTests.cs`
-- `MODES_PAGE_FIX.md`
+Before release, verify:
 
-**DO NOT COMMIT** until Phase 1 fix is complete and build passes.
+**Dictation Presets:**
+- [ ] Create custom preset
+- [ ] Edit built-in preset (Standard/Prompt/Professional/Raw)
+- [ ] Delete custom preset (built-ins should be disabled)
+- [ ] Reorder presets (drag or Move Up/Down)
+- [ ] Select different models per preset (Cloud profile only)
+- [ ] Verify presets persist after app restart
 
-#### Known Issues / Tech Debt
-- **CRITICAL:** Build currently fails (J.6 UI implementation incomplete)
-- **CRITICAL:** settings.json corrupted (delete to trigger migration)
+**Notes Page:**
+- [ ] Browse and select file path
+- [ ] Toggle LLM Processing on/off
+- [ ] Change timestamp format
+- [ ] Verify live preview updates
+- [ ] Edit Cloud system prompt
+- [ ] Edit Local system prompt
+- [ ] Save and verify settings persist
+
+**Chat Page:**
+- [ ] Adjust font size slider
+- [ ] Adjust window opacity
+- [ ] Switch theme (System/Light/Dark)
+- [ ] Toggle Forget on Close
+- [ ] Set max history messages
+- [ ] Toggle timestamps and markdown
+- [ ] Edit system prompts
+- [ ] Save and verify settings persist
+
+**Model Dropdown:**
+- [ ] Verify Cloud profile shows only cloud models (no Ollama)
+- [ ] Verify local models don't appear in Cloud dropdown
+- [ ] Verify model list populates (not just "(Default)")
+
+**Settings Migration:**
+- [ ] Delete `C:\Users\gecko\AppData\Roaming\DiktaMe\settings.json`
+- [ ] Restart app
+- [ ] Verify 4 dictation presets populate (Standard, Prompt, Professional, Raw)
+- [ ] Verify 5 utility pipelines populate (ask, refine, translate, note, chat)
+
+### ⚠️ Known Issues / Tech Debt
+
 - `TextInjectorTests` uses real Win32 clipboard — tagged `[Trait("Category","Hardware")]`, excluded from CI
 - No streaming LLM responses yet — `IAsyncEnumerable<string>` deferred to V2.1
 - No Voice Activity Detection (VAD) — hands-free mode deferred to V2.1
-- Legacy `ProfileManager` and `PromptRepository` marked deprecated but still used in old ModesSettingsPage
+- Legacy `ProfileManager` and `PromptRepository` marked deprecated but still used in ModesSettingsPage (can be refactored post-release)
 
-#### Shell Gotchas (Windows + Bash)
+### 🎯 Next Session Goals
+
+1. **Manual Testing** - Test Notes and Chat pages thoroughly
+2. **Installer** (H.1) - Choose MSIX or Inno Setup, package release build
+3. **Migration** (H.2) - Implement V1 → V2 settings migration
+4. **Tag v2.0.0** - Create release tag when H.1 + H.2 complete
+
+### 🏷️ Tags
+
+**Current:** No release tags yet
+**Next:** `v2.0.0-rc1` → `v2.0.0` (after H.1 + H.2 complete)
+
+### 🔧 Shell Gotchas (Windows + Bash)
+
 - PowerShell `$_` gets mangled by bash — use `powershell -NoProfile -File -` with heredoc
 - `/p:Platform=x64` needs quoting as `"-p:Platform=x64"` in bash
 - `global.json` pins SDK to 8.0.418 — `windows-latest` has .NET 10 pre-installed which has different `dotnet format` rules
 
-#### Namespace Gotcha
+### 🧩 Namespace Gotcha
+
 - Never use `DiktaMe.Core.System` as a namespace — shadows BCL `System`. Actual namespace is `DiktaMe.Core.SystemManagement`, folder is `System/`.
 
-#### WinUI 3 XAML Gotchas
+### 🎨 WinUI 3 XAML Gotchas
+
 - `x:Bind` is NOT supported on `Run.Text` — XAML compiler silently crashes
 - `InfoBar.ActionButton` must be a single `ButtonBase`, not a StackPanel
 - Converter keys in SharedResources.xaml: Use `BoolToVis`, `InverseBoolToVis`, `BoolNeg`, `NullToVis`
 - Cross-thread ObservableCollection updates: Must use `DispatcherQueue.TryEnqueue()`
+- ViewModels must be retrieved from DI in code-behind, not instantiated in XAML
 
-### 🚨 Critical Reminder for Next Developer
+### 🧪 Test Gotchas
 
-**DO NOT PROCEED with any new features until Phase 1 fix is complete:**
+- Moq expression trees cannot use optional parameters (CS0854) — must pass `It.IsAny<CancellationToken>()` explicitly
+- TextInjectorTests + ClipboardManagerTests: Fixed via `[Collection("Clipboard")]` with `DisableParallelization = true`
+- `LLMRouter.ProcessAsync(text, prompt, modelName)` is ambiguous with `ProcessAsync(text, prompt, mode)` — always use named parameter `modelName:`
 
-1. Read [MODES_PAGE_FIX.md](MODES_PAGE_FIX.md) thoroughly
-2. Fix the build failures step-by-step
-3. Verify all 521 tests pass
-4. Delete corrupted settings.json and restart app to trigger migration
-5. Manually test: Settings → Modes (Ask/Refine/Translate), Settings → Dictation Modes (CRUD)
-6. Only then commit and push
+### 📦 Latest Commit
 
-**Estimated Time:** 2-3 hours for Phase 1 fix (straightforward but requires care)
+**Commit:** `9834d79` - `feat(settings): add Notes and Chat pages, fix J.6 build failures [J.6-fix]`
+- 47 files changed, 5,581 insertions, 87 deletions
+- All J.6 issues resolved
+- Notes and Chat settings pages fully implemented
+- Build: 0 errors, 0 warnings
+- Tests: 521 passing
 
-### 🏷️ Tags Due
-Tag v2.0.0-beta.1 AFTER Phase 1 fix is complete and CI is green:
-```bash
-git tag -a v2.0.0-beta.1 -m "beta.1: Stream J complete (CRUD Dictation Modes)"
-git push origin v2.0.0-beta.1
-```
+### 🚀 Ready for Final Sprint
+
+All core functionality is complete. Only installer and migration remain. The project is **production-ready** pending final packaging and migration implementation.
+
+**Estimated Time to v2.0.0:** 1.5 days
