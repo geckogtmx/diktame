@@ -1,10 +1,30 @@
 # dIKta.me V2 — Manual Test Plan (Journey-Based)
 
-**Date:** 2026-02-19 (Revised)
+**Date:** 2026-02-25 (Updated)
 **Purpose:** Comprehensive end-to-end testing following complete user journeys
 **Approach:** Each journey follows one configuration path from setup to completion
-**Total Journeys:** 4 core paths + cross-cutting tests
-**Time Estimate:** 12-16 hours total
+**Total Journeys:** 5 core paths + cross-cutting tests + audio feeder automation
+**Time Estimate:** 15-19 hours total (updated for new settings pages)
+
+**Recent Changes (2026-02-25):**
+- Added Journey 5: Comprehensive Settings Verification (all 14 tabs)
+- Added 130+ new test scenarios for Dictation Presets, Notes, and Chat settings
+- Settings tabs expanded from 10 to 14 (Modes split, plus Notes and Chat pages)
+- Added CRUD testing for dictation presets with live model discovery
+- Added Chat window feature verification (font size, opacity, forget-on-close, markdown)
+- Added Notes pipeline integration testing (custom file path, timestamp format)
+- Total test count: ~280 scenarios (up from ~125)
+
+**Time Breakdown:**
+- Journey 1 (Cloud/Deepgram): ~3 hours
+- Journey 2 (Gemini): ~1.5 hours
+- Journey 3 (Local/Ollama): ~2 hours
+- Journey 4 (Hybrid/Skip LLM): ~1 hour
+- Journey 5 (Settings): ~2 hours
+- Cross-Cutting: ~1 hour
+- Audio Feeder: ~3-5 hours (setup + runs)
+- Bug fixes: ~4-8 hours (estimated)
+- **Total:** 18-28 hours
 
 ---
 
@@ -69,15 +89,68 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 ## 1.3: Settings Configuration (Cloud Path)
 
+### General Settings
 - [ ] **1.3.1** Settings → General → Enable trailing space → Dictate → text ends with space
 - [ ] **1.3.2** Settings → General → Disable trailing space → Dictate → no space
 - [ ] **1.3.3** Settings → General → Additional Key = **Enter** → Dictate → text + Enter
 - [ ] **1.3.4** Settings → General → Additional Key = **Tab** → Dictate → text + Tab
 - [ ] **1.3.5** Settings → General → Additional Key = **None**
+
+### Audio Settings
 - [ ] **1.3.6** Settings → Audio → Enable ducking → Play music → Dictate → music volume drops
 - [ ] **1.3.7** Settings → Audio → Disable ducking → Dictate → music unchanged
 - [ ] **1.3.8** Settings → Audio → Set max duration = 10s → Hold hotkey 15s → stops at 10s
-- [ ] **1.3.9** Verify settings persist: Restart app → Settings still correct
+
+### Modes Settings (Utility Pipelines)
+- [ ] **1.3.9** Settings → Modes → Verify only 3 modes visible: Ask, Refine, Translate
+- [ ] **1.3.10** Settings → Modes → Select "Ask" → Edit system prompt → Save
+- [ ] **1.3.11** Settings → Modes → Select "Refine" → Edit system prompt → Save
+- [ ] **1.3.12** Settings → Modes → Select "Translate" → Edit system prompt → Save
+- [ ] **1.3.13** Verify Note and Chat modes NOT shown in Modes page
+
+### Dictation Presets (CRUD)
+- [ ] **1.3.14** Settings → Dictation Presets → Verify 4 built-in presets: Standard, Prompt, Professional, Raw
+- [ ] **1.3.15** Select "Standard" preset → Edit Cloud system prompt → Save → Verify persists
+- [ ] **1.3.16** Select "Standard" preset → Model dropdown shows "(Default)" + 30+ models
+- [ ] **1.3.17** Select "Standard" preset → Verify NO Ollama models in Cloud profile dropdown
+- [ ] **1.3.18** Select "Standard" preset → Change model to "gpt-4o (OpenAI)" → Save
+- [ ] **1.3.19** Click "Add Preset" → Enter name "My Custom Preset" → Save
+- [ ] **1.3.20** Select custom preset → Edit prompts → Save → Verify persists
+- [ ] **1.3.21** Try to delete built-in preset → Verify delete button disabled
+- [ ] **1.3.22** Delete custom preset → Verify removed from sidebar
+- [ ] **1.3.23** Verify NO hotkey fields visible (hotkeys managed in Hotkeys tab)
+- [ ] **1.3.24** Restart app → Verify custom preset and changes persist
+
+### Notes Settings
+- [ ] **1.3.25** Settings → Notes → Verify default file path = `%USERPROFILE%\Documents\diktame-notes.md`
+- [ ] **1.3.26** Click "Browse" → FileSavePicker appears → Select new path → Path updates
+- [ ] **1.3.27** Toggle "LLM Processing" off → Save
+- [ ] **1.3.28** Change timestamp format to "dd/MM/yyyy HH:mm" → Live preview updates immediately
+- [ ] **1.3.29** Change timestamp format to invalid format → Preview shows error or DateTime.Now
+- [ ] **1.3.30** Edit Cloud system prompt → Save
+- [ ] **1.3.31** Edit Local system prompt → Save
+- [ ] **1.3.32** Click "Reset to Defaults" → All fields revert to defaults
+- [ ] **1.3.33** Restart app → Verify all Notes settings persist
+
+### Chat Settings
+- [ ] **1.3.34** Settings → Chat → Font size slider: drag to 18pt → Value displays "18"
+- [ ] **1.3.35** Window opacity slider: drag to 0.8 → Value displays "0.8"
+- [ ] **1.3.36** Theme: select "Light" → Save
+- [ ] **1.3.37** Theme: select "Dark" → Save
+- [ ] **1.3.38** Theme: select "System" → Save
+- [ ] **1.3.39** Toggle "Forget on Close" on → Save
+- [ ] **1.3.40** Set max history messages to 50 → Save
+- [ ] **1.3.41** Toggle "Show Timestamps" on → Save
+- [ ] **1.3.42** Toggle "Enable Markdown" on → Save
+- [ ] **1.3.43** Edit Cloud system prompt → Save
+- [ ] **1.3.44** Edit Local system prompt → Save
+- [ ] **1.3.45** Click "Reset to Defaults" → All fields revert
+- [ ] **1.3.46** Restart app → Verify all Chat settings persist
+
+### Settings Persistence
+- [ ] **1.3.47** Verify settings.json has correct structure: 4 DictationModes + 5 UtilityPipelines
+- [ ] **1.3.48** Verify: `.\test-helpers\Verify-AppSettings.ps1 -SettingPath "Note.UseLlmProcessing"`
+- [ ] **1.3.49** Verify: `.\test-helpers\Verify-AppSettings.ps1 -SettingPath "Chat.ForgetOnClose"`
 
 ## 1.4: Advanced Modes (Deepgram + LLM)
 
@@ -101,8 +174,11 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 ### Note Mode
 - [ ] **1.4.13** Press Ctrl+Alt+N, say "Remember to test snippets", release
-- [ ] **1.4.14** Check `%USERPROFILE%\Documents\diktame-notes.md` has timestamp + note
-- [ ] **1.4.15** Verify: `.\test-helpers\Verify-FileSystem.ps1 -Path "%USERPROFILE%\Documents\diktame-notes.md" -Type File`
+- [ ] **1.4.14** Check file at path from Notes settings has timestamp + note
+- [ ] **1.4.15** Verify timestamp matches format from Notes settings
+- [ ] **1.4.16** If LLM Processing enabled in Notes settings, verify text is formatted
+- [ ] **1.4.17** If LLM Processing disabled, verify raw transcription saved
+- [ ] **1.4.18** Verify: `.\test-helpers\Verify-FileSystem.ps1 -Path "%USERPROFILE%\Documents\diktame-notes.md" -Type File`
 
 ### Oops Mode
 - [ ] **1.4.16** Dictate "test text" → injected
@@ -111,10 +187,16 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 ### Quick Chat
 - [ ] **1.4.19** Press Ctrl+Alt+C → QuickChatWindow appears (always-on-top)
-- [ ] **1.4.20** Type "What is the capital of Spain" → Click Send → "Madrid" appears
-- [ ] **1.4.21** Click Mic button, say "What is 5 plus 5", release → "10" appears
-- [ ] **1.4.22** Press Esc → Window closes
-- [ ] **1.4.23** Press Ctrl+Alt+C again → Window opens fresh (no history)
+- [ ] **1.4.20** Verify font size matches Chat settings (default 14pt or custom)
+- [ ] **1.4.21** Verify window opacity matches Chat settings (default 1.0 or custom)
+- [ ] **1.4.22** Type "What is the capital of Spain" → Click Send → "Madrid" appears
+- [ ] **1.4.23** Click Mic button, say "What is 5 plus 5", release → "10" appears
+- [ ] **1.4.24** Verify timestamps shown/hidden per Chat settings
+- [ ] **1.4.25** If markdown enabled, type "**bold** and `code`" → Verify formatted
+- [ ] **1.4.26** Press Esc → Window closes
+- [ ] **1.4.27** If "Forget on Close" enabled → Press Ctrl+Alt+C → No history
+- [ ] **1.4.28** If "Forget on Close" disabled → Press Ctrl+Alt+C → History persists
+- [ ] **1.4.29** Test max history limit: Send (limit + 5) messages → Only last (limit) shown
 
 ## 1.5: Voice Snippets (Cloud Path)
 
@@ -307,6 +389,184 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 ---
 
+# Journey 5: Comprehensive Settings Verification
+
+**Configuration:** Any working setup (Cloud or Local)
+**Duration:** ~2 hours
+**Goal:** Systematically verify all 14 settings tabs and persistence
+
+**Prerequisites:**
+- Complete Journey 1, 2, or 3 first (need working API keys)
+- App is running and configured
+
+## 5.1: General Settings Tab
+- [ ] **5.1.1** Settings → General → Verify trailing space toggle works
+- [ ] **5.1.2** Verify additional key dropdown (None/Enter/Tab)
+- [ ] **5.1.3** Enable auto-start → Verify Task Scheduler entry
+- [ ] **5.1.4** Disable auto-start → Verify entry removed
+- [ ] **5.1.5** Change language (if available) → UI updates
+
+## 5.2: AI Engine Tab
+- [ ] **5.2.1** Settings → AI Engine → Verify Cloud/Local toggle
+- [ ] **5.2.2** Cloud: Select different STT provider → Save
+- [ ] **5.2.3** Cloud: Select different LLM provider → Save
+- [ ] **5.2.4** Local: Verify Whisper model selection
+- [ ] **5.2.5** Local: Verify Ollama connection status
+
+## 5.3: Modes Tab (Utility Pipelines Only)
+- [ ] **5.3.1** Settings → Modes → Verify sidebar shows: Ask, Refine, Translate
+- [ ] **5.3.2** Verify Note and Chat NOT in list (have dedicated pages)
+- [ ] **5.3.3** Select Ask → Edit Cloud prompt → Save → Verify persists
+- [ ] **5.3.4** Select Ask → Edit Local prompt → Save → Verify persists
+- [ ] **5.3.5** Select Refine → Verify both profiles editable
+- [ ] **5.3.6** Select Translate → Verify both profiles editable
+- [ ] **5.3.7** Test Ask mode → Verify uses edited prompt
+
+## 5.4: Dictation Presets Tab (CRUD)
+- [ ] **5.4.1** Settings → Dictation Presets → Verify 4 built-ins: Standard, Prompt, Professional, Raw
+- [ ] **5.4.2** Select Standard → Verify Cloud system prompt field
+- [ ] **5.4.3** Select Standard → Verify Local system prompt field
+- [ ] **5.4.4** Select Standard → Verify model dropdown (Cloud profile only)
+- [ ] **5.4.5** Verify model dropdown shows: "(Default)" + 30+ models from APIs
+- [ ] **5.4.6** Verify NO Ollama models in Cloud dropdown (only OpenAI, Anthropic, Gemini, OpenRouter)
+- [ ] **5.4.7** Change Cloud model to "gpt-4o (OpenAI)" → Save
+- [ ] **5.4.8** Restart app → Verify model selection persists
+- [ ] **5.4.9** Click "Add Preset" → Enter "Test Preset" → Save
+- [ ] **5.4.10** Select "Test Preset" → Edit prompts → Save
+- [ ] **5.4.11** Verify custom preset persists after restart
+- [ ] **5.4.12** Select built-in preset → Verify Delete button disabled
+- [ ] **5.4.13** Select custom preset → Click Delete → Confirm → Preset removed
+- [ ] **5.4.14** Verify NO hotkey fields (managed in Hotkeys tab)
+- [ ] **5.4.15** Create 3 custom presets → Verify all saved
+- [ ] **5.4.16** Delete all custom presets → Only built-ins remain
+
+## 5.5: Notes Settings Tab
+- [ ] **5.5.1** Settings → Notes → Verify default path = `%USERPROFILE%\Documents\diktame-notes.md`
+- [ ] **5.5.2** Click "Browse" → FileSavePicker opens (WinUI, not WPF)
+- [ ] **5.5.3** Select new file path → Path field updates
+- [ ] **5.5.4** Verify "LLM Processing" toggle (default: enabled)
+- [ ] **5.5.5** Verify timestamp format field (default: "yyyy-MM-dd HH:mm:ss")
+- [ ] **5.5.6** Change timestamp to "dd/MM/yyyy HH:mm" → Live preview updates immediately
+- [ ] **5.5.7** Verify preview shows current time in chosen format
+- [ ] **5.5.8** Change to invalid format "INVALID" → Preview shows DateTime.Now or error
+- [ ] **5.5.9** Verify Cloud system prompt editor (multiline TextBox)
+- [ ] **5.5.10** Verify Local system prompt editor (multiline TextBox)
+- [ ] **5.5.11** Edit both prompts → Click Save → Verify persists
+- [ ] **5.5.12** Click "Reset to Defaults" → All fields revert
+- [ ] **5.5.13** Restart app → Verify all changes persist
+- [ ] **5.5.14** Test Note mode → Verify uses configured file path and format
+
+## 5.6: Chat Settings Tab
+- [ ] **5.6.1** Settings → Chat → Verify font size slider (10-24pt, default 14pt)
+- [ ] **5.6.2** Drag font size to 18 → Value displays "18"
+- [ ] **5.6.3** Verify window opacity slider (0.5-1.0, default 1.0)
+- [ ] **5.6.4** Drag opacity to 0.7 → Value displays "0.7"
+- [ ] **5.6.5** Verify theme dropdown: System, Light, Dark
+- [ ] **5.6.6** Select "Light" → Save
+- [ ] **5.6.7** Verify "Forget on Close" toggle (privacy mode)
+- [ ] **5.6.8** Enable "Forget on Close" → Save
+- [ ] **5.6.9** Verify max history messages NumberBox (default 100, 0=unlimited)
+- [ ] **5.6.10** Set max history to 25 → Save
+- [ ] **5.6.11** Verify "Show Timestamps" toggle
+- [ ] **5.6.12** Verify "Enable Markdown" toggle
+- [ ] **5.6.13** Edit Cloud system prompt → Save
+- [ ] **5.6.14** Edit Local system prompt → Save
+- [ ] **5.6.15** Click "Reset to Defaults" → All revert
+- [ ] **5.6.16** Save custom config → Restart → Verify persists
+- [ ] **5.6.17** Open Quick Chat → Verify font size matches settings
+- [ ] **5.6.18** Open Quick Chat → Verify opacity matches settings
+- [ ] **5.6.19** Close Quick Chat → If "Forget on Close", verify history cleared
+- [ ] **5.6.20** Test max history: Send 30 messages → Only last 25 shown (from 5.6.10)
+
+## 5.7: Audio Settings Tab
+- [ ] **5.7.1** Settings → Audio → Verify input device dropdown
+- [ ] **5.7.2** Verify sample rate dropdown (16kHz/48kHz)
+- [ ] **5.7.3** Verify max recording duration NumberBox
+- [ ] **5.7.4** Set duration to 5 seconds → Save
+- [ ] **5.7.5** Dictate for 10 seconds → Recording stops at 5 seconds
+- [ ] **5.7.6** Verify "Enable Audio Ducking" toggle
+- [ ] **5.7.7** Enable ducking → Set target volume to 20% → Save
+- [ ] **5.7.8** Play music → Dictate → Music drops to ~20% volume
+- [ ] **5.7.9** Disable ducking → Music unaffected during dictation
+
+## 5.8: Hotkeys Settings Tab
+- [ ] **5.8.1** Settings → Hotkeys → Verify all 7 hotkey fields visible
+- [ ] **5.8.2** Verify default Dictate hotkey = Ctrl+Alt+D
+- [ ] **5.8.3** Change Dictate to Ctrl+Shift+D → Save → Test → Works
+- [ ] **5.8.4** Verify Refine, Ask, Translate, Note, Oops, Chat hotkeys
+- [ ] **5.8.5** Change all hotkeys → Save → Test each → All work
+- [ ] **5.8.6** Restart app → Verify all hotkeys persist
+- [ ] **5.8.7** Try duplicate hotkey → Verify error/warning
+- [ ] **5.8.8** Reset to defaults → All revert to Ctrl+Alt+X
+
+## 5.9: Privacy Settings Tab
+- [ ] **5.9.1** Settings → Privacy → Verify 4 levels: Full, Balanced, Stats, Ghost
+- [ ] **5.9.2** Select "Full" → Dictate → Verify verbatim in history.db
+- [ ] **5.9.3** Select "Balanced" → Dictate "test@example.com" → Verify [REDACTED]
+- [ ] **5.9.4** Select "Stats" → Dictate → Verify only count stored
+- [ ] **5.9.5** Select "Ghost" → Dictate → Verify no history entry
+- [ ] **5.9.6** Click "Wipe Data" → Confirm → Verify history.db cleared
+- [ ] **5.9.7** Verify: `.\test-helpers\Verify-HistoryDb.ps1`
+
+## 5.10: API Keys Tab
+- [ ] **5.10.1** Settings → API Keys → Verify Cloud providers listed
+- [ ] **5.10.2** Verify keys are masked (******)
+- [ ] **5.10.3** Click "Show" → Key visible
+- [ ] **5.10.4** Click "Hide" → Key masked again
+- [ ] **5.10.5** Click "Test Connection" on Deepgram → Success
+- [ ] **5.10.6** Click "Test Connection" on LLM → Success
+- [ ] **5.10.7** Enter invalid key → Test → Error message clear
+- [ ] **5.10.8** Update key → Save → Restart → Verify works
+- [ ] **5.10.9** Verify: `.\test-helpers\Verify-SecureStorage.ps1`
+
+## 5.11: Ollama Settings Tab
+- [ ] **5.11.1** Settings → Ollama → Verify health check (if Ollama running)
+- [ ] **5.11.2** Verify Ollama version displayed
+- [ ] **5.11.3** Verify model library lists installed models
+- [ ] **5.11.4** Select different model → Save
+- [ ] **5.11.5** Test dictation → Verify new model used
+- [ ] **5.11.6** Stop Ollama → Health check shows offline
+- [ ] **5.11.7** Start Ollama → Health check shows online
+
+## 5.12: Snippets Settings Tab
+- [ ] **5.12.1** Settings → Snippets → Add snippet: "myemail" → "test@example.com"
+- [ ] **5.12.2** Dictate "Send to myemail" → Expands correctly
+- [ ] **5.12.3** Edit snippet → Changes persist
+- [ ] **5.12.4** Delete snippet → Removed
+- [ ] **5.12.5** Add 5 snippets → All saved
+- [ ] **5.12.6** Restart app → All snippets persist
+- [ ] **5.12.7** Verify: `.\test-helpers\Verify-Snippets.ps1`
+
+## 5.13: Control Panel Settings Tab
+- [ ] **5.13.1** Settings → Control Panel → Verify "Show on Startup" toggle
+- [ ] **5.13.2** Enable "Show on Startup" → Restart → Panel visible
+- [ ] **5.13.3** Disable "Show on Startup" → Restart → Panel hidden
+- [ ] **5.13.4** Verify "Always on Top" toggle
+- [ ] **5.13.5** Enable "Always on Top" → Control Panel stays foreground
+- [ ] **5.13.6** Verify "Show Status" toggle (shows current state)
+
+## 5.14: About Tab
+- [ ] **5.14.1** Settings → About → Verify app version displayed
+- [ ] **5.14.2** Verify copyright/license info
+- [ ] **5.14.3** Verify links (GitHub, docs) are clickable
+- [ ] **5.14.4** Click GitHub link → Opens in browser
+
+## 5.15: Settings Persistence & Migration
+- [ ] **5.15.1** Make changes to all 14 tabs → Save all
+- [ ] **5.15.2** Restart app → Verify all changes persist
+- [ ] **5.15.3** Check settings.json structure:
+  - 4 DictationModes (standard, prompt, professional, raw)
+  - 5 UtilityPipelines (ask, refine, translate, note, chat)
+- [ ] **5.15.4** Verify: `.\test-helpers\Get-AppState.ps1`
+- [ ] **5.15.5** Delete settings.json → Restart → Verify defaults populate
+- [ ] **5.15.6** Verify migration creates 4 modes + 5 pipelines automatically
+
+## 5.16: Journey 5 Complete ✅
+
+**Summary:** All 14 settings tabs verified, CRUD operations tested, persistence confirmed
+
+---
+
 # Cross-Cutting Tests (All Journeys)
 
 **These tests apply regardless of configuration**
@@ -407,12 +667,22 @@ Format: `- [ ] [ID] Description`
 - [ ] Journey 2: Cloud (Gemini Audio) + Gemini LLM ✅
 - [ ] Journey 3: Local (Whisper) + Ollama ✅
 - [ ] Journey 4: Hybrid (Cloud STT + Skip LLM) ✅
+- [ ] Journey 5: Comprehensive Settings Verification (14 tabs) ✅
 - [ ] Cross-Cutting Tests ✅
 - [ ] Audio Feeder Automation ✅
 
 **Total Time:** ___ hours
 **Bugs Found:** ___ critical, ___ important, ___ minor
 **Success Rate:** ___% scenarios passed
+**Settings Tabs Verified:** ___/14
+
+**New Features Tested (2026-02-25):**
+- [ ] Dictation Presets CRUD (create, edit, delete, reorder)
+- [ ] Live model discovery from 5 APIs (OpenAI, Anthropic, Gemini, OpenRouter, Ollama)
+- [ ] Notes settings (file path, timestamp format, LLM processing)
+- [ ] Chat settings (font size, opacity, theme, forget-on-close, markdown)
+- [ ] Ollama filter in Cloud profile (local models excluded)
+- [ ] Settings migration (auto-populate 4 modes + 5 pipelines)
 
 ---
 
