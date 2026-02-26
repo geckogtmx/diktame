@@ -30,6 +30,8 @@ public sealed partial class LoadingViewModel : ObservableObject
 
     private AudioRecorder? _currentRecorder;
     private CancellationTokenSource? _recordingCts;
+    private DispatcherQueue? _uiDispatcher;
+    private bool _isRecording;
 
     public event Action? LoadingComplete;
 
@@ -113,6 +115,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             Log.Information("Starting hotkey initialization...");
 
+            // Capture UI dispatcher while we're on the UI thread —
+            // OnHotkeyPressed fires on the message-pump thread where
+            // DispatcherQueue.GetForCurrentThread() returns null.
+            _uiDispatcher = DispatcherQueue.GetForCurrentThread();
+
             // Start the background message pump
             _hotkeyManager.Start();
             Log.Information("HotkeyManager.Start() completed");
@@ -173,15 +180,28 @@ public sealed partial class LoadingViewModel : ObservableObject
     {
         Log.Information("Hotkey pressed: {Id}", e.Id);
 
-        // Dispatch to UI thread for window operations
-        // Get DispatcherQueue from the current window if available
-        var dispatcherQueue = App.Current.MainWindow?.DispatcherQueue
-            ?? DispatcherQueue.GetForCurrentThread();
+        // Dispatch to UI thread — use the dispatcher captured during init
+        // (this handler fires on the message-pump thread, not the UI thread)
+        var dispatcherQueue = _uiDispatcher;
 
-        dispatcherQueue?.TryEnqueue(() =>
+        if (dispatcherQueue is null)
+        {
+            Log.Error("Hotkey {Id}: UI dispatcher not available — cannot dispatch", e.Id);
+            return;
+        }
+
+        dispatcherQueue.TryEnqueue(() =>
         {
             try
             {
+                // Toggle-stop: if already recording, stop instead of starting a new pipeline
+                if (_isRecording && _currentRecorder is not null)
+                {
+                    Log.Information("Hotkey {Id}: stopping active recording", e.Id);
+                    _ = _currentRecorder.StopRecordingAsync();
+                    return;
+                }
+
                 switch (e.Id)
                 {
                     case HotkeyId.Chat:
@@ -249,14 +269,17 @@ public sealed partial class LoadingViewModel : ObservableObject
         _currentRecorder?.Dispose();
         _currentRecorder = App.Current.Services.GetRequiredService<AudioRecorder>();
 
-        // Subscribe to AutoStopped event (fires when max duration reached)
-        EventHandler<RecordingStoppedEventArgs>? autoStopHandler = null;
-        autoStopHandler = (_, args) =>
+        // Subscribe to both stop events (auto-stop on duration limit, manual stop on toggle)
+        EventHandler<RecordingStoppedEventArgs>? stopHandler = null;
+        stopHandler = (_, args) =>
         {
-            _currentRecorder!.AutoStopped -= autoStopHandler;
+            _currentRecorder!.AutoStopped -= stopHandler;
+            _currentRecorder!.RecordingStopped -= stopHandler;
+            _isRecording = false;
             tcs.TrySetResult(args.FilePath);
         };
-        _currentRecorder.AutoStopped += autoStopHandler;
+        _currentRecorder.AutoStopped += stopHandler;
+        _currentRecorder.RecordingStopped += stopHandler;
 
         // Get audio settings
         var audio = _settings.Current.Audio;
@@ -272,6 +295,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
 
         // Start recording (all params are optional)
+        _isRecording = true;
         _currentRecorder.StartRecording(
             deviceLabel: deviceLabel,
             deviceId: null, // let AudioDeviceManager resolve from label
@@ -305,8 +329,16 @@ public sealed partial class LoadingViewModel : ObservableObject
 
             Log.Information("Dictate: Recording complete, processing...");
 
-            // Get active profile from CRUD system
-            DictationProfile profile = _dictationModes.GetActiveProfile("dictate-standard");
+            // Get active profile from CRUD system (use first available mode)
+            var modes = _dictationModes.GetAllModes();
+            if (modes.Count == 0)
+            {
+                Log.Warning("Dictate: No dictation modes configured");
+                _notifications.ShowToast("Error", "No dictation modes configured", NotificationType.Error);
+                return;
+            }
+
+            DictationProfile profile = _dictationModes.GetActiveProfile(modes[0].Id);
 
             // Build DictationOptions with all required fields
             var options = new DictationOptions

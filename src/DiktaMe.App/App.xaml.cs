@@ -24,6 +24,7 @@ public partial class App : Application
     private TrayIconView? _trayIcon;
     private Views.SettingsWindow? _settingsWindow;
     private Views.QuickChatWindow? _quickChatWindow;
+    private ViewModels.LoadingViewModel? _loadingViewModel;
 
     /// <summary>
     /// Gets the current App instance.
@@ -96,6 +97,7 @@ public partial class App : Application
 
         // Show loading screen and run async initialization
         var loading = new Views.LoadingWindow();
+        _loadingViewModel = loading.ViewModel; // Keep alive — owns hotkey event subscriptions
         loading.Activate();
         loading.StartLoading();
     }
@@ -259,7 +261,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.Settings.SnippetsSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.ControlPanelConfigViewModel>();
         services.AddTransient<ViewModels.WizardViewModel>();
-        services.AddTransient<ViewModels.LoadingViewModel>();
+        services.AddSingleton<ViewModels.LoadingViewModel>();
         services.AddSingleton<ViewModels.QuickChatViewModel>();
     }
 }

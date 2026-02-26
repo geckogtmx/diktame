@@ -20,6 +20,10 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
+    <!-- NAudio (AudioDucker, MMDeviceEnumerator) and Microsoft.Toolkit.Uwp.Notifications
+         (toast notifications) both require COM interop at runtime. The trimmer disables
+         it by default; re-enable so these features work in published builds. -->
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <!-- Suppress trim warnings from third-party assemblies we don't control
          (NAudio, Serilog, WPF/WinForms integration, Notifications, WebView2) -->
     <NoWarn>$(NoWarn);IL2026;IL2104</NoWarn>

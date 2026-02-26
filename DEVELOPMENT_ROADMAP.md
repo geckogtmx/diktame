@@ -1142,8 +1142,9 @@ publish/
 | 🥉 3 | **Conversation memory for Ask mode** | Optional rolling context window (last N exchanges) so follow-up questions feel natural. |
 | 4 | **Command mode** | Voice commands to control the app: "switch to Spanish", "use local model", "open settings". |
 | 5 | **Auto-language detection per-phrase** | Leverage existing `TranscriptionResult.DetectedLanguage` to auto-switch LLM prompts for bilingual users (EN/ES code-switching). Low effort — consider pulling into V2.0 late. |
-| 6 | **Voice Snippets Phase 2** | Dynamic variables (`{{date}}`, `{{clipboard}}`) and cursor placement. |
-| 7 | **Plugin/extension system** | Third-party integrations (Notion, Obsidian, VS Code). V3 territory. |
+| 6 | **Recording mode: Toggle vs Hold-to-Record** | Add a setting to choose between "press to start / press to stop" (current) and "hold to record / release to stop". Requires detecting key-up events in HotkeyManager (Win32 `WM_KEYUP` or `RegisterRawInputDevices`). |
+| 7 | **Voice Snippets Phase 2** | Dynamic variables (`{{date}}`, `{{clipboard}}`) and cursor placement. |
+| 8 | **Plugin/extension system** | Third-party integrations (Notion, Obsidian, VS Code). V3 territory. |
 
 ---
 
