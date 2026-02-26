@@ -1,6 +1,6 @@
 # ✅ Testing Infrastructure Complete
 
-**Date:** 2026-02-19
+**Date:** 2026-02-25 (Updated)
 **Status:** Ready for manual end-to-end testing
 
 ---
@@ -102,16 +102,16 @@ tests/fixtures/downloads/
 | **2. Dictation** | Basic voice-to-text | 1 hour | 20 |
 | **3. Advanced Modes** | All 6 modes + Chat | 1.5 hours | 25 |
 | **4. Audio System** | Hardware integration | 30 min | 10 |
-| **5. Settings** | All 10 tabs | 2 hours | 35 |
+| **5. Settings** | All 14 tabs | 2.5 hours | 40 |
 | **6. Data & Privacy** | Persistence & compliance | 45 min | 12 |
 | **7. System Integration** | OS-level features | 1 hour | 15 |
 | **8. Error Handling** | Edge cases & recovery | 1.5 hours | 18 |
 | **9. Performance** | Non-functional reqs | 30 min | 10 |
 | **10. Audio Feeder** | Real voice testing | 2-5 hours | 5 runs |
 
-**Total Manual:** 9.5 hours (Sections 1-9)
+**Total Manual:** 10 hours (Sections 1-9)
 **Total Automated:** 3-5 hours (Section 10 setup + runs)
-**Total with Fixes:** 18-28 hours
+**Total with Fixes:** 19-29 hours
 
 ---
 
@@ -242,15 +242,19 @@ All testing artifacts are **gitignored** and won't appear in commits:
 ### Immediately
 
 1. ✅ **Infrastructure:** All testing documents and scripts are ready
-2. ✅ **MANUAL_TEST_PLAN.md:** Use this as your primary checklist
+2. ✅ **MANUAL_TEST_PLAN.md:** Use this as your primary checklist (needs updating for new tabs)
 3. ✅ **Helper Scripts:** Copy to test-helpers/ and make executable
 
 ### Before Section 1
 
 1. **Review TESTING.md** — Quick overview
 2. **Build the app** — Ensure it compiles with 0 errors
-3. **Run unit tests** — 414 tests should pass
+3. **Run unit tests** — 521 tests should pass
 4. **Delete settings.json** — Reset to first-run state
+5. **Update MANUAL_TEST_PLAN.md** — Add test scenarios for:
+   - Dictation Presets page (CRUD operations, model selection)
+   - Notes page (file path, timestamp, LLM processing)
+   - Chat page (UI settings, forget-on-close, prompts)
 
 ### During Testing (Sections 1-9)
 
@@ -326,5 +330,30 @@ Good luck! 🚀
 ---
 
 **Created:** 2026-02-19
+**Updated:** 2026-02-25 (Stream J + Notes/Chat pages complete)
 **Part of:** dIKta.me V2 Testing Infrastructure
-**Status:** Ready to execute
+**Status:** Infrastructure ready, MANUAL_TEST_PLAN.md needs updating for new features
+
+---
+
+## Updates (2026-02-25)
+
+**New Features Added (NOT YET TESTED):**
+- ⏳ CRUD Dictation Presets page (create, edit, delete, reorder presets)
+- ⏳ Notes settings page (file path, timestamp format, LLM processing, prompts)
+- ⏳ Chat settings page (font size, opacity, theme, forget-on-close, prompts)
+- ⏳ Live model discovery from APIs (OpenAI, Anthropic, Gemini, OpenRouter, Ollama)
+- ⏳ Per-preset model selection (Cloud profiles only)
+
+**Testing Impact:**
+- Settings tabs expanded: 10 → 14 (+4 tabs: Dictation Presets, Notes, Chat, Modes split)
+- Estimated additional test scenarios: +5-10 scenarios
+- Estimated additional testing time: +30-60 minutes
+- Unit tests expanded: 414 → 521 (+107 tests for new features)
+
+**Action Required:**
+- Update MANUAL_TEST_PLAN.md Section 5 (Settings) with new scenarios
+- Test Dictation Presets CRUD functionality
+- Test Notes page file picker and live preview
+- Test Chat page UI settings
+- Verify model dropdown populates correctly from APIs
