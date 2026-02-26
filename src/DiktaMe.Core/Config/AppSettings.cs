@@ -143,6 +143,22 @@ public sealed record NoteSettings
 }
 
 /// <summary>
+/// Sound feedback configuration — per-pipeline sound selection.
+/// Sound stems resolve to WAV files in Assets\Sounds\ (e.g. "a" → "a.wav").
+/// </summary>
+public sealed record SoundSettings
+{
+    /// <summary>Sound played when dictation recording starts.</summary>
+    public string StartSound { get; init; } = "a";
+
+    /// <summary>Sound played when dictation recording stops.</summary>
+    public string StopSound { get; init; } = "a";
+
+    /// <summary>Sound played when utility pipelines (ask/refine/translate/note) start and stop.</summary>
+    public string UtilitySound { get; init; } = "c";
+}
+
+/// <summary>
 /// Chat overlay UI configuration.
 /// </summary>
 public sealed record ChatSettings
@@ -189,6 +205,7 @@ public sealed record AppSettings
     public ControlPanelSettings ControlPanel { get; init; } = new();
     public NoteSettings Note { get; init; } = new();
     public ChatSettings Chat { get; init; } = new();
+    public SoundSettings Sound { get; init; } = new();
 
     /// <summary>
     /// Per-mode settings for 2 profiles.
@@ -252,6 +269,7 @@ public sealed record AppSettings
 [JsonSerializable(typeof(PrivacySettings))]
 [JsonSerializable(typeof(HotkeySettings))]
 [JsonSerializable(typeof(ControlPanelSettings))]
+[JsonSerializable(typeof(SoundSettings))]
 [JsonSerializable(typeof(ModeSettings))]
 [JsonSerializable(typeof(Dictionary<string, ModeSettings>))]
 [JsonSerializable(typeof(DictationMode))]

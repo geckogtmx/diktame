@@ -35,14 +35,71 @@
             <!-- Duck Level Slider -->
             <StackPanel Spacing="4">
                 <TextBlock Text="Duck Level" FontWeight="SemiBold"/>
-                <TextBlock FontSize="12" Opacity="0.6">
-                    <Run Text="Other apps reduced to"/>
-                    <Run Text="{x:Bind ViewModel.DuckLevelPercent, Mode=OneWay}"/>
-                    <Run Text="% volume"/>
-                </TextBlock>
+                <StackPanel Orientation="Horizontal" Spacing="0">
+                    <TextBlock Text="Other apps reduced to " FontSize="12" Opacity="0.6"/>
+                    <TextBlock Text="{x:Bind ViewModel.DuckLevelPercent, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
+                    <TextBlock Text="% volume" FontSize="12" Opacity="0.6"/>
+                </StackPanel>
                 <Slider Minimum="0" Maximum="100" StepFrequency="5"
                         Value="{x:Bind ViewModel.DuckLevelPercent, Mode=TwoWay}"
                         IsEnabled="{x:Bind ViewModel.DuckingEnabled, Mode=OneWay}"/>
+            </StackPanel>
+
+            <!-- Sound Feedback Section -->
+            <TextBlock Text="Sound Feedback" FontSize="20" FontWeight="SemiBold" Margin="0,8,0,0"/>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Enable Sounds" FontWeight="SemiBold"/>
+                <TextBlock Text="Play audio cues when recording starts and stops" FontSize="12" Opacity="0.6"/>
+                <ToggleSwitch IsOn="{x:Bind ViewModel.SoundEnabled, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- Dictate Start Sound -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Dictate Start Sound" FontWeight="SemiBold"/>
+                <TextBlock Text="Played when dictation recording begins" FontSize="12" Opacity="0.6"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ComboBox ItemsSource="{x:Bind ViewModel.AvailableSounds}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedStartSoundIndex, Mode=TwoWay}"
+                              MinWidth="120"
+                              IsEnabled="{x:Bind ViewModel.SoundEnabled, Mode=OneWay}"/>
+                    <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                            Command="{x:Bind ViewModel.PreviewStartSoundCommand}"
+                            IsEnabled="{x:Bind ViewModel.SoundEnabled, Mode=OneWay}"
+                            ToolTipService.ToolTip="Preview"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Dictate Stop Sound -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Dictate Stop Sound" FontWeight="SemiBold"/>
+                <TextBlock Text="Played when dictation recording stops" FontSize="12" Opacity="0.6"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ComboBox ItemsSource="{x:Bind ViewModel.AvailableSounds}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedStopSoundIndex, Mode=TwoWay}"
+                              MinWidth="120"
+                              IsEnabled="{x:Bind ViewModel.SoundEnabled, Mode=OneWay}"/>
+                    <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                            Command="{x:Bind ViewModel.PreviewStopSoundCommand}"
+                            IsEnabled="{x:Bind ViewModel.SoundEnabled, Mode=OneWay}"
+                            ToolTipService.ToolTip="Preview"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Utility Sound -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Utility Sound" FontWeight="SemiBold"/>
+                <TextBlock Text="Played for Ask, Refine, Translate, and Note pipelines" FontSize="12" Opacity="0.6"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ComboBox ItemsSource="{x:Bind ViewModel.AvailableSounds}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedUtilitySoundIndex, Mode=TwoWay}"
+                              MinWidth="120"
+                              IsEnabled="{x:Bind ViewModel.SoundEnabled, Mode=OneWay}"/>
+                    <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                            Command="{x:Bind ViewModel.PreviewUtilitySoundCommand}"
+                            IsEnabled="{x:Bind ViewModel.SoundEnabled, Mode=OneWay}"
+                            ToolTipService.ToolTip="Preview"/>
+                </StackPanel>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

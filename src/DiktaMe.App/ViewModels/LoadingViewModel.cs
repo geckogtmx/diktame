@@ -261,13 +261,19 @@ public sealed partial class LoadingViewModel : ObservableObject
     /// Records audio from the configured input device using event-based async,
     /// with audio ducking and user notifications.
     /// </summary>
-    private Task<string?> RecordAudioAsync(string mode)
+    /// <param name="mode">Display name for logging/toast (e.g. "Dictate", "Ask").</param>
+    /// <param name="isDictate">True for dictation modes (uses start/stop sounds), false for utility (uses utility sound).</param>
+    private Task<string?> RecordAudioAsync(string mode, bool isDictate)
     {
         var tcs = new TaskCompletionSource<string?>();
 
         // Get fresh recorder instance
         _currentRecorder?.Dispose();
         _currentRecorder = App.Current.Services.GetRequiredService<AudioRecorder>();
+
+        // Capture sound settings for the stop handler (which fires on a background thread)
+        var soundSettings = _settings.Current.Sound ?? new();
+        string stopSound = isDictate ? soundSettings.StopSound : soundSettings.UtilitySound;
 
         // Subscribe to both stop events (auto-stop on duration limit, manual stop on toggle)
         EventHandler<RecordingStoppedEventArgs>? stopHandler = null;
@@ -276,6 +282,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             _currentRecorder!.AutoStopped -= stopHandler;
             _currentRecorder!.RecordingStopped -= stopHandler;
             _isRecording = false;
+            _notifications.PlayCustomSound(stopSound);
             tcs.TrySetResult(args.FilePath);
         };
         _currentRecorder.AutoStopped += stopHandler;
@@ -302,7 +309,10 @@ public sealed partial class LoadingViewModel : ObservableObject
             maxDurationSeconds: maxDuration);
 
         Log.Information("{Mode}: Recording started (max {MaxSec}s)", mode, maxDuration);
-        _notifications.ShowToast("Recording", $"{mode} - speak now...", NotificationType.Info);
+
+        // Play start sound (after recording has begun)
+        string startSound = isDictate ? soundSettings.StartSound : soundSettings.UtilitySound;
+        _notifications.PlayCustomSound(startSound);
 
         return tcs.Task;
     }
@@ -316,7 +326,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Starting Dictate pipeline...");
 
             // Record audio (waits for auto-stop event)
-            string? audioFile = await RecordAudioAsync("Dictate");
+            string? audioFile = await RecordAudioAsync("Dictate", isDictate: true);
             if (audioFile == null)
             {
                 Log.Warning("Dictate: No audio file produced");
@@ -365,7 +375,6 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (result.IsSuccess)
             {
                 Log.Information("Dictate: Success, {Chars} chars injected", result.Text.Length);
-                _notifications.PlaySound(NotificationType.Success);
             }
             else
             {
@@ -393,7 +402,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Starting Refine pipeline...");
 
             // Record audio (waits for auto-stop event)
-            string? audioFile = await RecordAudioAsync("Refine");
+            string? audioFile = await RecordAudioAsync("Refine", isDictate: false);
             if (audioFile == null)
             {
                 Log.Warning("Refine: No audio file produced");
@@ -431,7 +440,6 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (result.IsSuccess)
             {
                 Log.Information("Refine: Success, {Chars} chars", result.Text.Length);
-                _notifications.PlaySound(NotificationType.Success);
             }
             else
             {
@@ -459,7 +467,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Starting Ask pipeline...");
 
             // Record audio (waits for auto-stop event)
-            string? audioFile = await RecordAudioAsync("Ask");
+            string? audioFile = await RecordAudioAsync("Ask", isDictate: false);
             if (audioFile == null)
             {
                 Log.Warning("Ask: No audio file produced");
@@ -519,7 +527,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Starting Translate pipeline...");
 
             // Record audio (waits for auto-stop event)
-            string? audioFile = await RecordAudioAsync("Translate");
+            string? audioFile = await RecordAudioAsync("Translate", isDictate: false);
             if (audioFile == null)
             {
                 Log.Warning("Translate: No audio file produced");
@@ -557,7 +565,6 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (result.IsSuccess)
             {
                 Log.Information("Translate: Success, {Chars} chars", result.Text.Length);
-                _notifications.PlaySound(NotificationType.Success);
             }
             else
             {
@@ -585,7 +592,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Starting Note pipeline...");
 
             // Record audio (waits for auto-stop event)
-            string? audioFile = await RecordAudioAsync("Note");
+            string? audioFile = await RecordAudioAsync("Note", isDictate: false);
             if (audioFile == null)
             {
                 Log.Warning("Note: No audio file produced");

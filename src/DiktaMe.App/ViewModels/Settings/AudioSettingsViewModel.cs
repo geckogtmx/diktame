@@ -1,6 +1,8 @@
 
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DiktaMe.App.Services;
 using DiktaMe.Core.Audio;
 using DiktaMe.Core.Config;
 using Serilog;
@@ -9,6 +11,7 @@ namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class AudioSettingsViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
+    private readonly NotificationService _notifications;
     private bool _isLoading;
 
     [ObservableProperty]
@@ -26,10 +29,29 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
     [ObservableProperty]
     private double _duckLevelPercent = 20;
 
-    public AudioSettingsViewModel(SettingsManager settings)
+    // ── Sound Feedback ────────────────────────────────────────────────────────
+
+    [ObservableProperty]
+    private bool _soundEnabled = true;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _availableSounds = new();
+
+    [ObservableProperty]
+    private int _selectedStartSoundIndex = -1;
+
+    [ObservableProperty]
+    private int _selectedStopSoundIndex = -1;
+
+    [ObservableProperty]
+    private int _selectedUtilitySoundIndex = -1;
+
+    public AudioSettingsViewModel(SettingsManager settings, NotificationService notifications)
     {
         _settings = settings;
+        _notifications = notifications;
         LoadDevices();
+        LoadSounds();
         LoadFromSettings();
     }
 
@@ -46,11 +68,44 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
         }
     }
 
+    private void LoadSounds()
+    {
+        AvailableSounds.Clear();
+        foreach (var stem in NotificationService.GetAvailableSounds())
+        {
+            AvailableSounds.Add(stem);
+        }
+    }
+
+    private int SoundStemToIndex(string stem)
+    {
+        if (AvailableSounds.Count == 0)
+        {
+            return -1;
+        }
+
+        for (int i = 0; i < AvailableSounds.Count; i++)
+        {
+            if (string.Equals(AvailableSounds[i], stem, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return 0; // fallback to first sound
+    }
+
+    private string IndexToSoundStem(int index)
+    {
+        return index >= 0 && index < AvailableSounds.Count ? AvailableSounds[index] : "a";
+    }
+
     private void LoadFromSettings()
     {
         _isLoading = true;
-        var a = _settings.Current.Audio;
-        var d = _settings.Current.AudioDucking;
+        var a = _settings.Current.Audio ?? new();
+        var d = _settings.Current.AudioDucking ?? new();
+        var s = _settings.Current.Sound ?? new();
 
         SelectedDeviceIndex = string.IsNullOrEmpty(a.DeviceName) ? 0
             : Devices.IndexOf(a.DeviceName) is var i and >= 0 ? i : 0;
@@ -58,6 +113,12 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
         SelectedDurationIndex = Array.IndexOf(DurationValues, a.MaxDurationSeconds) is var j and >= 0 ? j : 1;
         DuckingEnabled = d.Enabled;
         DuckLevelPercent = d.DuckLevelPercent;
+
+        SoundEnabled = _settings.Current.General.SoundFeedback;
+        SelectedStartSoundIndex = SoundStemToIndex(s.StartSound);
+        SelectedStopSoundIndex = SoundStemToIndex(s.StopSound);
+        SelectedUtilitySoundIndex = SoundStemToIndex(s.UtilitySound);
+
         _isLoading = false;
     }
 
@@ -65,6 +126,19 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
     partial void OnSelectedDurationIndexChanged(int value) => Save();
     partial void OnDuckingEnabledChanged(bool value) => Save();
     partial void OnDuckLevelPercentChanged(double value) => Save();
+    partial void OnSoundEnabledChanged(bool value) => Save();
+    partial void OnSelectedStartSoundIndexChanged(int value) => Save();
+    partial void OnSelectedStopSoundIndexChanged(int value) => Save();
+    partial void OnSelectedUtilitySoundIndexChanged(int value) => Save();
+
+    [RelayCommand]
+    private void PreviewStartSound() => _notifications.PlayCustomSound(IndexToSoundStem(SelectedStartSoundIndex));
+
+    [RelayCommand]
+    private void PreviewStopSound() => _notifications.PlayCustomSound(IndexToSoundStem(SelectedStopSoundIndex));
+
+    [RelayCommand]
+    private void PreviewUtilitySound() => _notifications.PlayCustomSound(IndexToSoundStem(SelectedUtilitySoundIndex));
 
     private void Save()
     {
@@ -80,6 +154,10 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
 
         var updated = _settings.Current with
         {
+            General = (_settings.Current.General ?? new()) with
+            {
+                SoundFeedback = SoundEnabled,
+            },
             Audio = new AudioSettings
             {
                 DeviceName = deviceName,
@@ -89,7 +167,13 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
             {
                 Enabled = DuckingEnabled,
                 DuckLevelPercent = (int)DuckLevelPercent,
-            }
+            },
+            Sound = new SoundSettings
+            {
+                StartSound = IndexToSoundStem(SelectedStartSoundIndex),
+                StopSound = IndexToSoundStem(SelectedStopSoundIndex),
+                UtilitySound = IndexToSoundStem(SelectedUtilitySoundIndex),
+            },
         };
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>
         {

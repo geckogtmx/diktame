@@ -1,6 +1,7 @@
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Serilog;
 
 namespace DiktaMe.App.Views;
 /// <summary>
@@ -52,6 +53,13 @@ public sealed partial class SettingsWindow : Window
             _ => typeof(Settings.GeneralSettingsPage),
         };
 
-        ContentFrame.Navigate(pageType);
+        try
+        {
+            ContentFrame.Navigate(pageType);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "SettingsWindow: CRASH navigating to {Page}", pageType?.Name);
+        }
     }
 }
