@@ -1,10 +1,91 @@
 # Developer Handoff
 
-## Session Summary: 2026-02-26 (Session 9)
+## Session Summary: 2026-02-27 (Session 10)
 
-### Project Status: Sound Feedback + Audio Page Fixed + Pipeline Polish ✅
+### Project Status: Modes Page Consolidated (with Known Bug) ⚠️
 
-Dictation pipeline fully wired end-to-end with custom sound feedback, Audio settings page crash fixed, and toast spam removed.
+Modes settings page consolidated with Refine split, Ask output routing, Notes/Chat integration, and real-time model discovery. **CRITICAL BUG:** NavigationView has blank space between pane and content at 900x700 - requires alternative approach.
+
+### ✅ Session 10 Accomplishments
+
+**Refine Mode Split:**
+- ✅ Added `RefineAuto` and `RefineInstruction` prompts to `PromptDefaults.cs`
+- ✅ Created separate `refine_auto` and `refine_instruction` PipelineConfigs in `DictationModeDefaults.cs`
+- ✅ Added Migration 3 in `SettingsManager.cs` to auto-populate missing pipelines for existing users
+- ✅ Modes page shows two entries: "Refine (Auto)" (no audio, selection cleanup) and "Refine (Verbal)" (audio + instruction)
+
+**Ask Output Mode:**
+- ✅ Added `AskOutputMode` enum to `AppSettings.cs` (ToastOnly, ClipboardOnly, InjectOnly, ClipboardAndToast)
+- ✅ Implemented output routing in `LoadingViewModel.cs` with TextInjector dependency
+- ✅ Ask mode shows output selector at top of settings page
+
+**Notes & Chat Consolidation:**
+- ✅ Moved Notes and Chat settings into Modes page as separate modes
+- ✅ Deleted 6 obsolete files: NotesSettingsPage, ChatSettingsPage, NotesSettingsViewModel, ChatSettingsViewModel
+- ✅ Removed Notes/Chat from SettingsWindow navigation sidebar
+- ✅ Reordered nav: General → Hotkeys → AI Engine → Dictation Presets → **Modes** → Audio → Privacy → API Keys → Ollama → Snippets → Control Panel → About
+
+**Model Discovery Integration:**
+- ✅ Replaced ProfileManager-based system with `PipelineConfigManager` + `ModelListService`
+- ✅ Cloud Model ComboBox shows API provider models (excludes Ollama)
+- ✅ Local Model ComboBox shows only Ollama models from API
+- ✅ Real-time model discovery with Refresh button
+
+**ModesSettingsViewModel Rewrite:**
+- ✅ 6 fixed pipeline items: Ask, Refine (Auto), Refine (Verbal), Translate, Notes, Chat
+- ✅ Multi-line TextBox for Cloud/Local system prompt direct editing (hidden for Chat)
+- ✅ `SelectedModeTitle` property for page header
+- ✅ `ShowPromptFields` computed property hides prompts for Chat mode
+- ✅ `CanReset` computed property shows Reset button only for Notes/Chat
+- ✅ Auto-selects first item on load
+
+**Build & CI Status:**
+- Build: ✅ 0 errors, 0 warnings
+- Tests: Not run this session
+- Commit: `c0b8273` - feat(settings): consolidate Modes page
+
+### 🐛 CRITICAL BUG: NavigationView Blank Space
+
+**Symptom:** Significant blank space between left navigation pane and content area on single-column pages (General, Audio, etc.) at 900x700 window size.
+
+**Root Cause:** WinUI 3's NavigationView control reserves header/content margins that create unwanted spacing.
+
+**Current Config:** `PaneDisplayMode="Left"`, `OpenPaneLength="180"`
+
+**Failed Attempts:**
+- `PaneDisplayMode="LeftCompact"` → icons only, no text labels
+- `PaneDisplayMode="LeftMinimal"` + `IsPaneOpen="True"` → navigation menu disappeared completely
+- `AlwaysShowHeader="False"` → no effect
+- `IsPaneToggleButtonVisible="False"` → no effect
+
+**Status:** UNRESOLVED - Requires alternative approach:
+1. Build custom navigation sidebar (Grid + ListView, no NavigationView)
+2. Research WinUI 3 NavigationView styling/templates
+3. Accept WinUI 3 design and adjust layout
+
+**File:** `src/DiktaMe.App/Views/SettingsWindow.xaml`
+
+### 📝 Files Modified (Session 10)
+
+**Core Config:**
+- `src/DiktaMe.Core/Config/PromptDefaults.cs` - Added RefineAuto, RefineInstruction prompts
+- `src/DiktaMe.Core/Config/AppSettings.cs` - Added AskOutputMode enum
+- `src/DiktaMe.Core/Config/DictationModeDefaults.cs` - Added refine_auto/refine_instruction PipelineConfigs
+- `src/DiktaMe.Core/Config/SettingsManager.cs` - Added Migration 3
+
+**ViewModels:**
+- `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` - Ask output routing + TextInjector
+- `src/DiktaMe.App/ViewModels/Settings/ModesSettingsViewModel.cs` - Complete rewrite
+
+**Views:**
+- `src/DiktaMe.App/Views/Settings/ModesSettingsPage.xaml` - Complete rewrite (two-column layout)
+- `src/DiktaMe.App/Views/SettingsWindow.xaml` - Removed Notes/Chat, reordered, 900x700 size
+- `src/DiktaMe.App/App.xaml.cs` - Updated DI registrations
+
+**Deleted Files (6):**
+- NotesSettingsPage.xaml/.cs, ChatSettingsPage.xaml/.cs, NotesSettingsViewModel.cs, ChatSettingsViewModel.cs
+
+### Previous Session (Session 9)
 
 ### ✅ Session 9 Accomplishments
 
@@ -94,15 +175,13 @@ Only **2 tasks** remain before v2.0.0 release:
 
 ### 🔍 Settings Navigation Structure
 
-**Current V2 (Final):**
+**Current V2 (Session 10):**
 - General
-- AI Engine
-- **Modes** (Ask, Refine, Translate only)
-- **Dictation Presets** (Standard, Prompt, Professional, Raw + custom CRUD)
-- **Notes** (file path, timestamp, LLM processing, system prompts)
-- **Chat** (UI customization, forget-on-close, system prompts)
-- Audio
 - Hotkeys
+- AI Engine
+- **Dictation Presets** (Standard, Prompt, Professional, Raw + custom CRUD)
+- **Modes** (Ask, Refine Auto, Refine Verbal, Translate, Notes, Chat — all in one page)
+- Audio
 - Privacy
 - API Keys
 - Ollama
@@ -110,7 +189,7 @@ Only **2 tasks** remain before v2.0.0 release:
 - Control Panel
 - About
 
-**Total:** 14 settings tabs (up from V1's 9)
+**Total:** 12 settings tabs (Notes/Chat consolidated into Modes)
 
 ### 🔧 Technical Highlights
 
@@ -217,10 +296,11 @@ Before release, verify:
 
 ### ⚠️ Known Issues / Tech Debt
 
+- **CRITICAL: NavigationView blank space bug** — See Session 10 section above
 - `TextInjectorTests` uses real Win32 clipboard — tagged `[Trait("Category","Hardware")]`, excluded from CI
 - No streaming LLM responses yet — `IAsyncEnumerable<string>` deferred to V2.1
 - No Voice Activity Detection (VAD) — hands-free mode deferred to V2.1
-- Legacy `ProfileManager` and `PromptRepository` marked deprecated but still used in ModesSettingsPage (can be refactored post-release)
+- ~~Legacy `ProfileManager` and `PromptRepository`~~ — REMOVED in Session 10, replaced with PipelineConfigManager
 - **JSON null overrides C# record defaults** — When new record properties are added to `AppSettings`, existing `settings.json` may have `"PropertyName": null`. Deserialization sets to `null` despite `= new()` default. All ViewModel code reading sub-records must null-coalesce: `?? new()`
 
 ### 🎯 Next Session Goals
@@ -260,6 +340,14 @@ Before release, verify:
 - `LLMRouter.ProcessAsync(text, prompt, modelName)` is ambiguous with `ProcessAsync(text, prompt, mode)` — always use named parameter `modelName:`
 
 ### 📦 Latest Commits
+
+**Commit:** `c0b8273` - `feat(settings): consolidate Modes page with Refine split, Ask output, Notes/Chat integration`
+- Split Refine into Auto (no audio) and Verbal (with instruction)
+- Add AskOutputMode enum + routing (toast/clipboard/inject options)
+- Move Notes/Chat into Modes page, delete 6 obsolete files
+- Replace ProfileManager with PipelineConfigManager + ModelListService
+- Add Migration 3 for refine pipelines
+- **KNOWN BUG:** NavigationView blank space at 900x700 (see Session 10 section)
 
 **Commit:** `3866b5b` - `feat(audio): add sound feedback settings and fix Audio page crash`
 - SoundSettings model + per-pipeline sound selection

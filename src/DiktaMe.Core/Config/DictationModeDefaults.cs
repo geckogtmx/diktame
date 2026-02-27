@@ -127,18 +127,53 @@ public static class DictationModeDefaults
                 },
             },
 
+            // Refine Auto — no audio, captures selection and cleans it up
             new PipelineConfig
             {
-                PipelineType = "refine",
-                Hotkey = "Ctrl+Alt+F",
+                PipelineType = "refine_auto",
+                Hotkey = null, // No hotkey yet (to be added in future)
                 CloudProfile = new UtilityProfile
                 {
-                    SystemPrompt = PromptDefaults.Refine,
+                    SystemPrompt = PromptDefaults.RefineAuto,
                     ModelName = "gpt-4o-mini",
                 },
                 LocalProfile = new UtilityProfile
                 {
-                    SystemPrompt = PromptDefaults.Refine,
+                    SystemPrompt = PromptDefaults.RefineAuto,
+                    ModelName = null,
+                },
+            },
+
+            // Refine Instruction — records audio, applies spoken instruction to selection
+            new PipelineConfig
+            {
+                PipelineType = "refine_instruction",
+                Hotkey = "Ctrl+Alt+F",
+                CloudProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.RefineInstruction,
+                    ModelName = "gpt-4o-mini",
+                },
+                LocalProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.RefineInstruction,
+                    ModelName = null,
+                },
+            },
+
+            // Legacy "refine" entry for backward compatibility with existing settings.json
+            new PipelineConfig
+            {
+                PipelineType = "refine",
+                Hotkey = "Ctrl+Alt+R",
+                CloudProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.RefineInstruction,
+                    ModelName = "gpt-4o-mini",
+                },
+                LocalProfile = new UtilityProfile
+                {
+                    SystemPrompt = PromptDefaults.RefineInstruction,
                     ModelName = null,
                 },
             },

@@ -40,8 +40,6 @@ public sealed partial class SettingsWindow : Window
             "aiengine" => typeof(Settings.AIEngineSettingsPage),
             "modes" => typeof(Settings.ModesSettingsPage),
             "dictationmodes" => typeof(Settings.DictationModesSettingsPage),
-            "notes" => typeof(Settings.NotesSettingsPage),
-            "chat" => typeof(Settings.ChatSettingsPage),
             "audio" => typeof(Settings.AudioSettingsPage),
             "hotkeys" => typeof(Settings.HotkeysSettingsPage),
             "privacy" => typeof(Settings.PrivacySettingsPage),

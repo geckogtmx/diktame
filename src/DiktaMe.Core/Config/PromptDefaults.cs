@@ -19,9 +19,27 @@ public static class PromptDefaults
 
     /// <summary>
     /// Default prompt for Refine mode (grammar + clarity improvement).
+    /// Legacy — kept for backward compatibility. New code should use RefineAuto or RefineInstruction.
     /// </summary>
     public const string Refine = """
         Fix grammar, improve clarity. Return only refined text.
+        """;
+
+    /// <summary>
+    /// Refine Auto mode — captures selection, cleans it up with LLM, replaces in-place.
+    /// No audio recording, no {instruction} placeholder.
+    /// </summary>
+    public const string RefineAuto = """
+        Fix grammar, improve clarity, preserve meaning. Return only refined text.
+        """;
+
+    /// <summary>
+    /// Refine Instruction mode — captures selection, applies spoken instruction to it.
+    /// Uses {instruction} placeholder for the transcribed verbal command.
+    /// </summary>
+    public const string RefineInstruction = """
+        Apply this instruction to the selected text: {instruction}
+        Return only the result.
         """;
 
     /// <summary>
@@ -72,7 +90,9 @@ public static class PromptDefaults
     public static string GetDefault(string mode) => mode.ToLowerInvariant() switch
     {
         "dictate" => Dictate,
-        "refine" => Refine,
+        "refine" => RefineInstruction,  // legacy fallback
+        "refine_auto" => RefineAuto,
+        "refine_instruction" => RefineInstruction,
         "ask" => Ask,
         "translate" => Translate,
         "note" => Note,

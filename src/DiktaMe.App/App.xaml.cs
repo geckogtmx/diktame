@@ -251,10 +251,8 @@ public partial class App : Application
         services.AddTransient<ViewModels.Settings.AIEngineSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.AudioSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.HotkeysSettingsViewModel>();
-        services.AddTransient<ViewModels.Settings.ModesSettingsViewModel>(); // DEPRECATED: legacy modes page
-        services.AddTransient<ViewModels.Settings.DictationModesSettingsViewModel>(); // J.6: CRUD modes page
-        services.AddTransient<ViewModels.Settings.NotesSettingsViewModel>(); // Note pipeline config
-        services.AddTransient<ViewModels.Settings.ChatSettingsViewModel>(); // Chat overlay config
+        services.AddTransient<ViewModels.Settings.ModesSettingsViewModel>(); // Unified modes page (Ask, Refine x2, Translate, Notes, Chat)
+        services.AddTransient<ViewModels.Settings.DictationModesSettingsViewModel>(); // J.6: CRUD dictation modes page
         services.AddTransient<ViewModels.Settings.PrivacySettingsViewModel>();
         services.AddTransient<ViewModels.Settings.ApiKeysSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.OllamaSettingsViewModel>();

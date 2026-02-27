@@ -21,6 +21,24 @@ public enum PrivacyLevel
 }
 
 /// <summary>
+/// Output mode for Ask pipeline results.
+/// </summary>
+public enum AskOutputMode
+{
+    /// <summary>Show result in toast notification only.</summary>
+    ToastOnly = 0,
+
+    /// <summary>Copy result to clipboard only (no notification).</summary>
+    ClipboardOnly = 1,
+
+    /// <summary>Inject result as text at cursor position.</summary>
+    InjectOnly = 2,
+
+    /// <summary>Copy to clipboard AND show toast notification.</summary>
+    ClipboardAndToast = 3,
+}
+
+/// <summary>
 /// Per-mode settings for a single profile slot (provider + prompt selection).
 /// 8 modes × 2 profiles = 16 configuration slots.
 /// </summary>
@@ -58,6 +76,9 @@ public sealed record GeneralSettings
 
     /// <summary>Whether to add a trailing space after injected text.</summary>
     public bool TrailingSpace { get; init; } = true;
+
+    /// <summary>Output mode for Ask pipeline results (toast, clipboard, inject, or both).</summary>
+    public AskOutputMode AskOutput { get; init; } = AskOutputMode.ClipboardAndToast;
 }
 
 /// <summary>
@@ -278,4 +299,5 @@ public sealed record AppSettings
 [JsonSerializable(typeof(UtilityProfile))]
 [JsonSerializable(typeof(List<DictationMode>))]
 [JsonSerializable(typeof(List<PipelineConfig>))]
+[JsonSerializable(typeof(AskOutputMode))]
 public partial class AppSettingsContext : JsonSerializerContext { }

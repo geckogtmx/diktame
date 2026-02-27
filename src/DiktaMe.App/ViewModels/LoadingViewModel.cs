@@ -24,6 +24,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly AudioDucker _audioDucker;
     private readonly DictationModeManager _dictationModes;
     private readonly PipelineConfigManager _pipelines;
+    private readonly TextInjector _textInjector;
 
     [ObservableProperty] private string _statusText = "Initializing...";
     [ObservableProperty] private double _progress;
@@ -45,7 +46,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         NotificationService notifications,
         AudioDucker audioDucker,
         DictationModeManager dictationModes,
-        PipelineConfigManager pipelines)
+        PipelineConfigManager pipelines,
+        TextInjector textInjector)
     {
         _settings = settings;
         _history = history;
@@ -57,6 +59,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _audioDucker = audioDucker;
         _dictationModes = dictationModes;
         _pipelines = pipelines;
+        _textInjector = textInjector;
     }
 
     public async Task InitializeAsync()
@@ -415,8 +418,8 @@ public sealed partial class LoadingViewModel : ObservableObject
 
             Log.Information("Refine: Recording complete, processing...");
 
-            // Get active profile from CRUD system
-            UtilityProfile profile = _pipelines.GetActiveProfile("refine");
+            // Get active profile from CRUD system (refine_instruction for verbal mode)
+            UtilityProfile profile = _pipelines.GetActiveProfile("refine_instruction");
 
             // Build RefineOptions with all required fields
             var options = new RefineOptions
@@ -498,8 +501,37 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (result.IsSuccess)
             {
                 Log.Information("Ask: Answer = {Answer}", result.Text);
-                // Show answer to user (Ask mode doesn't inject text, it returns answer)
-                _notifications.ShowToast("Answer", result.Text, NotificationType.Success);
+
+                // Route output based on user preference
+                AskOutputMode outputMode = _settings.Current.General.AskOutput;
+                switch (outputMode)
+                {
+                    case AskOutputMode.ToastOnly:
+                        _notifications.ShowToast("Answer", result.Text, NotificationType.Success);
+                        break;
+
+                    case AskOutputMode.ClipboardOnly:
+                        ClipboardManager.SetText(result.Text);
+                        break;
+
+                    case AskOutputMode.InjectOnly:
+                        _textInjector.InjectText(
+                            result.Text,
+                            _settings.Current.General.TrailingSpace,
+                            string.IsNullOrEmpty(_settings.Current.General.AdditionalKey)
+                                ? null
+                                : _settings.Current.General.AdditionalKey);
+                        break;
+
+                    case AskOutputMode.ClipboardAndToast:
+                        ClipboardManager.SetText(result.Text);
+                        _notifications.ShowToast("Answer (copied)", result.Text, NotificationType.Success);
+                        break;
+
+                    default:
+                        _notifications.ShowToast("Answer", result.Text, NotificationType.Success);
+                        break;
+                }
             }
             else
             {

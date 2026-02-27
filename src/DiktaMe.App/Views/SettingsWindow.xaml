@@ -27,24 +27,14 @@
                     <FontIcon Glyph="&#xE774;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Modes" Tag="modes">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE762;"/>
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
             <muxc:NavigationViewItem Content="Dictation Presets" Tag="dictationmodes">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE70F;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Notes" Tag="notes">
+            <muxc:NavigationViewItem Content="Modes" Tag="modes">
                 <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE70B;"/>
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Chat" Tag="chat">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE8F2;"/>
+                    <FontIcon Glyph="&#xE762;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
             <muxc:NavigationViewItem Content="Audio" Tag="audio">
@@ -84,6 +74,8 @@
             </muxc:NavigationViewItem>
         </muxc:NavigationView.MenuItems>
 
-        <Frame x:Name="ContentFrame"/>
+        <Frame x:Name="ContentFrame"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch"/>
     </muxc:NavigationView>
 </Window>

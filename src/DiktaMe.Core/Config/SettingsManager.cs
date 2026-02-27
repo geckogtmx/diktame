@@ -210,6 +210,35 @@ public sealed class SettingsManager
                 loaded.ActiveProfile, migrated.ActiveProfileName);
         }
 
+        // Migration 3: Add refine_auto and refine_instruction pipelines if missing (Session 9 — Modes page consolidation)
+        bool hasRefineAuto = migrated.UtilityPipelines.Any(p => string.Equals(p.PipelineType, "refine_auto", StringComparison.Ordinal));
+        bool hasRefineInstruction = migrated.UtilityPipelines.Any(p => string.Equals(p.PipelineType, "refine_instruction", StringComparison.Ordinal));
+
+        if (!hasRefineAuto || !hasRefineInstruction)
+        {
+            var builtInPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines();
+            var updatedPipelines = new List<PipelineConfig>(migrated.UtilityPipelines);
+
+            if (!hasRefineAuto)
+            {
+                var refineAuto = builtInPipelines.First(p => string.Equals(p.PipelineType, "refine_auto", StringComparison.Ordinal));
+                updatedPipelines.Add(refineAuto);
+                Log.Information("SettingsManager: added missing 'refine_auto' pipeline");
+            }
+
+            if (!hasRefineInstruction)
+            {
+                var refineInstruction = builtInPipelines.First(p => string.Equals(p.PipelineType, "refine_instruction", StringComparison.Ordinal));
+                updatedPipelines.Add(refineInstruction);
+                Log.Information("SettingsManager: added missing 'refine_instruction' pipeline");
+            }
+
+            migrated = migrated with
+            {
+                UtilityPipelines = updatedPipelines,
+            };
+        }
+
         return migrated;
     }
 

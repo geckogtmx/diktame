@@ -1,140 +1,530 @@
 
+using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiktaMe.Core.Config;
+using DiktaMe.Core.LLM;
 using Serilog;
+using Windows.Storage.Pickers;
+using WinRT.Interop;
 
 namespace DiktaMe.App.ViewModels.Settings;
+
+/// <summary>
+/// Unified ViewModel for the Modes settings page.
+/// Manages Ask, Refine (Auto), Refine (Verbal), Translate, Notes, and Chat modes.
+/// Uses PipelineConfigManager for pipeline settings and ModelListService for real-time model discovery.
+/// </summary>
 public sealed partial class ModesSettingsViewModel : ObservableObject
 {
-    private readonly ProfileManager _profileManager;
+    private readonly PipelineConfigManager _pipelineManager;
     private readonly SettingsManager _settings;
-    private bool _isLoading;
+    private readonly ModelListService _modelListService;
 
-    // ── Mode list ───────────────────────────────────────────────────────────
+    // ── Left sidebar list ──────────────────────────────────────────────────
 
-    [ObservableProperty]
-    private int _selectedModeIndex;
-
-    // Note: Dictate, Note, and Chat have moved to separate pages
-    // This page now shows only utility pipelines: Ask, Refine, Translate
-    public string[] ModeNames { get; } = ["Ask", "Refine", "Translate"];
-    public string[] ModeCodes { get; } = ["ask", "refine", "translate"];
-
-    // ── Profile selector ────────────────────────────────────────────────────
+    /// <summary>6 fixed utility pipeline items.</summary>
+    public ObservableCollection<ModeListItem> ModeItems { get; } = [];
 
     [ObservableProperty]
-    private int _activeProfileIndex;
+    private int _selectedIndex = -1;
 
-    public string[] ProfileLabels { get; } = ["Profile A (Cloud)", "Profile B (Local)"];
-
-    // ── Mode detail (right pane) ────────────────────────────────────────────
+    // ── Common fields (all modes) ──────────────────────────────────────────
 
     [ObservableProperty]
-    private int _selectedSttProviderIndex;
+    private string _cloudSystemPrompt = "";
 
     [ObservableProperty]
-    private int _selectedLlmProviderIndex;
+    private string _localSystemPrompt = "";
 
     [ObservableProperty]
-    private string _llmModel = "";
+    private int _selectedCloudModelIndex;
 
     [ObservableProperty]
-    private int _promptSlot = -1;
+    private int _selectedLocalModelIndex;
+
+    // ── Model lists ────────────────────────────────────────────────────────
+
+    /// <summary>Display names for Cloud model ComboBox (no Ollama models).</summary>
+    public ObservableCollection<string> CloudModelNames { get; } = [];
+
+    /// <summary>Backing model IDs for Cloud models (parallel to CloudModelNames).</summary>
+    private readonly List<string> _cloudModelIds = [];
+
+    /// <summary>Display names for Local model ComboBox (Ollama only).</summary>
+    public ObservableCollection<string> LocalModelNames { get; } = [];
+
+    /// <summary>Backing model IDs for Local models (parallel to LocalModelNames).</summary>
+    private readonly List<string> _localModelIds = [];
 
     [ObservableProperty]
-    private bool _useLlm = true;
+    private bool _isLoadingModels;
 
-    public string[] SttProviders { get; } = ["deepgram", "gemini-audio", "whisper"];
-    public string[] SttProviderLabels { get; } = ["Deepgram (Cloud)", "Gemini Audio (Cloud)", "Whisper (Local)"];
-    public string[] LlmProviders { get; } = ["gemini", "openai", "anthropic", "ollama", "none"];
-    public string[] LlmProviderLabels { get; } = ["Gemini", "OpenAI", "Anthropic", "Ollama (Local)", "None (Skip)"];
-    public string[] PromptSlotLabels { get; } = BuildPromptSlotLabels();
+    [ObservableProperty]
+    private bool _hasSelection;
 
-    public ModesSettingsViewModel(ProfileManager profileManager, SettingsManager settings)
+    [ObservableProperty]
+    private string _selectedModeTitle = "";
+
+    // ── Ask mode fields ────────────────────────────────────────────────────
+
+    [ObservableProperty]
+    private int _selectedAskOutputIndex;
+
+    public string[] AskOutputOptions { get; } = ["Toast Only", "Clipboard Only", "Inject Only", "Clipboard + Toast"];
+
+    [ObservableProperty]
+    private bool _isAskSelected;
+
+    // ── Notes mode fields ──────────────────────────────────────────────────
+
+    [ObservableProperty]
+    private string _noteFilePath = "";
+
+    [ObservableProperty]
+    private bool _noteUseLlmProcessing = true;
+
+    [ObservableProperty]
+    private string _noteTimestampFormat = "";
+
+    [ObservableProperty]
+    private string _notePreviewText = "";
+
+    [ObservableProperty]
+    private bool _isNoteSelected;
+
+    // ── Chat mode fields ───────────────────────────────────────────────────
+
+    [ObservableProperty]
+    private int _chatFontSize = 14;
+
+    [ObservableProperty]
+    private double _chatWindowOpacity = 0.95;
+
+    [ObservableProperty]
+    private int _chatSelectedThemeIndex;
+
+    public string[] ChatThemeOptions { get; } = ["System", "Light", "Dark"];
+
+    [ObservableProperty]
+    private bool _chatForgetOnClose;
+
+    [ObservableProperty]
+    private int _chatMaxHistoryMessages = 50;
+
+    [ObservableProperty]
+    private bool _chatShowTimestamps = true;
+
+    [ObservableProperty]
+    private bool _chatEnableMarkdown = true;
+
+    [ObservableProperty]
+    private bool _isChatSelected;
+
+    /// <summary>True if Reset button should be visible (Notes or Chat selected).</summary>
+    public bool CanReset => IsNoteSelected || IsChatSelected;
+
+    /// <summary>True if system prompt fields should be visible (all modes except Chat).</summary>
+    public bool ShowPromptFields => HasSelection && !IsChatSelected;
+
+    // ── Constructor ────────────────────────────────────────────────────────
+
+    public ModesSettingsViewModel(
+        PipelineConfigManager pipelineManager,
+        SettingsManager settings,
+        ModelListService modelListService)
     {
-        _profileManager = profileManager;
+        _pipelineManager = pipelineManager;
         _settings = settings;
-        _activeProfileIndex = _settings.Current.ActiveProfile;
-        LoadModeDetail();
+        _modelListService = modelListService;
+
+        LoadModeList();
+        _ = LoadModelsAsync();
+
+        // Auto-select first item
+        if (ModeItems.Count > 0)
+        {
+            SelectedIndex = 0;
+        }
     }
 
-    partial void OnSelectedModeIndexChanged(int value) => LoadModeDetail();
-    partial void OnActiveProfileIndexChanged(int value)
+    // ── List loading ───────────────────────────────────────────────────────
+
+    private void LoadModeList()
     {
-        _ = _profileManager.SwitchProfileAsync(value);
-        LoadModeDetail();
+        ModeItems.Clear();
+
+        ModeItems.Add(new ModeListItem
+        {
+            Id = "ask",
+            Title = "Ask",
+            IsBuiltIn = true,
+            IsDictationMode = false,
+            IsSeparator = false,
+            Subtitle = "",
+        });
+
+        ModeItems.Add(new ModeListItem
+        {
+            Id = "refine_auto",
+            Title = "Refine (Auto)",
+            IsBuiltIn = true,
+            IsDictationMode = false,
+            IsSeparator = false,
+            Subtitle = "No audio",
+        });
+
+        ModeItems.Add(new ModeListItem
+        {
+            Id = "refine_instruction",
+            Title = "Refine (Verbal)",
+            IsBuiltIn = true,
+            IsDictationMode = false,
+            IsSeparator = false,
+            Subtitle = "With instruction",
+        });
+
+        ModeItems.Add(new ModeListItem
+        {
+            Id = "translate",
+            Title = "Translate",
+            IsBuiltIn = true,
+            IsDictationMode = false,
+            IsSeparator = false,
+            Subtitle = "",
+        });
+
+        ModeItems.Add(new ModeListItem
+        {
+            Id = "note",
+            Title = "Notes",
+            IsBuiltIn = true,
+            IsDictationMode = false,
+            IsSeparator = false,
+            Subtitle = "",
+        });
+
+        ModeItems.Add(new ModeListItem
+        {
+            Id = "chat",
+            Title = "Chat",
+            IsBuiltIn = true,
+            IsDictationMode = false,
+            IsSeparator = false,
+            Subtitle = "",
+        });
     }
 
-    partial void OnSelectedSttProviderIndexChanged(int value) => SaveModeDetail();
-    partial void OnSelectedLlmProviderIndexChanged(int value) => SaveModeDetail();
-    partial void OnLlmModelChanged(string value) => SaveModeDetail();
-    partial void OnPromptSlotChanged(int value) => SaveModeDetail();
-    partial void OnUseLlmChanged(bool value) => SaveModeDetail();
+    // ── Model loading ──────────────────────────────────────────────────────
+
+    private async Task LoadModelsAsync()
+    {
+        IsLoadingModels = true;
+
+        try
+        {
+            var models = await _modelListService.GetAvailableModelsAsync().ConfigureAwait(false);
+
+            // Populate on UI thread
+            if (App.Current.MainWindow?.DispatcherQueue is { } dispatcher)
+            {
+                dispatcher.TryEnqueue(() =>
+                {
+                    PopulateModelLists(models);
+                    IsLoadingModels = false;  // Set on UI thread
+                });
+            }
+            else
+            {
+                // Fallback for unit tests
+                PopulateModelLists(models);
+                IsLoadingModels = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "ModesSettingsVM: Failed to load models");
+            IsLoadingModels = false;
+        }
+    }
+
+    private void PopulateModelLists(List<ModelInfo> models)
+    {
+        // Cloud models (no Ollama)
+        CloudModelNames.Clear();
+        _cloudModelIds.Clear();
+        CloudModelNames.Add("(Default — use provider default)");
+        _cloudModelIds.Add("");
+
+        var cloudModels = models.Where(m => !string.Equals(m.Provider, "Ollama (Local)", StringComparison.OrdinalIgnoreCase));
+        foreach (var m in cloudModels)
+        {
+            CloudModelNames.Add($"{m.DisplayName}  ({m.Provider})");
+            _cloudModelIds.Add(m.ModelId);
+        }
+
+        // Local models (Ollama only)
+        LocalModelNames.Clear();
+        _localModelIds.Clear();
+        LocalModelNames.Add("(Default — global Ollama model)");
+        _localModelIds.Add("");
+
+        var localModels = models.Where(m => string.Equals(m.Provider, "Ollama (Local)", StringComparison.OrdinalIgnoreCase));
+        foreach (var m in localModels)
+        {
+            LocalModelNames.Add(m.DisplayName);
+            _localModelIds.Add(m.ModelId);
+        }
+    }
 
     [RelayCommand]
-    private void SaveModel()
+    private async Task RefreshModelsAsync()
     {
-        SaveModeDetail();
+        await LoadModelsAsync();
     }
 
-    private void LoadModeDetail()
+    // ── Selection change ───────────────────────────────────────────────────
+
+    partial void OnSelectedIndexChanged(int value)
     {
-        _isLoading = true;
+        HasSelection = value >= 0 && value < ModeItems.Count;
 
-        string mode = SelectedModeIndex >= 0 && SelectedModeIndex < ModeCodes.Length
-            ? ModeCodes[SelectedModeIndex] : "dictate";
+        if (HasSelection)
+        {
+            SelectedModeTitle = ModeItems[value].Title;
+            LoadDetail(ModeItems[value].Id);
+        }
+        else
+        {
+            SelectedModeTitle = "";
+        }
 
-        var ms = _profileManager.GetModeSettings(mode, ActiveProfileIndex);
+        // Update visibility flags
+        IsAskSelected = HasSelection && ModeItems[value].Id == "ask";
+        IsNoteSelected = HasSelection && ModeItems[value].Id == "note";
+        IsChatSelected = HasSelection && ModeItems[value].Id == "chat";
 
-        SelectedSttProviderIndex = Array.IndexOf(SttProviders, ms.SttProvider) is var si and >= 0 ? si : 0;
-        SelectedLlmProviderIndex = Array.IndexOf(LlmProviders, ms.LlmProvider) is var li and >= 0 ? li : 0;
-        LlmModel = ms.LlmModel;
-        PromptSlot = ms.PromptSlot + 1; // shift: -1 becomes index 0 ("Default")
-        UseLlm = ms.UseLlm;
-
-        _isLoading = false;
+        // Notify computed property changes
+        OnPropertyChanged(nameof(CanReset));
+        OnPropertyChanged(nameof(ShowPromptFields));
     }
 
-    private void SaveModeDetail()
+    private void LoadDetail(string pipelineType)
     {
-        if (_isLoading)
+        var pipeline = _pipelineManager.GetPipelineByType(pipelineType);
+        if (pipeline is null)
+        {
+            Log.Warning("ModesSettingsVM: Pipeline '{Type}' not found", pipelineType);
+            return;
+        }
+
+        // Common fields
+        CloudSystemPrompt = pipeline.CloudProfile.SystemPrompt ?? "";
+        LocalSystemPrompt = pipeline.LocalProfile.SystemPrompt ?? "";
+
+        // Map model names to combo indices
+        SelectedCloudModelIndex = FindModelIndex(_cloudModelIds, pipeline.CloudProfile.ModelName);
+        SelectedLocalModelIndex = FindModelIndex(_localModelIds, pipeline.LocalProfile.ModelName);
+
+        // Mode-specific fields
+        switch (pipelineType)
+        {
+            case "ask":
+                SelectedAskOutputIndex = (int)_settings.Current.General.AskOutput;
+                break;
+
+            case "note":
+                var noteSettings = _settings.Current.Note;
+                NoteFilePath = noteSettings.FilePath;
+                NoteUseLlmProcessing = noteSettings.UseLlmProcessing;
+                NoteTimestampFormat = noteSettings.TimestampFormat;
+                UpdateNotePreview();
+                break;
+
+            case "chat":
+                var chatSettings = _settings.Current.Chat;
+                ChatFontSize = chatSettings.FontSize;
+                ChatWindowOpacity = chatSettings.WindowOpacity;
+                ChatForgetOnClose = chatSettings.ForgetOnClose;
+                ChatMaxHistoryMessages = chatSettings.MaxHistoryMessages;
+                ChatShowTimestamps = chatSettings.ShowTimestamps;
+                ChatEnableMarkdown = chatSettings.EnableMarkdown;
+                ChatSelectedThemeIndex = Array.IndexOf(ChatThemeOptions, chatSettings.Theme);
+                if (ChatSelectedThemeIndex < 0) { ChatSelectedThemeIndex = 0; }
+                break;
+        }
+    }
+
+    private static int FindModelIndex(List<string> modelIds, string? targetId)
+    {
+        if (string.IsNullOrEmpty(targetId))
+        {
+            return 0; // "(Default)" entry
+        }
+
+        int index = modelIds.IndexOf(targetId);
+        return index >= 0 ? index : 0;
+    }
+
+    // ── Save ───────────────────────────────────────────────────────────────
+
+    [RelayCommand]
+    private async Task SaveAsync()
+    {
+        if (!HasSelection || SelectedIndex < 0 || SelectedIndex >= ModeItems.Count)
         {
             return;
         }
 
-        string mode = SelectedModeIndex >= 0 && SelectedModeIndex < ModeCodes.Length
-            ? ModeCodes[SelectedModeIndex] : "dictate";
+        string pipelineType = ModeItems[SelectedIndex].Id;
 
-        var ms = new ModeSettings
+        try
         {
-            SttProvider = SelectedSttProviderIndex >= 0 && SelectedSttProviderIndex < SttProviders.Length
-                ? SttProviders[SelectedSttProviderIndex] : "deepgram",
-            LlmProvider = SelectedLlmProviderIndex >= 0 && SelectedLlmProviderIndex < LlmProviders.Length
-                ? LlmProviders[SelectedLlmProviderIndex] : "gemini",
-            LlmModel = LlmModel,
-            PromptSlot = PromptSlot - 1, // shift back: index 0 becomes -1 ("Default")
-            UseLlm = UseLlm,
-        };
-
-        _ = _profileManager.SetModeSettingsAsync(mode, ActiveProfileIndex, ms).ContinueWith(t =>
-        {
-            if (t.IsFaulted)
+            // Save pipeline profiles (common to all modes)
+            var cloudProfile = new UtilityProfile
             {
-                Log.Error(t.Exception, "Failed to save mode settings for {Mode}", mode);
+                SystemPrompt = string.IsNullOrWhiteSpace(CloudSystemPrompt) ? null : CloudSystemPrompt,
+                ModelName = SelectedCloudModelIndex >= 0 && SelectedCloudModelIndex < _cloudModelIds.Count
+                    ? _cloudModelIds[SelectedCloudModelIndex]
+                    : null,
+            };
+
+            var localProfile = new UtilityProfile
+            {
+                SystemPrompt = string.IsNullOrWhiteSpace(LocalSystemPrompt) ? null : LocalSystemPrompt,
+                ModelName = SelectedLocalModelIndex >= 0 && SelectedLocalModelIndex < _localModelIds.Count
+                    ? _localModelIds[SelectedLocalModelIndex]
+                    : null,
+            };
+
+            await _pipelineManager.UpdatePipelineAsync(pipelineType, cloudProfile, localProfile).ConfigureAwait(false);
+
+            // Mode-specific settings
+            switch (pipelineType)
+            {
+                case "ask":
+                    var newGeneral = _settings.Current.General with { AskOutput = (AskOutputMode)SelectedAskOutputIndex };
+                    var newSettingsAsk = _settings.Current with { General = newGeneral };
+                    await _settings.UpdateAsync(newSettingsAsk).ConfigureAwait(false);
+                    break;
+
+                case "note":
+                    var newNoteSettings = new NoteSettings
+                    {
+                        FilePath = NoteFilePath,
+                        UseLlmProcessing = NoteUseLlmProcessing,
+                        TimestampFormat = NoteTimestampFormat,
+                    };
+                    var newSettingsNote = _settings.Current with { Note = newNoteSettings };
+                    await _settings.UpdateAsync(newSettingsNote).ConfigureAwait(false);
+                    break;
+
+                case "chat":
+                    var newChatSettings = new ChatSettings
+                    {
+                        FontSize = ChatFontSize,
+                        WindowOpacity = ChatWindowOpacity,
+                        ForgetOnClose = ChatForgetOnClose,
+                        MaxHistoryMessages = ChatMaxHistoryMessages,
+                        ShowTimestamps = ChatShowTimestamps,
+                        EnableMarkdown = ChatEnableMarkdown,
+                        Theme = ChatSelectedThemeIndex >= 0 && ChatSelectedThemeIndex < ChatThemeOptions.Length
+                            ? ChatThemeOptions[ChatSelectedThemeIndex]
+                            : "System",
+                    };
+                    var newSettingsChat = _settings.Current with { Chat = newChatSettings };
+                    await _settings.UpdateAsync(newSettingsChat).ConfigureAwait(false);
+                    break;
             }
-        }, TaskScheduler.Default);
+
+            Log.Information("ModesSettingsVM: Saved settings for {Type}", pipelineType);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "ModesSettingsVM: Failed to save settings for {Type}", pipelineType);
+        }
     }
 
-    private static string[] BuildPromptSlotLabels()
+    // ── Reset (Notes/Chat only) ────────────────────────────────────────────
+
+    [RelayCommand]
+    private void Reset()
     {
-        var labels = new string[17]; // -1 (default) + 0-15
-        labels[0] = "Default (provider built-in)";
-        for (int i = 1; i <= 16; i++)
+        if (!HasSelection || SelectedIndex < 0 || SelectedIndex >= ModeItems.Count)
         {
-            labels[i] = $"Prompt Slot {i - 1}";
+            return;
         }
 
-        return labels;
+        string pipelineType = ModeItems[SelectedIndex].Id;
+
+        switch (pipelineType)
+        {
+            case "note":
+                var noteDefaults = new NoteSettings();
+                NoteFilePath = noteDefaults.FilePath;
+                NoteUseLlmProcessing = noteDefaults.UseLlmProcessing;
+                NoteTimestampFormat = noteDefaults.TimestampFormat;
+                CloudSystemPrompt = PromptDefaults.Note;
+                LocalSystemPrompt = PromptDefaults.Note;
+                UpdateNotePreview();
+                break;
+
+            case "chat":
+                var chatDefaults = new ChatSettings();
+                ChatFontSize = chatDefaults.FontSize;
+                ChatWindowOpacity = chatDefaults.WindowOpacity;
+                ChatForgetOnClose = chatDefaults.ForgetOnClose;
+                ChatMaxHistoryMessages = chatDefaults.MaxHistoryMessages;
+                ChatShowTimestamps = chatDefaults.ShowTimestamps;
+                ChatEnableMarkdown = chatDefaults.EnableMarkdown;
+                ChatSelectedThemeIndex = Array.IndexOf(ChatThemeOptions, chatDefaults.Theme);
+                CloudSystemPrompt = PromptDefaults.Chat;
+                LocalSystemPrompt = PromptDefaults.Chat;
+                break;
+        }
+    }
+
+    // ── Notes — Browse file path ───────────────────────────────────────────
+
+    [RelayCommand]
+    private async Task BrowseNoteFilePathAsync()
+    {
+        var picker = new FileSavePicker();
+        picker.SuggestedFileName = Path.GetFileName(NoteFilePath);
+        picker.FileTypeChoices.Add("Markdown files", new List<string> { ".md" });
+        picker.FileTypeChoices.Add("Text files", new List<string> { ".txt" });
+        picker.FileTypeChoices.Add("All files", new List<string> { ".*" });
+
+        // Get the window handle
+        var window = App.Current.MainWindow;
+        var hwnd = WindowNative.GetWindowHandle(window);
+        InitializeWithWindow.Initialize(picker, hwnd);
+
+        var file = await picker.PickSaveFileAsync();
+        if (file is not null)
+        {
+            NoteFilePath = file.Path;
+        }
+    }
+
+    // ── Notes — Live preview ───────────────────────────────────────────────
+
+    partial void OnNoteTimestampFormatChanged(string value)
+    {
+        UpdateNotePreview();
+    }
+
+    private void UpdateNotePreview()
+    {
+        try
+        {
+            string timestamp = DateTime.Now.ToString(NoteTimestampFormat, CultureInfo.InvariantCulture);
+            NotePreviewText = $"[{timestamp}]\nSample transcription...\n---";
+        }
+        catch (FormatException)
+        {
+            NotePreviewText = "[Invalid format]\nSample transcription...\n---";
+        }
     }
 }
