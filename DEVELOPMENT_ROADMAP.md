@@ -1777,7 +1777,146 @@ These are out of scope for initial CRUD implementation:
 
 ---
 
+---
+
+## 12. Stream K: dIKta.me Account & Trial Credits (Post-MVP)
+
+> **Status:** 🔲 NOT STARTED — Audit complete, implementation deferred
+> **Priority:** HIGH (required before public launch with free trial)
+> **V1 Reference:** `SPEC_042_DIKTA_ME_WEBSITE.md`, `SPEC_042_IMPLEMENTATION.md`, `SPEC_027_WEBSITE_BACKEND.md`
+> **V1 Source Files:** `src/ipc/trialHandlers.ts`, `src/settings/trialAccount.ts`, `src/services/configSync.ts`, `src/main.ts` (deeplink handling)
+
+### 12.1 Context & Problem Statement
+
+V1 implemented a complete OAuth + trial credits system (SPEC_042) connecting the desktop app to the dIKta.me website (Supabase backend). This allows users to:
+
+1. **Sign in** via Google/GitHub OAuth through the browser
+2. **Receive 15,000 free words** (or 15 days) using dIKta.me's managed Gemini API
+3. **Try the app without providing their own API key** — lowering the onboarding barrier
+4. **Upgrade** by adding their own API key (BYOK) or purchasing a license (future LemonSqueezy integration)
+
+**None of this exists in V2.** The V2 app is currently BYOK-only — users must provide their own API keys to use any cloud provider. This blocks the free trial onboarding flow.
+
+### 12.2 Gap Analysis: V1 → V2
+
+| Component | V1 Status | V2 Status | Port Effort |
+|-----------|-----------|-----------|-------------|
+| **OAuth deeplink protocol** (`diktate://auth?token=JWT`) | ✅ Electron `setAsDefaultProtocolClient` + `second-instance` event | ❌ Missing | Medium — WinUI 3 protocol activation via `App.OnLaunched` or package manifest |
+| **Secure token storage** | ✅ Electron `safeStorage` → encrypted in electron-store | ❌ Missing | Low — `SecureStorage` (DPAPI) already exists, add trial token fields |
+| **Trial status sync** (GET `/api/trial/status`) | ✅ `trialHandlers.ts` fetches from Supabase | ❌ Missing | Low — HttpClient call, map to model |
+| **Usage recording** (POST `/api/trial/usage`) | ✅ Python `TrialCloudProcessor` reports word counts | ❌ Missing | Medium — integrate into `LLMRouter` post-processing |
+| **Managed Gemini proxy** | ✅ Calls Supabase Edge Function with Bearer JWT | ❌ Missing | Medium — new provider mode in `GeminiProvider` or a `TrialGeminiProvider` |
+| **AppSettings fields** for trial state | ✅ `UserSettings` interface with 8 trial fields | ❌ Missing | Low — add fields to `AppSettings` |
+| **Trial account UI** (Settings panel) | ✅ `trialAccount.ts` — email, progress bar, days remaining | ❌ Missing | Medium — new Settings tab or section in existing tab |
+| **Control Panel badge** ("Trial" vs "API" vs "Local") | ✅ Dynamic badge in status bar | 🔶 Partial — has "API"/"Local" badge, no "Trial" | Low — add `AuthMode.Trial` variant |
+| **Login/logout actions** | ✅ IPC handlers: `trial:login`, `trial:logout` | ❌ Missing | Low — service methods |
+| **Configuration Wizard integration** | ✅ "Or sign in for free trial" option | ❌ Missing | Medium — add trial path to wizard flow |
+| **URL scheme registration** (`diktame://`) | ✅ `diktate://` registered in Electron | ❌ Missing | Medium — MSIX manifest or registry-based protocol handler |
+| **JWT parsing** (extract email from token) | ✅ Base64 decode JWT payload | ❌ Missing | Low — standard JWT decode |
+| **Token refresh / expiry handling** | ✅ Supabase auto-refresh | ❌ Missing | Medium — need refresh token flow or re-login prompt |
+| **Quota exceeded UX** | ✅ Error dialog + "Add API key" prompt | ❌ Missing | Low — map error response to notification |
+
+### 12.3 Backend (No Changes Needed)
+
+The following backend components are **shared with the website** and require NO porting:
+
+- ✅ Supabase Auth (Google + GitHub OAuth providers)
+- ✅ Supabase database (`profiles`, `api_usage` tables)
+- ✅ Supabase Edge Function (`gemini-proxy`)
+- ✅ Next.js website (`/login`, `/auth/callback`, `/api/trial/*`)
+- ✅ OAuth callback route already supports `mode=app` for desktop deeplinks
+
+**One change needed:** Update the callback route to redirect to `diktame://auth?token=...` instead of `diktate://auth?token=...` (rebranding).
+
+### 12.4 Implementation Tasks
+
+#### Task K.1: Core Models & AppSettings
+**Effort:** 0.5 day
+
+1. Add trial-related fields to `AppSettings`:
+   - `TrialSessionToken` (encrypted, stored via `SecureStorage`)
+   - `TrialEmail`, `TrialWordsUsed`, `TrialWordsQuota`
+   - `TrialDaysRemaining`, `TrialExpiresAt`, `TrialActive`, `TrialLastSynced`
+2. Add `AuthMode` enum: `None`, `Trial`, `ApiKey`
+3. Add `TrialStatus` model class
+4. Add settings migration to handle new fields
+
+**Port from:** `E:\git\diktate\src\types\settings.ts` (lines 124–132)
+
+#### Task K.2: TrialAccountService
+**Effort:** 1 day
+
+1. `LoginAsync()` — opens browser to `https://dikta.me/login?mode=app`
+2. `HandleAuthCallbackAsync(token)` — stores JWT, extracts email, triggers status sync
+3. `RefreshStatusAsync()` — GET `/api/trial/status` with Bearer token
+4. `RecordUsageAsync(provider, model, wordsUsed)` — POST `/api/trial/usage`
+5. `LogoutAsync()` — clears token + trial fields
+6. `GetCurrentStatus()` — returns cached `TrialStatus` from AppSettings
+7. JWT decode helper (extract email, expiry from payload)
+
+**Port from:** `E:\git\diktate\src\ipc\trialHandlers.ts`
+
+#### Task K.3: Protocol Handler (`diktame://`)
+**Effort:** 0.5–1 day
+
+1. Register `diktame://` URL scheme (MSIX manifest or registry fallback)
+2. Handle protocol activation in `App.xaml.cs` → route `diktame://auth?token=...` to `TrialAccountService.HandleAuthCallbackAsync()`
+3. Single-instance check — if app already running, forward deeplink to existing instance
+4. Update V1 website callback to use `diktame://` scheme (separate PR on diktate repo)
+
+**Port from:** `E:\git\diktate\src\main.ts` (lines 57–61, 681–707)
+
+#### Task K.4: Managed Gemini Integration
+**Effort:** 1 day
+
+1. Add `TrialGeminiProvider` (or mode in existing `GeminiProvider`) that:
+   - Routes requests through Supabase Edge Function URL
+   - Uses Bearer JWT auth instead of API key query param
+   - Handles 403 quota-exceeded response gracefully
+2. Wire into `LLMRouter` — when `AuthMode == Trial`, use managed provider
+3. Post-process: call `TrialAccountService.RecordUsageAsync()` after each LLM call
+4. Handle token expiry (401) → prompt re-login
+
+**Port from:** `E:\git\diktate\supabase\functions\gemini-proxy\index.ts` (client-side calling pattern)
+
+#### Task K.5: Trial Account UI
+**Effort:** 1 day
+
+1. Add "Account" section to Settings (new tab or section in General tab):
+   - Signed-out state: "Sign in for free trial" button + benefits list
+   - Signed-in state: email, word usage progress bar, days remaining, logout button
+2. Update Control Panel badge: `AuthMode.Trial` → show "Trial" badge
+3. Update Configuration Wizard: add "Try free" option alongside "Enter API key"
+4. Quota exceeded notification → "Add your own API key" prompt with link to Settings
+
+**Port from:** `E:\git\diktate\src\settings\trialAccount.ts`
+
+#### Task K.6: Tests
+**Effort:** 0.5 day
+
+1. `TrialAccountServiceTests` — login flow, status sync, usage recording, logout, JWT parsing
+2. `TrialGeminiProviderTests` — request routing, auth header, quota exceeded handling
+3. Integration: verify `LLMRouter` correctly delegates to trial provider when `AuthMode == Trial`
+
+### 12.5 Future: LemonSqueezy License Validation
+
+> **NOT in scope for Stream K.** Planned for a future stream per `SPEC_015_APP_LICENSE_VERIFICATION.md`.
+>
+> When implemented, this would add:
+> - License key validation against LemonSqueezy API
+> - Subscription tier checking (free trial → paid license)
+> - Grace period handling for expired licenses
+> - Integration with the dIKta.me account system from Stream K
+
+### 12.6 Dependencies
+
+- **Website repo** (`E:\git\diktate\website`): Update OAuth callback to use `diktame://` scheme
+- **Supabase**: No changes needed (existing Edge Function + DB schema)
+- **Stream H.1** (Installer): Protocol handler registration may depend on packaging choice (MSIX vs Inno Setup)
+
+---
+
 **Document Status:** IN PROGRESS
 **Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, H.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅, Control Panel V2 rework (Phase 1+2) ✅
-**Remaining:** H.1 (Installer), I.6 (Website Rebrand)
+**Remaining:** H.1 (Installer), I.6 (Website Rebrand), **K.1–K.6 (Account & Trial Credits)**
 **Build:** 0 errors, 0 warnings | **Tests:** 521 passing | **CI unit filter:** 376
