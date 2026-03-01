@@ -51,7 +51,14 @@ public sealed class SettingsManager
     {
         if (!File.Exists(SettingsFilePath))
         {
-            Log.Information("SettingsManager: no settings file found — creating defaults");
+            Log.Information("SettingsManager: no settings file found — creating defaults with Standard preset");
+            var defaultPreset = DictationModeDefaults.CreateDefaultPreset();
+            Current = new AppSettings
+            {
+                DictationModes = [defaultPreset],
+                ActiveDictationModeId = defaultPreset.Id,
+                UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
+            };
             await SaveAsync(cancellationToken).ConfigureAwait(false);
             return;
         }
@@ -158,8 +165,8 @@ public sealed class SettingsManager
                     MaxDurationSeconds = GetInt(root, "maxDuration", 60),
                 },
                 OllamaModel = GetString(root, "ollamaModel", "llama3.2"),
-                // Populate built-in modes and pipelines for V1 users
-                DictationModes = DictationModeDefaults.CreateBuiltInModes(),
+                // Preload single Standard preset for V1 users
+                DictationModes = [DictationModeDefaults.CreateDefaultPreset()],
                 UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
                 ActiveProfileName = "Cloud", // V1 default
             };
@@ -180,16 +187,7 @@ public sealed class SettingsManager
     {
         var migrated = loaded;
 
-        // Migration 1: Populate built-in modes/pipelines if empty (first load or pre-Stream J settings)
-        if (migrated.DictationModes.Count == 0)
-        {
-            migrated = migrated with
-            {
-                DictationModes = DictationModeDefaults.CreateBuiltInModes(),
-            };
-            Log.Information("SettingsManager: populated {Count} built-in dictation modes", migrated.DictationModes.Count);
-        }
-
+        // Populate utility pipelines if empty (Modes — ask/refine/translate/note/chat)
         if (migrated.UtilityPipelines.Count == 0)
         {
             migrated = migrated with

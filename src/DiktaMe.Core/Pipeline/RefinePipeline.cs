@@ -184,6 +184,7 @@ public sealed class RefinePipeline
                 RawTranscript = instruction,   // instruction text (null in autopilot)
                 Mode = Mode,
                 IsSuccess = true,
+                RecordingMs = options.RecordingDurationMs,
                 TranscriptionMs = transcriptionMs,
                 ProcessingMs = llmSw.ElapsedMilliseconds,
                 InjectionMs = injSw.ElapsedMilliseconds,
@@ -244,6 +245,7 @@ public sealed class RefinePipeline
             Mode = Mode,
             IsSuccess = llmResult.IsSuccess,
             ErrorMessage = llmResult.IsSuccess ? null : "LLM returned empty result in fallback",
+            RecordingMs = options.RecordingDurationMs,
             TranscriptionMs = transcriptionMs,
             ProcessingMs = llmSw.ElapsedMilliseconds,
             TotalMs = total.ElapsedMilliseconds,

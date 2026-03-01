@@ -1,4 +1,5 @@
 
+using System.Diagnostics;
 using NAudio.Wave;
 using Serilog;
 
@@ -25,6 +26,7 @@ public sealed class AudioRecorder : IDisposable
     private System.Timers.Timer? _autoStopTimer;
     private bool _stoppedByAutoStop;
     private bool _disposed;
+    private Stopwatch? _recordingStopwatch;
 
     // ── Events ───────────────────────────────────────────────────────────────
 
@@ -44,6 +46,12 @@ public sealed class AudioRecorder : IDisposable
 
     /// <summary>Whether a recording is currently in progress.</summary>
     public bool IsRecording { get; private set; }
+
+    /// <summary>
+    /// Duration in milliseconds of the last completed recording.
+    /// 0 if no recording has been made yet.
+    /// </summary>
+    public long LastRecordingDurationMs { get; private set; }
 
     // ── Public API ───────────────────────────────────────────────────────────
 
@@ -91,6 +99,9 @@ public sealed class AudioRecorder : IDisposable
         _waveIn.StartRecording();
         IsRecording = true;
 
+        // Start timing the recording
+        _recordingStopwatch = Stopwatch.StartNew();
+
         Log.Information("AudioRecorder: started (device={DeviceIndex}, file={FilePath})",
             deviceIndex, _currentFilePath);
 
@@ -134,7 +145,7 @@ public sealed class AudioRecorder : IDisposable
         Log.Warning("AudioRecorder: auto-stopped after {MaxDuration}s", maxDurationSeconds);
         string? filePath = _currentFilePath;
         StopInternal(isAutoStop: true);
-        AutoStopped?.Invoke(this, new RecordingStoppedEventArgs(filePath, wasAutoStopped: true));
+        AutoStopped?.Invoke(this, new RecordingStoppedEventArgs(filePath, wasAutoStopped: true, LastRecordingDurationMs));
     }
 
     private void StopInternal(bool isAutoStop)
@@ -144,6 +155,14 @@ public sealed class AudioRecorder : IDisposable
         _autoStopTimer = null;
 
         _stoppedByAutoStop = isAutoStop;
+
+        // Stop timing and save duration
+        if (_recordingStopwatch is not null)
+        {
+            _recordingStopwatch.Stop();
+            LastRecordingDurationMs = _recordingStopwatch.ElapsedMilliseconds;
+            _recordingStopwatch = null;
+        }
 
         // Capture then null before calling StopRecording, so Dispose() cannot
         // concurrently grab the same instance and double-stop it.
@@ -192,7 +211,7 @@ public sealed class AudioRecorder : IDisposable
         // Only raise RecordingStopped for manual stops; auto-stop raises AutoStopped separately
         if (!_stoppedByAutoStop && !_disposed)
         {
-            RecordingStopped?.Invoke(this, new RecordingStoppedEventArgs(_currentFilePath, wasAutoStopped: false));
+            RecordingStopped?.Invoke(this, new RecordingStoppedEventArgs(_currentFilePath, wasAutoStopped: false, LastRecordingDurationMs));
         }
     }
 
@@ -261,11 +280,14 @@ public sealed class RecordingStartedEventArgs(int deviceIndex, string filePath) 
 /// Event data for <see cref="AudioRecorder.RecordingStopped"/> and
 /// <see cref="AudioRecorder.AutoStopped"/>.
 /// </summary>
-public sealed class RecordingStoppedEventArgs(string? filePath, bool wasAutoStopped) : EventArgs
+public sealed class RecordingStoppedEventArgs(string? filePath, bool wasAutoStopped, long durationMs = 0) : EventArgs
 {
     /// <summary>Path to the saved WAV file, or null if saving failed.</summary>
     public string? FilePath { get; } = filePath;
 
     /// <summary>True when stopped by the duration limit; false for manual stop.</summary>
     public bool WasAutoStopped { get; } = wasAutoStopped;
+
+    /// <summary>Duration of the recording in milliseconds.</summary>
+    public long DurationMs { get; } = durationMs;
 }

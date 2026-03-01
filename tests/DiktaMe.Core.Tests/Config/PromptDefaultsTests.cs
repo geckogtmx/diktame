@@ -49,7 +49,7 @@ public sealed class PromptDefaultsTests
 
     [Theory]
     [InlineData("dictate", nameof(PromptDefaults.Dictate))]
-    [InlineData("refine", nameof(PromptDefaults.Refine))]
+    [InlineData("refine", nameof(PromptDefaults.RefineInstruction))]
     [InlineData("ask", nameof(PromptDefaults.Ask))]
     [InlineData("translate", nameof(PromptDefaults.Translate))]
     [InlineData("note", nameof(PromptDefaults.Note))]
@@ -65,6 +65,7 @@ public sealed class PromptDefaultsTests
         {
             nameof(PromptDefaults.Dictate) => PromptDefaults.Dictate,
             nameof(PromptDefaults.Refine) => PromptDefaults.Refine,
+            nameof(PromptDefaults.RefineInstruction) => PromptDefaults.RefineInstruction,
             nameof(PromptDefaults.Ask) => PromptDefaults.Ask,
             nameof(PromptDefaults.Translate) => PromptDefaults.Translate,
             nameof(PromptDefaults.Note) => PromptDefaults.Note,

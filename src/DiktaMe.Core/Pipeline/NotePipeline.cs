@@ -137,6 +137,7 @@ public sealed class NotePipeline
                 RawTranscript = rawText,
                 Mode = Mode,
                 IsSuccess = true,
+                RecordingMs = options.RecordingDurationMs,
                 TranscriptionMs = sttSw.ElapsedMilliseconds,
                 ProcessingMs = processingMs,
                 TotalMs = total.ElapsedMilliseconds,

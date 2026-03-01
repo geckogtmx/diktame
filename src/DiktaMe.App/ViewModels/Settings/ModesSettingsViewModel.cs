@@ -159,60 +159,58 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
         {
             Id = "ask",
             Title = "Ask",
-            IsBuiltIn = true,
+
             IsDictationMode = false,
             IsSeparator = false,
-            Subtitle = "",
+
         });
 
         ModeItems.Add(new ModeListItem
         {
             Id = "refine_auto",
             Title = "Refine (Auto)",
-            IsBuiltIn = true,
+
             IsDictationMode = false,
             IsSeparator = false,
-            Subtitle = "No audio",
         });
 
         ModeItems.Add(new ModeListItem
         {
             Id = "refine_instruction",
             Title = "Refine (Verbal)",
-            IsBuiltIn = true,
+
             IsDictationMode = false,
             IsSeparator = false,
-            Subtitle = "With instruction",
         });
 
         ModeItems.Add(new ModeListItem
         {
             Id = "translate",
             Title = "Translate",
-            IsBuiltIn = true,
+
             IsDictationMode = false,
             IsSeparator = false,
-            Subtitle = "",
+
         });
 
         ModeItems.Add(new ModeListItem
         {
             Id = "note",
             Title = "Notes",
-            IsBuiltIn = true,
+
             IsDictationMode = false,
             IsSeparator = false,
-            Subtitle = "",
+
         });
 
         ModeItems.Add(new ModeListItem
         {
             Id = "chat",
             Title = "Chat",
-            IsBuiltIn = true,
+
             IsDictationMode = false,
             IsSeparator = false,
-            Subtitle = "",
+
         });
     }
 

@@ -260,8 +260,8 @@ public sealed record AppSettings
     // ── Stream J: CRUD Dictation Modes (NEW) ──────────────────────────────────
 
     /// <summary>
-    /// User's dictation modes (CRUD-capable). Serialized as JSON array.
-    /// Populated by DictationModeDefaults.CreateBuiltInModes() on first run.
+    /// User's dictation presets (CRUD-capable). Serialized as JSON array.
+    /// A single "Standard" preset is created on first run.
     /// </summary>
     public List<DictationMode> DictationModes { get; init; } = [];
 
@@ -277,6 +277,12 @@ public sealed record AppSettings
     /// Determines which profile (CloudProfile vs LocalProfile) is used for each mode.
     /// </summary>
     public string ActiveProfileName { get; init; } = "Cloud";
+
+    /// <summary>
+    /// ID of the currently active dictation preset (selected in Control Panel).
+    /// If null or invalid, defaults to first preset in sorted order.
+    /// </summary>
+    public string? ActiveDictationModeId { get; init; }
 }
 
 /// <summary>

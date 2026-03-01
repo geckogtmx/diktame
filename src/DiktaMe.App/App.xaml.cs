@@ -124,6 +124,14 @@ public partial class App : Application
     }
 
     /// <summary>
+    /// Hides the main window (to system tray).
+    /// </summary>
+    public void HideMainWindow()
+    {
+        _window?.AppWindow.Hide();
+    }
+
+    /// <summary>
     /// Shows the Settings window. Creates a singleton instance if needed.
     /// </summary>
     public void ShowSettings()

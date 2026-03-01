@@ -103,7 +103,7 @@ public sealed class PipelineTests
         var stt = OkStt("raw transcript");
         var llm = OkLlm("cleaned transcript");
         var pipeline = new DictationPipeline(stt.Object, llm.Object, NullInjector());
-        var opts = new DictationOptions { SystemPrompt = "Clean this.", Language = "en" };
+        var opts = new DictationOptions { SystemPrompt = "Clean this.", Language = "en", RecordingDurationMs = 1500 };
 
         var result = await pipeline.RunAsync("audio.wav", opts);
 
@@ -112,6 +112,8 @@ public sealed class PipelineTests
         result.RawTranscript.Should().Be("raw transcript");
         result.Mode.Should().Be("dictate");
         result.TranscriptionMs.Should().BeGreaterThanOrEqualTo(0);
+        result.RecordingMs.Should().Be(1500); // NEW: verify RecordingMs populated
+        result.TotalMs.Should().BeGreaterThan(0); // NEW: verify TotalMs exists
         result.LlmProvider.Should().Be("MockLLM");
     }
 
@@ -157,6 +159,20 @@ public sealed class PipelineTests
         // Empty transcription is "success" (user simply didn't speak)
         result.IsSuccess.Should().BeTrue();
         result.Text.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Dictation_RecordingDurationMs_IsPropagatedToPipelineResult()
+    {
+        var stt = OkStt("hello");
+        var llm = OkLlm("Hello!");
+        var pipeline = new DictationPipeline(stt.Object, llm.Object, NullInjector());
+        var opts = new DictationOptions { SystemPrompt = "Clean.", RecordingDurationMs = 3500 };
+
+        var result = await pipeline.RunAsync("audio.wav", opts);
+
+        result.IsSuccess.Should().BeTrue();
+        result.RecordingMs.Should().Be(3500, "RecordingDurationMs from options should be copied to RecordingMs in result");
     }
 
     [Fact]
@@ -246,7 +262,7 @@ public sealed class PipelineTests
     public async Task Ask_FullFlow_ReturnsAnswer()
     {
         var pipeline = new AskPipeline(OkStt("what is AI?").Object, OkLlm("AI is cool").Object);
-        var opts = new AskOptions { SystemPrompt = "Answer questions.", Language = "en" };
+        var opts = new AskOptions { SystemPrompt = "Answer questions.", Language = "en", RecordingDurationMs = 2000 };
 
         var result = await pipeline.RunAsync("audio.wav", opts);
 
@@ -254,6 +270,8 @@ public sealed class PipelineTests
         result.Text.Should().Be("AI is cool");
         result.RawTranscript.Should().Be("what is AI?");
         result.Mode.Should().Be("ask");
+        result.RecordingMs.Should().Be(2000);
+        result.TotalMs.Should().BeGreaterThanOrEqualTo(0);
     }
 
     [Fact]

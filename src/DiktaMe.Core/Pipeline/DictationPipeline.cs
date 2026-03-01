@@ -82,6 +82,7 @@ public sealed class DictationPipeline
                     RawTranscript = string.Empty,
                     Mode = Mode,
                     IsSuccess = true,   // not an error — user just didn't speak
+                    RecordingMs = options.RecordingDurationMs,
                     TranscriptionMs = sttSw.ElapsedMilliseconds,
                     TotalMs = total.ElapsedMilliseconds,
                     SttProvider = sttResult.Provider,
@@ -165,6 +166,7 @@ public sealed class DictationPipeline
                 RawTranscript = rawText,
                 Mode = Mode,
                 IsSuccess = true,
+                RecordingMs = options.RecordingDurationMs,
                 TranscriptionMs = sttSw.ElapsedMilliseconds,
                 ProcessingMs = processingMs,
                 InjectionMs = injSw.ElapsedMilliseconds,

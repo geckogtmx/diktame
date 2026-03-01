@@ -12,5 +12,6 @@
     <converters:PrivacyLevelToStringConverter x:Key="PrivacyToString"/>
     <converters:NullToVisibilityConverter x:Key="NullToVis"/>
     <converters:ApiKeyMaskConverter x:Key="ApiKeyMask"/>
+    <converters:RefineModeToStringConverter x:Key="RefineModeToString"/>
 
 </ResourceDictionary>

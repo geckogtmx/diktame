@@ -1,111 +1,41 @@
 namespace DiktaMe.Core.Config;
 
 /// <summary>
-/// Factory for creating the 4 built-in dictation modes and 5 utility pipeline configs.
+/// Factory for creating the default dictation preset and utility pipeline configs.
 /// Called by SettingsManager when initializing AppSettings for the first time.
-/// Port of V1's mode system (Standard, Prompt, Professional, RAW) with dual-profile architecture.
 /// </summary>
 public static class DictationModeDefaults
 {
     /// <summary>
-    /// Creates the 4 built-in dictation modes with default prompts and hotkeys.
+    /// Creates the single default "Standard" dictation preset for first-run.
+    /// Users create all additional presets manually via Settings.
     /// </summary>
-    public static List<DictationMode> CreateBuiltInModes()
+    public static DictationMode CreateDefaultPreset()
     {
-        return
-        [
-            new DictationMode
+        return new DictationMode
+        {
+            Id = Guid.NewGuid().ToString("N", System.Globalization.CultureInfo.InvariantCulture),
+            Title = "Standard",
+            SortOrder = 0,
+            CloudProfile = new DictationProfile
             {
-                Id = "dictate-standard",
-                Title = "Standard",
-                IsBuiltIn = true,
-                SortOrder = 0,
-                CloudProfile = new DictationProfile
-                {
-                    SystemPrompt = PromptDefaults.Dictate,
-                    UseLlm = true,
-                    ModelName = "gpt-4o-mini", // default Cloud model (fast + cheap)
-                    Hotkey = "Ctrl+Alt+D",
-                },
-                LocalProfile = new DictationProfile
-                {
-                    SystemPrompt = PromptDefaults.Dictate,
-                    UseLlm = true,
-                    ModelName = null, // Ollama model from AppSettings.OllamaModelName
-                    Hotkey = "Ctrl+Alt+D",
-                },
+                SystemPrompt = PromptDefaults.Dictate,
+                UseLlm = true,
+                ModelName = "gpt-4o-mini",
+                Hotkey = "Ctrl+Alt+D",
             },
-
-            new DictationMode
+            LocalProfile = new DictationProfile
             {
-                Id = "dictate-prompt",
-                Title = "Prompt",
-                IsBuiltIn = true,
-                SortOrder = 1,
-                CloudProfile = new DictationProfile
-                {
-                    SystemPrompt = "Follow the user's custom instruction exactly. Return ONLY the result.",
-                    UseLlm = true,
-                    ModelName = "gpt-4o", // more capable for custom instructions
-                    Hotkey = "Ctrl+Alt+P",
-                },
-                LocalProfile = new DictationProfile
-                {
-                    SystemPrompt = "Follow the user's custom instruction exactly. Return ONLY the result.",
-                    UseLlm = true,
-                    ModelName = null,
-                    Hotkey = "Ctrl+Alt+P",
-                },
+                SystemPrompt = PromptDefaults.Dictate,
+                UseLlm = true,
+                ModelName = null,
+                Hotkey = "Ctrl+Alt+D",
             },
-
-            new DictationMode
-            {
-                Id = "dictate-professional",
-                Title = "Professional",
-                IsBuiltIn = true,
-                SortOrder = 2,
-                CloudProfile = new DictationProfile
-                {
-                    SystemPrompt = "Transform this into formal, professional business writing. Fix grammar, remove filler words, use active voice. Return ONLY the polished text.",
-                    UseLlm = true,
-                    ModelName = "claude-sonnet-4", // Claude for style + tone
-                    Hotkey = "Ctrl+Alt+Shift+D",
-                },
-                LocalProfile = new DictationProfile
-                {
-                    SystemPrompt = "Transform this into formal, professional business writing. Fix grammar, remove filler words, use active voice. Return ONLY the polished text.",
-                    UseLlm = true,
-                    ModelName = null,
-                    Hotkey = "Ctrl+Alt+Shift+D",
-                },
-            },
-
-            new DictationMode
-            {
-                Id = "dictate-raw",
-                Title = "RAW",
-                IsBuiltIn = true,
-                SortOrder = 3,
-                CloudProfile = new DictationProfile
-                {
-                    SystemPrompt = null,
-                    UseLlm = false, // raw transcription, no LLM
-                    ModelName = null,
-                    Hotkey = "Ctrl+Alt+R",
-                },
-                LocalProfile = new DictationProfile
-                {
-                    SystemPrompt = null,
-                    UseLlm = false,
-                    ModelName = null,
-                    Hotkey = "Ctrl+Alt+R",
-                },
-            },
-        ];
+        };
     }
 
     /// <summary>
-    /// Creates the 5 built-in utility pipeline configs with default prompts and hotkeys.
+    /// Creates the utility pipeline configs with default prompts and hotkeys.
     /// </summary>
     public static List<PipelineConfig> CreateBuiltInUtilityPipelines()
     {

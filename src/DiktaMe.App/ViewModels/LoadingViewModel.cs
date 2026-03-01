@@ -25,6 +25,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly DictationModeManager _dictationModes;
     private readonly PipelineConfigManager _pipelines;
     private readonly TextInjector _textInjector;
+    private readonly ControlPanelViewModel _controlPanel;
 
     [ObservableProperty] private string _statusText = "Initializing...";
     [ObservableProperty] private double _progress;
@@ -47,7 +48,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         AudioDucker audioDucker,
         DictationModeManager dictationModes,
         PipelineConfigManager pipelines,
-        TextInjector textInjector)
+        TextInjector textInjector,
+        ControlPanelViewModel controlPanel)
     {
         _settings = settings;
         _history = history;
@@ -60,6 +62,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _dictationModes = dictationModes;
         _pipelines = pipelines;
         _textInjector = textInjector;
+        _controlPanel = controlPanel;
     }
 
     public async Task InitializeAsync()
@@ -266,9 +269,10 @@ public sealed partial class LoadingViewModel : ObservableObject
     /// </summary>
     /// <param name="mode">Display name for logging/toast (e.g. "Dictate", "Ask").</param>
     /// <param name="isDictate">True for dictation modes (uses start/stop sounds), false for utility (uses utility sound).</param>
-    private Task<string?> RecordAudioAsync(string mode, bool isDictate)
+    /// <returns>A tuple containing the audio file path and recording duration in milliseconds.</returns>
+    private Task<(string? FilePath, long DurationMs)> RecordAudioAsync(string mode, bool isDictate)
     {
-        var tcs = new TaskCompletionSource<string?>();
+        var tcs = new TaskCompletionSource<(string?, long)>();
 
         // Get fresh recorder instance
         _currentRecorder?.Dispose();
@@ -286,7 +290,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             _currentRecorder!.RecordingStopped -= stopHandler;
             _isRecording = false;
             _notifications.PlayCustomSound(stopSound);
-            tcs.TrySetResult(args.FilePath);
+            tcs.TrySetResult((args.FilePath, args.DurationMs));
         };
         _currentRecorder.AutoStopped += stopHandler;
         _currentRecorder.RecordingStopped += stopHandler;
@@ -329,7 +333,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Starting Dictate pipeline...");
 
             // Record audio (waits for auto-stop event)
-            string? audioFile = await RecordAudioAsync("Dictate", isDictate: true);
+            var (audioFile, recordingDurationMs) = await RecordAudioAsync("Dictate", isDictate: true);
             if (audioFile == null)
             {
                 Log.Warning("Dictate: No audio file produced");
@@ -341,17 +345,25 @@ public sealed partial class LoadingViewModel : ObservableObject
             _audioDucker.Restore();
 
             Log.Information("Dictate: Recording complete, processing...");
+            _controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing);
 
-            // Get active profile from CRUD system (use first available mode)
+            // Get active mode from settings (instead of always using modes[0])
             var modes = _dictationModes.GetAllModes();
-            if (modes.Count == 0)
+            string? activeModeId = _settings.Current.ActiveDictationModeId;
+
+            // Fallback to first mode if ID is null or invalid
+            DictationMode? activeMode = modes.FirstOrDefault(m => string.Equals(m.Id, activeModeId, StringComparison.Ordinal))
+                                        ?? modes.FirstOrDefault();
+
+            if (activeMode == null)
             {
                 Log.Warning("Dictate: No dictation modes configured");
                 _notifications.ShowToast("Error", "No dictation modes configured", NotificationType.Error);
                 return;
             }
 
-            DictationProfile profile = _dictationModes.GetActiveProfile(modes[0].Id);
+            DictationProfile profile = _dictationModes.GetActiveProfile(activeMode.Id);
+            Log.Information("Dictate: Using mode '{ModeTitle}' (ID: {ModeId})", activeMode.Title, activeMode.Id);
 
             // Build DictationOptions with all required fields
             var options = new DictationOptions
@@ -367,12 +379,16 @@ public sealed partial class LoadingViewModel : ObservableObject
                         ? null
                         : _settings.Current.General.AdditionalKey,
                 },
+                RecordingDurationMs = recordingDurationMs,
             };
 
             // Create pipeline and run with correct signature
             var pipeline = _pipelineFactory.CreateDictationPipeline();
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
+
+            // Notify ControlPanel of pipeline completion (for telemetry)
+            _controlPanel.OnPipelineCompleted(this, result);
 
             // Access correct PipelineResult properties
             if (result.IsSuccess)
@@ -405,7 +421,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Starting Refine pipeline...");
 
             // Record audio (waits for auto-stop event)
-            string? audioFile = await RecordAudioAsync("Refine", isDictate: false);
+            var (audioFile, recordingDurationMs) = await RecordAudioAsync("Refine", isDictate: false);
             if (audioFile == null)
             {
                 Log.Warning("Refine: No audio file produced");
@@ -417,6 +433,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             _audioDucker.Restore();
 
             Log.Information("Refine: Recording complete, processing...");
+            _controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing);
 
             // Get active profile from CRUD system (refine_instruction for verbal mode)
             UtilityProfile profile = _pipelines.GetActiveProfile("refine_instruction");
@@ -434,11 +451,15 @@ public sealed partial class LoadingViewModel : ObservableObject
                         ? null
                         : _settings.Current.General.AdditionalKey,
                 },
+                RecordingDurationMs = recordingDurationMs,
             };
 
             var pipeline = _pipelineFactory.CreateRefinePipeline();
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
+
+            // Notify ControlPanel of pipeline completion (for telemetry)
+            _controlPanel.OnPipelineCompleted(this, result);
 
             if (result.IsSuccess)
             {
@@ -470,7 +491,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Starting Ask pipeline...");
 
             // Record audio (waits for auto-stop event)
-            string? audioFile = await RecordAudioAsync("Ask", isDictate: false);
+            var (audioFile, recordingDurationMs) = await RecordAudioAsync("Ask", isDictate: false);
             if (audioFile == null)
             {
                 Log.Warning("Ask: No audio file produced");
@@ -482,6 +503,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             _audioDucker.Restore();
 
             Log.Information("Ask: Recording complete, processing...");
+            _controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing);
 
             // Get active profile from CRUD system
             UtilityProfile profile = _pipelines.GetActiveProfile("ask");
@@ -492,11 +514,15 @@ public sealed partial class LoadingViewModel : ObservableObject
                 SystemPrompt = profile.SystemPrompt ?? PromptDefaults.Ask, // fallback to default
                 ModelName = profile.ModelName, // J.5: Per-mode model selection
                 Language = _settings.Current.General.Language,
+                RecordingDurationMs = recordingDurationMs,
             };
 
             var pipeline = _pipelineFactory.CreateAskPipeline();
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
+
+            // Notify ControlPanel of pipeline completion (for telemetry)
+            _controlPanel.OnPipelineCompleted(this, result);
 
             if (result.IsSuccess)
             {
@@ -559,7 +585,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Starting Translate pipeline...");
 
             // Record audio (waits for auto-stop event)
-            string? audioFile = await RecordAudioAsync("Translate", isDictate: false);
+            var (audioFile, recordingDurationMs) = await RecordAudioAsync("Translate", isDictate: false);
             if (audioFile == null)
             {
                 Log.Warning("Translate: No audio file produced");
@@ -571,6 +597,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             _audioDucker.Restore();
 
             Log.Information("Translate: Recording complete, processing...");
+            _controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing);
 
             // Get active profile from CRUD system
             UtilityProfile profile = _pipelines.GetActiveProfile("translate");
@@ -588,11 +615,15 @@ public sealed partial class LoadingViewModel : ObservableObject
                         ? null
                         : _settings.Current.General.AdditionalKey,
                 },
+                RecordingDurationMs = recordingDurationMs,
             };
 
             var pipeline = _pipelineFactory.CreateTranslatePipeline();
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
+
+            // Notify ControlPanel of pipeline completion (for telemetry)
+            _controlPanel.OnPipelineCompleted(this, result);
 
             if (result.IsSuccess)
             {
@@ -624,7 +655,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Starting Note pipeline...");
 
             // Record audio (waits for auto-stop event)
-            string? audioFile = await RecordAudioAsync("Note", isDictate: false);
+            var (audioFile, recordingDurationMs) = await RecordAudioAsync("Note", isDictate: false);
             if (audioFile == null)
             {
                 Log.Warning("Note: No audio file produced");
@@ -636,6 +667,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             _audioDucker.Restore();
 
             Log.Information("Note: Recording complete, processing...");
+            _controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing);
 
             // Get active profile from CRUD system
             UtilityProfile profile = _pipelines.GetActiveProfile("note");
@@ -648,11 +680,15 @@ public sealed partial class LoadingViewModel : ObservableObject
                 Language = _settings.Current.General.Language,
                 NotesFilePath = _settings.Current.NotesFilePath, // required
                 TimestampFormat = "yyyy-MM-dd HH:mm:ss",
+                RecordingDurationMs = recordingDurationMs,
             };
 
             var pipeline = _pipelineFactory.CreateNotePipeline();
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
+
+            // Notify ControlPanel of pipeline completion (for telemetry)
+            _controlPanel.OnPipelineCompleted(this, result);
 
             if (result.IsSuccess)
             {

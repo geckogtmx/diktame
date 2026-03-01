@@ -46,6 +46,12 @@ public sealed record DictationOptions
 
     /// <summary>Injection behaviour.</summary>
     public PipelineInjectionOptions Injection { get; init; } = new();
+
+    /// <summary>
+    /// Audio recording duration in milliseconds (passed from AudioRecorder).
+    /// Used to populate PipelineResult.RecordingMs for telemetry.
+    /// </summary>
+    public long RecordingDurationMs { get; init; }
 }
 
 /// <summary>
@@ -71,6 +77,12 @@ public sealed record RefineOptions
 
     /// <summary>Injection behaviour.</summary>
     public PipelineInjectionOptions Injection { get; init; } = new();
+
+    /// <summary>
+    /// Audio recording duration in milliseconds (0 for Refine Auto mode).
+    /// Used to populate PipelineResult.RecordingMs for telemetry.
+    /// </summary>
+    public long RecordingDurationMs { get; init; }
 }
 
 /// <summary>
@@ -89,6 +101,12 @@ public sealed record AskOptions
 
     /// <summary>Language hint for audio transcription (default "en").</summary>
     public string Language { get; init; } = "en";
+
+    /// <summary>
+    /// Audio recording duration in milliseconds (passed from AudioRecorder).
+    /// Used to populate PipelineResult.RecordingMs for telemetry.
+    /// </summary>
+    public long RecordingDurationMs { get; init; }
 }
 
 /// <summary>
@@ -113,6 +131,12 @@ public sealed record TranslateOptions
 
     /// <summary>Injection behaviour.</summary>
     public PipelineInjectionOptions Injection { get; init; } = new();
+
+    /// <summary>
+    /// Audio recording duration in milliseconds (passed from AudioRecorder).
+    /// Used to populate PipelineResult.RecordingMs for telemetry.
+    /// </summary>
+    public long RecordingDurationMs { get; init; }
 }
 
 /// <summary>
@@ -169,4 +193,10 @@ public sealed record NoteOptions
 
     /// <summary>Timestamp format string for prepended note headers.</summary>
     public string TimestampFormat { get; init; } = "yyyy-MM-dd HH:mm:ss";
+
+    /// <summary>
+    /// Audio recording duration in milliseconds (passed from AudioRecorder).
+    /// Used to populate PipelineResult.RecordingMs for telemetry.
+    /// </summary>
+    public long RecordingDurationMs { get; init; }
 }

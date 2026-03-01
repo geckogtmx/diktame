@@ -43,6 +43,7 @@ public sealed class SettingsManagerTests : IDisposable
         Assert.Equal("llama3.2", s.OllamaModel);
         Assert.Equal(16, s.CustomPrompts.Length);
         Assert.Equal(0, s.ActiveProfile);
+        Assert.Null(s.ActiveDictationModeId);
     }
 
     [Fact, Trait("Category", "Unit")]
@@ -90,21 +91,44 @@ public sealed class SettingsManagerTests : IDisposable
     }
 
     [Fact, Trait("Category", "Unit")]
-    public void AppSettings_ModeProfiles_JsonRoundTrip()
+    public void AppSettings_ActiveDictationModeId_CanBeSet()
     {
-        var ms = new ModeSettings { SttProvider = "whisper", LlmProvider = "ollama", UseLlm = true };
+        var original = new AppSettings { ActiveDictationModeId = null };
+        var updated = original with { ActiveDictationModeId = "some-preset-id" };
+
+        Assert.Null(original.ActiveDictationModeId);
+        Assert.Equal("some-preset-id", updated.ActiveDictationModeId);
+    }
+
+    [Fact, Trait("Category", "Unit")]
+    public void AppSettings_ActiveDictationModeId_JsonRoundTrip()
+    {
+        var original = new AppSettings { ActiveDictationModeId = "my-preset-123" };
+
+        string json = JsonSerializer.Serialize(original, AppSettingsContext.Default.AppSettings);
+        var deserialized = JsonSerializer.Deserialize(json, AppSettingsContext.Default.AppSettings);
+
+        Assert.NotNull(deserialized);
+        Assert.Equal("my-preset-123", deserialized!.ActiveDictationModeId);
+    }
+
+    [Fact, Trait("Category", "Unit")]
+    public void AppSettings_DictationModes_JsonRoundTrip()
+    {
+        var preset = DictationModeDefaults.CreateDefaultPreset();
         var original = new AppSettings
         {
-            ModeProfiles = new Dictionary<string, ModeSettings> { ["dictate_0"] = ms },
+            DictationModes = [preset],
+            ActiveDictationModeId = preset.Id,
         };
 
         string json = JsonSerializer.Serialize(original, AppSettingsContext.Default.AppSettings);
         var deserialized = JsonSerializer.Deserialize(json, AppSettingsContext.Default.AppSettings);
 
         Assert.NotNull(deserialized);
-        Assert.True(deserialized!.ModeProfiles.ContainsKey("dictate_0"));
-        Assert.Equal("whisper", deserialized.ModeProfiles["dictate_0"].SttProvider);
-        Assert.Equal("ollama", deserialized.ModeProfiles["dictate_0"].LlmProvider);
+        Assert.Single(deserialized!.DictationModes);
+        Assert.Equal("Standard", deserialized.DictationModes[0].Title);
+        Assert.Equal(preset.Id, deserialized.ActiveDictationModeId);
     }
 
     [Fact, Trait("Category", "Unit")]
@@ -161,11 +185,8 @@ public sealed class SettingsManagerTests : IDisposable
     [Fact, Trait("Category", "Integration")]
     public async Task LoadAsync_HandlesCorruptJson_FallsBackToDefaults()
     {
-        // Write garbage JSON
         await File.WriteAllTextAsync(_testFile, "{ this is not valid json }}}");
 
-        // SettingsManager.LoadAsync catches JsonException and falls back to defaults.
-        // We simulate the same logic: deserializing corrupt JSON returns null/throws.
         string json = await File.ReadAllTextAsync(_testFile);
         AppSettings? result = null;
         try
@@ -174,17 +195,16 @@ public sealed class SettingsManagerTests : IDisposable
         }
         catch (JsonException)
         {
-            result = new AppSettings(); // fallback like SettingsManager does
+            result = new AppSettings();
         }
 
         Assert.NotNull(result);
-        Assert.Equal(1, result!.SchemaVersion); // defaults
+        Assert.Equal(1, result!.SchemaVersion);
     }
 
     [Fact, Trait("Category", "Integration")]
     public async Task TryMigrateFromV1Async_IsNoOp_WhenV1FileAbsent()
     {
-        // V1 path won't exist in test env — migration should be a no-op without throwing.
         var manager = new SettingsManager(_testFile);
         var ex = await Record.ExceptionAsync(() => manager.TryMigrateFromV1Async());
         Assert.Null(ex);
@@ -193,7 +213,6 @@ public sealed class SettingsManagerTests : IDisposable
     [Fact, Trait("Category", "Integration")]
     public async Task TryMigrateFromV1Async_MapsKnownKeys()
     {
-        // Write a synthetic V1 JSON file to a temp path
         string v1Dir = Path.Combine(Path.GetTempPath(), $"dIKtate_{Guid.NewGuid()}");
         string v1File = Path.Combine(v1Dir, "settings.json");
         Directory.CreateDirectory(v1Dir);
@@ -212,7 +231,6 @@ public sealed class SettingsManagerTests : IDisposable
                 """;
             await File.WriteAllTextAsync(v1File, v1Json);
 
-            // Use JsonDocument directly (same logic as SettingsManager.TryMigrateFromV1Async)
             using var doc = JsonDocument.Parse(v1Json);
             var root = doc.RootElement;
 
@@ -249,97 +267,70 @@ public sealed class SettingsManagerTests : IDisposable
         Assert.True(received!.WizardCompleted);
     }
 
-    // ── Migration tests (Stream J) ────────────────────────────────────────────
-
     [Fact, Trait("Category", "Integration")]
-    public async Task LoadAsync_PopulatesBuiltInModes_WhenEmpty()
+    public async Task LoadAsync_CreatesDefaultPreset_OnFirstRun()
     {
-        // Write settings with empty DictationModes list (pre-Stream J format)
-        var oldSettings = new AppSettings
-        {
-            WizardCompleted = true,
-            DictationModes = [], // empty list
-            UtilityPipelines = [], // empty list
-        };
-        string json = JsonSerializer.Serialize(oldSettings, AppSettingsContext.Default.AppSettings);
-        await File.WriteAllTextAsync(_testFile, json);
+        // _testFile does NOT exist (first-run scenario)
+        Assert.False(File.Exists(_testFile));
 
-        // Load via SettingsManager — should auto-populate built-in modes
         var manager = new SettingsManager(_testFile);
         await manager.LoadAsync();
 
-        // Verify 4 built-in dictation modes were added
-        Assert.Equal(4, manager.Current.DictationModes.Count);
-        Assert.All(manager.Current.DictationModes, m => Assert.True(m.IsBuiltIn));
+        // Verify single "Standard" preset was created
+        Assert.Single(manager.Current.DictationModes);
+        Assert.Equal("Standard", manager.Current.DictationModes[0].Title);
 
-        // Verify 5 built-in utility pipelines were added
-        Assert.Equal(5, manager.Current.UtilityPipelines.Count);
+        // Verify ActiveDictationModeId was set
+        Assert.NotNull(manager.Current.ActiveDictationModeId);
+        Assert.Equal(manager.Current.DictationModes[0].Id, manager.Current.ActiveDictationModeId);
+
+        // Verify utility pipelines were populated
+        Assert.True(manager.Current.UtilityPipelines.Count > 0);
+
+        // Verify file was created
+        Assert.True(File.Exists(_testFile));
     }
 
     [Fact, Trait("Category", "Integration")]
-    public async Task LoadAsync_PreservesExistingModes_WhenNotEmpty()
+    public async Task LoadAsync_PreservesExistingPresets_WhenNotEmpty()
     {
-        // Write settings with existing custom mode
-        var customMode = new DictationMode
+        // Write settings with existing custom preset
+        var customPreset = new DictationMode
         {
             Id = "custom-123",
-            Title = "My Custom Mode",
+            Title = "My Custom Preset",
             CloudProfile = new DictationProfile { SystemPrompt = "Test", UseLlm = true },
             LocalProfile = new DictationProfile { SystemPrompt = "Test", UseLlm = true },
-            IsBuiltIn = false,
-            SortOrder = 99,
+            SortOrder = 0,
         };
 
         var settings = new AppSettings
         {
             WizardCompleted = true,
-            DictationModes = [customMode],
+            DictationModes = [customPreset],
             UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
         };
         string json = JsonSerializer.Serialize(settings, AppSettingsContext.Default.AppSettings);
         await File.WriteAllTextAsync(_testFile, json);
 
-        // Load via SettingsManager — should NOT overwrite existing modes
         var manager = new SettingsManager(_testFile);
         await manager.LoadAsync();
 
-        // Verify custom mode is still there
+        // Verify custom preset is still there (not overwritten)
         Assert.Single(manager.Current.DictationModes);
         Assert.Equal("custom-123", manager.Current.DictationModes[0].Id);
-        Assert.Equal("My Custom Mode", manager.Current.DictationModes[0].Title);
-    }
-
-    [Fact, Trait("Category", "Integration")]
-    public async Task LoadAsync_MigratesActiveProfile_ToActiveProfileName()
-    {
-        // Write settings with old ActiveProfile (0 or 1) and empty ActiveProfileName
-        var oldSettings = new AppSettings
-        {
-            ActiveProfile = 1, // Local profile
-            ActiveProfileName = string.Empty, // empty in old format
-            DictationModes = DictationModeDefaults.CreateBuiltInModes(),
-            UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
-        };
-        string json = JsonSerializer.Serialize(oldSettings, AppSettingsContext.Default.AppSettings);
-        await File.WriteAllTextAsync(_testFile, json);
-
-        // Load via SettingsManager — should migrate to new format
-        var manager = new SettingsManager(_testFile);
-        await manager.LoadAsync();
-
-        // Verify ActiveProfileName was populated
-        Assert.Equal("Local", manager.Current.ActiveProfileName);
+        Assert.Equal("My Custom Preset", manager.Current.DictationModes[0].Title);
     }
 
     [Fact, Trait("Category", "Integration")]
     public async Task LoadAsync_MigratesActiveProfile0_ToCloud()
     {
-        // Test migration of index 0 → "Cloud"
+        var preset = DictationModeDefaults.CreateDefaultPreset();
         var oldSettings = new AppSettings
         {
-            ActiveProfile = 0, // Cloud profile
+            ActiveProfile = 0,
             ActiveProfileName = string.Empty,
-            DictationModes = DictationModeDefaults.CreateBuiltInModes(),
+            DictationModes = [preset],
             UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
         };
         string json = JsonSerializer.Serialize(oldSettings, AppSettingsContext.Default.AppSettings);
@@ -352,53 +343,22 @@ public sealed class SettingsManagerTests : IDisposable
     }
 
     [Fact, Trait("Category", "Integration")]
-    public async Task TryMigrateFromV1Async_PopulatesModesAndPipelines()
+    public async Task LoadAsync_MigratesActiveProfile1_ToLocal()
     {
-        // Create a synthetic V1 settings file
-        string v1Dir = Path.Combine(Path.GetTempPath(), $"dIKtate_{Guid.NewGuid()}");
-        string v1File = Path.Combine(v1Dir, "settings.json");
-        Directory.CreateDirectory(v1Dir);
-
-        try
+        var preset = DictationModeDefaults.CreateDefaultPreset();
+        var oldSettings = new AppSettings
         {
-            string v1Json = """
-                {
-                  "language": "en",
-                  "autoStart": false,
-                  "ollamaModel": "llama3.2"
-                }
-                """;
-            await File.WriteAllTextAsync(v1File, v1Json);
+            ActiveProfile = 1,
+            ActiveProfileName = string.Empty,
+            DictationModes = [preset],
+            UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
+        };
+        string json = JsonSerializer.Serialize(oldSettings, AppSettingsContext.Default.AppSettings);
+        await File.WriteAllTextAsync(_testFile, json);
 
-            // Temporarily replace %APPDATA%\dIKtate path for this test
-            // We can't easily do that, so instead we'll manually test the migration logic
-            // by reading the V1 file and verifying the populated fields
+        var manager = new SettingsManager(_testFile);
+        await manager.LoadAsync();
 
-            using var doc = JsonDocument.Parse(v1Json);
-            var root = doc.RootElement;
-
-            // Simulate what TryMigrateFromV1Async does
-            var migrated = new AppSettings
-            {
-                WizardCompleted = true,
-                OllamaModel = root.TryGetProperty("ollamaModel", out var el) ? el.GetString()! : "llama3.2",
-                DictationModes = DictationModeDefaults.CreateBuiltInModes(),
-                UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
-                ActiveProfileName = "Cloud",
-            };
-
-            // Verify modes and pipelines were populated
-            Assert.Equal(4, migrated.DictationModes.Count);
-            Assert.Equal(5, migrated.UtilityPipelines.Count);
-            Assert.Equal("Cloud", migrated.ActiveProfileName);
-            Assert.True(migrated.WizardCompleted);
-        }
-        finally
-        {
-            if (Directory.Exists(v1Dir))
-            {
-                Directory.Delete(v1Dir, recursive: true);
-            }
-        }
+        Assert.Equal("Local", manager.Current.ActiveProfileName);
     }
 }

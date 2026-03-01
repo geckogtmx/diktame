@@ -95,6 +95,7 @@ public sealed class AskPipeline
                 RawTranscript = question,
                 Mode = Mode,
                 IsSuccess = true,
+                RecordingMs = options.RecordingDurationMs,
                 TranscriptionMs = sttSw.ElapsedMilliseconds,
                 ProcessingMs = llmSw.ElapsedMilliseconds,
                 TotalMs = total.ElapsedMilliseconds,

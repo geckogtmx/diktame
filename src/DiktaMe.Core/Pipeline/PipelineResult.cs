@@ -23,6 +23,12 @@ public sealed record PipelineResult
 
     // ── Per-stage latencies (0 when stage was skipped) ────────────────────
 
+    /// <summary>
+    /// Audio recording duration in milliseconds.
+    /// 0 if no recording (e.g., Refine Auto, text-only Chat).
+    /// </summary>
+    public long RecordingMs { get; init; }
+
     /// <summary>Milliseconds spent transcribing audio.</summary>
     public long TranscriptionMs { get; init; }
 

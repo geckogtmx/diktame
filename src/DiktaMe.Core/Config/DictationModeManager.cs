@@ -4,8 +4,8 @@ using Serilog;
 namespace DiktaMe.Core.Config;
 
 /// <summary>
-/// Manages CRUD operations for user-defined dictation modes and built-in modes.
-/// Persists changes through SettingsManager. Built-in modes can be edited but not deleted.
+/// Manages CRUD operations for user-defined dictation presets.
+/// Persists changes through SettingsManager. All presets are user-owned and fully editable/deletable.
 /// </summary>
 public sealed class DictationModeManager
 {
@@ -19,7 +19,7 @@ public sealed class DictationModeManager
     // ── Read ──────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Returns all dictation modes (built-in + custom), sorted by SortOrder.
+    /// Returns all dictation presets, sorted by SortOrder.
     /// </summary>
     public List<DictationMode> GetAllModes()
     {
@@ -31,7 +31,7 @@ public sealed class DictationModeManager
     /// <summary>
     /// Finds a dictation mode by its unique ID.
     /// </summary>
-    /// <param name="id">The mode ID (e.g., "dictate-standard" or a GUID).</param>
+    /// <param name="id">The mode ID (GUID).</param>
     /// <returns>The matching mode, or null if not found.</returns>
     public DictationMode? GetModeById(string id)
     {
@@ -90,7 +90,6 @@ public sealed class DictationModeManager
             Title = title,
             CloudProfile = cloudProfile,
             LocalProfile = localProfile,
-            IsBuiltIn = false,
             SortOrder = maxSort + 1,
         };
 
@@ -108,8 +107,7 @@ public sealed class DictationModeManager
     // ── Update ────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Updates an existing dictation mode's title and profiles.
-    /// Both built-in and custom modes can be edited (only deletion is restricted for built-ins).
+    /// Updates an existing dictation preset's title and profiles.
     /// </summary>
     /// <param name="id">The mode ID to update.</param>
     /// <param name="title">New title.</param>
@@ -152,22 +150,17 @@ public sealed class DictationModeManager
     // ── Delete ────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Deletes a custom dictation mode.
+    /// Deletes a dictation preset.
     /// </summary>
-    /// <param name="id">The mode ID to delete.</param>
+    /// <param name="id">The preset ID to delete.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <exception cref="InvalidOperationException">Thrown if mode is built-in or not found.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if preset is not found.</exception>
     public async Task DeleteModeAsync(string id, CancellationToken cancellationToken = default)
     {
         var existing = GetModeById(id);
         if (existing is null)
         {
             throw new InvalidOperationException($"Mode '{id}' not found");
-        }
-
-        if (existing.IsBuiltIn)
-        {
-            throw new InvalidOperationException($"Cannot delete built-in mode '{id}'");
         }
 
         var newModes = _settings.Current.DictationModes

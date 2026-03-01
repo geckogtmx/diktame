@@ -1,13 +1,13 @@
 namespace DiktaMe.Core.Config;
 
 /// <summary>
-/// User-configurable dictation mode with dual-profile support.
-/// Represents a named workflow (e.g., "Standard", "Professional", "Custom Interview Mode").
-/// Port of V1's mode system, now with CRUD support and per-profile model selection.
+/// User-configurable dictation preset with dual-profile support.
+/// Represents a named workflow (e.g., "Standard", "Professional", "Interview Notes").
+/// All presets are user-owned and fully editable/deletable.
 /// </summary>
 public sealed record DictationMode
 {
-    /// <summary>Unique ID (GUID) for this mode.</summary>
+    /// <summary>Unique ID (GUID) for this preset.</summary>
     public required string Id { get; init; }
 
     /// <summary>User-visible title (e.g., "Standard", "Professional", "Interview Notes").</summary>
@@ -18,9 +18,6 @@ public sealed record DictationMode
 
     /// <summary>Local profile configuration (Whisper + Ollama).</summary>
     public required DictationProfile LocalProfile { get; init; }
-
-    /// <summary>Whether this is a built-in mode (cannot be deleted).</summary>
-    public bool IsBuiltIn { get; init; }
 
     /// <summary>Sort order for UI display (0-based).</summary>
     public int SortOrder { get; init; }

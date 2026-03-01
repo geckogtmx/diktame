@@ -33,9 +33,6 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
     private string _title = "";
 
     [ObservableProperty]
-    private bool _isBuiltIn;
-
-    [ObservableProperty]
     private bool _isDictationMode;
 
     // ── Cloud profile fields ───────────────────────────────────────────────
@@ -99,9 +96,7 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
             {
                 Id = mode.Id,
                 Title = mode.Title,
-                IsBuiltIn = mode.IsBuiltIn,
                 IsDictationMode = true,
-                Subtitle = mode.IsBuiltIn ? "Built-in" : "Custom",
             });
         }
 
@@ -201,7 +196,6 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
         }
 
         Title = item.Title;
-        IsBuiltIn = item.IsBuiltIn;
         IsDictationMode = item.IsDictationMode;
 
         // Only load dictation modes - no utility pipelines
@@ -357,9 +351,9 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
         }
 
         var item = ModeItems[SelectedIndex];
-        if (item.IsSeparator || item.IsBuiltIn || !item.IsDictationMode)
+        if (item.IsSeparator || !item.IsDictationMode)
         {
-            return; // Cannot delete built-ins, separators, or utility pipelines
+            return; // Cannot delete separators or utility pipelines
         }
 
         try
@@ -474,8 +468,6 @@ public sealed class ModeListItem : ObservableObject
 {
     public required string Id { get; init; }
     public required string Title { get; set; }
-    public bool IsBuiltIn { get; init; }
     public bool IsDictationMode { get; init; }
     public bool IsSeparator { get; init; }
-    public string Subtitle { get; init; } = "";
 }
