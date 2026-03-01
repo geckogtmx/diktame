@@ -1,6 +1,6 @@
 # dIKta.me V2 — Development Roadmap (C# + WinUI 3 Rewrite)
 
-**Status:** Feature Complete (Streams A–G, I complete; H.1–H.2 remaining for release)
+**Status:** Feature Complete (Streams A–G, I, J complete; H.1 remaining for release)
 **Date:** 2026-02-18
 **Parent:** V1 `SPEC_039_STRATEGIC_ROADMAP.md` (in diktate repo)
 **Supersedes:** Python modular split approach (deemed throwaway work)
@@ -829,16 +829,13 @@ Filter in CI: `dotnet test --filter "Category!=Integration&Category!=Hardware"`
 4. Register auto-start in Windows Task Scheduler
 5. File associations (if needed)
 
-#### Task H.2: V1 → V2 Migration
-**Effort:** 0.5 day
+#### Task H.2: V1 → V2 Migration ✅ (N/A — by design)
 
-**Steps:**
-1. Detect existing V1 installation (`%APPDATA%/diktate/config.json`) — note: V1 uses old name
-2. Read and convert V1 settings to V2 `AppSettings` format
-3. Migrate API keys from Electron `safeStorage` to DPAPI
-4. Preserve history database (same SQLite schema, same path)
-5. Preserve custom prompts, hotkey bindings, privacy settings
-6. Show "Welcome to V2" migration summary
+**Status:** Complete / Not Applicable. V2 is a clean-slate rewrite:
+- Settings migration handled by J.3 (`SettingsMigration`) for V2 format evolution
+- API keys: Electron `safeStorage` uses process-specific DPAPI context — cannot be decrypted from C#. Users re-enter keys via Configuration Wizard (F.3), which is the intended first-run flow
+- History DB: Same SQLite schema at same `%APPDATA%` path — preserved automatically
+- Custom prompts: Carried forward via `PromptRepository`
 
 ---
 
@@ -1781,6 +1778,6 @@ These are out of scope for initial CRUD implementation:
 ---
 
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅
-**Remaining:** H.1 (Installer), H.2 (V1 Migration), I.6 (Website Rebrand)
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, H.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅, Control Panel V2 rework (Phase 1+2) ✅
+**Remaining:** H.1 (Installer), I.6 (Website Rebrand)
 **Build:** 0 errors, 0 warnings | **Tests:** 521 passing | **CI unit filter:** 376
