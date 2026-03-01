@@ -1,63 +1,92 @@
 # Developer Handoff
 
-## Session Summary: 2026-02-28 (Session 12)
+## Session Summary: 2026-03-01 (Session 13)
 
-### Project Status: Pre-Release — Manual Testing & Latency Tuning Next
+### Project Status: OAuth Implementation Next — Specs Complete
 
-**All feature work is complete.** Control Panel V2 rework (Phase 1 + 2) done, all streams A–J complete, H.2 marked N/A. Only H.1 (Installer) remains as a code task. Next session focuses on manual end-to-end testing, cloud inference latency investigation, and settings page polish before first release build.
+**Session 13 was spec-writing and audit.** Fixed CI lint failure, audited V1 OAuth/trial system (Stream K added to roadmap), audited V1 deferred specs, and created 3 new feature specs in `plans/`. No new C# code written — all documentation.
 
-### Session 12 Accomplishments
+### Session 13 Accomplishments
 
-**Control Panel V2 — Phase 2 (Visual Polish & Custom Title Bar):**
-- Removed Windows title bar entirely — `ExtendsContentIntoTitleBar = true` + `OverlappedPresenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: false)`
-- Custom drag region on header row via `SetTitleBar(headerBar)` — interactive children (gear + close buttons) auto-excluded
-- Added [X] close button (`&#xE10A;` Segoe MDL2) → `App.Current.HideMainWindow()` → `AppWindow.Hide()` (tray stays alive)
-- Window sized from 520×380 → 369×274 (nearly matches V1's 400×265 frameless)
-- Fixed ToggleSwitch alignment — `Padding="0" Margin="12,0,0,0"` compensates for internal header column offset
-- Replaced hotkey footer with centered "dIKta.me V2.0" branding
-- Commits: `27ff33f`, `ddc59bb`
+**CI Fix:**
+- Fixed 3 `IDE0011` (missing braces) lint errors in `MainWindow.xaml.cs:FindDescendant<T>` — commit `b2f73ac`
 
-**Housekeeping:**
-- Removed stale debug scripts (`test-gemini-fix.cs`, `diagnose-hotkeys.ps1`) — commit `3f0a7e5`
-- Updated `CONTROL_PANEL_REWORK.md` (Phase 2 complete)
-- Updated `DEVELOPMENT_ROADMAP.md` — H.2 marked ✅ N/A, status updated to "H.1 remaining"
+**V1 OAuth/Trial System Audit (Stream K):**
+- Audited V1's complete OAuth + trial credits system (Supabase Auth, deeplink protocol, managed Gemini proxy, trial credits)
+- Confirmed **none of it exists in V2** — V2 is BYOK-only
+- Added Stream K (6 tasks, K.1–K.6, ~4.5 days) to `DEVELOPMENT_ROADMAP.md`
+- Full 14-component gap analysis table in roadmap Section 12
 
-### Session 11 (Previous) — Control Panel V2 Phase 1
+**Feature Specs Created:**
+- `plans/SPEC_001_MEETINGS.md` — Meeting Intelligence (Scribe). Competitive analysis vs Granola + Fellow.ai. Session-aware Notes integration (voice notes as weighted synthesis signals). Scribe window layout, 6 output templates, "Ask this meeting" chat.
+- `plans/SPEC_002_VISION.md` — Screen capture + multimodal LLM vision. Hotkey: `Ctrl+Alt+S` ("See"). Cloud + local from day one. Snipping overlay, VisionPipeline.
+- `plans/SPEC_003_TTS.md` — Text-to-speech with dual local+cloud strategy. 12 local models evaluated (<4B params, Orpheus family as top pick). 3 cloud providers: Inworld (recommended, $5-10/1M chars, #1 ranked), OpenAI, ElevenLabs. Voice cloning, NAudio playback.
 
-**Resolved all Session 11 failures from earlier agent:**
-- Complete XAML rewrite of ControlPanelPage.xaml — 6-row grid, V1 color palette, ItemsRepeater presets
-- ControlPanelViewModel rewrite — auth badge, IsLocalMode, RAW toggle, RefineVoice, formatted perf strings, DictationModeItem
-- Pipeline telemetry wiring — `OnPipelineStateChanged(Transcribing)` in all 5 pipeline methods
-- 509 tests passing, 0 build warnings
+**Commit:** `bf21244` — docs: add V2 feature specs (Meetings, Vision, TTS) and Stream K audit
 
 ---
 
-## 🎯 Next Session Priorities
+## 🎯 Next Session: Stream K — OAuth & Trial Credits
 
-### 1. Manual End-to-End Testing
-Test all 6 workflow modes with real audio:
-- [ ] Dictate (Ctrl+Alt+D) — record → STT → inject
-- [ ] Refine (Ctrl+Alt+R) — record → STT → LLM refine → inject
-- [ ] Ask (Ctrl+Alt+A) — record → STT → LLM answer → output
-- [ ] Translate (Ctrl+Alt+T) — record → STT → LLM translate → inject
-- [ ] Note (Ctrl+Alt+N) — record → STT → append to file
-- [ ] Oops (Ctrl+Alt+V) — re-inject last text
+### Start Here: K.1 Core Models & AppSettings (0.5 day)
 
-### 2. Cloud Inference Latency Investigation
-**User reports V2 feels significantly slower than V1 on cloud inference.** Need to:
-- Profile V2 pipeline timing breakdown (REC / TRNS / PROC / INJ)
-- Compare against V1's equivalent timings
-- Identify bottleneck: HTTP client setup? Audio encoding? Provider overhead? Buffering?
-- Candidates: HttpClient lifecycle, Deepgram/Gemini connection reuse, audio format conversion
+1. Add trial-related fields to `AppSettings`:
+   - `TrialSessionToken` (encrypted via `SecureStorage`)
+   - `TrialEmail`, `TrialWordsUsed`, `TrialWordsQuota`
+   - `TrialDaysRemaining`, `TrialExpiresAt`, `TrialActive`, `TrialLastSynced`
+2. Add `AuthMode` enum: `None`, `Trial`, `ApiKey`
+3. Add `TrialStatus` model class
+4. Settings migration for new fields
 
-### 3. Settings Page Polish
-- Final UI pass on settings pages
-- NavigationView blank space issue (Session 10 bug — may still be present)
+**Port from:** `E:\git\diktate\src\types\settings.ts` (lines 124–132)
 
-### 4. H.1: Installer
-- Choose MSIX or Inno Setup
-- Package trimmed self-contained output (~70MB compressed)
-- Register auto-start, include assets
+### Then: K.2 TrialAccountService (1 day)
+
+1. `LoginAsync()` — opens browser to `https://dikta.me/login?mode=app`
+2. `HandleAuthCallbackAsync(token)` — stores JWT, extracts email, triggers status sync
+3. `RefreshStatusAsync()` — GET `/api/trial/status` with Bearer token
+4. `RecordUsageAsync(provider, model, wordsUsed)` — POST `/api/trial/usage`
+5. `LogoutAsync()` — clears token + trial fields
+6. JWT decode helper (extract email, expiry from payload)
+
+**Port from:** `E:\git\diktate\src\ipc\trialHandlers.ts`
+
+### Then: K.3 Protocol Handler (0.5–1 day)
+
+1. Register `diktame://` URL scheme (MSIX manifest or registry fallback)
+2. Handle protocol activation in `App.xaml.cs` → route `diktame://auth?token=...`
+3. Single-instance check — forward deeplink to existing instance
+4. Update V1 website callback to use `diktame://` scheme
+
+**Port from:** `E:\git\diktate\src\main.ts` (lines 57–61, 681–707)
+
+### Then: K.4 Managed Gemini Integration (1 day)
+
+1. `TrialGeminiProvider` — routes through Supabase Edge Function, Bearer JWT auth
+2. Wire into `LLMRouter` — `AuthMode == Trial` → managed provider
+3. Post-process: `TrialAccountService.RecordUsageAsync()` after each LLM call
+4. Handle 403 quota-exceeded, 401 token expiry
+
+**Port from:** `E:\git\diktate\supabase\functions\gemini-proxy\index.ts`
+
+### Then: K.5 Trial Account UI (1 day)
+
+1. Settings "Account" section: sign-in button, usage progress bar, days remaining
+2. Control Panel badge: `AuthMode.Trial` → "Trial" badge
+3. Configuration Wizard: "Try free" option alongside "Enter API key"
+4. Quota exceeded notification → "Add your own API key" prompt
+
+### Finally: K.6 Tests (0.5 day)
+
+1. `TrialAccountServiceTests` — login, status sync, usage recording, JWT parsing
+2. `TrialGeminiProviderTests` — routing, auth, quota handling
+3. `LLMRouter` integration — delegates to trial provider when `AuthMode == Trial`
+
+### K Dependencies
+
+- **Website repo** (`E:\git\diktate\website`): Update OAuth callback `diktate://` → `diktame://`
+- **Supabase**: No changes needed (existing Edge Function + DB schema)
+- **H.1 (Installer)**: Protocol handler registration may depend on MSIX vs Inno Setup
 
 ---
 
@@ -65,12 +94,12 @@ Test all 6 workflow modes with real audio:
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 509 passing |
+| **Tests** | 521 passing (CI filter: 376) |
 | **Build** | 0 errors, 0 warnings |
-| **CI** | main branch |
+| **CI** | Passing on main |
 | **Publish size** | ~173MB uncompressed, ~70MB compressed (win-x64, self-contained, trimmed) |
 | **Branch** | main |
-| **Latest commit** | `3f0a7e5` — chore: remove stale debug scripts from repo root |
+| **Latest commit** | `bf21244` — docs: add V2 feature specs and Stream K audit |
 
 ## ✅ Completed Streams
 
@@ -82,7 +111,7 @@ Test all 6 workflow modes with real audio:
 | **D** — Pipeline Orchestration | Dictation, Refine, Ask, Translate, Note, Oops pipelines | ✅ Complete |
 | **E** — Data & Security | SettingsManager, ProfileManager, PromptRepository, HistoryManager, MetricsCollector, NoteWriter, SecureStorage, PIIScrubber, ApiKeyValidator, DI wiring | ✅ Complete |
 | **F** — UI (WinUI 3) | Settings (12 tabs), Control Panel (V1-match), Wizard, Loading Screen, Quick Chat overlay, Notifications, Tray icon | ✅ Complete |
-| **G** — Testing & CI/CD | 509 unit tests, GitHub Actions CI (12-step pipeline), coverage tracking | ✅ Complete |
+| **G** — Testing & CI/CD | 521 unit tests, GitHub Actions CI (12-step pipeline), coverage tracking | ✅ Complete |
 | **H.2** — V1 Migration | N/A by design — Electron safeStorage keys can't be decrypted from C#; users re-enter via Wizard | ✅ N/A |
 | **I** — Promoted Features | SnippetManager, AudioDucker, ChatPipeline, OllamaManager | ✅ Complete |
 | **J** — CRUD Dictation Modes | DictationMode/PipelineConfig models, Managers, Migration, Pipeline integration, Per-mode model selection, UI | ✅ Complete |
@@ -91,6 +120,7 @@ Test all 6 workflow modes with real audio:
 
 | Task | Effort | Description |
 |------|--------|-------------|
+| **K.1–K.6** | ~4.5 days | **OAuth & Trial Credits** — next session focus |
 | **H.1** | 1 day | Installer (MSIX or Inno Setup) |
 | **I.6** | 0.5 day | Website rebrand for V2 launch (dikta.me) |
 | **Latency tuning** | TBD | Cloud inference slower than V1 — needs profiling |
@@ -102,6 +132,11 @@ Test all 6 workflow modes with real audio:
 - [ ] Pipeline state granularity (Processing/Injecting states)
 - [ ] Test with 1, 4, and 8 presets for UniformGridLayout wrapping
 
+### Feature Specs Written (not yet implemented — post-launch)
+- `plans/SPEC_001_MEETINGS.md` — Meeting Intelligence (Scribe)
+- `plans/SPEC_002_VISION.md` — Screen Capture + Multimodal Vision
+- `plans/SPEC_003_TTS.md` — Text-to-Speech (Local + Cloud)
+
 ---
 
 ## 🔧 Key Technical Context
@@ -109,20 +144,33 @@ Test all 6 workflow modes with real audio:
 ### Build & Test Commands
 ```bash
 dotnet build DiktaMe.sln -c Release          # 0 errors, 0 warnings
-dotnet test DiktaMe.sln                       # 509 tests pass
+dotnet test DiktaMe.sln                       # 521 tests pass
+dotnet format DiktaMe.sln --verify-no-changes # Lint check (CI uses this)
 publish-release.cmd                           # Trimmed self-contained win-x64
 ```
 
 ### Key Files
 | File | Purpose |
 |------|---------|
-| `DEVELOPMENT_ROADMAP.md` | Full task breakdown with V1 "Port from" references |
+| `DEVELOPMENT_ROADMAP.md` | Full task breakdown — Stream K tasks at Section 12 |
+| `plans/SPEC_001_MEETINGS.md` | Meeting Intelligence spec (post-launch) |
+| `plans/SPEC_002_VISION.md` | Vision module spec (post-launch) |
+| `plans/SPEC_003_TTS.md` | TTS module spec (post-launch) |
 | `plans/CONTROL_PANEL_REWORK.md` | Control Panel V2 rework plan (Phase 1+2 complete) |
 | `ARCHITECTURE.md` | Technical architecture (14 sections) |
-| `GEMINI.md` | AI governance rules (used by non-Claude models) |
 | `Directory.Build.props` | Shared build config (C# 12, nullable, TreatWarningsAsErrors) |
 | `.editorconfig` | Code style rules (Meziantou.Analyzer + naming) |
 | `ci/test-threshold.json` | Minimum test count + publish size bounds |
+
+### V1 Reference Files for Stream K
+| V1 File | What to port |
+|---------|-------------|
+| `src/types/settings.ts:124-132` | Trial fields in AppSettings |
+| `src/ipc/trialHandlers.ts` | TrialAccountService logic |
+| `src/main.ts:57-61,681-707` | Protocol handler + deeplink |
+| `src/settings/trialAccount.ts` | Trial Account UI |
+| `supabase/functions/gemini-proxy/index.ts` | Managed Gemini calling pattern |
+| `src/services/configSync.ts` | Status sync pattern |
 
 ### Shell Gotchas (Windows + Bash)
 - PowerShell `$_` gets mangled by bash — use `powershell -NoProfile -File -` with heredoc
@@ -141,4 +189,4 @@ publish-release.cmd                           # Trimmed self-contained win-x64
 
 ---
 
-**Estimated Time to v2.0.0:** ~2 days (testing + latency tuning + installer)
+**Next session:** Start K.1 (Core Models) → K.2 (TrialAccountService) → K.3 (Protocol Handler) → K.4 (Managed Gemini) → K.5 (UI) → K.6 (Tests)
