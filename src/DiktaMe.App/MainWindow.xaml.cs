@@ -63,9 +63,14 @@ public sealed partial class MainWindow : Window
     private static T? FindDescendant<T>(DependencyObject? parent) where T : DependencyObject
     {
         if (parent is null)
+        {
             return null;
+        }
+
         if (parent is T match)
+        {
             return match;
+        }
 
         int count = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(parent);
         for (int i = 0; i < count; i++)
@@ -73,7 +78,9 @@ public sealed partial class MainWindow : Window
             var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(parent, i);
             var result = FindDescendant<T>(child);
             if (result is not null)
+            {
                 return result;
+            }
         }
         return null;
     }
