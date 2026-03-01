@@ -153,9 +153,10 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- SOUND -->
-                <StackPanel Grid.Column="0" HorizontalAlignment="Center" Spacing="4">
+                <StackPanel Grid.Column="0" HorizontalAlignment="Center" Spacing="2">
                     <ToggleSwitch IsOn="{x:Bind ViewModel.IsSoundEnabled, Mode=TwoWay}"
-                                  MinWidth="0" OffContent="" OnContent=""/>
+                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
+                                  OffContent="" OnContent=""/>
                     <TextBlock Text="{x:Bind ViewModel.SoundLabel, Mode=OneWay}"
                                FontSize="9" FontWeight="SemiBold"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
@@ -163,9 +164,10 @@
                 </StackPanel>
 
                 <!-- LOCAL -->
-                <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="4">
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="2">
                     <ToggleSwitch IsOn="{x:Bind ViewModel.IsLocalMode, Mode=TwoWay}"
-                                  MinWidth="0" OffContent="" OnContent=""/>
+                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
+                                  OffContent="" OnContent=""/>
                     <TextBlock Text="{x:Bind ViewModel.LocalLabel, Mode=OneWay}"
                                FontSize="9" FontWeight="SemiBold"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
@@ -173,9 +175,10 @@
                 </StackPanel>
 
                 <!-- +KEY -->
-                <StackPanel Grid.Column="2" HorizontalAlignment="Center" Spacing="4">
+                <StackPanel Grid.Column="2" HorizontalAlignment="Center" Spacing="2">
                     <ToggleSwitch IsOn="{x:Bind ViewModel.IsAdditionalKeyEnabled, Mode=TwoWay}"
-                                  MinWidth="0" OffContent="" OnContent=""/>
+                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
+                                  OffContent="" OnContent=""/>
                     <TextBlock Text="{x:Bind ViewModel.KeyLabel, Mode=OneWay}"
                                FontSize="9" FontWeight="SemiBold"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
@@ -183,9 +186,10 @@
                 </StackPanel>
 
                 <!-- RAW -->
-                <StackPanel Grid.Column="3" HorizontalAlignment="Center" Spacing="4">
+                <StackPanel Grid.Column="3" HorizontalAlignment="Center" Spacing="2">
                     <ToggleSwitch IsOn="{x:Bind ViewModel.IsRawModeEnabled, Mode=TwoWay}"
-                                  MinWidth="0" OffContent="" OnContent=""/>
+                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
+                                  OffContent="" OnContent=""/>
                     <TextBlock Text="{x:Bind ViewModel.RawLabel, Mode=OneWay}"
                                FontSize="9" FontWeight="SemiBold"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
@@ -193,9 +197,10 @@
                 </StackPanel>
 
                 <!-- REFINE -->
-                <StackPanel Grid.Column="4" HorizontalAlignment="Center" Spacing="4">
+                <StackPanel Grid.Column="4" HorizontalAlignment="Center" Spacing="2">
                     <ToggleSwitch IsOn="{x:Bind ViewModel.IsRefineVoice, Mode=TwoWay}"
-                                  MinWidth="0" OffContent="" OnContent=""/>
+                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
+                                  OffContent="" OnContent=""/>
                     <TextBlock Text="{x:Bind ViewModel.RefineLabel, Mode=OneWay}"
                                FontSize="9" FontWeight="SemiBold"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
@@ -358,44 +363,12 @@
         </Border>
 
         <!-- ═══════════════════════════════════════════════════════════════════
-             Row 5: Footer — Hotkey Tags
+             Row 5: Footer — App branding
              ═══════════════════════════════════════════════════════════════ -->
         <Grid Grid.Row="5" Background="{StaticResource V1HeaderBrush}" Padding="10,4">
-            <StackPanel Orientation="Horizontal" Spacing="4"
-                        HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="Hotkeys:" FontSize="10"
-                           Foreground="#666666" VerticalAlignment="Center"/>
-
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="2" Padding="4,1">
-                    <TextBlock Text="{x:Bind ViewModel.HotkeyDictate, Mode=OneWay}"
-                               FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                </Border>
-
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="2" Padding="4,1">
-                    <TextBlock Text="{x:Bind ViewModel.HotkeyRefine, Mode=OneWay}"
-                               FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                </Border>
-
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="2" Padding="4,1">
-                    <TextBlock Text="{x:Bind ViewModel.HotkeyAsk, Mode=OneWay}"
-                               FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                </Border>
-
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="2" Padding="4,1">
-                    <TextBlock Text="{x:Bind ViewModel.HotkeyNote, Mode=OneWay}"
-                               FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                </Border>
-
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="2" Padding="4,1">
-                    <TextBlock Text="{x:Bind ViewModel.HotkeyTranslate, Mode=OneWay}"
-                               FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                </Border>
-            </StackPanel>
+            <TextBlock Text="dIKta.me V2.0" FontSize="10" FontWeight="Medium"
+                       Foreground="#666666"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
     </Grid>
 </Page>
