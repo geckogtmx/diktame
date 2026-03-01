@@ -1,6 +1,6 @@
 # Control Panel V2 Rework — Implementation Plan
 
-> **Status**: Phase 1 complete (XAML + ViewModel rewrite). Builds clean, 509 tests pass.
+> **Status**: Phase 2 complete (visual polish + custom title bar). Builds clean, 509 tests pass.
 > **Session resumable**: Yes — all remaining work items listed in "Remaining Work" section.
 
 ## Context
@@ -32,14 +32,14 @@ V1 (400x265px, frameless Electron)         V2 Target (520x380px, WinUI 3 with ti
 ```
 
 **Key differences from V1**:
-- V2 has a WinUI title bar (can't be frameless without major complexity)
+- ~~V2 has a WinUI title bar~~ — Title bar removed via `OverlappedPresenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: false)` + `ExtendsContentIntoTitleBar`. Header row is the drag region via `SetTitleBar()`.
 - Dictation presets are dynamic (1-8), arranged in a responsive 2x4 grid (max 2 rows x 4 columns)
 - RAW is a toggle switch (5th toggle in the actions row), not a preset button
-- Window size 520x380 (vs V1's 400x265 frameless)
+- Window size 369×274 (vs V1's 400×265 frameless) — nearly identical footprint
 
 ---
 
-## Completed Changes (Phase 1)
+## Completed Changes (Phase 1 + Phase 2)
 
 ### Files Modified
 
@@ -47,8 +47,9 @@ V1 (400x265px, frameless Electron)         V2 Target (520x380px, WinUI 3 with ti
 |---|---|---|---|
 | 1 | `src/DiktaMe.App/Views/ControlPanelPage.xaml` | DONE | Complete XAML rewrite — 6 rows, V1 color palette, grid-based metric cells, footer |
 | 2 | `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs` | DONE | Auth badge, IsCloudMode→IsLocalMode rename+wiring, +KEY fix, RAW toggle, RefineVoice toggle, formatted perf strings (FormatMs), label properties, hotkey properties, DictationModeItem with Subtitle/BackgroundHex/ForegroundHex |
-| 3 | `src/DiktaMe.App/MainWindow.xaml.cs` | DONE | Window resize 520x380 |
+| 3 | `src/DiktaMe.App/MainWindow.xaml.cs` | DONE | Window 369×274, custom title bar (ExtendsContentIntoTitleBar + OverlappedPresenter, no caption buttons), SetTitleBar on Loaded |
 | 4 | `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` | DONE | Added `OnPipelineStateChanged(this, PipelineState.Transcribing)` to all 5 pipeline methods |
+| 5 | `src/DiktaMe.App/App.xaml.cs` | DONE | Added `HideMainWindow()` method for tray-hide on close |
 
 ### What Changed in Detail
 
@@ -78,13 +79,35 @@ V1 (400x265px, frameless Electron)         V2 Target (520x380px, WinUI 3 with ti
 #### LoadingViewModel.cs
 - Added `_controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing)` after audio recording completes in all 5 pipeline methods (Dictate, Refine, Ask, Translate, Note)
 
+### Phase 2 — Visual Polish & Custom Title Bar
+
+#### Custom Title Bar (MainWindow.xaml.cs)
+- `ExtendsContentIntoTitleBar = true` — removes default WinUI chrome
+- `OverlappedPresenter`: `IsMinimizable = false`, `IsMaximizable = false`, `SetBorderAndTitleBar(hasBorder: true, hasTitleBar: false)` — removes system caption buttons (min/max/close)
+- `SetTitleBar(headerBar)` on `root.Loaded` — makes Row 0 the drag region, auto-excludes interactive children (gear + close buttons)
+- `FindDescendant<T>()` helper traverses visual tree from Window to locate `ControlPanelPage.HeaderBar`
+- Window sized down from 520×380 → 410×340 → 369×306 → 369×274 (final)
+
+#### Close Button (ControlPanelPage.xaml + ControlPanelViewModel.cs)
+- Added [X] button (`&#xE10A;` Segoe MDL2) next to gear in `HeaderButtons` StackPanel
+- `CloseWindowCommand` calls `App.Current.HideMainWindow()` → `AppWindow.Hide()` (tray stays alive)
+
+#### Toggle Alignment Fix
+- ToggleSwitch has internal header column that reserves space even when `OffContent=""` / `OnContent=""`
+- Fixed with `Padding="0" Margin="12,0,0,0"` to visually center the track above labels
+- Reduced toggle `Spacing` from 4 to 2 for tighter grouping
+
+#### Footer Rework
+- Replaced hotkey display (5 border-styled tags) with simple centered `"dIKta.me V2.0"` branding text
+- `FontSize="10"`, `Foreground="#666666"`, `FontWeight="Medium"`
+
 ---
 
 ## Remaining Work (Future Sessions)
 
-### Visual Polish (after first visual test)
-- [ ] Tune window height if content overflows or has too much space at 380px
-- [ ] Verify ToggleSwitch appearance fits in 5-column grid (may need custom template or smaller control)
+### Visual Polish
+- [x] ~~Tune window height~~ — Final: 369×274 after title bar removal
+- [x] ~~Verify ToggleSwitch fits in 5-column grid~~ — Fixed with Margin/Padding tweaks
 - [ ] Test with 1, 4, and 8 presets to verify UniformGridLayout wrapping
 - [ ] Consider adding V1's left-border state indicator (4px colored border on the entire panel)
 - [ ] Consider V1's recording pulse animation (background alpha fade)
