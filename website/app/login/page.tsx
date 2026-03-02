@@ -20,7 +20,12 @@ function LoginContent() {
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             if (user) {
-                router.push('/dashboard')
+                if (mode === 'app') {
+                    // Already signed in — server route will issue diktame:// deeplink
+                    window.location.href = '/api/auth/app-token'
+                } else {
+                    router.push('/dashboard')
+                }
             }
         }
         checkUser()
