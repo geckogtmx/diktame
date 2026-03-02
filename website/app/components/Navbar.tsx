@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -13,7 +15,21 @@ export function Navbar() {
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    // Check auth state
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsSignedIn(!!user);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsSignedIn(!!session?.user);
+    });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -53,9 +69,15 @@ export function Navbar() {
           <Link href="/docs" className="text-[#2563eb] hover:text-white transition-colors">
             Docs
           </Link>
-          <Link href="/login" className="btn-primary py-2.5 px-8 text-xs shadow-none hover:shadow-glow">
-            Sign Up
-          </Link>
+          {isSignedIn ? (
+            <Link href="/dashboard" className="btn-primary py-2.5 px-8 text-xs shadow-none hover:shadow-glow">
+              Dashboard
+            </Link>
+          ) : (
+            <Link href="/login" className="btn-primary py-2.5 px-8 text-xs shadow-none hover:shadow-glow">
+              Sign Up
+            </Link>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -87,9 +109,15 @@ export function Navbar() {
         <Link href="/docs" className="text-[#2563eb] hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>
           Documentation
         </Link>
-        <Link href="/login" className="btn-primary w-full justify-center" onClick={() => setIsMobileMenuOpen(false)}>
-          Sign Up
-        </Link>
+        {isSignedIn ? (
+          <Link href="/dashboard" className="btn-primary w-full justify-center" onClick={() => setIsMobileMenuOpen(false)}>
+            Dashboard
+          </Link>
+        ) : (
+          <Link href="/login" className="btn-primary w-full justify-center" onClick={() => setIsMobileMenuOpen(false)}>
+            Sign Up
+          </Link>
+        )}
       </div>
     </nav>
   );

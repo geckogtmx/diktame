@@ -48,7 +48,7 @@ function LoginContent() {
 
     const supabase = createClient()
 
-    const baseCallback = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : 'https://dikta.me/auth/callback'
+    const baseCallback = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : 'https://www.dikta.me/auth/callback'
     const redirectUrl = mode ? `${baseCallback}?mode=${mode}` : baseCallback
 
     return (
