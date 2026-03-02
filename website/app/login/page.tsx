@@ -4,11 +4,13 @@
 import { createClient } from '@/lib/supabase/client'
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function LoginPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const mode = searchParams.get('mode')
     const [isMounted, setIsMounted] = useState(false)
 
     useEffect(() => {
@@ -25,7 +27,7 @@ export default function LoginPage() {
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' && session) {
+            if (event === 'SIGNED_IN' && session && mode !== 'app') {
                 router.push('/dashboard')
             }
         })
@@ -33,7 +35,7 @@ export default function LoginPage() {
         setIsMounted(true)
 
         return () => subscription.unsubscribe()
-    }, [router])
+    }, [router, mode])
 
     if (!isMounted) {
         return null
@@ -41,7 +43,8 @@ export default function LoginPage() {
 
     const supabase = createClient()
 
-    const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : 'https://dikta.me/auth/callback'
+    const baseCallback = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : 'https://dikta.me/auth/callback'
+    const redirectUrl = mode ? `${baseCallback}?mode=${mode}` : baseCallback
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center p-4">

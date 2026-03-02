@@ -11,7 +11,21 @@
             Padding="12,8"
             Margin="4,4">
         <StackPanel Orientation="Horizontal" Spacing="10">
-            <FontIcon Glyph="&#xE77B;" FontSize="16"/>
+            <!-- Signed-out: generic person outline -->
+            <FontIcon x:Name="SignedOutIcon" Glyph="&#xE77B;" FontSize="16"
+                      Visibility="Visible"/>
+
+            <!-- Signed-in: colored avatar circle with initial -->
+            <Grid x:Name="AvatarCircle" Width="24" Height="24"
+                  Visibility="Collapsed">
+                <Ellipse Fill="{ThemeResource AccentFillColorDefaultBrush}"/>
+                <TextBlock x:Name="AvatarInitial" Text=""
+                           FontSize="12" FontWeight="SemiBold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Grid>
+
             <TextBlock x:Name="UserText" Text="Sign in" FontSize="13"
                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                        MaxWidth="120"/>

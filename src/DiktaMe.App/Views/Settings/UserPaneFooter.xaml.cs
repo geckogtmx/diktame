@@ -43,13 +43,26 @@ public sealed partial class UserPaneFooter : UserControl
             return;
         }
 
-        if (_trialService.HasValidToken && _trialService.Email is not null)
+        bool signedIn = _trialService.HasValidToken && _trialService.Email is not null;
+
+        if (signedIn)
         {
-            UserText.Text = _trialService.Email;
+            string email = _trialService.Email!;
+            UserText.Text = email;
+
+            // Show colored avatar with first letter
+            string initial = email.Length > 0
+                ? email[0].ToString().ToUpperInvariant()
+                : "?";
+            AvatarInitial.Text = initial;
+            AvatarCircle.Visibility = Visibility.Visible;
+            SignedOutIcon.Visibility = Visibility.Collapsed;
         }
         else
         {
             UserText.Text = "Sign in";
+            AvatarCircle.Visibility = Visibility.Collapsed;
+            SignedOutIcon.Visibility = Visibility.Visible;
         }
     }
 

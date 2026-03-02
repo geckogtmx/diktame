@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using DiktaMe.App.Services;
 using DiktaMe.Core.Audio;
+using DiktaMe.Core.Account;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Data;
 using DiktaMe.Core.Input;
@@ -26,6 +27,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly PipelineConfigManager _pipelines;
     private readonly TextInjector _textInjector;
     private readonly ControlPanelViewModel _controlPanel;
+    private readonly ITrialAccountService _trialService;
 
     [ObservableProperty] private string _statusText = "Initializing...";
     [ObservableProperty] private double _progress;
@@ -49,7 +51,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         DictationModeManager dictationModes,
         PipelineConfigManager pipelines,
         TextInjector textInjector,
-        ControlPanelViewModel controlPanel)
+        ControlPanelViewModel controlPanel,
+        ITrialAccountService trialService)
     {
         _settings = settings;
         _history = history;
@@ -63,6 +66,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _pipelines = pipelines;
         _textInjector = textInjector;
         _controlPanel = controlPanel;
+        _trialService = trialService;
     }
 
     public async Task InitializeAsync()
@@ -98,7 +102,23 @@ public sealed partial class LoadingViewModel : ObservableObject
             }
             Progress = 85;
 
-            // Step 5: Start hotkey manager and register hotkeys
+            // Step 5: Sync trial account status (if signed in)
+            if (_trialService.HasValidToken)
+            {
+                StatusText = "Syncing account...";
+                try
+                {
+                    await _trialService.RefreshStatusAsync();
+                }
+                catch (Exception ex)
+                {
+                    // Non-fatal — network may be unavailable
+                    Log.Debug(ex, "Trial status refresh skipped during loading");
+                }
+            }
+            Progress = 90;
+
+            // Step 6: Start hotkey manager and register hotkeys
             StatusText = "Registering hotkeys...";
             InitializeHotkeys();
             Progress = 100;
