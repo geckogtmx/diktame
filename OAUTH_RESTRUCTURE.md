@@ -28,30 +28,30 @@
 - [ ] **Phase 2 test**: Sign in on website, see generic dashboard + conditional trial section. Sign in from app, verify `/api/account/me` returns user info.
 
 ### Phase 3: Restructure Desktop App (Split auth from trial)
-- [ ] **L.3a** — Create `IAccountService` interface + `AccountSettings` record (new files)
-- [ ] **L.3b** — Add `AuthMode.Account = 3` to enum
-- [ ] **L.3c** — Add `Account` property to `AppSettings` + serialization context
-- [ ] **L.3d** — Add settings Migration 5 (populate `Account.Email` from `Trial.TrialEmail`)
-- [ ] **L.3e** — Create `ITrialService` interface (new file)
-- [ ] **L.3f** — Make `ITrialAccountService` extend both interfaces (bridge pattern) + add `AuthStateChanged`/`IsTrialActive` to `TrialAccountService`
-- [ ] **L.3g** — Change `HandleAuthCallbackAsync` to set `AuthMode.Account`; `RefreshStatusAsync` upgrades to `AuthMode.Trial` when server confirms active trial
-- [ ] **L.3h** — Register all three interfaces in DI (single `TrialAccountService` instance)
-- [ ] **L.3i** — Migrate auth-only consumers to `IAccountService` (`App.xaml.cs`, `UserPaneFooter`, `WizardViewModel`)
-- [ ] **L.3j** — Remove "Account" from Settings nav menu; keep page navigable from UserPaneFooter click; repurpose page (user info always, trial section conditional)
-- [ ] **L.3k** — Update `ControlPanelViewModel` badge: "TRIAL" / "ACCT" / "LOC" / "API"
-- [ ] **L.3l** — Fix `https://dikta.me/dashboard` → `https://www.dikta.me/dashboard` in `AccountSettingsViewModel`
-- [ ] **L.3m** — Update tests (expect `AuthMode.Account` on login, add trial-upgrade test, add `Account.Email` test)
-- [ ] **Phase 3 test**: Build + all tests pass. Sign in from app → footer shows email → click footer → user info page. Badge shows "ACCT" or "TRIAL" depending on trial status.
+- [x] **L.3a** — Create `IAccountService` interface + `AccountSettings` record (new files)
+- [x] **L.3b** — Add `AuthMode.Account = 3` to enum
+- [x] **L.3c** — Add `Account` property to `AppSettings` + serialization context
+- [x] **L.3d** — Add settings Migration 5 (populate `Account.Email` from `Trial.TrialEmail`)
+- [x] **L.3e** — Create `ITrialService` interface (new file)
+- [x] **L.3f** — Make `ITrialAccountService` extend both interfaces (bridge pattern) + add `AuthStateChanged`/`IsTrialActive` to `TrialAccountService`
+- [x] **L.3g** — Change `HandleAuthCallbackAsync` to set `AuthMode.Account`; `RefreshStatusAsync` upgrades to `AuthMode.Trial` when server confirms active trial
+- [x] **L.3h** — Register all three interfaces in DI (single `TrialAccountService` instance)
+- [x] **L.3i** — Migrate auth-only consumers to `IAccountService` (`App.xaml.cs`, `UserPaneFooter`, `WizardViewModel`)
+- [x] **L.3j** — Remove "Account" from Settings nav menu; keep page navigable from UserPaneFooter click; repurpose page (user info always, trial section conditional)
+- [x] **L.3k** — Update `ControlPanelViewModel` badge: "TRIAL" / "ACCT" / "LOC" / "API"
+- [x] **L.3l** — Fix `https://dikta.me/dashboard` → `https://www.dikta.me/dashboard` in `AccountSettingsViewModel`
+- [x] **L.3m** — Update tests (expect `AuthMode.Account` on login, add trial-upgrade test, add `Account.Email` test)
+- [x] **Phase 3 test**: Build + all 552 tests pass. 0 warnings, 0 errors.
 
 ### Phase 4: Final Cleanup
-- [ ] **L.4a** — Mark `ITrialAccountService` as `[Obsolete]`
-- [ ] **L.4b** — Update `TrialGeminiProvider` + `TrialGeminiAudioProvider` to use `IAccountService` + `ITrialService`
-- [ ] **L.4c** — Update provider tests for split interfaces
-- [ ] **Phase 4 test**: Build + all tests pass. No warnings except the expected obsolete annotation.
+- [x] **L.4a** — Mark `ITrialAccountService` as `[Obsolete]`
+- [x] **L.4b** — Update `TrialGeminiProvider` + `TrialGeminiAudioProvider` to use `IAccountService` + `ITrialService`
+- [x] **L.4c** — Update provider tests for split interfaces
+- [x] **Phase 4 test**: Build + all 552 tests pass. 0 warnings, 0 errors.
 
 ### Phase 5: End-to-End Verification
-- [ ] Build: `dotnet build DiktaMe.sln -c Release "-p:Platform=x64"` — 0 errors
-- [ ] Tests: `dotnet test DiktaMe.sln` — all pass
+- [x] Build: `dotnet build DiktaMe.sln -c Release` — 0 errors, 0 warnings
+- [x] Tests: `dotnet test DiktaMe.sln` — 552 pass
 - [ ] Website sign-up → profile created → dashboard loads
 - [ ] Website sign-in (returning user) → dashboard shows profile
 - [ ] Desktop app sign-in → footer shows email → user info page works → trial conditional
