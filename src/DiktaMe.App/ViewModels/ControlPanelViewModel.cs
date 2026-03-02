@@ -315,7 +315,12 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         };
         _ = _settings.UpdateAsync(updated);
 
-        AuthBadgeText = _settings.Current.AuthMode == AuthMode.Trial ? "TRIAL" : (value ? "LOC" : "API");
+        AuthBadgeText = _settings.Current.AuthMode switch
+        {
+            AuthMode.Trial => "TRIAL",
+            AuthMode.Account => "ACCT",
+            _ => value ? "LOC" : "API",
+        };
         OnPropertyChanged(nameof(LocalLabel));
 
         // Refresh mode items (subtitle may change between Cloud/Local profile)
@@ -471,7 +476,12 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         IsSoundEnabled = settings.General.SoundFeedback;
         IsAdditionalKeyEnabled = !string.IsNullOrEmpty(settings.General.AdditionalKey);
         IsLocalMode = string.Equals(settings.ActiveProfileName, "Local", StringComparison.OrdinalIgnoreCase);
-        AuthBadgeText = settings.AuthMode == AuthMode.Trial ? "TRIAL" : (IsLocalMode ? "LOC" : "API");
+        AuthBadgeText = settings.AuthMode switch
+        {
+            AuthMode.Trial => "TRIAL",
+            AuthMode.Account => "ACCT",
+            _ => IsLocalMode ? "LOC" : "API",
+        };
 
         ShowModesRow = settings.ControlPanel.ShowModesRow;
         ShowActionsRow = settings.ControlPanel.ShowActionsRow;

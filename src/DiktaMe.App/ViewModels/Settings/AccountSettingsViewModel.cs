@@ -8,11 +8,13 @@ using Serilog;
 namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class AccountSettingsViewModel : ObservableObject
 {
-    private readonly ITrialAccountService _trialService;
+    private readonly IAccountService _accountService;
+    private readonly ITrialService _trialService;
     private readonly SettingsManager _settings;
 
     [ObservableProperty] private bool _isSignedIn;
     [ObservableProperty] private string _email = string.Empty;
+    [ObservableProperty] private bool _hasTrialData;
     [ObservableProperty] private int _wordsUsed;
     [ObservableProperty] private int _wordsQuota = 15_000;
     [ObservableProperty] private int _daysRemaining;
@@ -21,8 +23,9 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     [ObservableProperty] private string _usageText = "0 / 15,000 words";
     [ObservableProperty] private string _statusText = "Not signed in";
 
-    public AccountSettingsViewModel(ITrialAccountService trialService, SettingsManager settings)
+    public AccountSettingsViewModel(IAccountService accountService, ITrialService trialService, SettingsManager settings)
     {
+        _accountService = accountService;
         _trialService = trialService;
         _settings = settings;
         Refresh();
@@ -31,13 +34,13 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     [RelayCommand]
     private void SignIn()
     {
-        _trialService.Login();
+        _accountService.Login();
     }
 
     [RelayCommand]
     private async Task SignOutAsync()
     {
-        await _trialService.LogoutAsync();
+        await _accountService.LogoutAsync();
     }
 
     [RelayCommand]
@@ -51,7 +54,7 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     {
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://dikta.me/dashboard")
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://www.dikta.me/dashboard")
             {
                 UseShellExecute = true,
             });
@@ -65,8 +68,13 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     internal void Refresh()
     {
         var trial = _settings.Current.Trial;
-        IsSignedIn = _trialService.HasValidToken;
-        Email = trial.TrialEmail;
+        IsSignedIn = _accountService.HasValidToken;
+        Email = _accountService.Email ?? string.Empty;
+
+        // Trial section is conditional — only show when trial data exists
+        HasTrialData = trial.TrialWordsQuota > 0
+            && !string.IsNullOrEmpty(trial.TrialExpiresAt);
+
         WordsUsed = trial.TrialWordsUsed;
         WordsQuota = trial.TrialWordsQuota > 0 ? trial.TrialWordsQuota : 15_000;
         DaysRemaining = trial.TrialDaysRemaining;
@@ -74,7 +82,9 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
         UsagePercent = WordsQuota > 0 ? Math.Min(100.0, (double)WordsUsed / WordsQuota * 100.0) : 0;
         UsageText = $"{WordsUsed:N0} / {WordsQuota:N0} words";
         StatusText = IsSignedIn
-            ? (TrialActive ? $"{DaysRemaining} days remaining" : "Trial expired")
+            ? (HasTrialData
+                ? (TrialActive ? $"{DaysRemaining} days remaining" : "Trial expired")
+                : "Account active")
             : "Not signed in";
     }
 }

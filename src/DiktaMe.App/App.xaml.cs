@@ -185,8 +185,8 @@ public partial class App : Application
             }
 
             Log.Information("App: processing auth deeplink");
-            var trialService = Services.GetRequiredService<ITrialAccountService>();
-            await trialService.HandleAuthCallbackAsync(token).ConfigureAwait(false);
+            var accountService = Services.GetRequiredService<IAccountService>();
+            await accountService.HandleAuthCallbackAsync(token).ConfigureAwait(false);
         }
         catch (UriFormatException ex)
         {
@@ -349,8 +349,12 @@ public partial class App : Application
             sp.GetRequiredService<SettingsManager>()));
         services.AddSingleton<PipelineFactory>();
 
-        // ── Account (K.2) ────────────────────────────────────────────────────
-        services.AddSingleton<ITrialAccountService, TrialAccountService>();
+        // ── Account (K.2 / L.3h) ─────────────────────────────────────────────
+        // Single instance behind three interfaces for incremental migration.
+        services.AddSingleton<TrialAccountService>();
+        services.AddSingleton<ITrialAccountService>(sp => sp.GetRequiredService<TrialAccountService>());
+        services.AddSingleton<IAccountService>(sp => sp.GetRequiredService<TrialAccountService>());
+        services.AddSingleton<ITrialService>(sp => sp.GetRequiredService<TrialAccountService>());
 
         // ── Data (E.2) ───────────────────────────────────────────────────────
         services.AddSingleton<HistoryManager>();

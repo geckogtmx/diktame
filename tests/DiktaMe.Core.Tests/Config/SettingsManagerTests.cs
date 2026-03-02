@@ -361,4 +361,64 @@ public sealed class SettingsManagerTests : IDisposable
 
         Assert.Equal("Local", manager.Current.ActiveProfileName);
     }
+
+    [Fact, Trait("Category", "Integration")]
+    public async Task LoadAsync_Migration5_CopiesTrialEmailToAccountEmail()
+    {
+        var preset = DictationModeDefaults.CreateDefaultPreset();
+        var oldSettings = new AppSettings
+        {
+            DictationModes = [preset],
+            UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
+            ActiveProfileName = "Cloud",
+            Trial = new TrialSettings { TrialEmail = "migrated@example.com" },
+            Account = new AccountSettings { Email = string.Empty },
+        };
+        string json = JsonSerializer.Serialize(oldSettings, AppSettingsContext.Default.AppSettings);
+        await File.WriteAllTextAsync(_testFile, json);
+
+        var manager = new SettingsManager(_testFile);
+        await manager.LoadAsync();
+
+        Assert.Equal("migrated@example.com", manager.Current.Account.Email);
+    }
+
+    [Fact, Trait("Category", "Integration")]
+    public async Task LoadAsync_Migration5_PreservesExistingAccountEmail()
+    {
+        var preset = DictationModeDefaults.CreateDefaultPreset();
+        var oldSettings = new AppSettings
+        {
+            DictationModes = [preset],
+            UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
+            ActiveProfileName = "Cloud",
+            Trial = new TrialSettings { TrialEmail = "old@example.com" },
+            Account = new AccountSettings { Email = "current@example.com" },
+        };
+        string json = JsonSerializer.Serialize(oldSettings, AppSettingsContext.Default.AppSettings);
+        await File.WriteAllTextAsync(_testFile, json);
+
+        var manager = new SettingsManager(_testFile);
+        await manager.LoadAsync();
+
+        Assert.Equal("current@example.com", manager.Current.Account.Email);
+    }
+
+    [Fact, Trait("Category", "Unit")]
+    public void AppSettings_AccountSettings_JsonRoundTrip()
+    {
+        var original = new AppSettings
+        {
+            AuthMode = AuthMode.Account,
+            Account = new AccountSettings { Email = "test@example.com", LastSynced = "2026-01-01T00:00:00Z" },
+        };
+
+        string json = JsonSerializer.Serialize(original, AppSettingsContext.Default.AppSettings);
+        var deserialized = JsonSerializer.Deserialize(json, AppSettingsContext.Default.AppSettings);
+
+        Assert.NotNull(deserialized);
+        Assert.Equal(AuthMode.Account, deserialized!.AuthMode);
+        Assert.Equal("test@example.com", deserialized.Account.Email);
+        Assert.Equal("2026-01-01T00:00:00Z", deserialized.Account.LastSynced);
+    }
 }

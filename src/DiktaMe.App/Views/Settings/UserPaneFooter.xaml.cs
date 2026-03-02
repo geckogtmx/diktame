@@ -7,7 +7,7 @@ using Microsoft.UI.Xaml.Controls;
 namespace DiktaMe.App.Views.Settings;
 public sealed partial class UserPaneFooter : UserControl
 {
-    private ITrialAccountService? _trialService;
+    private IAccountService? _accountService;
 
     /// <summary>
     /// Raised when the user clicks the footer while signed in,
@@ -23,31 +23,31 @@ public sealed partial class UserPaneFooter : UserControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        _trialService = App.Current.Services.GetService<ITrialAccountService>();
-        if (_trialService is not null)
+        _accountService = App.Current.Services.GetService<IAccountService>();
+        if (_accountService is not null)
         {
-            _trialService.StatusChanged += OnStatusChanged;
+            _accountService.AuthStateChanged += OnAuthStateChanged;
             UpdateDisplay();
         }
     }
 
-    private void OnStatusChanged(TrialStatus? status)
+    private void OnAuthStateChanged(bool signedIn)
     {
         DispatcherQueue.TryEnqueue(UpdateDisplay);
     }
 
     private void UpdateDisplay()
     {
-        if (_trialService is null)
+        if (_accountService is null)
         {
             return;
         }
 
-        bool signedIn = _trialService.HasValidToken && _trialService.Email is not null;
+        bool signedIn = _accountService.HasValidToken && _accountService.Email is not null;
 
         if (signedIn)
         {
-            string email = _trialService.Email!;
+            string email = _accountService.Email!;
             UserText.Text = email;
 
             // Show colored avatar with first letter
@@ -68,12 +68,12 @@ public sealed partial class UserPaneFooter : UserControl
 
     private void UserButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_trialService is null)
+        if (_accountService is null)
         {
             return;
         }
 
-        if (_trialService.HasValidToken)
+        if (_accountService.HasValidToken)
         {
             // Navigate to Account settings page
             NavigateToAccountRequested?.Invoke();
@@ -81,7 +81,7 @@ public sealed partial class UserPaneFooter : UserControl
         else
         {
             // Open browser for login
-            _trialService.Login();
+            _accountService.Login();
         }
     }
 }

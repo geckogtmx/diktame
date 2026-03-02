@@ -13,8 +13,8 @@
             <TextBlock Text="Account" FontSize="28" FontWeight="SemiBold"/>
 
             <!-- Signed-out state -->
-            <InfoBar x:Name="SignInBar" Title="Try dIKta.me free"
-                     Message="Sign in to get 15,000 words of AI processing — no API key needed."
+            <InfoBar x:Name="SignInBar" Title="Sign in to your dIKta.me account"
+                     Message="Link your account to sync settings, access free trial credits, and more."
                      Severity="Informational" IsOpen="True" IsClosable="False"
                      Visibility="{x:Bind ViewModel.IsSignedIn, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
                 <InfoBar.ActionButton>
@@ -26,24 +26,32 @@
             <StackPanel Spacing="12"
                         Visibility="{x:Bind ViewModel.IsSignedIn, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
+                <!-- User info (always visible when signed in) -->
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon Glyph="&#xE77B;" FontSize="20" VerticalAlignment="Center"/>
                     <TextBlock Text="{x:Bind ViewModel.Email, Mode=OneWay}" FontSize="16" FontWeight="SemiBold"
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <TextBlock Text="Usage" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0"/>
-
-                <ProgressBar Value="{x:Bind ViewModel.UsagePercent, Mode=OneWay}"
-                             Minimum="0" Maximum="100" Height="8"/>
-
-                <TextBlock Text="{x:Bind ViewModel.UsageText, Mode=OneWay}" FontSize="13" Opacity="0.7"/>
-
                 <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}" FontSize="13" Opacity="0.7"/>
 
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                    <Button Content="Refresh" Command="{x:Bind ViewModel.RefreshCommand}"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
                     <HyperlinkButton Content="Manage account" Command="{x:Bind ViewModel.ManageAccountCommand}"/>
+                </StackPanel>
+
+                <!-- Trial Credits section (conditional) -->
+                <StackPanel Spacing="8" Margin="0,12,0,0"
+                            Visibility="{x:Bind ViewModel.HasTrialData, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+
+                    <TextBlock Text="Trial Credits" FontSize="16" FontWeight="SemiBold"/>
+
+                    <ProgressBar Value="{x:Bind ViewModel.UsagePercent, Mode=OneWay}"
+                                 Minimum="0" Maximum="100" Height="8"/>
+
+                    <TextBlock Text="{x:Bind ViewModel.UsageText, Mode=OneWay}" FontSize="13" Opacity="0.7"/>
+
+                    <Button Content="Refresh" Command="{x:Bind ViewModel.RefreshCommand}"
+                            Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <Button Content="Sign out" Command="{x:Bind ViewModel.SignOutCommand}"

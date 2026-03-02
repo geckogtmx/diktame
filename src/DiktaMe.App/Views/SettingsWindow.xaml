@@ -16,11 +16,6 @@
             <settings:UserPaneFooter x:Name="UserFooter"/>
         </muxc:NavigationView.PaneFooter>
         <muxc:NavigationView.MenuItems>
-            <muxc:NavigationViewItem Content="Account" Tag="account">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE77B;"/>
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
             <muxc:NavigationViewItem Content="General" Tag="general">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE713;"/>

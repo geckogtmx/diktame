@@ -11,7 +11,7 @@ public sealed partial class WizardViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
     private readonly SecureStorage _secureStorage;
-    private readonly ITrialAccountService _trialService;
+    private readonly IAccountService _accountService;
 
     [ObservableProperty] private int _currentStep;
     [ObservableProperty] private bool _canGoBack;
@@ -36,11 +36,11 @@ public sealed partial class WizardViewModel : ObservableObject
     public event Action? StepChanged;
     public event Action? WizardCompleted;
 
-    public WizardViewModel(SettingsManager settings, SecureStorage secureStorage, ITrialAccountService trialService)
+    public WizardViewModel(SettingsManager settings, SecureStorage secureStorage, IAccountService accountService)
     {
         _settings = settings;
         _secureStorage = secureStorage;
-        _trialService = trialService;
+        _accountService = accountService;
     }
 
     [RelayCommand]
@@ -85,12 +85,13 @@ public sealed partial class WizardViewModel : ObservableObject
             var updated = _settings.Current with
             {
                 WizardCompleted = true,
-                AuthMode = AuthMode.Trial,
             };
             await _settings.UpdateAsync(updated);
 
-            // Open browser for login — token will arrive via deeplink
-            _trialService.Login();
+            // Open browser for login — token will arrive via deeplink.
+            // AuthMode will be set to Account by HandleAuthCallbackAsync,
+            // then upgraded to Trial by RefreshStatusAsync if server confirms.
+            _accountService.Login();
 
             Log.Information("Wizard: trial path — wizard completed, browser opened for login");
         }

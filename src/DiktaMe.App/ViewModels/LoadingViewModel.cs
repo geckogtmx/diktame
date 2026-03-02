@@ -27,7 +27,8 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly PipelineConfigManager _pipelines;
     private readonly TextInjector _textInjector;
     private readonly ControlPanelViewModel _controlPanel;
-    private readonly ITrialAccountService _trialService;
+    private readonly IAccountService _accountService;
+    private readonly ITrialService _trialService;
 
     [ObservableProperty] private string _statusText = "Initializing...";
     [ObservableProperty] private double _progress;
@@ -52,7 +53,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         PipelineConfigManager pipelines,
         TextInjector textInjector,
         ControlPanelViewModel controlPanel,
-        ITrialAccountService trialService)
+        IAccountService accountService,
+        ITrialService trialService)
     {
         _settings = settings;
         _history = history;
@@ -66,6 +68,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _pipelines = pipelines;
         _textInjector = textInjector;
         _controlPanel = controlPanel;
+        _accountService = accountService;
         _trialService = trialService;
     }
 
@@ -103,7 +106,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Progress = 85;
 
             // Step 5: Sync trial account status (if signed in)
-            if (_trialService.HasValidToken)
+            if (_accountService.HasValidToken)
             {
                 StatusText = "Syncing account...";
                 try

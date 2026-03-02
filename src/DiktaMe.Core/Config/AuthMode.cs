@@ -14,4 +14,7 @@ public enum AuthMode
 
     /// <summary>User has configured their own API keys.</summary>
     ApiKey = 2,
+
+    /// <summary>Signed in via OAuth but using own API keys (not trial proxy).</summary>
+    Account = 3,
 }

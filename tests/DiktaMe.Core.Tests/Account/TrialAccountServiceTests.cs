@@ -69,7 +69,7 @@ public sealed class TrialAccountServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleAuthCallback_ExtractsEmail_SetsAuthModeTrial()
+    public async Task HandleAuthCallback_TrialActive_UpgradesToTrial()
     {
         var handler = new FakeHandler(HttpStatusCode.OK,
             """{"wordsUsed":100,"wordsQuota":15000,"daysRemaining":14,"expiresAt":"2026-04-01","trialActive":true}""");
@@ -79,8 +79,57 @@ public sealed class TrialAccountServiceTests : IDisposable
 
         await svc.HandleAuthCallbackAsync(jwt);
 
+        // RefreshStatusAsync upgrades Account → Trial when trialActive=true
         _settings.Current.AuthMode.Should().Be(AuthMode.Trial);
         _settings.Current.Trial.TrialEmail.Should().Be("alice@example.com");
+        _settings.Current.Account.Email.Should().Be("alice@example.com");
+    }
+
+    [Fact]
+    public async Task HandleAuthCallback_TrialInactive_StaysAccount()
+    {
+        var handler = new FakeHandler(HttpStatusCode.OK,
+            """{"wordsUsed":0,"wordsQuota":0,"daysRemaining":0,"expiresAt":"","trialActive":false}""");
+        using var http = new HttpClient(handler);
+        using var svc = new TrialAccountService(_secureStorage, _settings, http);
+        string jwt = BuildTestJwt("bob@example.com");
+
+        await svc.HandleAuthCallbackAsync(jwt);
+
+        // No trial → stays Account
+        _settings.Current.AuthMode.Should().Be(AuthMode.Account);
+        _settings.Current.Account.Email.Should().Be("bob@example.com");
+    }
+
+    [Fact]
+    public async Task HandleAuthCallback_SetsAccountEmail()
+    {
+        var handler = new FakeHandler(HttpStatusCode.OK,
+            """{"wordsUsed":0,"wordsQuota":15000,"daysRemaining":15,"expiresAt":"2026-04-01","trialActive":true}""");
+        using var http = new HttpClient(handler);
+        using var svc = new TrialAccountService(_secureStorage, _settings, http);
+        string jwt = BuildTestJwt("charlie@example.com");
+
+        await svc.HandleAuthCallbackAsync(jwt);
+
+        _settings.Current.Account.Email.Should().Be("charlie@example.com");
+        svc.Email.Should().Be("charlie@example.com");
+    }
+
+    [Fact]
+    public async Task HandleAuthCallback_RaisesAuthStateChanged()
+    {
+        var handler = new FakeHandler(HttpStatusCode.OK,
+            """{"wordsUsed":0,"wordsQuota":15000,"daysRemaining":15,"expiresAt":"2026-04-01","trialActive":true}""");
+        using var http = new HttpClient(handler);
+        using var svc = new TrialAccountService(_secureStorage, _settings, http);
+
+        bool? authState = null;
+        svc.AuthStateChanged += signedIn => authState = signedIn;
+
+        await svc.HandleAuthCallbackAsync(BuildTestJwt());
+
+        authState.Should().BeTrue();
     }
 
     [Fact]
@@ -100,6 +149,38 @@ public sealed class TrialAccountServiceTests : IDisposable
         status!.WordsUsed.Should().Be(500);
         _settings.Current.Trial.TrialWordsUsed.Should().Be(500);
         _settings.Current.Trial.TrialDaysRemaining.Should().Be(10);
+    }
+
+    [Fact]
+    public async Task RefreshStatus_TrialActive_UpgradesAccountToTrial()
+    {
+        _secureStorage.StoreKey(TokenKey, BuildTestJwt());
+        await _settings.UpdateAsync(_settings.Current with { AuthMode = AuthMode.Account });
+
+        var handler = new FakeHandler(HttpStatusCode.OK,
+            """{"wordsUsed":0,"wordsQuota":15000,"daysRemaining":15,"expiresAt":"2026-04-01","trialActive":true}""");
+        using var http = new HttpClient(handler);
+        using var svc = new TrialAccountService(_secureStorage, _settings, http);
+
+        await svc.RefreshStatusAsync();
+
+        _settings.Current.AuthMode.Should().Be(AuthMode.Trial);
+    }
+
+    [Fact]
+    public async Task RefreshStatus_TrialExpired_DowngradesTrialToAccount()
+    {
+        _secureStorage.StoreKey(TokenKey, BuildTestJwt());
+        await _settings.UpdateAsync(_settings.Current with { AuthMode = AuthMode.Trial });
+
+        var handler = new FakeHandler(HttpStatusCode.OK,
+            """{"wordsUsed":15000,"wordsQuota":15000,"daysRemaining":0,"expiresAt":"2025-01-01","trialActive":false}""");
+        using var http = new HttpClient(handler);
+        using var svc = new TrialAccountService(_secureStorage, _settings, http);
+
+        await svc.RefreshStatusAsync();
+
+        _settings.Current.AuthMode.Should().Be(AuthMode.Account);
     }
 
     [Fact]
@@ -141,6 +222,7 @@ public sealed class TrialAccountServiceTests : IDisposable
         await _settings.UpdateAsync(_settings.Current with
         {
             AuthMode = AuthMode.Trial,
+            Account = new AccountSettings { Email = "test@example.com" },
             Trial = new TrialSettings { TrialEmail = "test@example.com", TrialWordsUsed = 100 },
         });
 
@@ -153,6 +235,24 @@ public sealed class TrialAccountServiceTests : IDisposable
         _secureStorage.RetrieveKey(TokenKey).Should().BeNull();
         _settings.Current.AuthMode.Should().Be(AuthMode.None);
         _settings.Current.Trial.TrialEmail.Should().BeEmpty();
+        _settings.Current.Account.Email.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Logout_RaisesAuthStateChangedFalse()
+    {
+        _secureStorage.StoreKey(TokenKey, BuildTestJwt());
+
+        var handler = new FakeHandler(HttpStatusCode.OK, "");
+        using var http = new HttpClient(handler);
+        using var svc = new TrialAccountService(_secureStorage, _settings, http);
+
+        bool? authState = null;
+        svc.AuthStateChanged += signedIn => authState = signedIn;
+
+        await svc.LogoutAsync();
+
+        authState.Should().BeFalse();
     }
 
     [Fact]
@@ -194,6 +294,71 @@ public sealed class TrialAccountServiceTests : IDisposable
         using var svc = new TrialAccountService(_secureStorage, _settings, http);
 
         svc.HasValidToken.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsTrialActive_WhenTrialMode_ReturnsTrue()
+    {
+        _secureStorage.StoreKey(TokenKey, BuildTestJwt());
+        await _settings.UpdateAsync(_settings.Current with
+        {
+            AuthMode = AuthMode.Trial,
+            Trial = new TrialSettings { TrialActive = true },
+        });
+
+        var handler = new FakeHandler(HttpStatusCode.OK, "");
+        using var http = new HttpClient(handler);
+        using var svc = new TrialAccountService(_secureStorage, _settings, http);
+
+        svc.IsTrialActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsTrialActive_WhenAccountMode_ReturnsFalse()
+    {
+        await _settings.UpdateAsync(_settings.Current with
+        {
+            AuthMode = AuthMode.Account,
+            Trial = new TrialSettings { TrialActive = false },
+        });
+
+        var handler = new FakeHandler(HttpStatusCode.OK, "");
+        using var http = new HttpClient(handler);
+        using var svc = new TrialAccountService(_secureStorage, _settings, http);
+
+        svc.IsTrialActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Email_PrefersAccountEmail_OverTrialEmail()
+    {
+        await _settings.UpdateAsync(_settings.Current with
+        {
+            Account = new AccountSettings { Email = "account@example.com" },
+            Trial = new TrialSettings { TrialEmail = "trial@example.com" },
+        });
+
+        var handler = new FakeHandler(HttpStatusCode.OK, "");
+        using var http = new HttpClient(handler);
+        using var svc = new TrialAccountService(_secureStorage, _settings, http);
+
+        svc.Email.Should().Be("account@example.com");
+    }
+
+    [Fact]
+    public async Task Email_FallsBackToTrialEmail_WhenAccountEmailEmpty()
+    {
+        await _settings.UpdateAsync(_settings.Current with
+        {
+            Account = new AccountSettings { Email = string.Empty },
+            Trial = new TrialSettings { TrialEmail = "legacy@example.com" },
+        });
+
+        var handler = new FakeHandler(HttpStatusCode.OK, "");
+        using var http = new HttpClient(handler);
+        using var svc = new TrialAccountService(_secureStorage, _settings, http);
+
+        svc.Email.Should().Be("legacy@example.com");
     }
 }
 

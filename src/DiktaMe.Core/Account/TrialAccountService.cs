@@ -42,12 +42,31 @@ public sealed class TrialAccountService : ITrialAccountService, IDisposable
     public bool HasValidToken => _secureStorage.RetrieveKey(TokenKey) is not null;
 
     /// <inheritdoc />
-    public string? Email => string.IsNullOrEmpty(_settings.Current.Trial.TrialEmail)
-        ? null
-        : _settings.Current.Trial.TrialEmail;
+    public string? Email
+    {
+        get
+        {
+            // Prefer Account.Email (new), fall back to Trial.TrialEmail (legacy)
+            string acctEmail = _settings.Current.Account.Email;
+            if (!string.IsNullOrEmpty(acctEmail))
+            {
+                return acctEmail;
+            }
+
+            string trialEmail = _settings.Current.Trial.TrialEmail;
+            return string.IsNullOrEmpty(trialEmail) ? null : trialEmail;
+        }
+    }
+
+    /// <inheritdoc />
+    public bool IsTrialActive => _settings.Current.AuthMode == AuthMode.Trial
+        && _settings.Current.Trial.TrialActive;
 
     /// <inheritdoc />
     public event Action<TrialStatus?>? StatusChanged;
+
+    /// <inheritdoc />
+    public event Action<bool>? AuthStateChanged;
 
     // ── Login ─────────────────────────────────────────────────────────────────
 
@@ -72,14 +91,17 @@ public sealed class TrialAccountService : ITrialAccountService, IDisposable
         string? email = JwtDecoder.ExtractEmail(token);
         Log.Information("TrialAccountService: auth callback — email={Email}", email ?? "(none)");
 
-        // Update AppSettings with AuthMode and email
+        // Update AppSettings — start as Account (auth-only); RefreshStatusAsync
+        // will upgrade to Trial when the server confirms an active trial.
         await _settings.UpdateAsync(_settings.Current with
         {
-            AuthMode = AuthMode.Trial,
+            AuthMode = AuthMode.Account,
+            Account = _settings.Current.Account with { Email = email ?? string.Empty },
             Trial = _settings.Current.Trial with { TrialEmail = email ?? string.Empty },
         }, cancellationToken).ConfigureAwait(false);
 
         // Notify UI immediately so signed-in state shows even if status sync fails
+        AuthStateChanged?.Invoke(true);
         StatusChanged?.Invoke(null);
 
         // Sync status from server (non-fatal — UI already updated above)
@@ -131,8 +153,22 @@ public sealed class TrialAccountService : ITrialAccountService, IDisposable
 
             // Update local settings with server data
             string now = DateTimeOffset.UtcNow.ToString("o", CultureInfo.InvariantCulture);
+            var currentMode = _settings.Current.AuthMode;
+
+            // Upgrade Account → Trial when server confirms active trial
+            var newMode = status.TrialActive && currentMode == AuthMode.Account
+                ? AuthMode.Trial
+                : currentMode;
+
+            // Downgrade Trial → Account when trial is no longer active
+            if (!status.TrialActive && currentMode == AuthMode.Trial)
+            {
+                newMode = AuthMode.Account;
+            }
+
             await _settings.UpdateAsync(_settings.Current with
             {
+                AuthMode = newMode,
                 Trial = new TrialSettings
                 {
                     TrialEmail = _settings.Current.Trial.TrialEmail,
@@ -217,10 +253,12 @@ public sealed class TrialAccountService : ITrialAccountService, IDisposable
         await _settings.UpdateAsync(_settings.Current with
         {
             AuthMode = AuthMode.None,
+            Account = new AccountSettings(),
             Trial = new TrialSettings(),
         }, cancellationToken).ConfigureAwait(false);
 
         Log.Information("TrialAccountService: logged out");
+        AuthStateChanged?.Invoke(false);
         StatusChanged?.Invoke(null);
     }
 

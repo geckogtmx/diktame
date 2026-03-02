@@ -296,6 +296,11 @@ public sealed record AppSettings
     /// Non-sensitive trial account metadata. JWT token stored separately in SecureStorage.
     /// </summary>
     public TrialSettings Trial { get; init; } = new();
+
+    /// <summary>
+    /// Non-sensitive account metadata (auth-only, no trial fields).
+    /// </summary>
+    public AccountSettings Account { get; init; } = new();
 }
 
 /// <summary>
@@ -321,5 +326,6 @@ public sealed record AppSettings
 [JsonSerializable(typeof(AskOutputMode))]
 [JsonSerializable(typeof(AuthMode))]
 [JsonSerializable(typeof(TrialSettings))]
+[JsonSerializable(typeof(AccountSettings))]
 [JsonSerializable(typeof(Account.TrialStatus))]
 public partial class AppSettingsContext : JsonSerializerContext { }

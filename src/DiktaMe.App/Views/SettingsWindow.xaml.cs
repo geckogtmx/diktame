@@ -22,14 +22,16 @@ public sealed partial class SettingsWindow : Window
             AppWindow.SetIcon(iconPath);
         }
 
-        // Wire PaneFooter click → navigate to Account page
+        // Wire PaneFooter click → navigate to Account page (not in nav menu)
         UserFooter.NavigateToAccountRequested += () =>
         {
-            NavView.SelectedItem = NavView.MenuItems[0]; // Account is the first item
+            // Deselect any nav item so user sees the Account page is "special"
+            NavView.SelectedItem = null;
+            ContentFrame.Navigate(typeof(Settings.AccountSettingsPage));
         };
 
-        // Select General (second item) on load
-        NavView.SelectedItem = NavView.MenuItems[1];
+        // Select General (first item) on load
+        NavView.SelectedItem = NavView.MenuItems[0];
     }
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -42,7 +44,6 @@ public sealed partial class SettingsWindow : Window
         string tag = item.Tag?.ToString() ?? "general";
         Type? pageType = tag switch
         {
-            "account" => typeof(Settings.AccountSettingsPage),
             "general" => typeof(Settings.GeneralSettingsPage),
             "aiengine" => typeof(Settings.AIEngineSettingsPage),
             "modes" => typeof(Settings.ModesSettingsPage),

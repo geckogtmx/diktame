@@ -14,17 +14,17 @@
 ## Master Checklist
 
 ### Phase 1: Fix Profile Auto-Creation (Website — make sign-in work)
-- [ ] **L.1a** — Create Supabase `handle_new_user` trigger (run in SQL Editor + save migration file in repo)
-- [ ] **L.1b** — Add safety-net profile creation in `website/app/auth/callback/route.ts`
-- [ ] **L.1c** — Commit pending URL fix (`dikta.me` → `www.dikta.me` in `TrialAccountService.cs`)
+- [x] **L.1a** — Create Supabase `handle_new_user` trigger (run in SQL Editor + save migration file in repo)
+- [x] **L.1b** — Add safety-net profile creation in `website/app/auth/callback/route.ts`
+- [x] **L.1c** — Commit pending URL fix (`dikta.me` → `www.dikta.me` in `TrialAccountService.cs`)
 - [ ] **Phase 1 test**: Delete your Supabase profile row, sign in on website, verify profile auto-created + dashboard loads
 
 ### Phase 2: Restructure Website (Separate profile from trial)
-- [ ] **L.2a** — Create `/api/account/me` endpoint (generic "who am I", Bearer token support)
-- [ ] **L.2b** — Make `/api/trial/status` tolerate null trial data (return `trialActive: false` instead of error)
-- [ ] **L.2c** — Restructure dashboard page (generic profile first, trial section conditional)
-- [ ] **L.2d** — Update login page copy (account-centric, not trial-centric)
-- [ ] **L.2e** — Enable Bearer token auth on `/api/profile` (change `createClient` → `createApiClient`)
+- [x] **L.2a** — Create `/api/account/me` endpoint (generic "who am I", Bearer token support)
+- [x] **L.2b** — Make `/api/trial/status` tolerate null trial data (return `trialActive: false` instead of error)
+- [x] **L.2c** — Restructure dashboard page (generic profile first, trial section conditional)
+- [x] **L.2d** — Update login page copy (account-centric, not trial-centric)
+- [x] **L.2e** — Enable Bearer token auth on `/api/profile` (change `createClient` → `createApiClient`)
 - [ ] **Phase 2 test**: Sign in on website, see generic dashboard + conditional trial section. Sign in from app, verify `/api/account/me` returns user info.
 
 ### Phase 3: Restructure Desktop App (Split auth from trial)
