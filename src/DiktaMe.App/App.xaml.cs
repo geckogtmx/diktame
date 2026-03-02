@@ -352,7 +352,9 @@ public partial class App : Application
         // ── Account (K.2 / L.3h) ─────────────────────────────────────────────
         // Single instance behind three interfaces for incremental migration.
         services.AddSingleton<TrialAccountService>();
+#pragma warning disable CS0618 // ITrialAccountService is obsolete — kept for backward compat during migration
         services.AddSingleton<ITrialAccountService>(sp => sp.GetRequiredService<TrialAccountService>());
+#pragma warning restore CS0618
         services.AddSingleton<IAccountService>(sp => sp.GetRequiredService<TrialAccountService>());
         services.AddSingleton<ITrialService>(sp => sp.GetRequiredService<TrialAccountService>());
 

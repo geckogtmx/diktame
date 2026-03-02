@@ -4,6 +4,7 @@ namespace DiktaMe.Core.Account;
 /// Combined auth + trial interface. Bridge for migration — new consumers should
 /// depend on <see cref="IAccountService"/> or <see cref="ITrialService"/> instead.
 /// </summary>
+[System.Obsolete("Use IAccountService and ITrialService. Will be removed in v3.")]
 public interface ITrialAccountService : IAccountService, ITrialService
 {
     // All members are inherited from IAccountService and ITrialService.

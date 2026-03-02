@@ -39,10 +39,10 @@ public sealed class TrialGeminiProviderTests : IDisposable
     public async Task ProcessAsync_ValidToken_SendsBearerAuth()
     {
         _secureStorage.StoreKey(TokenKey, TestToken);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new ProviderFakeHandler(HttpStatusCode.OK, GeminiResponse);
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         await provider.ProcessAsync("hello", "prompt");
 
@@ -54,10 +54,10 @@ public sealed class TrialGeminiProviderTests : IDisposable
     public async Task ProcessAsync_ValidResponse_ReturnsText()
     {
         _secureStorage.StoreKey(TokenKey, TestToken);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new ProviderFakeHandler(HttpStatusCode.OK, GeminiResponse);
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         var result = await provider.ProcessAsync("hello", "prompt");
 
@@ -71,10 +71,10 @@ public sealed class TrialGeminiProviderTests : IDisposable
     public async Task ProcessAsync_403_ReturnsQuotaExceededResult()
     {
         _secureStorage.StoreKey(TokenKey, TestToken);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new ProviderFakeHandler(HttpStatusCode.Forbidden, "");
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         var result = await provider.ProcessAsync("hello", "prompt");
 
@@ -85,24 +85,24 @@ public sealed class TrialGeminiProviderTests : IDisposable
     public async Task ProcessAsync_401_TriggersAutoLogout()
     {
         _secureStorage.StoreKey(TokenKey, TestToken);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new ProviderFakeHandler(HttpStatusCode.Unauthorized, "");
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         await provider.ProcessAsync("hello", "prompt");
 
-        trialService.Verify(s => s.LogoutAsync(It.IsAny<CancellationToken>()), Times.Once);
+        accountService.Verify(s => s.LogoutAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task ProcessAsync_NoToken_Throws()
     {
         _secureStorage.DeleteKey(TokenKey);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new ProviderFakeHandler(HttpStatusCode.OK, GeminiResponse);
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         var act = () => provider.ProcessAsync("hello", "prompt");
 
@@ -113,10 +113,10 @@ public sealed class TrialGeminiProviderTests : IDisposable
     public async Task IsAvailable_WithToken_ReturnsTrue()
     {
         _secureStorage.StoreKey(TokenKey, TestToken);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new ProviderFakeHandler(HttpStatusCode.OK, GeminiResponse);
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         bool available = await provider.IsAvailableAsync();
 
@@ -127,26 +127,29 @@ public sealed class TrialGeminiProviderTests : IDisposable
     public async Task IsAvailable_WithoutToken_ReturnsFalse()
     {
         _secureStorage.DeleteKey(TokenKey);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new ProviderFakeHandler(HttpStatusCode.OK, GeminiResponse);
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         bool available = await provider.IsAvailableAsync();
 
         available.Should().BeFalse();
     }
 
-    private static Mock<ITrialAccountService> CreateMockTrialService()
+    private static (Mock<IAccountService> Account, Mock<ITrialService> Trial) CreateMocks()
     {
-        var mock = new Mock<ITrialAccountService>();
-        mock.Setup(s => s.RecordUsageAsync(
+        var accountMock = new Mock<IAccountService>();
+        accountMock.Setup(s => s.LogoutAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var trialMock = new Mock<ITrialService>();
+        trialMock.Setup(s => s.RecordUsageAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(s => s.LogoutAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-        return mock;
+
+        return (accountMock, trialMock);
     }
 }
 

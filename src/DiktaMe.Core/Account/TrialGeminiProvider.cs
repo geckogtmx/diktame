@@ -21,7 +21,8 @@ public sealed class TrialGeminiProvider : ILLMProvider, IDisposable
     private const string TokenKey = "trial_token";
 
     private readonly SecureStorage _secureStorage;
-    private readonly ITrialAccountService _trialService;
+    private readonly IAccountService _accountService;
+    private readonly ITrialService _trialService;
     private readonly HttpClient _http;
     private readonly bool _ownsHttpClient;
     private bool _disposed;
@@ -31,10 +32,12 @@ public sealed class TrialGeminiProvider : ILLMProvider, IDisposable
 
     public TrialGeminiProvider(
         SecureStorage secureStorage,
-        ITrialAccountService trialService,
+        IAccountService accountService,
+        ITrialService trialService,
         HttpClient? httpClient = null)
     {
         _secureStorage = secureStorage;
+        _accountService = accountService;
         _trialService = trialService;
         _ownsHttpClient = httpClient is null;
         _http = httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
@@ -77,7 +80,7 @@ public sealed class TrialGeminiProvider : ILLMProvider, IDisposable
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 Log.Warning("TrialGeminiProvider: 401 — token expired or invalid, auto-logout");
-                await _trialService.LogoutAsync(cancellationToken).ConfigureAwait(false);
+                await _accountService.LogoutAsync(cancellationToken).ConfigureAwait(false);
                 return new LlmResult
                 {
                     Text = "Trial session expired. Please sign in again.",

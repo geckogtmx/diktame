@@ -57,7 +57,11 @@ public sealed class LLMRouterTrialTests : IDisposable
         await _settings.UpdateAsync(_settings.Current with { AuthMode = AuthMode.Trial });
         _secureStorage.StoreKey("trial_token", "eyJ.test.token");
 
-        var trialService = new Mock<ITrialAccountService>();
+        var accountService = new Mock<IAccountService>();
+        accountService.Setup(s => s.LogoutAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var trialService = new Mock<ITrialService>();
         trialService.Setup(s => s.RecordUsageAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
@@ -65,7 +69,7 @@ public sealed class LLMRouterTrialTests : IDisposable
 
         var handler = new RouterFakeHandler(HttpStatusCode.OK, GeminiResponse);
         using var http = new HttpClient(handler);
-        using var trialProvider = new TrialGeminiProvider(_secureStorage, trialService.Object, http);
+        using var trialProvider = new TrialGeminiProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         var primaryMock = new Mock<ILLMProvider>();
         primaryMock.Setup(p => p.ProviderName).Returns("Primary");
@@ -100,10 +104,11 @@ public sealed class LLMRouterTrialTests : IDisposable
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LlmResult { Text = "primary result", Provider = "Primary" });
 
-        var trialService = new Mock<ITrialAccountService>();
+        var accountService = new Mock<IAccountService>();
+        var trialService = new Mock<ITrialService>();
         var handler = new RouterFakeHandler(HttpStatusCode.OK, GeminiResponse);
         using var http = new HttpClient(handler);
-        using var trialProvider = new TrialGeminiProvider(_secureStorage, trialService.Object, http);
+        using var trialProvider = new TrialGeminiProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         var factory = new Mock<ILLMProviderFactory>();
         var router = new LLMRouter(

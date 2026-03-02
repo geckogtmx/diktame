@@ -15,7 +15,9 @@ namespace DiktaMe.Core.Account;
 /// JWT token storage (via <see cref="SecureStorage"/>), server-side
 /// status sync, usage reporting, and logout.
 /// </summary>
+#pragma warning disable CS0618 // ITrialAccountService is obsolete — this is the implementing class
 public sealed class TrialAccountService : ITrialAccountService, IDisposable
+#pragma warning restore CS0618
 {
     private const string TokenKey = "trial_token";
     private const string LoginUrl = "https://dikta.me/login?mode=app";

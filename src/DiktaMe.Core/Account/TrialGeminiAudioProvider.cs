@@ -22,7 +22,8 @@ public sealed class TrialGeminiAudioProvider : ISTTProvider, IDisposable
     private const string TokenKey = "trial_token";
 
     private readonly SecureStorage _secureStorage;
-    private readonly ITrialAccountService _trialService;
+    private readonly IAccountService _accountService;
+    private readonly ITrialService _trialService;
     private readonly HttpClient _http;
     private readonly bool _ownsHttpClient;
     private bool _disposed;
@@ -32,10 +33,12 @@ public sealed class TrialGeminiAudioProvider : ISTTProvider, IDisposable
 
     public TrialGeminiAudioProvider(
         SecureStorage secureStorage,
-        ITrialAccountService trialService,
+        IAccountService accountService,
+        ITrialService trialService,
         HttpClient? httpClient = null)
     {
         _secureStorage = secureStorage;
+        _accountService = accountService;
         _trialService = trialService;
         _ownsHttpClient = httpClient is null;
         _http = httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
@@ -81,7 +84,7 @@ public sealed class TrialGeminiAudioProvider : ISTTProvider, IDisposable
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 Log.Warning("TrialGeminiAudioProvider: 401 — token expired, auto-logout");
-                await _trialService.LogoutAsync(cancellationToken).ConfigureAwait(false);
+                await _accountService.LogoutAsync(cancellationToken).ConfigureAwait(false);
                 return new TranscriptionResult
                 {
                     Text = string.Empty,

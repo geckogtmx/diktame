@@ -44,10 +44,10 @@ public sealed class TrialGeminiAudioProviderTests : IDisposable
     public async Task TranscribeAsync_ValidToken_SendsBearerAuth()
     {
         _secureStorage.StoreKey(TokenKey, TestToken);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new AudioFakeHandler(HttpStatusCode.OK, GeminiAudioResponse);
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiAudioProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiAudioProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         await provider.TranscribeAsync(_tempAudioFile);
 
@@ -59,10 +59,10 @@ public sealed class TrialGeminiAudioProviderTests : IDisposable
     public async Task TranscribeAsync_ValidResponse_ReturnsTranscription()
     {
         _secureStorage.StoreKey(TokenKey, TestToken);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new AudioFakeHandler(HttpStatusCode.OK, GeminiAudioResponse);
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiAudioProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiAudioProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         var result = await provider.TranscribeAsync(_tempAudioFile);
 
@@ -74,10 +74,10 @@ public sealed class TrialGeminiAudioProviderTests : IDisposable
     public async Task TranscribeAsync_403_ReturnsEmpty()
     {
         _secureStorage.StoreKey(TokenKey, TestToken);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new AudioFakeHandler(HttpStatusCode.Forbidden, "");
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiAudioProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiAudioProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         var result = await provider.TranscribeAsync(_tempAudioFile);
 
@@ -88,40 +88,43 @@ public sealed class TrialGeminiAudioProviderTests : IDisposable
     public async Task TranscribeAsync_401_TriggersAutoLogout()
     {
         _secureStorage.StoreKey(TokenKey, TestToken);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new AudioFakeHandler(HttpStatusCode.Unauthorized, "");
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiAudioProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiAudioProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         await provider.TranscribeAsync(_tempAudioFile);
 
-        trialService.Verify(s => s.LogoutAsync(It.IsAny<CancellationToken>()), Times.Once);
+        accountService.Verify(s => s.LogoutAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task TranscribeAsync_NoToken_Throws()
     {
         _secureStorage.DeleteKey(TokenKey);
-        var trialService = CreateMockTrialService();
+        var (accountService, trialService) = CreateMocks();
         var handler = new AudioFakeHandler(HttpStatusCode.OK, GeminiAudioResponse);
         using var http = new HttpClient(handler);
-        using var provider = new TrialGeminiAudioProvider(_secureStorage, trialService.Object, http);
+        using var provider = new TrialGeminiAudioProvider(_secureStorage, accountService.Object, trialService.Object, http);
 
         var act = () => provider.TranscribeAsync(_tempAudioFile);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
-    private static Mock<ITrialAccountService> CreateMockTrialService()
+    private static (Mock<IAccountService> Account, Mock<ITrialService> Trial) CreateMocks()
     {
-        var mock = new Mock<ITrialAccountService>();
-        mock.Setup(s => s.RecordUsageAsync(
+        var accountMock = new Mock<IAccountService>();
+        accountMock.Setup(s => s.LogoutAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var trialMock = new Mock<ITrialService>();
+        trialMock.Setup(s => s.RecordUsageAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(s => s.LogoutAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-        return mock;
+
+        return (accountMock, trialMock);
     }
 }
 
