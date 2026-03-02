@@ -57,7 +57,7 @@
 - [x] Desktop app sign-in → footer shows email → user info page works → trial conditional
 - [ ] Desktop app with expired/no trial → badge "ACCT" → uses own API keys
 - [ ] Settings migration → old settings.json loads without crash
-- [ ] Logout → AuthMode=None → footer shows "Sign in"
+- [x] Logout → AuthMode=None → footer shows "Sign in"
 
 ---
 
