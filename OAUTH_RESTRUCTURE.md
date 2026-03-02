@@ -38,7 +38,7 @@
 - [x] **L.3h** — Register all three interfaces in DI (single `TrialAccountService` instance)
 - [x] **L.3i** — Migrate auth-only consumers to `IAccountService` (`App.xaml.cs`, `UserPaneFooter`, `WizardViewModel`)
 - [x] **L.3j** — Remove "Account" from Settings nav menu; keep page navigable from UserPaneFooter click; repurpose page (user info always, trial section conditional)
-- [x] **L.3k** — Update `ControlPanelViewModel` badge: "TRIAL" / "ACCT" / "LOC" / "API"
+- [x] **L.3k** — ~~Update `ControlPanelViewModel` badge~~ — Reverted: badge is provider mode (LOC/API) only, not auth state
 - [x] **L.3l** — Fix `https://dikta.me/dashboard` → `https://www.dikta.me/dashboard` in `AccountSettingsViewModel`
 - [x] **L.3m** — Update tests (expect `AuthMode.Account` on login, add trial-upgrade test, add `Account.Email` test)
 - [x] **Phase 3 test**: Build + all 552 tests pass. 0 warnings, 0 errors.
@@ -55,7 +55,7 @@
 - [x] Website sign-up → profile created → dashboard loads
 - [x] Website sign-in (returning user) → dashboard shows profile
 - [x] Desktop app sign-in → footer shows email → user info page works → trial conditional
-- [ ] Desktop app with expired/no trial → badge "ACCT" → uses own API keys
+- [x] Desktop app with expired/no trial → uses own API keys (badge stays LOC/API — provider mode only)
 - [ ] Settings migration → old settings.json loads without crash
 - [x] Logout → AuthMode=None → footer shows "Sign in"
 
