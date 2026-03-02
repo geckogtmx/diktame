@@ -13,6 +13,34 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      // Ensure a profiles row exists (trigger handles most cases; this is a safety net)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile) {
+          await supabase.from('profiles').insert({
+            id: user.id,
+            email: user.email,
+            name:
+              user.user_metadata?.full_name ??
+              user.user_metadata?.name ??
+              '',
+            trial_words_quota: 15000,
+            trial_words_used: 0,
+            trial_expires_at: new Date(
+              Date.now() + 15 * 24 * 60 * 60 * 1000
+            ).toISOString(),
+          });
+        }
+      }
+
       // If mode=app, redirect to deeplink for desktop app
       if (mode === 'app') {
         const {

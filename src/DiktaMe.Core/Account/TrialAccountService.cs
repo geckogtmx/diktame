@@ -19,8 +19,8 @@ public sealed class TrialAccountService : ITrialAccountService, IDisposable
 {
     private const string TokenKey = "trial_token";
     private const string LoginUrl = "https://dikta.me/login?mode=app";
-    private const string StatusUrl = "https://dikta.me/api/trial/status";
-    private const string UsageUrl = "https://dikta.me/api/trial/usage";
+    private const string StatusUrl = "https://www.dikta.me/api/trial/status";
+    private const string UsageUrl = "https://www.dikta.me/api/trial/usage";
 
     private readonly SecureStorage _secureStorage;
     private readonly SettingsManager _settings;
