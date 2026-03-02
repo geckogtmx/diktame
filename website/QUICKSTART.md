@@ -45,9 +45,9 @@ The `secret` key is **hidden by default** for security:
 Your `.env.local` should look like:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijk.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiY2RlZmdoaWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDMyMDQ4MDAsImV4cCI6MTk1ODc4MDgwMH0.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiY2RlZmdoaWprIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY0MzIwNDgwMCwiZXhwIjoxOTU4NzgwODAwfQ.YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 ```
 
 ## ⚠️ Security Warning
