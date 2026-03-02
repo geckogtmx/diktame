@@ -17,7 +17,7 @@
 - [x] **L.1a** — Create Supabase `handle_new_user` trigger (run in SQL Editor + save migration file in repo)
 - [x] **L.1b** — Add safety-net profile creation in `website/app/auth/callback/route.ts`
 - [x] **L.1c** — Commit pending URL fix (`dikta.me` → `www.dikta.me` in `TrialAccountService.cs`)
-- [ ] **Phase 1 test**: Delete your Supabase profile row, sign in on website, verify profile auto-created + dashboard loads
+- [x] **Phase 1 test**: Sign in on website → profile auto-created → dashboard loads
 
 ### Phase 2: Restructure Website (Separate profile from trial)
 - [x] **L.2a** — Create `/api/account/me` endpoint (generic "who am I", Bearer token support)
@@ -25,7 +25,7 @@
 - [x] **L.2c** — Restructure dashboard page (generic profile first, trial section conditional)
 - [x] **L.2d** — Update login page copy (account-centric, not trial-centric)
 - [x] **L.2e** — Enable Bearer token auth on `/api/profile` (change `createClient` → `createApiClient`)
-- [ ] **Phase 2 test**: Sign in on website, see generic dashboard + conditional trial section. Sign in from app, verify `/api/account/me` returns user info.
+- [x] **Phase 2 test**: Sign in on website → generic dashboard + conditional trial section. Sign in from app → verified.
 
 ### Phase 3: Restructure Desktop App (Split auth from trial)
 - [x] **L.3a** — Create `IAccountService` interface + `AccountSettings` record (new files)
@@ -52,9 +52,9 @@
 ### Phase 5: End-to-End Verification
 - [x] Build: `dotnet build DiktaMe.sln -c Release` — 0 errors, 0 warnings
 - [x] Tests: `dotnet test DiktaMe.sln` — 552 pass
-- [ ] Website sign-up → profile created → dashboard loads
-- [ ] Website sign-in (returning user) → dashboard shows profile
-- [ ] Desktop app sign-in → footer shows email → user info page works → trial conditional
+- [x] Website sign-up → profile created → dashboard loads
+- [x] Website sign-in (returning user) → dashboard shows profile
+- [x] Desktop app sign-in → footer shows email → user info page works → trial conditional
 - [ ] Desktop app with expired/no trial → badge "ACCT" → uses own API keys
 - [ ] Settings migration → old settings.json loads without crash
 - [ ] Logout → AuthMode=None → footer shows "Sign in"
