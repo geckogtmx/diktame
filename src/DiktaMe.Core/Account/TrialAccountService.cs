@@ -79,7 +79,10 @@ public sealed class TrialAccountService : ITrialAccountService, IDisposable
             Trial = _settings.Current.Trial with { TrialEmail = email ?? string.Empty },
         }, cancellationToken).ConfigureAwait(false);
 
-        // Sync status from server
+        // Notify UI immediately so signed-in state shows even if status sync fails
+        StatusChanged?.Invoke(null);
+
+        // Sync status from server (non-fatal — UI already updated above)
         await RefreshStatusAsync(cancellationToken).ConfigureAwait(false);
     }
 

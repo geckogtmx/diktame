@@ -1,100 +1,74 @@
 # Developer Handoff
 
-## Next Session: Stream K — OAuth & Trial Credits
-
-### K.1 Core Models & AppSettings (0.5 day)
-
-1. Add trial-related fields to `AppSettings`:
-   - `TrialSessionToken` (encrypted via `SecureStorage`)
-   - `TrialEmail`, `TrialWordsUsed`, `TrialWordsQuota`
-   - `TrialDaysRemaining`, `TrialExpiresAt`, `TrialActive`, `TrialLastSynced`
-2. Add `AuthMode` enum: `None`, `Trial`, `ApiKey`
-3. Add `TrialStatus` model class
-4. Settings migration for new fields
-
-**Port from:** `E:\git\diktate\src\types\settings.ts` (lines 124–132)
-
-### K.2 TrialAccountService (1 day)
-
-1. `LoginAsync()` — opens browser to `https://dikta.me/login?mode=app`
-2. `HandleAuthCallbackAsync(token)` — stores JWT, extracts email, triggers status sync
-3. `RefreshStatusAsync()` — GET `/api/trial/status` with Bearer token
-4. `RecordUsageAsync(provider, model, wordsUsed)` — POST `/api/trial/usage`
-5. `LogoutAsync()` — clears token + trial fields
-6. JWT decode helper (extract email, expiry from payload)
-
-**Port from:** `E:\git\diktate\src\ipc\trialHandlers.ts`
-
-### K.3 Protocol Handler (0.5–1 day)
-
-1. Register `diktame://` URL scheme (MSIX manifest or registry fallback)
-2. Handle protocol activation in `App.xaml.cs` → route `diktame://auth?token=...`
-3. Single-instance check — forward deeplink to existing instance
-4. Update V1 website callback to use `diktame://` scheme
-
-**Port from:** `E:\git\diktate\src\main.ts` (lines 57–61, 681–707)
-
-### K.4 Managed Gemini Integration (1 day)
-
-1. `TrialGeminiProvider` — routes through Supabase Edge Function, Bearer JWT auth
-2. Wire into `LLMRouter` — `AuthMode == Trial` → managed provider
-3. Post-process: `TrialAccountService.RecordUsageAsync()` after each LLM call
-4. Handle 403 quota-exceeded, 401 token expiry
-
-**Port from:** `E:\git\diktate\supabase\functions\gemini-proxy\index.ts`
-
-### K.5 Trial Account UI (1 day)
-
-1. Settings "Account" section: sign-in button, usage progress bar, days remaining
-2. Control Panel badge: `AuthMode.Trial` → "Trial" badge
-3. Configuration Wizard: "Try free" option alongside "Enter API key"
-4. Quota exceeded notification → "Add your own API key" prompt
-
-### K.6 Tests (0.5 day)
-
-1. `TrialAccountServiceTests` — login, status sync, usage recording, JWT parsing
-2. `TrialGeminiProviderTests` — routing, auth, quota handling
-3. `LLMRouter` integration — delegates to trial provider when `AuthMode == Trial`
-
-### K Dependencies
-
-- **Website repo** (`E:\git\diktate\website`): Update OAuth callback `diktate://` → `diktame://`
-- **Supabase**: No changes needed (existing Edge Function + DB schema)
-- **H.1 (Installer)**: Protocol handler registration may depend on MSIX vs Inno Setup
-
-### V1 Reference Files
-
-| V1 File | What to port |
-|---------|-------------|
-| `src/types/settings.ts:124-132` | Trial fields in AppSettings |
-| `src/ipc/trialHandlers.ts` | TrialAccountService logic |
-| `src/main.ts:57-61,681-707` | Protocol handler + deeplink |
-| `src/settings/trialAccount.ts` | Trial Account UI |
-| `supabase/functions/gemini-proxy/index.ts` | Managed Gemini calling pattern |
-| `src/services/configSync.ts` | Status sync pattern |
-
----
-
 ## Current State
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 521 passing (CI filter: 376) |
+| **Tests** | 539 passing locally (479 on CI — 60 DPAPI/Clipboard/Audio tests skipped on runners) |
 | **Build** | 0 errors, 0 warnings |
 | **CI** | Passing on main |
 | **Branch** | main |
+| **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
 
-### Remaining Work (after Stream K)
+## Stream K: OAuth & Trial Credits — COMPLETED (with open bugs)
+
+All K.1–K.7 tasks are implemented and committed. The core flow works:
+App → browser (`/login?mode=app`) → OAuth → `diktame://auth?token=JWT` deeplink → app receives token.
+
+### Open Bugs (fix in next session)
+
+#### Bug 1: App UI doesn't update after sign-in
+**Root cause:** `HandleAuthCallbackAsync` stores the token and email, then calls `RefreshStatusAsync()` which hits `https://dikta.me/api/trial/status`. That endpoint likely returns an error (not yet provisioning trial records for new users). When it fails, `StatusChanged` event never fires → UI stays on "Sign in".
+
+**Partial fix applied (uncommitted):** Added `StatusChanged?.Invoke(null)` in `HandleAuthCallbackAsync` right after storing token/email, before `RefreshStatusAsync`. This ensures the UI updates even if status sync fails. File: `src/DiktaMe.Core/Account/TrialAccountService.cs` line ~81.
+
+**To verify:** Build app, sign in, check if UserPaneFooter shows email + avatar. If not, check logs at `%LOCALAPPDATA%/diktame/logs/diktame_YYYYMMDD.log` for errors.
+
+#### Bug 2: Website "Sign Up" button shows Coming Soon page
+**Root cause:** Vercel env var `NEXT_PUBLIC_COMING_SOON=true` is still set from pre-launch. The middleware at `website/middleware.ts` blocks `/login` and `/auth/*` unless `mode=app`.
+
+**Fix:** In Vercel dashboard → Settings → Environment Variables → delete `NEXT_PUBLIC_COMING_SOON` (or set to `false`). No code change needed. The user said: "No one can actually download the app, so lets just leave it all open as if it was live and working."
+
+#### Bug 3: Trial counter page not showing
+**Related to Bug 1.** The Account settings page (`AccountSettingsViewModel`) listens to `StatusChanged` to refresh. Once Bug 1 is fixed, navigating to Settings → Account should show the signed-in state. The trial usage counter won't have real data until the Supabase Edge Function (`/api/trial/status`) returns proper trial records.
+
+### Key Files (Stream K)
+
+| File | Purpose |
+|------|---------|
+| `src/DiktaMe.Core/Account/TrialAccountService.cs` | OAuth login, JWT storage, status sync, usage reporting |
+| `src/DiktaMe.Core/Account/TrialGeminiProvider.cs` | Managed Gemini proxy for trial users |
+| `src/DiktaMe.Core/Account/JwtDecoder.cs` | Extract email/expiry from JWT without library |
+| `src/DiktaMe.Core/Config/AuthMode.cs` | Enum: None, Trial, ApiKey |
+| `src/DiktaMe.Core/Config/TrialSettings.cs` | Trial metadata in AppSettings |
+| `src/DiktaMe.App/Services/SingleInstanceManager.cs` | Named mutex + pipe for deeplink forwarding |
+| `src/DiktaMe.App/Services/ProtocolRegistrar.cs` | `diktame://` HKCU registry registration |
+| `src/DiktaMe.App/Views/Settings/AccountSettingsPage.xaml` | Account tab with usage progress bar |
+| `src/DiktaMe.App/Views/Settings/UserPaneFooter.xaml` | Settings nav footer: avatar + email or "Sign in" |
+| `website/app/login/page.tsx` | Login page — passes `mode=app` through OAuth |
+| `website/app/auth/callback/route.ts` | OAuth callback — issues `diktame://auth?token=JWT` when `mode=app` |
+| `website/app/api/auth/app-token/route.ts` | Already-signed-in shortcut — redirects to deeplink |
+| `website/app/auth/signout/route.ts` | Sign-out (POST + GET) |
+
+### CI/CD Notes
+
+- **Gitleaks:** `.gitleaks.toml` allowlists `website/QUICKSTART.md` (historical fake JWTs in git history)
+- **Test threshold:** `ci/test-threshold.json` set to 470 (local runs 539, CI runs ~479 due to skipped tests)
+- **Vercel:** Connected to `geckogtmx/diktame`, Root Directory = `website`
+
+## Remaining Work (after Stream K bugs)
 
 | Task | Effort |
 |------|--------|
 | **H.1** | 1 day — Installer (MSIX or Inno Setup) |
-| **I.6** | 0.5 day — Website rebrand for V2 launch |
+| **LemonSqueezy** | License integration, device binding, trial abuse prevention |
 | Control Panel wiring | RAW toggle, REFINE toggle, pipeline states |
 | Latency tuning | Cloud inference profiling |
 
-### Reference Docs
+## Reference Docs
 
-- `DEVELOPMENT_ROADMAP.md` — Full task breakdown (Stream K at Section 12)
+- `DEVELOPMENT_ROADMAP.md` — Full task breakdown
 - `ARCHITECTURE.md` — Technical architecture
+- `plans/STREAM_K_IMPLEMENTATION.md` — Stream K implementation plan
+- `SECURITY.md` — GitHub security policy
 - `plans/SPEC_001_MEETINGS.md` / `SPEC_002_VISION.md` / `SPEC_003_TTS.md` — Post-launch feature specs
