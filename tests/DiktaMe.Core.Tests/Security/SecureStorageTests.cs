@@ -10,6 +10,7 @@ namespace DiktaMe.Core.Tests.Security;
 /// or — more practically — we test via the public API with the real path
 /// under a unique temp sub-path per test run.
 /// </summary>
+[Collection("SecureStorage")]
 [Trait("Category", "Integration")]
 public sealed class SecureStorageTests : IDisposable
 {

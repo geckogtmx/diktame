@@ -1,4 +1,5 @@
 
+using DiktaMe.Core.Account;
 using DiktaMe.Core.Config;  // ILLMProviderFactory
 using Serilog;
 
@@ -7,6 +8,7 @@ namespace DiktaMe.Core.LLM;
 /// Routes LLM processing requests to the correct <see cref="ILLMProvider"/>
 /// based on a configured primary provider, with automatic fallback.
 /// Supports per-mode model selection by dynamically resolving providers from model names.
+/// When <see cref="AuthMode.Trial"/> is active, routes to <see cref="TrialGeminiProvider"/>.
 /// Implements <see cref="ILLMProvider"/> itself so callers are provider-agnostic.
 /// Mirrors <c>STTRouter</c> in the STT layer.
 /// </summary>
@@ -15,6 +17,8 @@ public sealed class LLMRouter : ILLMProvider
     private readonly ILLMProvider _primary;
     private readonly ILLMProvider? _fallback;
     private readonly ILLMProviderFactory _factory;
+    private readonly SettingsManager? _settings;
+    private readonly TrialGeminiProvider? _trialProvider;
 
     /// <inheritdoc/>
     public string ProviderName =>
@@ -25,14 +29,20 @@ public sealed class LLMRouter : ILLMProvider
     /// <param name="primary">The preferred provider (used when no model override is specified).</param>
     /// <param name="factory">Factory for creating providers dynamically based on model names. API keys are resolved internally by the factory.</param>
     /// <param name="fallback">Optional secondary provider used when primary fails.</param>
+    /// <param name="settings">Optional settings manager for AuthMode-aware routing.</param>
+    /// <param name="trialProvider">Optional trial provider for managed Gemini proxy routing.</param>
     public LLMRouter(
         ILLMProvider primary,
         ILLMProviderFactory factory,
-        ILLMProvider? fallback = null)
+        ILLMProvider? fallback = null,
+        SettingsManager? settings = null,
+        TrialGeminiProvider? trialProvider = null)
     {
         _primary = primary;
         _fallback = fallback;
         _factory = factory;
+        _settings = settings;
+        _trialProvider = trialProvider;
     }
 
     /// <inheritdoc/>
@@ -82,6 +92,14 @@ public sealed class LLMRouter : ILLMProvider
         string mode = "dictate",
         CancellationToken cancellationToken = default)
     {
+        // Trial mode — route through managed Gemini proxy
+        if (_settings?.Current.AuthMode == AuthMode.Trial && _trialProvider is not null)
+        {
+            Log.Debug("LLMRouter: AuthMode=Trial — routing to {Provider}", _trialProvider.ProviderName);
+            return await _trialProvider.ProcessAsync(text, systemPrompt, mode, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         // If no model override, use the primary provider
         if (string.IsNullOrWhiteSpace(modelName))
         {

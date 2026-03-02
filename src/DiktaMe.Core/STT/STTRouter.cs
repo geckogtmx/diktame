@@ -1,4 +1,6 @@
 
+using DiktaMe.Core.Account;
+using DiktaMe.Core.Config;
 using Serilog;
 
 namespace DiktaMe.Core.STT;
@@ -6,12 +8,15 @@ namespace DiktaMe.Core.STT;
 /// Routes transcription requests to the correct <see cref="ISTTProvider"/> based on
 /// the configured primary provider, with automatic fallback to a secondary provider
 /// if the primary fails or is unavailable.
+/// When <see cref="AuthMode.Trial"/> is active, routes to <see cref="TrialGeminiAudioProvider"/>.
 /// Port of the provider-selection logic in V1's transcriber.py / pipelines.py.
 /// </summary>
 public sealed class STTRouter : ISTTProvider
 {
     private readonly ISTTProvider _primary;
     private readonly ISTTProvider? _fallback;
+    private readonly SettingsManager? _settings;
+    private readonly TrialGeminiAudioProvider? _trialStt;
 
     /// <inheritdoc/>
     public string ProviderName =>
@@ -23,13 +28,19 @@ public sealed class STTRouter : ISTTProvider
     /// Initialises the router with a primary provider and an optional fallback.
     /// </summary>
     /// <param name="primary">The preferred provider to use first.</param>
-    /// <param name="fallback">
-    /// Optional secondary provider used when the primary is unavailable or throws.
-    /// </param>
-    public STTRouter(ISTTProvider primary, ISTTProvider? fallback = null)
+    /// <param name="fallback">Optional secondary provider used when the primary is unavailable or throws.</param>
+    /// <param name="settings">Optional settings manager for AuthMode-aware routing.</param>
+    /// <param name="trialStt">Optional trial STT provider for managed Gemini audio routing.</param>
+    public STTRouter(
+        ISTTProvider primary,
+        ISTTProvider? fallback = null,
+        SettingsManager? settings = null,
+        TrialGeminiAudioProvider? trialStt = null)
     {
         _primary = primary;
         _fallback = fallback;
+        _settings = settings;
+        _trialStt = trialStt;
     }
 
     /// <inheritdoc/>
@@ -51,12 +62,21 @@ public sealed class STTRouter : ISTTProvider
     /// <summary>
     /// Transcribes the audio file using the primary provider.
     /// Falls back to the secondary provider if the primary throws or returns an empty result.
+    /// When AuthMode is Trial, routes through the managed Gemini audio proxy.
     /// </summary>
     public async Task<TranscriptionResult> TranscribeAsync(
         string audioFilePath,
         string language = "en",
         CancellationToken cancellationToken = default)
     {
+        // Trial mode — route through managed Gemini audio proxy
+        if (_settings?.Current.AuthMode == AuthMode.Trial && _trialStt is not null)
+        {
+            Log.Debug("STTRouter: AuthMode=Trial — routing to {Provider}", _trialStt.ProviderName);
+            return await _trialStt.TranscribeAsync(audioFilePath, language, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         // ── Try primary ───────────────────────────────────────────────────────
         try
         {

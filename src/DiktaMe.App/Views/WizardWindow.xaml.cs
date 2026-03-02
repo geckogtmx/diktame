@@ -11,7 +11,7 @@ public sealed partial class WizardWindow : Window
 
     private readonly Type[] _stepPages =
     {
-        typeof(WizardWelcomePage),
+        typeof(WizardGetStartedPage),
         typeof(WizardSttPage),
         typeof(WizardLlmPage),
         typeof(WizardApiKeysPage),

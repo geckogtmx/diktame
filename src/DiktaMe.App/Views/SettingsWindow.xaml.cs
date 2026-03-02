@@ -22,8 +22,14 @@ public sealed partial class SettingsWindow : Window
             AppWindow.SetIcon(iconPath);
         }
 
-        // Select first tab on load
-        NavView.SelectedItem = NavView.MenuItems[0];
+        // Wire PaneFooter click → navigate to Account page
+        UserFooter.NavigateToAccountRequested += () =>
+        {
+            NavView.SelectedItem = NavView.MenuItems[0]; // Account is the first item
+        };
+
+        // Select General (second item) on load
+        NavView.SelectedItem = NavView.MenuItems[1];
     }
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -36,6 +42,7 @@ public sealed partial class SettingsWindow : Window
         string tag = item.Tag?.ToString() ?? "general";
         Type? pageType = tag switch
         {
+            "account" => typeof(Settings.AccountSettingsPage),
             "general" => typeof(Settings.GeneralSettingsPage),
             "aiengine" => typeof(Settings.AIEngineSettingsPage),
             "modes" => typeof(Settings.ModesSettingsPage),

@@ -1,6 +1,7 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DiktaMe.Core.Account;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Security;
 using Serilog;
@@ -10,11 +11,15 @@ public sealed partial class WizardViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
     private readonly SecureStorage _secureStorage;
+    private readonly ITrialAccountService _trialService;
 
     [ObservableProperty] private int _currentStep;
     [ObservableProperty] private bool _canGoBack;
     [ObservableProperty] private bool _canGoNext = true;
     [ObservableProperty] private string _nextButtonText = "Next";
+
+    // Step 0: Onboarding choice ("trial" or "apikeys")
+    [ObservableProperty] private string _onboardingChoice = "trial";
 
     // Step 1: STT choice
     [ObservableProperty] private string _sttChoice = "cloud";
@@ -31,10 +36,11 @@ public sealed partial class WizardViewModel : ObservableObject
     public event Action? StepChanged;
     public event Action? WizardCompleted;
 
-    public WizardViewModel(SettingsManager settings, SecureStorage secureStorage)
+    public WizardViewModel(SettingsManager settings, SecureStorage secureStorage, ITrialAccountService trialService)
     {
         _settings = settings;
         _secureStorage = secureStorage;
+        _trialService = trialService;
     }
 
     [RelayCommand]
@@ -51,6 +57,13 @@ public sealed partial class WizardViewModel : ObservableObject
     [RelayCommand]
     private async Task GoNextAsync()
     {
+        // Trial fork — skip entire wizard when "Try for free" is selected at step 0
+        if (CurrentStep == 0 && string.Equals(OnboardingChoice, "trial", StringComparison.Ordinal))
+        {
+            await StartTrialAsync();
+            return;
+        }
+
         if (CurrentStep < TotalSteps - 1)
         {
             CurrentStep++;
@@ -62,6 +75,31 @@ public sealed partial class WizardViewModel : ObservableObject
             // Final step — save and complete
             await CompleteWizardAsync();
         }
+    }
+
+    private async Task StartTrialAsync()
+    {
+        try
+        {
+            // Mark wizard as completed immediately (zero friction)
+            var updated = _settings.Current with
+            {
+                WizardCompleted = true,
+                AuthMode = AuthMode.Trial,
+            };
+            await _settings.UpdateAsync(updated);
+
+            // Open browser for login — token will arrive via deeplink
+            _trialService.Login();
+
+            Log.Information("Wizard: trial path — wizard completed, browser opened for login");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Wizard: failed to start trial");
+        }
+
+        WizardCompleted?.Invoke();
     }
 
     [RelayCommand]

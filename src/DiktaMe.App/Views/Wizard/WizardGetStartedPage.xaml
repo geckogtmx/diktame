@@ -1,0 +1,37 @@
+<Page x:Class="DiktaMe.App.Views.Wizard.WizardGetStartedPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16" MaxWidth="420">
+        <Image Source="ms-appx:///Assets/loading-logo.png"
+               Width="100" Height="100" HorizontalAlignment="Center"/>
+
+        <TextBlock Text="dIKta.me" FontSize="32" FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+
+        <TextBlock Text="How do you want to get started?" FontSize="18" FontWeight="SemiBold"
+                   HorizontalAlignment="Center" Margin="0,8,0,0"/>
+
+        <RadioButtons x:Name="OnboardingRadio" SelectionChanged="OnboardingRadio_SelectionChanged"
+                      Margin="0,8,0,0">
+
+            <RadioButton x:Name="TrialRadio" Tag="trial" IsChecked="True">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="Try for free" FontWeight="SemiBold"/>
+                    <TextBlock Text="15,000 words free — no API key or setup needed."
+                               FontSize="12" Opacity="0.6" TextWrapping="Wrap"/>
+                </StackPanel>
+            </RadioButton>
+
+            <RadioButton x:Name="ApiKeysRadio" Tag="apikeys">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="I have my own API keys" FontWeight="SemiBold"/>
+                    <TextBlock Text="Configure your preferred STT and LLM providers."
+                               FontSize="12" Opacity="0.6" TextWrapping="Wrap"/>
+                </StackPanel>
+            </RadioButton>
+
+        </RadioButtons>
+    </StackPanel>
+</Page>

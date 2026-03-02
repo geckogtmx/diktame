@@ -1,0 +1,12 @@
+# dIKtate SEO robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /dashboard
+
+# Crawl delay
+Crawl-delay: 1
+
+# Sitemaps
+Sitemap: https://dikta.me/sitemap.xml

@@ -283,6 +283,19 @@ public sealed record AppSettings
     /// If null or invalid, defaults to first preset in sorted order.
     /// </summary>
     public string? ActiveDictationModeId { get; init; }
+
+    // ── Stream K: OAuth & Trial Credits ──────────────────────────────────────
+
+    /// <summary>
+    /// Authentication mode controlling LLM/STT routing.
+    /// <see cref="AuthMode.Trial"/> routes through managed Gemini proxy.
+    /// </summary>
+    public AuthMode AuthMode { get; init; } = AuthMode.None;
+
+    /// <summary>
+    /// Non-sensitive trial account metadata. JWT token stored separately in SecureStorage.
+    /// </summary>
+    public TrialSettings Trial { get; init; } = new();
 }
 
 /// <summary>
@@ -306,4 +319,7 @@ public sealed record AppSettings
 [JsonSerializable(typeof(List<DictationMode>))]
 [JsonSerializable(typeof(List<PipelineConfig>))]
 [JsonSerializable(typeof(AskOutputMode))]
+[JsonSerializable(typeof(AuthMode))]
+[JsonSerializable(typeof(TrialSettings))]
+[JsonSerializable(typeof(Account.TrialStatus))]
 public partial class AppSettingsContext : JsonSerializerContext { }

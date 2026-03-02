@@ -1,5 +1,8 @@
 using System.Runtime.InteropServices;
+using System.Web;
+using DiktaMe.App.Services;
 using DiktaMe.App.Views;
+using DiktaMe.Core.Account;
 using DiktaMe.Core.Audio;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Data;
@@ -10,6 +13,7 @@ using DiktaMe.Core.Security;
 using DiktaMe.Core.STT;
 using DiktaMe.Core.SystemManagement;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Serilog;
 
@@ -25,6 +29,7 @@ public partial class App : Application
     private Views.SettingsWindow? _settingsWindow;
     private Views.QuickChatWindow? _quickChatWindow;
     private ViewModels.LoadingViewModel? _loadingViewModel;
+    private SingleInstanceManager? _singleInstance;
 
     /// <summary>
     /// Gets the current App instance.
@@ -71,12 +76,7 @@ public partial class App : Application
         }
 #endif
 
-        // Configure DI
-        var services = new ServiceCollection();
-        ConfigureServices(services);
-        Services = services.BuildServiceProvider();
-
-        // Configure logging (file + console for debugging)
+        // Configure logging early (needed before single-instance check)
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.File(
@@ -90,6 +90,48 @@ public partial class App : Application
 
         Log.Information("dIKta.me V2 starting up...");
 
+        // ── Single-instance + deeplink forwarding ────────────────────────────
+        string? deepLinkArg = FindDeepLinkArg();
+
+        _singleInstance = new SingleInstanceManager();
+        if (!_singleInstance.TryAcquire())
+        {
+            // Secondary instance — forward deeplink to primary and exit
+            if (deepLinkArg is not null)
+            {
+                Log.Information("Secondary instance — forwarding deeplink to primary");
+                _ = SingleInstanceManager.SendDeepLinkAsync(deepLinkArg);
+            }
+            else
+            {
+                Log.Information("Secondary instance — no deeplink, exiting");
+            }
+
+            Exit();
+            return;
+        }
+
+        // Primary instance — start pipe listener for deeplinks from secondary instances
+        _singleInstance.StartListening();
+
+        // Register diktame:// protocol handler (HKCU, no admin needed)
+        ProtocolRegistrar.Register();
+
+        // ── Configure DI ─────────────────────────────────────────────────────
+        var services = new ServiceCollection();
+        ConfigureServices(services);
+        Services = services.BuildServiceProvider();
+
+        // ── Wire deeplink handler ────────────────────────────────────────────
+        var dispatcher = DispatcherQueue.GetForCurrentThread();
+        _singleInstance.DeepLinkReceived += uri => dispatcher.TryEnqueue(() => HandleDeepLink(uri));
+
+        // Handle deeplink from this launch (e.g. diktame://auth?token=...)
+        if (deepLinkArg is not null)
+        {
+            dispatcher.TryEnqueue(() => HandleDeepLink(deepLinkArg));
+        }
+
         // Create tray icon standalone — not inside any window's visual tree.
         // H.NotifyIcon's TaskbarIcon creates its own hidden Win32 message window
         // internally; it does not need a WinUI visual tree parent.
@@ -100,6 +142,60 @@ public partial class App : Application
         _loadingViewModel = loading.ViewModel; // Keep alive — owns hotkey event subscriptions
         loading.Activate();
         loading.StartLoading();
+    }
+
+    /// <summary>
+    /// Extracts a <c>diktame://</c> URI from command-line arguments, if present.
+    /// </summary>
+    private static string? FindDeepLinkArg()
+    {
+        var cmdArgs = Environment.GetCommandLineArgs();
+        foreach (string arg in cmdArgs)
+        {
+            if (arg.StartsWith("diktame://", StringComparison.OrdinalIgnoreCase))
+            {
+                return arg;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Processes a <c>diktame://auth?token=JWT</c> deeplink URI.
+    /// Must be called on the UI thread.
+    /// </summary>
+    private async void HandleDeepLink(string uri)
+    {
+        try
+        {
+            var parsed = new Uri(uri);
+            if (!string.Equals(parsed.Host, "auth", StringComparison.OrdinalIgnoreCase))
+            {
+                Log.Warning("App: ignoring unknown deeplink host: {Host}", parsed.Host);
+                return;
+            }
+
+            var query = HttpUtility.ParseQueryString(parsed.Query);
+            string? token = query["token"];
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                Log.Warning("App: deeplink missing token parameter");
+                return;
+            }
+
+            Log.Information("App: processing auth deeplink");
+            var trialService = Services.GetRequiredService<ITrialAccountService>();
+            await trialService.HandleAuthCallbackAsync(token).ConfigureAwait(false);
+        }
+        catch (UriFormatException ex)
+        {
+            Log.Warning(ex, "App: failed to parse deeplink URI: {Uri}", uri);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "App: error handling deeplink");
+        }
     }
 
     /// <summary>
@@ -187,18 +283,28 @@ public partial class App : Application
         // NOTE: Cloud providers require keys; they are deliberately NOT registered
         // against ISTTProvider here — the router below uses WhisperProvider as
         // the default until settings/keys are configured.
+        // Trial mode routes through TrialGeminiAudioProvider when AuthMode == Trial.
+        services.AddSingleton<TrialGeminiAudioProvider>();
         services.AddSingleton<ISTTProvider>(sp => new STTRouter(
-            primary: sp.GetRequiredService<WhisperProvider>()));
+            primary: sp.GetRequiredService<WhisperProvider>(),
+            settings: sp.GetRequiredService<SettingsManager>(),
+            trialStt: sp.GetRequiredService<TrialGeminiAudioProvider>()));
 
         // ── LLM providers ────────────────────────────────────────────────────
         // Ollama (local, no API key — works out of the box when Ollama is running)
         services.AddSingleton<OllamaProvider>(sp => new OllamaProvider("llama3.2"));
 
+        // Trial Gemini provider (managed proxy, Bearer JWT auth)
+        services.AddSingleton<TrialGeminiProvider>();
+
         // Register router against interface — Ollama is the default offline provider.
         // Cloud LLM providers are created dynamically by LLMRouter (J.5) for per-mode model selection.
+        // Trial mode routes through TrialGeminiProvider when AuthMode == Trial.
         services.AddSingleton<ILLMProvider>(sp => new LLMRouter(
             primary: sp.GetRequiredService<OllamaProvider>(),
-            factory: sp.GetRequiredService<ILLMProviderFactory>()));
+            factory: sp.GetRequiredService<ILLMProviderFactory>(),
+            settings: sp.GetRequiredService<SettingsManager>(),
+            trialProvider: sp.GetRequiredService<TrialGeminiProvider>()));
 
         // ── Pipelines (transient — new instance per invocation) ──────────────
         services.AddTransient<DictationPipeline>(sp => new DictationPipeline(
@@ -243,6 +349,9 @@ public partial class App : Application
             sp.GetRequiredService<SettingsManager>()));
         services.AddSingleton<PipelineFactory>();
 
+        // ── Account (K.2) ────────────────────────────────────────────────────
+        services.AddSingleton<ITrialAccountService, TrialAccountService>();
+
         // ── Data (E.2) ───────────────────────────────────────────────────────
         services.AddSingleton<HistoryManager>();
         services.AddSingleton<MetricsCollector>();
@@ -255,6 +364,7 @@ public partial class App : Application
 
         // ── UI ViewModels (F.2+) ───────────────────────────────────────────────
         services.AddSingleton<ViewModels.ControlPanelViewModel>();
+        services.AddTransient<ViewModels.Settings.AccountSettingsViewModel>(); // K.5c: Trial account page
         services.AddTransient<ViewModels.Settings.GeneralSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.AIEngineSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.AudioSettingsViewModel>();

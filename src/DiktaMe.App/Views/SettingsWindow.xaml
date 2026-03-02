@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:settings="using:DiktaMe.App.Views.Settings"
     Title="dIKta.me — Settings">
 
     <muxc:NavigationView x:Name="NavView"
@@ -11,7 +12,15 @@
                          IsSettingsVisible="False"
                          SelectionChanged="NavView_SelectionChanged"
                          OpenPaneLength="180">
+        <muxc:NavigationView.PaneFooter>
+            <settings:UserPaneFooter x:Name="UserFooter"/>
+        </muxc:NavigationView.PaneFooter>
         <muxc:NavigationView.MenuItems>
+            <muxc:NavigationViewItem Content="Account" Tag="account">
+                <muxc:NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE77B;"/>
+                </muxc:NavigationViewItem.Icon>
+            </muxc:NavigationViewItem>
             <muxc:NavigationViewItem Content="General" Tag="general">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE713;"/>
