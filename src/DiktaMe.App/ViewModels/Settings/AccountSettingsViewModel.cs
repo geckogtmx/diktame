@@ -25,8 +25,7 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     {
         _trialService = trialService;
         _settings = settings;
-        _trialService.StatusChanged += OnStatusChanged;
-        RefreshFromSettings();
+        Refresh();
     }
 
     [RelayCommand]
@@ -63,12 +62,7 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
         }
     }
 
-    private void OnStatusChanged(TrialStatus? status)
-    {
-        RefreshFromSettings();
-    }
-
-    private void RefreshFromSettings()
+    internal void Refresh()
     {
         var trial = _settings.Current.Trial;
         IsSignedIn = _trialService.HasValidToken;

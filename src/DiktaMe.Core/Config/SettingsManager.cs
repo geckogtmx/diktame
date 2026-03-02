@@ -237,6 +237,13 @@ public sealed class SettingsManager
             };
         }
 
+        // Migration 4: Ensure Trial settings are never null (pre-K.1 settings files have "Trial":null)
+        if (migrated.Trial is null)
+        {
+            migrated = migrated with { Trial = new TrialSettings() };
+            Log.Information("SettingsManager: initialized null Trial settings to defaults");
+        }
+
         return migrated;
     }
 

@@ -100,7 +100,7 @@ public partial class App : Application
             if (deepLinkArg is not null)
             {
                 Log.Information("Secondary instance — forwarding deeplink to primary");
-                _ = SingleInstanceManager.SendDeepLinkAsync(deepLinkArg);
+                SingleInstanceManager.SendDeepLinkAsync(deepLinkArg).GetAwaiter().GetResult();
             }
             else
             {
