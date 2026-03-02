@@ -47,15 +47,17 @@ export async function GET(request: Request) {
       ? Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
       : 0;
 
-    // Check if trial is active
+    // Check if trial is active (tolerate null trial data)
     const hasCustomKey = !!profile.custom_gemini_key;
-    const trialActive = !hasCustomKey && wordsUsed < profile.trial_words_quota && daysRemaining > 0;
+    const wordsQuota = profile.trial_words_quota ?? 0;
+    const trialActive =
+      !hasCustomKey && wordsQuota > 0 && wordsUsed < wordsQuota && daysRemaining > 0;
 
     return NextResponse.json({
       wordsUsed,
-      wordsQuota: profile.trial_words_quota,
+      wordsQuota,
       daysRemaining,
-      expiresAt: profile.trial_expires_at,
+      expiresAt: profile.trial_expires_at ?? null,
       trialActive,
       hasCustomKey,
     });

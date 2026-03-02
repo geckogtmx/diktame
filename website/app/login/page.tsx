@@ -56,7 +56,7 @@ function LoginContent() {
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold text-white mb-2">dIKta.me</h1>
-                    <p className="text-gray-400">Sign in to access your trial credits</p>
+                    <p className="text-gray-400">Sign in to your dIKta.me account</p>
                 </div>
 
                 <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700">
@@ -97,9 +97,9 @@ function LoginContent() {
                 <div className="mt-6 text-center text-sm text-gray-500">
                     <p>By signing up, you get:</p>
                     <ul className="mt-2 space-y-1">
-                        <li>✓ 15,000 words OR 15 days trial</li>
-                        <li>✓ Access to managed Gemini API</li>
-                        <li>✓ Dashboard to track usage</li>
+                        <li>&#10003; Your personal dIKta.me dashboard</li>
+                        <li>&#10003; Sync settings across devices</li>
+                        <li>&#10003; Free trial credits included</li>
                     </ul>
                 </div>
             </div>
