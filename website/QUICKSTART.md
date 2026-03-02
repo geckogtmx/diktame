@@ -20,13 +20,13 @@ You'll see a section called **Project API keys** with several keys:
 
 2. **Publishable Key** (replaces "anon key")
    - Labeled as: `sb_publishable_xxx` or just "Publishable"
-   - Starts with: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+   - Starts with a long Base64-encoded JWT string
    - Copy this to: `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - ✅ Safe to expose in client-side code (with RLS enabled)
 
 3. **Secret Key** (replaces "service_role key") (⚠️ SECRET - Never expose!)
    - Labeled as: `sb_secret_xxx` or "Secret"
-   - Also starts with: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+   - Also a long Base64-encoded JWT string (different payload)
    - **This is the one you need!**
    - Copy this to: `SUPABASE_SERVICE_ROLE_KEY`
    - ⚠️ **NEVER commit this to git or expose in client code**
