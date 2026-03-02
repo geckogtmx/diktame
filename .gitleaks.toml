@@ -8,8 +8,11 @@ title = "dIKta.me gitleaks config"
 useDefault = true
 
 [allowlist]
-description = "Test fixture keys in unit test files — synthetic values used in ApiKeyValidator tests"
+description = "Global allowlist — synthetic keys in test fixtures and documentation"
+paths = [
+  '''website/QUICKSTART\.md''',
+]
 regexTarget = "secret"
 regexes = [
-  '''AIzaSyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456'''
+  '''AIzaSyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456''',
 ]
