@@ -244,21 +244,11 @@ public sealed class SettingsManager
             Log.Information("SettingsManager: initialized null Trial settings to defaults");
         }
 
-        // Migration 5: Ensure Account settings exist and copy email from Trial if needed
+        // Migration 5: Ensure Account settings are never null
         if (migrated.Account is null)
         {
             migrated = migrated with { Account = new AccountSettings() };
             Log.Information("SettingsManager: initialized null Account settings to defaults");
-        }
-
-        if (string.IsNullOrEmpty(migrated.Account.Email)
-            && !string.IsNullOrEmpty(migrated.Trial?.TrialEmail))
-        {
-            migrated = migrated with
-            {
-                Account = migrated.Account with { Email = migrated.Trial.TrialEmail },
-            };
-            Log.Information("SettingsManager: migrated Account.Email from Trial.TrialEmail");
         }
 
         return migrated;
