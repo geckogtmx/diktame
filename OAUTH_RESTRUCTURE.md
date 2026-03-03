@@ -56,7 +56,7 @@
 - [x] Website sign-in (returning user) → dashboard shows profile
 - [x] Desktop app sign-in → footer shows email → user info page works → trial conditional
 - [x] Desktop app with expired/no trial → uses own API keys (badge stays LOC/API — provider mode only)
-- [ ] Settings migration → old settings.json loads without crash
+- [x] Settings migration → N/A (no existing users; covered by unit tests)
 - [x] Logout → AuthMode=None → footer shows "Sign in"
 
 ---
