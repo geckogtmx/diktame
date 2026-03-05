@@ -4,35 +4,37 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using DiktaMe.Core.Config;
 using Serilog;
 
 namespace DiktaMe.Core.STT;
 /// <summary>
-/// STT provider backed by Deepgram Nova-2 via the REST Listen API.
+/// STT provider backed by Deepgram via the REST Listen API.
+/// Constructs request URL dynamically from <see cref="DeepgramSettings"/>.
 /// API reference: https://developers.deepgram.com/reference/listen-file
-/// Port of V1's cloud STT integration.
 /// </summary>
 public sealed class DeepgramProvider : ISTTProvider, IDisposable
 {
-    private const string ListenUrl =
-        "https://api.deepgram.com/v1/listen?model=nova-2&smart_format=false";
+    private const string BaseUrl = "https://api.deepgram.com/v1/listen";
 
     private readonly HttpClient _http;
     private readonly string _apiKey;
+    private readonly DeepgramSettings _settings;
     private bool _disposed;
 
     /// <inheritdoc/>
-    public string ProviderName => "Deepgram Nova-2";
+    public string ProviderName { get; }
 
     /// <summary>
-    /// Initialises the provider with the given API key.
+    /// Initialises the provider with the given API key and settings.
     /// </summary>
     /// <param name="apiKey">Deepgram API key.</param>
+    /// <param name="settings">Deepgram feature settings. Uses defaults if null.</param>
     /// <param name="httpClient">
     /// Optional shared <see cref="HttpClient"/> (for testing / connection pooling).
     /// If null, a new instance is created.
     /// </param>
-    public DeepgramProvider(string apiKey, HttpClient? httpClient = null)
+    public DeepgramProvider(string apiKey, DeepgramSettings? settings = null, HttpClient? httpClient = null)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
         {
@@ -40,6 +42,8 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
         }
 
         _apiKey = apiKey;
+        _settings = settings ?? new DeepgramSettings();
+        ProviderName = $"Deepgram {_settings.Model}";
         _http = httpClient ?? new HttpClient
         {
             Timeout = TimeSpan.FromSeconds(30),
@@ -65,10 +69,7 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
 
         var sw = Stopwatch.StartNew();
 
-        // Build URL — append language or detect_language param
-        string url = language.Equals("auto", StringComparison.OrdinalIgnoreCase)
-            ? ListenUrl + "&detect_language=true"
-            : ListenUrl + $"&language={Uri.EscapeDataString(language)}";
+        string url = BuildListenUrl(language);
 
         byte[] audioBytes = await File.ReadAllBytesAsync(audioFilePath, cancellationToken).ConfigureAwait(false);
 
@@ -124,6 +125,55 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
             LatencyMs = sw.ElapsedMilliseconds,
             Provider = ProviderName,
         };
+    }
+
+    // ── URL builder ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Builds the Listen API URL from <see cref="DeepgramSettings"/> and language.
+    /// </summary>
+    internal string BuildListenUrl(string language)
+    {
+        var parts = new List<string>(8)
+        {
+            $"model={Uri.EscapeDataString(_settings.Model)}",
+        };
+
+        if (_settings.SmartFormat)
+        {
+            // smart_format is a superset of punctuate — don't add both
+            parts.Add("smart_format=true");
+        }
+        else if (_settings.Punctuate)
+        {
+            parts.Add("punctuate=true");
+        }
+
+        // Dictation requires punctuate (or smart_format which includes it)
+        if (_settings.Dictation && (_settings.Punctuate || _settings.SmartFormat))
+        {
+            parts.Add("dictation=true");
+        }
+
+        foreach (string replacement in _settings.Replacements)
+        {
+            if (!string.IsNullOrWhiteSpace(replacement))
+            {
+                parts.Add($"replace={Uri.EscapeDataString(replacement)}");
+            }
+        }
+
+        // Language
+        if (language.Equals("auto", StringComparison.OrdinalIgnoreCase))
+        {
+            parts.Add("detect_language=true");
+        }
+        else
+        {
+            parts.Add($"language={Uri.EscapeDataString(language)}");
+        }
+
+        return $"{BaseUrl}?{string.Join('&', parts)}";
     }
 
     // ── JSON parsing ──────────────────────────────────────────────────────────

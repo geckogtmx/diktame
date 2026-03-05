@@ -251,6 +251,13 @@ public sealed class SettingsManager
             Log.Information("SettingsManager: initialized null Account settings to defaults");
         }
 
+        // Migration 6: Ensure Deepgram settings are never null (pre-Phase1 files)
+        if (migrated.Deepgram is null)
+        {
+            migrated = migrated with { Deepgram = new DeepgramSettings() };
+            Log.Information("SettingsManager: initialized null Deepgram settings to defaults");
+        }
+
         return migrated;
     }
 

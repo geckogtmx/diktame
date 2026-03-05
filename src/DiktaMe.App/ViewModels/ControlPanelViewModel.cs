@@ -342,6 +342,11 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     partial void OnIsRawModeEnabledChanged(bool value)
     {
+        var updated = _settings.Current with
+        {
+            General = _settings.Current.General with { RawModeOverride = value }
+        };
+        _ = _settings.UpdateAsync(updated);
         OnPropertyChanged(nameof(RawLabel));
         Log.Information("ControlPanel: RAW mode set to {IsEnabled}", value);
     }
@@ -473,6 +478,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     {
         IsSoundEnabled = settings.General.SoundFeedback;
         IsAdditionalKeyEnabled = !string.IsNullOrEmpty(settings.General.AdditionalKey);
+        IsRawModeEnabled = settings.General.RawModeOverride;
         IsLocalMode = string.Equals(settings.ActiveProfileName, "Local", StringComparison.OrdinalIgnoreCase);
         AuthBadgeText = IsLocalMode ? "LOC" : "API";
 

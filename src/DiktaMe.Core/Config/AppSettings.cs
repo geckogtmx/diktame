@@ -79,6 +79,9 @@ public sealed record GeneralSettings
 
     /// <summary>Output mode for Ask pipeline results (toast, clipboard, inject, or both).</summary>
     public AskOutputMode AskOutput { get; init; } = AskOutputMode.ClipboardAndToast;
+
+    /// <summary>Global RAW mode override — skips LLM processing for all dictation modes.</summary>
+    public bool RawModeOverride { get; init; } = false;
 }
 
 /// <summary>
@@ -180,6 +183,39 @@ public sealed record SoundSettings
 }
 
 /// <summary>
+/// Deepgram STT provider configuration.
+/// Controls model selection and transcription features sent as URL parameters.
+/// </summary>
+public sealed record DeepgramSettings
+{
+    /// <summary>Deepgram model to use ("nova-3", "nova-2").</summary>
+    public string Model { get; init; } = "nova-3";
+
+    /// <summary>Auto-add punctuation and capitalization to STT output.</summary>
+    public bool Punctuate { get; init; } = true;
+
+    /// <summary>
+    /// Convert spoken punctuation commands ("comma", "period", "question mark") to symbols.
+    /// English only. Requires <see cref="Punctuate"/> to be enabled.
+    /// </summary>
+    public bool Dictation { get; init; } = true;
+
+    /// <summary>
+    /// Auto-format dates, currency, phones, emails, URLs.
+    /// Superset of <see cref="Punctuate"/> (includes punctuation automatically).
+    /// Adds ~3s buffer in streaming mode while waiting for complete entities.
+    /// </summary>
+    public bool SmartFormat { get; init; } = false;
+
+    /// <summary>
+    /// Server-side find-and-replace pairs applied before LLM cleanup.
+    /// Format: "find:replace" per entry. Find terms must be lowercase. Max 200.
+    /// Complements client-side <see cref="SnippetManager"/> (which runs after LLM).
+    /// </summary>
+    public List<string> Replacements { get; init; } = [];
+}
+
+/// <summary>
 /// Chat overlay UI configuration.
 /// </summary>
 public sealed record ChatSettings
@@ -227,6 +263,7 @@ public sealed record AppSettings
     public NoteSettings Note { get; init; } = new();
     public ChatSettings Chat { get; init; } = new();
     public SoundSettings Sound { get; init; } = new();
+    public DeepgramSettings Deepgram { get; init; } = new();
 
     /// <summary>
     /// Per-mode settings for 2 profiles.
@@ -315,6 +352,7 @@ public sealed record AppSettings
 [JsonSerializable(typeof(HotkeySettings))]
 [JsonSerializable(typeof(ControlPanelSettings))]
 [JsonSerializable(typeof(SoundSettings))]
+[JsonSerializable(typeof(DeepgramSettings))]
 [JsonSerializable(typeof(ModeSettings))]
 [JsonSerializable(typeof(Dictionary<string, ModeSettings>))]
 [JsonSerializable(typeof(DictationMode))]

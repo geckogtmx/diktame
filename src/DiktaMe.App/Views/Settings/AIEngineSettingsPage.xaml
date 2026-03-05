@@ -38,6 +38,54 @@
             <InfoBar IsOpen="True" IsClosable="False" Severity="Informational"
                      Title="Per-mode overrides"
                      Message="Fine-grained provider and model selection is available on the Modes tab for each workflow mode."/>
+
+            <!-- ── Deepgram STT Settings ─────────────────────────────── -->
+            <TextBlock Text="Deepgram Settings" FontSize="20" FontWeight="SemiBold" Margin="0,16,0,0"/>
+
+            <!-- Model -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Model" FontWeight="SemiBold"/>
+                <TextBlock Text="Nova-3 has 47% lower word error rate than Nova-2" FontSize="12" Opacity="0.6"/>
+                <ComboBox ItemsSource="{x:Bind ViewModel.DeepgramModels}"
+                          SelectedIndex="{x:Bind ViewModel.DeepgramModelIndex, Mode=TwoWay}"
+                          HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <!-- Punctuate -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Auto-Punctuation" FontWeight="SemiBold"/>
+                <TextBlock Text="Add punctuation marks and capitalization to transcripts" FontSize="12" Opacity="0.6"/>
+                <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramPunctuate, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- Dictation -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Dictation Mode" FontWeight="SemiBold"/>
+                <TextBlock Text="Say &quot;comma&quot;, &quot;period&quot;, &quot;question mark&quot; to insert punctuation. English only." FontSize="12" Opacity="0.6"/>
+                <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramDictation, Mode=TwoWay}"
+                              IsEnabled="{x:Bind ViewModel.IsDictationEnabled, Mode=OneWay}"/>
+            </StackPanel>
+
+            <!-- Smart Format -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Smart Formatting" FontWeight="SemiBold"/>
+                <TextBlock Text="Auto-format dates, currency, phone numbers, emails. Includes punctuation." FontSize="12" Opacity="0.6"/>
+                <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramSmartFormat, Mode=TwoWay}"/>
+                <TextBlock Text="Adds ~3 second buffer in streaming mode while formatting entities"
+                           FontSize="11" Opacity="0.5" Visibility="{x:Bind ViewModel.DeepgramSmartFormat, Mode=OneWay}"/>
+            </StackPanel>
+
+            <!-- Replacements -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Find and Replace" FontWeight="SemiBold"/>
+                <TextBlock Text="Server-side replacements applied before LLM. One per line: find:replace" FontSize="12" Opacity="0.6"/>
+                <TextBox Text="{x:Bind ViewModel.DeepgramReplacements, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         AcceptsReturn="True" TextWrapping="Wrap"
+                         MinHeight="80" MaxHeight="160"
+                         PlaceholderText="monika:Monica&#x0a;zen desk:Zendesk"/>
+                <TextBlock Text="Find terms must be lowercase. Complements Snippets (which run after LLM)."
+                           FontSize="11" Opacity="0.5"/>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </Page>

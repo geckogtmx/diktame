@@ -162,6 +162,8 @@ These require only URL parameter changes in `DeepgramProvider.cs`. No new interf
 
 **Implementation pattern**: Replace the hardcoded `const string ListenUrl` with a `BuildListenUrl(language)` method that constructs the URL from a `DeepgramSettings` record added to `AppSettings`. Wire through `STTProviderFactory` (which needs `SettingsManager` injected — it's already in DI).
 
+> **Validated**: Deepgram's own official C# starter repo (`csharp-live-transcription`) defaults to `model=nova-3` and `smart_format=true`. We are behind on both.
+
 ---
 
 ## Tier 2 — WebSocket Streaming (Real-Time Transcription)
@@ -180,7 +182,9 @@ WebSocket streaming eliminates this: text appears as the user speaks.
 All the same query parameters from Tier 1 apply (dictation, punctuate, smart_format, keywords, replace, diarize).
 
 #### Auth
-Streaming uses query param auth (not header): append `&token=<API_KEY>` to the WebSocket URL.
+Two options — both work for desktop `ClientWebSocket`:
+- **Header auth (preferred)**: `ws.Options.SetRequestHeader("Authorization", $"Token {apiKey}")` — cleaner, keeps the key out of URL logs. This is what Deepgram's own C# starter repo uses.
+- **Query param auth**: append `&token=<API_KEY>` to the WebSocket URL — required for browser WebSockets (which can't set headers), but unnecessary for our desktop client.
 
 #### Protocol
 1. **Connect** — open WebSocket with parameters
@@ -236,12 +240,20 @@ The WAV file recording continues in parallel — needed for batch fallback and p
 
 **Recommendation: Use `System.Net.WebSockets.ClientWebSocket` directly** (not the Deepgram .NET SDK).
 
-Rationale (from prior Deepgram C# demo analysis):
-- Deepgram's own C# live transcription demo uses raw `ClientWebSocket`
+Rationale (validated by Deepgram's official `csharp-live-transcription` starter repo):
+- Deepgram's own C# live transcription demo uses raw `ClientWebSocket` — no SDK
+- Their demo defaults to `nova-3` + `smart_format=true` (confirms our Tier 1 recommendations)
 - Gives granular control over NAudio buffer mapping and memory efficiency
 - No SDK version dependency or abstraction overhead
 - Reconnection logic is straightforward with raw WebSocket
 - Our desktop app doesn't need the SDK's server-side abstractions
+
+**Implementation patterns from the starter repo** (`github.com/deepgram-starters/csharp-live-transcription`):
+- 8KB receive buffer: `new byte[8192]` — sufficient for JSON transcript frames
+- Bidirectional forwarding with `Task.WhenAny` on send/receive tasks — when either side closes, cancel the other via linked `CancellationTokenSource`
+- Track active connections with `ConcurrentDictionary` for graceful shutdown
+- Check `WebSocketState.Open` before every send/close operation
+- The demo does **not** implement KeepAlive heartbeats (it's a proxy, not a long-lived client) — our desktop client will need `{"type":"KeepAlive"}` every ~8s since connections may idle during pauses
 
 #### Files That Would Change
 

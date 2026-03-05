@@ -392,7 +392,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             var options = new DictationOptions
             {
                 SystemPrompt = profile.UseLlm ? profile.SystemPrompt : null,
-                RawMode = !profile.UseLlm,
+                RawMode = _controlPanel.IsRawModeEnabled || !profile.UseLlm,
                 ModelName = profile.ModelName, // J.5: Per-mode model selection
                 Language = _settings.Current.General.Language,
                 Injection = new PipelineInjectionOptions
