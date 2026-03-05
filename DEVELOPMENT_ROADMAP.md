@@ -545,6 +545,20 @@ input/output token counts from API usage fields.
 - `NoteWriter`: static `AppendAsync()` helper for timestamped note file appending
 - Tests: `HistoryManagerTests.cs` using temp db path
 
+> **GAP — Detailed Pipeline Logging (V1 Parity)**
+>
+> V1 (dIKtate) logged the **full text at every pipeline stage** — raw STT output, LLM-cleaned output, and final injected text — enabling side-by-side comparison to pinpoint accuracy flaws and latency bottlenecks. V2 currently logs only char counts and a truncated 80-char preview at the provider level. This makes it impossible to diagnose whether the STT or the LLM introduced an error.
+>
+> **Required**: Pipeline-level Serilog logging of actual text content at each stage, gated by the existing privacy level:
+> - **Full**: Log verbatim raw STT transcript, LLM output, and final text (V1 behaviour)
+> - **Balanced**: Log PII-scrubbed versions of above
+> - **Stats**: Log only char counts, word counts, and per-stage latency (current V2 behaviour)
+> - **Ghost**: Log nothing
+>
+> This applies to all pipelines (`DictationPipeline`, `AskPipeline`, `ChatPipeline`, `RefinePipeline`, `TranslatePipeline`, `NotePipeline`). The `HistoryManager` schema already has `text` and `raw_transcript` columns — the gap is in the Serilog pipeline logs which are essential for real-time debugging and for reviewing accuracy without querying SQLite.
+>
+> See also: `DEEPGRAM_FEATURE_GAPS.md` §1.2 — enabling Deepgram's `dictation=true` would shift punctuation formatting from LLM to STT. Without detailed logging, we can't measure the before/after impact.
+
 #### Task E.3: Security (Secrets + PII) ✅
 **Created:** `DiktaMe.Core/Security/SecureStorage.cs`, `PIIScrubber.cs`, `ApiKeyValidator.cs`
 

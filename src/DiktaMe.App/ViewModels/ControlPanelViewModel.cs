@@ -385,6 +385,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     /// </summary>
     public void OnPipelineCompleted(object? sender, PipelineResult result)
     {
+        // Persist to SQLite history (privacy-gated by HistoryManager)
+        _ = _metrics.RecordAsync(result);
+
         _dispatcher.TryEnqueue(() =>
         {
             // Mark that we have performance data
