@@ -4,11 +4,47 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 539 passing locally (479 on CI — 60 DPAPI/Clipboard/Audio tests skipped on runners) |
+| **Tests** | 620 passing locally (479 on CI — DPAPI/Clipboard/Audio tests skipped on runners) |
 | **Build** | 0 errors, 0 warnings |
 | **CI** | Passing on main |
-| **Branch** | main |
+| **Branch** | main (uncommitted S5 changes pending manual testing) |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
+
+## Stream L: Deepgram Streaming — IN PROGRESS
+
+### Completed (committed)
+- **L.1** (S1): DeepgramSettings, BuildListenUrl, settings UI, Raw toggle fix
+- **L.2** (S2): IStreamingSTTProvider interface + AudioRecorder.AudioDataAvailable event (570 tests)
+- **L.3** (S3): DeepgramStreamingProvider WebSocket client (29 tests, 599 total)
+- **L.4** (S4): StreamingDictationPipeline + factory wiring (21 tests, 620 total)
+
+### Uncommitted (pending manual testing)
+- **L.5** (S5): LoadingViewModel integration — streaming/batch dispatch
+
+**What S5 does:** When the user enables "Real-Time Streaming" in Settings > AI Engine (Deepgram section) AND the STT provider supports streaming, dictation uses `StreamingDictationPipeline` instead of the batch record→WAV→transcribe flow. Toggle-stop (pressing hotkey again) still works — it calls `StopRecordingAsync()` which fires `RecordingStopped`, completing the pipeline's internal TCS.
+
+**Key design decisions:**
+- Streaming toggle is in **Settings > AI Engine** (Deepgram section), NOT in the Control Panel
+- Streaming is always raw mode (no LLM) — text injected as each final arrives
+- Streaming toggle (`GeneralSettings.StreamingEnabled`) is independent from the Raw toggle
+- If streaming is OFF, Deepgram still works as a batch STT provider (raw or with LLM)
+
+**Files changed (uncommitted):**
+- `src/DiktaMe.Core/Config/AppSettings.cs` — `GeneralSettings.StreamingEnabled`
+- `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` — `RunDictationPipelineAsync` dispatcher + `RunStreamingDictationAsync` + renamed `RunBatchDictationAsync`
+- `src/DiktaMe.App/Views/Settings/AIEngineSettingsPage.xaml` — streaming toggle
+- `src/DiktaMe.App/ViewModels/Settings/AIEngineSettingsViewModel.cs` — `DeepgramStreaming` property
+
+**Manual test plan:**
+1. Streaming ON + Deepgram → real-time injection, Serilog shows `Starting Streaming Dictate pipeline...`
+2. Streaming OFF + Raw ON → batch raw, Serilog shows `Starting Dictate pipeline...`
+3. Streaming OFF + Raw OFF → batch with LLM
+4. Streaming ON + Whisper → falls back to batch silently
+
+### Remaining (Stream L)
+- **S6–S7**: Phase 3 — Flux conversational model (DeepgramFluxProvider, StreamingChatPipeline)
+
+---
 
 ## Stream K: OAuth & Trial Credits — COMPLETED (with open bugs)
 
@@ -56,13 +92,14 @@ App → browser (`/login?mode=app`) → OAuth → `diktame://auth?token=JWT` dee
 - **Test threshold:** `ci/test-threshold.json` set to 470 (local runs 539, CI runs ~479 due to skipped tests)
 - **Vercel:** Connected to `geckogtmx/diktame`, Root Directory = `website`
 
-## Remaining Work (after Stream K bugs)
+## Remaining Work
 
 | Task | Effort |
 |------|--------|
+| **L.5 manual test** | Test streaming with live Deepgram key, then commit |
+| **L.6–L.7** | Flux conversational model (DeepgramFluxProvider, StreamingChatPipeline) |
 | **H.1** | 1 day — Installer (MSIX or Inno Setup) |
 | **LemonSqueezy** | License integration, device binding, trial abuse prevention |
-| Control Panel wiring | RAW toggle, REFINE toggle, pipeline states |
 | Latency tuning | Cloud inference profiling |
 
 ## Reference Docs

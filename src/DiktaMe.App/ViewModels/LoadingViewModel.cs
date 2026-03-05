@@ -351,6 +351,108 @@ public sealed partial class LoadingViewModel : ObservableObject
 
     private async Task RunDictationPipelineAsync()
     {
+        if (_settings.Current.General.StreamingEnabled && _pipelineFactory.CanStreamDictation())
+        {
+            await RunStreamingDictationAsync();
+        }
+        else
+        {
+            await RunBatchDictationAsync();
+        }
+    }
+
+    private async Task RunStreamingDictationAsync()
+    {
+        StreamingDictationPipeline? streamingPipeline = null;
+        try
+        {
+            Log.Information("Starting Streaming Dictate pipeline...");
+
+            streamingPipeline = _pipelineFactory.CreateStreamingDictationPipeline();
+            if (streamingPipeline is null)
+            {
+                Log.Warning("Streaming pipeline unavailable, falling back to batch");
+                await RunBatchDictationAsync();
+                return;
+            }
+
+            // Wire state/completed events to ControlPanel
+            streamingPipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
+            streamingPipeline.Completed += _controlPanel.OnPipelineCompleted;
+
+            // Get fresh recorder
+            _currentRecorder?.Dispose();
+            _currentRecorder = App.Current.Services.GetRequiredService<AudioRecorder>();
+
+            // Build DictationOptions (streaming is always raw mode)
+            var options = new DictationOptions
+            {
+                RawMode = true,
+                Language = _settings.Current.General.Language,
+                Injection = new PipelineInjectionOptions
+                {
+                    TrailingSpace = _settings.Current.General.TrailingSpace,
+                },
+            };
+
+            // Start audio ducking
+            if (_settings.Current.AudioDucking.Enabled)
+            {
+                _audioDucker.IsEnabled = true;
+                _audioDucker.DuckLevel = _settings.Current.AudioDucking.DuckLevelPercent / 100f;
+                _audioDucker.Duck();
+            }
+
+            // Start recording — AudioRecorder fires AudioDataAvailable events
+            var audio = _settings.Current.Audio;
+            string? deviceLabel = string.IsNullOrEmpty(audio.DeviceName) ? null : audio.DeviceName;
+            _isRecording = true;
+            _currentRecorder.StartRecording(
+                deviceLabel: deviceLabel,
+                deviceId: null,
+                maxDurationSeconds: audio.MaxDurationSeconds);
+
+            var soundSettings = _settings.Current.Sound ?? new();
+            _notifications.PlayCustomSound(soundSettings.StartSound);
+
+            // Run pipeline (blocks until recording stops + finals drained)
+            _recordingCts = new CancellationTokenSource();
+            var result = await streamingPipeline.RunAsync(
+                _currentRecorder, options, _recordingCts.Token);
+
+            _isRecording = false;
+            _notifications.PlayCustomSound(soundSettings.StopSound);
+
+            if (result.IsSuccess)
+            {
+                Log.Information("StreamingDictate: Success, {Chars} chars injected", result.Text.Length);
+            }
+            else
+            {
+                Log.Warning("StreamingDictate: Failed - {Error}", result.ErrorMessage);
+                _notifications.ShowToast("Error", result.ErrorMessage ?? "Unknown error", NotificationType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Streaming Dictate pipeline failed");
+            _notifications.ShowToast("Error", "Dictation failed", NotificationType.Error);
+        }
+        finally
+        {
+            _isRecording = false;
+            _audioDucker.Restore();
+            _recordingCts?.Dispose();
+            _recordingCts = null;
+            if (streamingPipeline is not null)
+            {
+                await streamingPipeline.DisposeAsync();
+            }
+        }
+    }
+
+    private async Task RunBatchDictationAsync()
+    {
         try
         {
             Log.Information("Starting Dictate pipeline...");

@@ -82,6 +82,13 @@ public sealed record GeneralSettings
 
     /// <summary>Global RAW mode override — skips LLM processing for all dictation modes.</summary>
     public bool RawModeOverride { get; init; } = false;
+
+    /// <summary>
+    /// When true and the STT provider supports streaming (Deepgram), dictation uses
+    /// real-time WebSocket streaming instead of batch record-then-transcribe.
+    /// Streaming always operates in raw mode (no LLM). Default: false.
+    /// </summary>
+    public bool StreamingEnabled { get; init; } = false;
 }
 
 /// <summary>

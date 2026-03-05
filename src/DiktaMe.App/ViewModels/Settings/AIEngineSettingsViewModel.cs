@@ -35,6 +35,9 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _deepgramReplacements = "";
 
+    [ObservableProperty]
+    private bool _deepgramStreaming;
+
     /// <summary>
     /// Dictation toggle is disabled when Punctuate is off and SmartFormat is off
     /// (dictation requires punctuation to function).
@@ -90,6 +93,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         DeepgramDictation = dg.Dictation;
         DeepgramSmartFormat = dg.SmartFormat;
         DeepgramReplacements = string.Join("\n", dg.Replacements);
+        DeepgramStreaming = s.General.StreamingEnabled;
         IsDictationEnabled = dg.Punctuate || dg.SmartFormat;
 
         _isLoading = false;
@@ -112,6 +116,26 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
 
     partial void OnDeepgramDictationChanged(bool value) => SaveDeepgram();
     partial void OnDeepgramReplacementsChanged(string value) => SaveDeepgram();
+
+    partial void OnDeepgramStreamingChanged(bool value)
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        var updated = _settings.Current with
+        {
+            General = _settings.Current.General with { StreamingEnabled = value }
+        };
+        _ = _settings.UpdateAsync(updated).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception, "Failed to save streaming setting");
+            }
+        }, TaskScheduler.Default);
+    }
 
     private void UpdateDictationEnabled()
     {
