@@ -7,7 +7,7 @@
 | **Tests** | 620 passing locally (479 on CI — DPAPI/Clipboard/Audio tests skipped on runners) |
 | **Build** | 0 errors, 0 warnings |
 | **CI** | Passing on main |
-| **Branch** | main (uncommitted S5 changes pending manual testing) |
+| **Branch** | main |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
 
 ## Stream L: Deepgram Streaming — IN PROGRESS
@@ -42,7 +42,7 @@
 4. Streaming ON + Whisper → falls back to batch silently
 
 ### Remaining (Stream L)
-- **S6–S7**: Phase 3 — Flux conversational model (DeepgramFluxProvider, StreamingChatPipeline)
+- **S6–S7**: ⏸️ DEFERRED — Flux conversational model. Revisit when Chat gets voice input.
 
 ---
 
@@ -96,11 +96,10 @@ App → browser (`/login?mode=app`) → OAuth → `diktame://auth?token=JWT` dee
 
 | Task | Effort |
 |------|--------|
-| **L.5 manual test** | Test streaming with live Deepgram key, then commit |
-| **L.6–L.7** | Flux conversational model (DeepgramFluxProvider, StreamingChatPipeline) |
 | **H.1** | 1 day — Installer (MSIX or Inno Setup) |
 | **LemonSqueezy** | License integration, device binding, trial abuse prevention |
 | Latency tuning | Cloud inference profiling |
+| ~~L.6–L.7~~ | ⏸️ Deferred — Flux (revisit when Chat gets voice input) |
 
 ## Reference Docs
 

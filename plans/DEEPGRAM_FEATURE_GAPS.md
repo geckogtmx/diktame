@@ -1,8 +1,11 @@
-# Deepgram STT — Feature Gap Analysis for dIKta.me V2
+# Deepgram STT — Feature Gap Analysis for dIKta.me V2 ✅ COMPLETED
 
 > **Date**: 2026-03-04
+> **Completed**: 2026-03-05
 > **Source**: [Deepgram STT Docs](https://developers.deepgram.com/docs/stt/getting-started) + codebase audit
-> **Supersedes**: `DEEPGRAM_TIPS.md` (which contained partial findings and is now folded into this document)
+> **Supersedes**: `DEEPGRAM_TIPS.md` (deleted — all content folded into this document)
+>
+> **Final status**: All actionable items implemented (Tier 1 batch params + Tier 2 streaming). Tier 3 (Flux) deferred. Tier 4 out of scope.
 
 ## Current Implementation Summary
 
@@ -267,7 +270,11 @@ Rationale (validated by Deepgram's official `csharp-live-transcription` starter 
 
 ---
 
-## Tier 3 — Flux Conversational Model
+## Tier 3 — Flux Conversational Model ⏸️ DEFERRED
+
+> **Status:** Deferred (2026-03-05). Revisit when Chat pipeline gets voice input.
+>
+> **Rationale:** Flux drops all formatting features (punctuation, dictation mode, smart format) that Nova-3 provides — the LLM would have to handle all formatting, adding latency and cost. It's English-only, limiting multi-language support. The primary dictation pipeline already works well with Nova-3 streaming + manual hotkey toggle-stop. Flux's turn detection adds value for conversational flows (Chat with voice), but Chat currently has no voice input. When Chat gets a mic button, Flux becomes worth revisiting as the auto-stop mechanism for voice questions.
 
 ### What It Is
 
@@ -354,45 +361,25 @@ Nova-3 streaming provider simply never fires these events. Flux fires them. The 
 
 ---
 
-## Tier 4 — Future / Complementary Features
+## Tier 4 — Future / Complementary Features ❌ OUT OF SCOPE
 
-These are Deepgram capabilities outside the core STT scope but relevant to the dIKta.me architecture.
+> **Status**: Out of scope (2026-03-05). None of these solve real problems for dIKta.me today.
 
-### 4.1 Aura TTS (Text-to-Speech)
+### 4.1 Aura TTS (Text-to-Speech) — Out of scope
 
-| | Details |
-|---|---|
-| **Endpoint** | `POST https://api.deepgram.com/v1/speak` |
-| **Models** | `aura-helios-en` and others |
-| **What** | Low-latency, high-quality text-to-speech |
-| **dIKta.me mapping** | The "Mouth" component of the voice agent triad (Ears → Brain → Mouth). If we add voice responses to Chat mode, Aura could read responses aloud. |
-| **Interface** | Would need `ITextToSpeechProvider` + `DeepgramTtsProvider` |
+dIKta.me is a dictation tool — the user speaks, text appears. There's no current use case where the app speaks back. TTS has future potential for accessibility (visually impaired users need audio feedback for Ask/Chat responses) and proofreading (read back dictated text to catch errors), but the implementation doesn't need to be Deepgram Aura. Windows built-in `SpeechSynthesizer` (SAPI) is free, local, and zero-latency for basic readback. Deepgram Aura only matters if high-quality natural voice is needed — that's a premium feature for a later version. See `plans/SPEC_003_TTS.md` for the TTS roadmap.
 
-### 4.2 Voice Agent API (Managed Pipeline)
+### 4.2 Voice Agent API — Out of scope
 
-| | Details |
-|---|---|
-| **Endpoint** | `wss://agent.deepgram.com/agent` |
-| **What** | Single WebSocket that manages the full STT → LLM → TTS loop. Deepgram handles calling the LLM (supports GPT-4o, Claude, etc.) and generating TTS audio. |
-| **dIKta.me mapping** | Could replace our entire `DictationPipeline` + `ChatPipeline` + `LLMRouter` for a "zero-config cloud" mode. One WebSocket, microphone in, speaker out. |
-| **Trade-off** | Loses local control — no SnippetManager, no custom prompts, no privacy controls. But minimal latency and zero local processing. |
-| **Assessment** | Interesting as an "instant demo" mode, but contradicts dIKta.me's core value proposition of local control + customization. Low priority. |
+Managed STT → LLM → TTS pipeline. Costs more than our current trial architecture (managed Gemini proxy) and removes all the control that makes dIKta.me valuable (custom prompts, snippets, privacy, provider choice). Was briefly considered as a free trial backend (one API key covers STT + LLM + TTS), but the cost is prohibitive — Deepgram would bill for STT + LLM (GPT-4o/Claude) + TTS per trial user.
 
-### 4.3 Audio Intelligence (Post-Processing)
+### 4.3 Audio Intelligence — Out of scope
 
-| | Details |
-|---|---|
-| **Endpoint** | Same `/v1/listen` REST API, additional params |
-| **Features** | `summarize=v2` (TL;DR), `topics=v2` (topic detection), `intents=v2` (intent recognition), `sentiment=v2` (sentiment analysis) |
-| **dIKta.me mapping** | After a long dictation session, auto-generate a summary. "You dictated 2,500 words about project planning. Key topics: budget, timeline, team allocation." |
-| **Assessment** | Nice-to-have for the Note pipeline. Could auto-summarize notes at end of session. |
+Summarization, topic detection, sentiment analysis via Deepgram URL params. The LLM providers we already have (Gemini, Ollama) can do this better and more flexibly than fixed Deepgram parameters. If session summaries are ever needed, the LLM is the right tool — not a Deepgram URL parameter.
 
-### 4.4 Multichannel
+### 4.4 Multichannel — Out of scope
 
-| | Details |
-|---|---|
-| **What** | `multichannel=true` — transcribes each audio channel independently (up to 20) |
-| **dIKta.me mapping** | Not relevant for single-mic desktop dictation. Could be useful for future "transcribe a meeting recording" feature where left/right channels have different speakers. |
+Single-mic desktop dictation. One speaker, one channel. Meeting transcription with multi-speaker/multi-channel is a different product.
 
 ---
 
