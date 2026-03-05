@@ -84,7 +84,7 @@ public sealed class DictationPipeline
                     IsSuccess = true,   // not an error — user just didn't speak
                     RecordingMs = options.RecordingDurationMs,
                     TranscriptionMs = sttSw.ElapsedMilliseconds,
-                    TotalMs = total.ElapsedMilliseconds,
+                    TotalMs = options.RecordingDurationMs + total.ElapsedMilliseconds,
                     SttProvider = sttResult.Provider,
                 };
                 Completed?.Invoke(this, emptyResult);
@@ -170,7 +170,7 @@ public sealed class DictationPipeline
                 TranscriptionMs = sttSw.ElapsedMilliseconds,
                 ProcessingMs = processingMs,
                 InjectionMs = injSw.ElapsedMilliseconds,
-                TotalMs = total.ElapsedMilliseconds,
+                TotalMs = options.RecordingDurationMs + total.ElapsedMilliseconds,
                 SttProvider = sttResult.Provider,
                 LlmProvider = llmProvider,
             };

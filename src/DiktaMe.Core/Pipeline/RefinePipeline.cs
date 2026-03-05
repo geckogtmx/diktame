@@ -188,7 +188,7 @@ public sealed class RefinePipeline
                 TranscriptionMs = transcriptionMs,
                 ProcessingMs = llmSw.ElapsedMilliseconds,
                 InjectionMs = injSw.ElapsedMilliseconds,
-                TotalMs = total.ElapsedMilliseconds,
+                TotalMs = options.RecordingDurationMs + total.ElapsedMilliseconds,
                 SttProvider = sttProvider,
                 LlmProvider = llmResult.Provider,
             };
@@ -248,7 +248,7 @@ public sealed class RefinePipeline
             RecordingMs = options.RecordingDurationMs,
             TranscriptionMs = transcriptionMs,
             ProcessingMs = llmSw.ElapsedMilliseconds,
-            TotalMs = total.ElapsedMilliseconds,
+            TotalMs = options.RecordingDurationMs + total.ElapsedMilliseconds,
             SttProvider = sttProvider,
             LlmProvider = llmResult.Provider,
         };

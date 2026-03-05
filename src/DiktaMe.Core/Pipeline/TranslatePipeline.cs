@@ -127,7 +127,7 @@ public sealed class TranslatePipeline
                 TranscriptionMs = sttSw.ElapsedMilliseconds,
                 ProcessingMs = llmSw.ElapsedMilliseconds,
                 InjectionMs = injSw.ElapsedMilliseconds,
-                TotalMs = total.ElapsedMilliseconds,
+                TotalMs = options.RecordingDurationMs + total.ElapsedMilliseconds,
                 SttProvider = sttResult.Provider,
                 LlmProvider = llmResult.Provider,
             };
