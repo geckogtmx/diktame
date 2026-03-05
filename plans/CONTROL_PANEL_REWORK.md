@@ -1,7 +1,6 @@
 # Control Panel V2 Rework — Implementation Plan
 
-> **Status**: Phase 2 complete (visual polish + custom title bar). Builds clean, 509 tests pass.
-> **Session resumable**: Yes — all remaining work items listed in "Remaining Work" section.
+> **Status**: Phase 2 complete. Phase 3 planned (3 tasks: refine wiring, state propagation, stale text).
 
 ## Context
 
@@ -103,22 +102,58 @@ V1 (400x265px, frameless Electron)         V2 Target (520x380px, WinUI 3 with ti
 
 ---
 
-## Remaining Work (Future Sessions)
+## Phase 3 — Remaining Work
 
-### Visual Polish
-- [x] ~~Tune window height~~ — Final: 369×274 after title bar removal
-- [x] ~~Verify ToggleSwitch fits in 5-column grid~~ — Fixed with Margin/Padding tweaks
-- [ ] Test with 1, 4, and 8 presets to verify UniformGridLayout wrapping
-- [ ] Consider adding V1's left-border state indicator (4px colored border on the entire panel)
-- [ ] Consider V1's recording pulse animation (background alpha fade)
+### Task 1: REFINE toggle → pipeline wiring
 
-### Functional Wiring (not yet connected)
-- [ ] **RAW toggle → pipeline**: `IsRawModeEnabled` is set but LoadingViewModel doesn't read it yet. Need to override `DictationProfile.UseLlm` when RAW is on.
-- [ ] **REFINE toggle → pipeline**: `RefineMode` toggles between Auto/Voice but LoadingViewModel always runs `refine_instruction`. Need to route to `refine_auto` when `RefineMode == Auto`.
-- [ ] **Pipeline state granularity**: Currently only fires `Transcribing` after recording stops. Could add `Processing` and `Injecting` states if pipelines expose stage events.
+**Problem:** `LoadingViewModel.RunRefinePipelineAsync()` (line ~564) always calls `_pipelines.GetActiveProfile("refine_instruction")`. The `ControlPanelViewModel.RefineMode` toggle (Auto/Voice) is not read — refine always uses the voice/instruction profile.
 
-### Settings Integration
-- [ ] **ControlPanelConfigPage.xaml**: Description text still says "Standard, Prompt, Professional, RAW mode buttons" — update to reflect dynamic presets
+**Fix:** In `LoadingViewModel.RunRefinePipelineAsync()`, read `_controlPanel.RefineMode` to pick the profile:
+```csharp
+string pipelineType = _controlPanel.RefineMode == RefineMode.Auto
+    ? "refine_auto"
+    : "refine_instruction";
+UtilityProfile profile = _pipelines.GetActiveProfile(pipelineType);
+```
+
+When `RefineMode.Auto`, refine should skip audio recording entirely — grab selected text, apply the auto-refine prompt via LLM, and inject the result. When `RefineMode.Voice`, current behavior (record audio instruction → refine).
+
+**File:** `src/DiktaMe.App/ViewModels/LoadingViewModel.cs`
+
+---
+
+### Task 2: Pipeline state propagation for batch flows
+
+**Problem:** All batch pipelines expose `StateChanged` and fire Processing/Injecting internally. But `LoadingViewModel` only manually fires `Transcribing` — never wires the pipeline's `StateChanged` to ControlPanel. Status dot skips THINKING/TYPING for batch flows. (Streaming already works via `streamingPipeline.StateChanged += _controlPanel.OnPipelineStateChanged`.)
+
+**Fix:** In each of the 5 batch `Run*PipelineAsync` methods, subscribe before `RunAsync`:
+```csharp
+pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
+```
+
+Remove the manual `_controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing)` calls — the pipeline will fire this itself.
+
+**File:** `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` — 5 methods
+
+---
+
+### Task 3: Fix stale description text in ControlPanelConfigPage
+
+**Problem:** Two description TextBlocks are outdated:
+- Line 13: `"Standard, Prompt, Professional, RAW mode buttons"` → modes are now user-created presets
+- Line 19: `"Sound, Cloud, +Key quick toggles"` → actions row has 5 toggles now
+
+**Fix:**
+- Line 13 → `"Dictation mode preset buttons"`
+- Line 19 → `"Sound, Local, +Key, Raw, Refine quick toggles"`
+
+**File:** `src/DiktaMe.App/Views/Settings/ControlPanelConfigPage.xaml`
+
+---
+
+### Skipped (optional cosmetic — revisit later)
+- Left-border state indicator (4px colored border)
+- Recording pulse animation (background alpha fade)
 
 ---
 

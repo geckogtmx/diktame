@@ -89,6 +89,9 @@ public sealed record GeneralSettings
     /// Streaming always operates in raw mode (no LLM). Default: false.
     /// </summary>
     public bool StreamingEnabled { get; init; } = false;
+
+    /// <summary>When true, Refine uses voice instruction mode; when false, uses auto (text selection only).</summary>
+    public bool RefineVoiceMode { get; init; } = true;
 }
 
 /// <summary>

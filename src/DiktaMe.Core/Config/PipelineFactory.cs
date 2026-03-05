@@ -43,6 +43,16 @@ public sealed class PipelineFactory
         return new RefinePipeline(llm!, _injector, stt);
     }
 
+    /// <summary>
+    /// Creates a RefinePipeline in autopilot mode (LLM only, no STT).
+    /// Used when the Control Panel REFINE toggle is set to Auto.
+    /// </summary>
+    public RefinePipeline CreateRefineAutoPipeline(string? modeOverride = null)
+    {
+        var (_, llm) = GetProviders("refine", modeOverride);
+        return new RefinePipeline(llm!, _injector, stt: null);
+    }
+
     public AskPipeline CreateAskPipeline(string? modeOverride = null)
     {
         var (stt, llm) = GetProviders("ask", modeOverride);

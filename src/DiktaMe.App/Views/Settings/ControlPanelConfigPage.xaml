@@ -10,13 +10,13 @@
 
             <StackPanel Spacing="4">
                 <TextBlock Text="Show Modes Row" FontWeight="SemiBold"/>
-                <TextBlock Text="Standard, Prompt, Professional, RAW mode buttons" FontSize="12" Opacity="0.6"/>
+                <TextBlock Text="Dictation mode preset buttons" FontSize="12" Opacity="0.6"/>
                 <ToggleSwitch IsOn="{x:Bind ViewModel.ShowModesRow, Mode=TwoWay}"/>
             </StackPanel>
 
             <StackPanel Spacing="4">
                 <TextBlock Text="Show Actions Row" FontWeight="SemiBold"/>
-                <TextBlock Text="Sound, Cloud, +Key quick toggles" FontSize="12" Opacity="0.6"/>
+                <TextBlock Text="Sound, Local, +Key, Raw, Refine quick toggles" FontSize="12" Opacity="0.6"/>
                 <ToggleSwitch IsOn="{x:Bind ViewModel.ShowActionsRow, Mode=TwoWay}"/>
             </StackPanel>
 

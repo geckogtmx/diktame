@@ -33,7 +33,7 @@ public sealed partial class NotificationService
     }
 
     /// <summary>
-    /// Shows a Windows toast notification and optionally plays a sound.
+    /// Shows a silent Windows toast notification (visual only, no sound).
     /// </summary>
     public void ShowToast(string title, string message, NotificationType type = NotificationType.Info)
     {
@@ -42,12 +42,8 @@ public sealed partial class NotificationService
             new ToastContentBuilder()
                 .AddText(title)
                 .AddText(message)
+                .AddAudio(new Uri("ms-winsoundevent:Notification.Default"), silent: true)
                 .Show();
-
-            if (_settings.Current.General.SoundFeedback)
-            {
-                PlaySound(type);
-            }
         }
         catch (Exception ex)
         {

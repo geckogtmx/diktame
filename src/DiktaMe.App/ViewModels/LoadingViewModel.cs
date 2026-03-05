@@ -470,7 +470,6 @@ public sealed partial class LoadingViewModel : ObservableObject
             _audioDucker.Restore();
 
             Log.Information("Dictate: Recording complete, processing...");
-            _controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing);
 
             // Get active mode from settings (instead of always using modes[0])
             var modes = _dictationModes.GetAllModes();
@@ -509,6 +508,7 @@ public sealed partial class LoadingViewModel : ObservableObject
 
             // Create pipeline and run with correct signature
             var pipeline = _pipelineFactory.CreateDictationPipeline();
+            pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
 
@@ -541,9 +541,79 @@ public sealed partial class LoadingViewModel : ObservableObject
 
     private async Task RunRefinePipelineAsync()
     {
+        bool isAutoMode = _controlPanel.RefineMode == RefineMode.Auto;
+
+        if (isAutoMode)
+        {
+            await RunRefineAutoAsync();
+        }
+        else
+        {
+            await RunRefineVoiceAsync();
+        }
+    }
+
+    private async Task RunRefineAutoAsync()
+    {
         try
         {
-            Log.Information("Starting Refine pipeline...");
+            Log.Information("Starting Refine Auto pipeline (no audio)...");
+
+            var soundSettings = _settings.Current.Sound ?? new();
+            _notifications.PlayCustomSound(soundSettings.UtilitySound);
+
+            string pipelineType = "refine_auto";
+            UtilityProfile profile = _pipelines.GetActiveProfile(pipelineType);
+
+            var options = new RefineOptions
+            {
+                SystemPrompt = profile.SystemPrompt ?? PromptDefaults.RefineAuto,
+                ModelName = profile.ModelName,
+                Language = _settings.Current.General.Language,
+                Injection = new PipelineInjectionOptions
+                {
+                    TrailingSpace = _settings.Current.General.TrailingSpace,
+                    AdditionalKey = string.IsNullOrEmpty(_settings.Current.General.AdditionalKey)
+                        ? null
+                        : _settings.Current.General.AdditionalKey,
+                },
+            };
+
+            var pipeline = _pipelineFactory.CreateRefineAutoPipeline();
+            pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
+            _recordingCts = new CancellationTokenSource();
+            var result = await pipeline.RunAsync(null, options, _recordingCts.Token);
+
+            _controlPanel.OnPipelineCompleted(this, result);
+            _notifications.PlayCustomSound(soundSettings.UtilitySound);
+
+            if (result.IsSuccess)
+            {
+                Log.Information("Refine Auto: Success, {Chars} chars", result.Text.Length);
+            }
+            else
+            {
+                Log.Warning("Refine Auto: Failed - {Error}", result.ErrorMessage);
+                _notifications.ShowToast("Error", result.ErrorMessage ?? "Unknown error", NotificationType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Refine Auto pipeline failed");
+            _notifications.ShowToast("Error", "Refine failed", NotificationType.Error);
+        }
+        finally
+        {
+            _recordingCts?.Dispose();
+            _recordingCts = null;
+        }
+    }
+
+    private async Task RunRefineVoiceAsync()
+    {
+        try
+        {
+            Log.Information("Starting Refine Voice pipeline...");
 
             // Record audio (waits for auto-stop event)
             var (audioFile, recordingDurationMs) = await RecordAudioAsync("Refine", isDictate: false);
@@ -557,17 +627,15 @@ public sealed partial class LoadingViewModel : ObservableObject
             // Stop ducking
             _audioDucker.Restore();
 
-            Log.Information("Refine: Recording complete, processing...");
-            _controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing);
+            Log.Information("Refine Voice: Recording complete, processing...");
 
-            // Get active profile from CRUD system (refine_instruction for verbal mode)
-            UtilityProfile profile = _pipelines.GetActiveProfile("refine_instruction");
+            string pipelineType = "refine_instruction";
+            UtilityProfile profile = _pipelines.GetActiveProfile(pipelineType);
 
-            // Build RefineOptions with all required fields
             var options = new RefineOptions
             {
-                SystemPrompt = profile.SystemPrompt ?? PromptDefaults.Refine, // fallback to default
-                ModelName = profile.ModelName, // J.5: Per-mode model selection
+                SystemPrompt = profile.SystemPrompt ?? PromptDefaults.Refine,
+                ModelName = profile.ModelName,
                 Language = _settings.Current.General.Language,
                 Injection = new PipelineInjectionOptions
                 {
@@ -580,25 +648,25 @@ public sealed partial class LoadingViewModel : ObservableObject
             };
 
             var pipeline = _pipelineFactory.CreateRefinePipeline();
+            pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
 
-            // Notify ControlPanel of pipeline completion (for telemetry)
             _controlPanel.OnPipelineCompleted(this, result);
 
             if (result.IsSuccess)
             {
-                Log.Information("Refine: Success, {Chars} chars", result.Text.Length);
+                Log.Information("Refine Voice: Success, {Chars} chars", result.Text.Length);
             }
             else
             {
-                Log.Warning("Refine: Failed - {Error}", result.ErrorMessage);
+                Log.Warning("Refine Voice: Failed - {Error}", result.ErrorMessage);
                 _notifications.ShowToast("Error", result.ErrorMessage ?? "Unknown error", NotificationType.Error);
             }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Refine pipeline failed");
+            Log.Error(ex, "Refine Voice pipeline failed");
             _notifications.ShowToast("Error", "Refine failed", NotificationType.Error);
         }
         finally
@@ -628,7 +696,6 @@ public sealed partial class LoadingViewModel : ObservableObject
             _audioDucker.Restore();
 
             Log.Information("Ask: Recording complete, processing...");
-            _controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing);
 
             // Get active profile from CRUD system
             UtilityProfile profile = _pipelines.GetActiveProfile("ask");
@@ -643,6 +710,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             };
 
             var pipeline = _pipelineFactory.CreateAskPipeline();
+            pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
 
@@ -722,7 +790,6 @@ public sealed partial class LoadingViewModel : ObservableObject
             _audioDucker.Restore();
 
             Log.Information("Translate: Recording complete, processing...");
-            _controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing);
 
             // Get active profile from CRUD system
             UtilityProfile profile = _pipelines.GetActiveProfile("translate");
@@ -744,6 +811,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             };
 
             var pipeline = _pipelineFactory.CreateTranslatePipeline();
+            pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
 
@@ -792,7 +860,6 @@ public sealed partial class LoadingViewModel : ObservableObject
             _audioDucker.Restore();
 
             Log.Information("Note: Recording complete, processing...");
-            _controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing);
 
             // Get active profile from CRUD system
             UtilityProfile profile = _pipelines.GetActiveProfile("note");
@@ -809,6 +876,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             };
 
             var pipeline = _pipelineFactory.CreateNotePipeline();
+            pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
 

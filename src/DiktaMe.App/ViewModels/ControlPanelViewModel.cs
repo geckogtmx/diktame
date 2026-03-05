@@ -354,7 +354,13 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     partial void OnIsRefineVoiceChanged(bool value)
     {
         RefineMode = value ? RefineMode.Voice : RefineMode.Auto;
+        var updated = _settings.Current with
+        {
+            General = _settings.Current.General with { RefineVoiceMode = value }
+        };
+        _ = _settings.UpdateAsync(updated);
         OnPropertyChanged(nameof(RefineLabel));
+        Log.Information("ControlPanel: Refine mode set to {Mode}", RefineMode);
     }
 
     partial void OnWordsPerMinuteChanged(double value)
@@ -480,6 +486,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         IsSoundEnabled = settings.General.SoundFeedback;
         IsAdditionalKeyEnabled = !string.IsNullOrEmpty(settings.General.AdditionalKey);
         IsRawModeEnabled = settings.General.RawModeOverride;
+        IsRefineVoice = settings.General.RefineVoiceMode;
         IsLocalMode = string.Equals(settings.ActiveProfileName, "Local", StringComparison.OrdinalIgnoreCase);
         AuthBadgeText = IsLocalMode ? "LOC" : "API";
 
