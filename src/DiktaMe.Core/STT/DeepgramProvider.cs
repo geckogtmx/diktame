@@ -133,29 +133,36 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
     /// Builds the Listen API URL from <see cref="DeepgramSettings"/> and language.
     /// </summary>
     internal string BuildListenUrl(string language)
+        => $"{BaseUrl}?{BuildQueryParameters(_settings, language)}";
+
+    /// <summary>
+    /// Builds the shared query parameters for Deepgram Listen API (batch and streaming).
+    /// Contains model, punctuate/smart_format, dictation, replacements, and language params.
+    /// </summary>
+    internal static string BuildQueryParameters(DeepgramSettings settings, string language)
     {
         var parts = new List<string>(8)
         {
-            $"model={Uri.EscapeDataString(_settings.Model)}",
+            $"model={Uri.EscapeDataString(settings.Model)}",
         };
 
-        if (_settings.SmartFormat)
+        if (settings.SmartFormat)
         {
             // smart_format is a superset of punctuate — don't add both
             parts.Add("smart_format=true");
         }
-        else if (_settings.Punctuate)
+        else if (settings.Punctuate)
         {
             parts.Add("punctuate=true");
         }
 
         // Dictation requires punctuate (or smart_format which includes it)
-        if (_settings.Dictation && (_settings.Punctuate || _settings.SmartFormat))
+        if (settings.Dictation && (settings.Punctuate || settings.SmartFormat))
         {
             parts.Add("dictation=true");
         }
 
-        foreach (string replacement in _settings.Replacements)
+        foreach (string replacement in settings.Replacements)
         {
             if (!string.IsNullOrWhiteSpace(replacement))
             {
@@ -173,7 +180,7 @@ public sealed class DeepgramProvider : ISTTProvider, IDisposable
             parts.Add($"language={Uri.EscapeDataString(language)}");
         }
 
-        return $"{BaseUrl}?{string.Join('&', parts)}";
+        return string.Join('&', parts);
     }
 
     // ── JSON parsing ──────────────────────────────────────────────────────────
