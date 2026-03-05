@@ -358,7 +358,7 @@
                 <StackPanel Grid.Column="4" Background="{StaticResource V1HeaderBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
-                            ToolTipService.ToolTip="Total pipeline duration">
+                            ToolTipService.ToolTip="Pipeline latency (excludes recording)">
                     <TextBlock Text="{x:Bind ViewModel.LastTotalFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
                                FontFamily="Consolas"

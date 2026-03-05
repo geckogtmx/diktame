@@ -140,7 +140,7 @@ public sealed class NotePipeline
                 RecordingMs = options.RecordingDurationMs,
                 TranscriptionMs = sttSw.ElapsedMilliseconds,
                 ProcessingMs = processingMs,
-                TotalMs = options.RecordingDurationMs + total.ElapsedMilliseconds,
+                TotalMs = total.ElapsedMilliseconds,
                 SttProvider = sttResult.Provider,
                 LlmProvider = llmProvider,
             };

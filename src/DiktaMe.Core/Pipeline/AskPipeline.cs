@@ -98,7 +98,7 @@ public sealed class AskPipeline
                 RecordingMs = options.RecordingDurationMs,
                 TranscriptionMs = sttSw.ElapsedMilliseconds,
                 ProcessingMs = llmSw.ElapsedMilliseconds,
-                TotalMs = options.RecordingDurationMs + total.ElapsedMilliseconds,
+                TotalMs = total.ElapsedMilliseconds,
                 SttProvider = sttResult.Provider,
                 LlmProvider = llmResult.Provider,
             };
