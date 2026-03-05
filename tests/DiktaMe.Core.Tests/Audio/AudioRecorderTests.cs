@@ -189,6 +189,28 @@ public class AudioRecorderTests : IDisposable
         Assert.EndsWith(".wav", capturedPath, StringComparison.OrdinalIgnoreCase);
     }
 
+    // ── AudioDataAvailable (streaming support) ────────────────────────────────
+
+    [Fact]
+    public async Task AudioDataAvailable_FiresDuringRecording()
+    {
+        if (AudioDeviceManager.GetInputDevices().Count == 0)
+        {
+            return;
+        }
+
+        var receivedChunks = new List<int>();
+        _recorder.AudioDataAvailable += (_, e) => receivedChunks.Add(e.BytesRecorded);
+
+        _recorder.StartRecording();
+        await Task.Delay(300); // record ~300ms
+        await _recorder.StopRecordingAsync();
+        await Task.Delay(200); // let callbacks flush
+
+        Assert.NotEmpty(receivedChunks);
+        Assert.All(receivedChunks, bytes => Assert.True(bytes > 0));
+    }
+
     // ── Auto-stop ─────────────────────────────────────────────────────────────
 
     [Fact]

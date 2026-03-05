@@ -42,6 +42,18 @@ public sealed class AudioRecorder : IDisposable
     /// </summary>
     public event EventHandler<RecordingStoppedEventArgs>? AutoStopped;
 
+    /// <summary>
+    /// Raised for each chunk of raw PCM audio data during recording.
+    /// Subscribers can forward this data to a streaming STT provider.
+    /// The WAV file writer continues to operate in parallel.
+    /// </summary>
+    /// <remarks>
+    /// Fires on NAudio's callback thread. The buffer in
+    /// <see cref="AudioDataAvailableEventArgs.PcmData"/> is reused between callbacks —
+    /// subscribers must copy the data if they need it beyond the handler lifetime.
+    /// </remarks>
+    public event EventHandler<AudioDataAvailableEventArgs>? AudioDataAvailable;
+
     // ── Properties ───────────────────────────────────────────────────────────
 
     /// <summary>Whether a recording is currently in progress.</summary>
@@ -186,6 +198,9 @@ public sealed class AudioRecorder : IDisposable
     private void OnDataAvailable(object? sender, WaveInEventArgs e)
     {
         _writer?.Write(e.Buffer, 0, e.BytesRecorded);
+
+        // Forward raw PCM to streaming subscribers (zero-copy slice of NAudio buffer)
+        AudioDataAvailable?.Invoke(this, new AudioDataAvailableEventArgs(e.Buffer, e.BytesRecorded));
     }
 
     private void OnWaveInRecordingStopped(object? sender, StoppedEventArgs e)
@@ -290,4 +305,25 @@ public sealed class RecordingStoppedEventArgs(string? filePath, bool wasAutoStop
 
     /// <summary>Duration of the recording in milliseconds.</summary>
     public long DurationMs { get; } = durationMs;
+}
+
+/// <summary>
+/// Event data for <see cref="AudioRecorder.AudioDataAvailable"/>.
+/// Contains raw PCM audio bytes from the recording device.
+/// </summary>
+/// <remarks>
+/// <see cref="PcmData"/> references NAudio's internal buffer which is reused across callbacks.
+/// Subscribers that need the data beyond the event handler lifetime must copy it
+/// (e.g., <c>PcmData.ToArray()</c>).
+/// </remarks>
+public sealed class AudioDataAvailableEventArgs(byte[] buffer, int bytesRecorded) : EventArgs
+{
+    /// <summary>
+    /// Raw PCM audio data (16kHz, 16-bit, mono). Slice of NAudio's internal buffer.
+    /// Only valid for the duration of the event handler — copy if needed later.
+    /// </summary>
+    public ReadOnlyMemory<byte> PcmData { get; } = buffer.AsMemory(0, bytesRecorded);
+
+    /// <summary>Number of valid PCM bytes in this chunk.</summary>
+    public int BytesRecorded { get; } = bytesRecorded;
 }
