@@ -80,7 +80,10 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     // ── Session stats ───────────────────────────────────────────────────────
 
     [ObservableProperty]
-    private int _sessionCount;
+    private int _requestCount;
+
+    [ObservableProperty]
+    private int _charCount;
 
     [ObservableProperty]
     private int _wordCount;
@@ -88,10 +91,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [ObservableProperty]
     private double _wordsPerMinute;
 
-    [ObservableProperty]
-    private int _tokenCount;
-
-    /// <summary>WPM display string ("--" when 0, otherwise rounded value).</summary>
+    /// <summary>WORD/MIN display string ("--" when 0, otherwise rounded value).</summary>
     public string WordsPerMinuteFormatted => WordsPerMinute > 0
         ? ((int)WordsPerMinute).ToString(CultureInfo.InvariantCulture)
         : "--";
@@ -445,12 +445,12 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     public void RefreshSessionStats()
     {
         var stats = _metrics.GetSessionStats();
-        SessionCount = stats.Sessions;
+        RequestCount = stats.Sessions;
+        CharCount = stats.Chars;
         WordCount = stats.Words;
-        WordsPerMinute = Math.Round(stats.AverageLatencyMs > 0
-            ? stats.Words / (stats.AverageLatencyMs / 60000.0)
+        WordsPerMinute = Math.Round(stats.MinutesSinceFirstRequest > 0
+            ? stats.Words / stats.MinutesSinceFirstRequest
             : 0, 1);
-        TokenCount = (int)(stats.Words * 1.3); // Rough estimate: ~1.3 tokens per word
     }
 
     // ── Private helpers ─────────────────────────────────────────────────────

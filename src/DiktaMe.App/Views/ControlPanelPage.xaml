@@ -222,23 +222,39 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- SESS -->
+                <!-- REQ -->
                 <StackPanel Grid.Column="0" Background="{StaticResource V1HeaderBrush}"
                             Padding="4,6" HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" Spacing="2">
-                    <TextBlock Text="{x:Bind ViewModel.SessionCount, Mode=OneWay}"
+                            VerticalAlignment="Stretch" Spacing="2"
+                            ToolTipService.ToolTip="Requests this session">
+                    <TextBlock Text="{x:Bind ViewModel.RequestCount, Mode=OneWay}"
                                FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource V1TextPrimaryBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="SESS" FontSize="8" CharacterSpacing="50"
+                    <TextBlock Text="REQ" FontSize="8" CharacterSpacing="50"
+                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- CHAR -->
+                <StackPanel Grid.Column="1" Background="{StaticResource V1HeaderBrush}"
+                            Padding="4,6" HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch" Spacing="2"
+                            ToolTipService.ToolTip="Characters produced">
+                    <TextBlock Text="{x:Bind ViewModel.CharCount, Mode=OneWay}"
+                               FontSize="14" FontWeight="Bold"
+                               Foreground="{StaticResource V1TextPrimaryBrush}"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="CHAR" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- WORDS -->
-                <StackPanel Grid.Column="1" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="2" Background="{StaticResource V1HeaderBrush}"
                             Padding="4,6" HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" Spacing="2">
+                            VerticalAlignment="Stretch" Spacing="2"
+                            ToolTipService.ToolTip="Words produced">
                     <TextBlock Text="{x:Bind ViewModel.WordCount, Mode=OneWay}"
                                FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource V1TextPrimaryBrush}"
@@ -248,28 +264,16 @@
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- WPM -->
-                <StackPanel Grid.Column="2" Background="{StaticResource V1HeaderBrush}"
+                <!-- WORD/MIN -->
+                <StackPanel Grid.Column="3" Background="{StaticResource V1HeaderBrush}"
                             Padding="4,6" HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" Spacing="2">
+                            VerticalAlignment="Stretch" Spacing="2"
+                            ToolTipService.ToolTip="Words per minute since first request">
                     <TextBlock Text="{x:Bind ViewModel.WordsPerMinuteFormatted, Mode=OneWay}"
                                FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource V1TextPrimaryBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="WPM" FontSize="8" CharacterSpacing="50"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center"/>
-                </StackPanel>
-
-                <!-- TOK -->
-                <StackPanel Grid.Column="3" Background="{StaticResource V1HeaderBrush}"
-                            Padding="4,6" HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" Spacing="2">
-                    <TextBlock Text="{x:Bind ViewModel.TokenCount, Mode=OneWay}"
-                               FontSize="14" FontWeight="Bold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"
-                               HorizontalAlignment="Center"/>
-                    <TextBlock Text="TOK" FontSize="8" CharacterSpacing="50"
+                    <TextBlock Text="WORD/MIN" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -290,24 +294,11 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- TOT -->
+                <!-- REC -->
                 <StackPanel Grid.Column="0" Background="{StaticResource V1HeaderBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" Spacing="2">
-                    <TextBlock Text="{x:Bind ViewModel.LastTotalFormatted, Mode=OneWay}"
-                               FontSize="12" FontWeight="SemiBold"
-                               FontFamily="Consolas"
-                               Foreground="{StaticResource V1PerfGreenBrush}"
-                               HorizontalAlignment="Center"/>
-                    <TextBlock Text="TOT" FontSize="8" CharacterSpacing="50"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center"/>
-                </StackPanel>
-
-                <!-- REC -->
-                <StackPanel Grid.Column="1" Background="{StaticResource V1HeaderBrush}"
-                            Padding="2,4" HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" Spacing="2">
+                            VerticalAlignment="Stretch" Spacing="2"
+                            ToolTipService.ToolTip="Recording duration">
                     <TextBlock Text="{x:Bind ViewModel.LastRecordingFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
                                FontFamily="Consolas"
@@ -319,9 +310,10 @@
                 </StackPanel>
 
                 <!-- TRNS -->
-                <StackPanel Grid.Column="2" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="1" Background="{StaticResource V1HeaderBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" Spacing="2">
+                            VerticalAlignment="Stretch" Spacing="2"
+                            ToolTipService.ToolTip="Transcription latency">
                     <TextBlock Text="{x:Bind ViewModel.LastTranscriptionFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
                                FontFamily="Consolas"
@@ -333,9 +325,10 @@
                 </StackPanel>
 
                 <!-- PROC -->
-                <StackPanel Grid.Column="3" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="2" Background="{StaticResource V1HeaderBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" Spacing="2">
+                            VerticalAlignment="Stretch" Spacing="2"
+                            ToolTipService.ToolTip="LLM processing latency">
                     <TextBlock Text="{x:Bind ViewModel.LastProcessingFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
                                FontFamily="Consolas"
@@ -347,15 +340,31 @@
                 </StackPanel>
 
                 <!-- INJ -->
-                <StackPanel Grid.Column="4" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="3" Background="{StaticResource V1HeaderBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" Spacing="2">
+                            VerticalAlignment="Stretch" Spacing="2"
+                            ToolTipService.ToolTip="Text injection latency">
                     <TextBlock Text="{x:Bind ViewModel.LastInjectionFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
                                FontFamily="Consolas"
                                Foreground="{StaticResource V1PerfGreenBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock Text="INJ" FontSize="8" CharacterSpacing="50"
+                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- TOT -->
+                <StackPanel Grid.Column="4" Background="{StaticResource V1HeaderBrush}"
+                            Padding="2,4" HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch" Spacing="2"
+                            ToolTipService.ToolTip="Total pipeline duration">
+                    <TextBlock Text="{x:Bind ViewModel.LastTotalFormatted, Mode=OneWay}"
+                               FontSize="12" FontWeight="SemiBold"
+                               FontFamily="Consolas"
+                               Foreground="{StaticResource V1PerfGreenBrush}"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="TOT" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>

@@ -52,6 +52,9 @@ public sealed record PipelineResult
         ? 0
         : Text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
 
+    /// <summary>Number of characters in <see cref="Text"/>.</summary>
+    public int CharCount => Text?.Length ?? 0;
+
     // ── Factories ─────────────────────────────────────────────────────────
 
     internal static PipelineResult Failure(string mode, string error) => new()

@@ -155,17 +155,19 @@ public sealed class MetricsCollectorTests
     [Fact]
     public void SessionStats_Properties_AreAccessible()
     {
-        var stats = new SessionStats(Words: 10, Sessions: 3, AverageLatencyMs: 150.5);
+        var stats = new SessionStats(Words: 10, Chars: 50, Sessions: 3, AverageLatencyMs: 150.5, MinutesSinceFirstRequest: 2.0);
         Assert.Equal(10, stats.Words);
+        Assert.Equal(50, stats.Chars);
         Assert.Equal(3, stats.Sessions);
         Assert.Equal(150.5, stats.AverageLatencyMs);
+        Assert.Equal(2.0, stats.MinutesSinceFirstRequest);
     }
 
     [Fact]
     public void SessionStats_Equality_ByValue()
     {
-        var a = new SessionStats(5, 2, 100.0);
-        var b = new SessionStats(5, 2, 100.0);
+        var a = new SessionStats(5, 25, 2, 100.0, 1.0);
+        var b = new SessionStats(5, 25, 2, 100.0, 1.0);
         Assert.Equal(a, b);
     }
 }

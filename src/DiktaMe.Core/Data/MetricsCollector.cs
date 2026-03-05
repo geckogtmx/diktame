@@ -12,8 +12,10 @@ public sealed class MetricsCollector
 
     // In-memory session accumulators (reset on each app start)
     private int _sessionWords;
+    private int _sessionChars;
     private int _sessionCount;
     private long _sessionTotalMs;
+    private DateTimeOffset? _firstRequestTime;
 
     public MetricsCollector(HistoryManager history)
     {
@@ -30,7 +32,9 @@ public sealed class MetricsCollector
             return;
         }
 
+        _firstRequestTime ??= DateTimeOffset.UtcNow;
         _sessionWords += result.WordCount;
+        _sessionChars += result.CharCount;
         _sessionCount++;
         _sessionTotalMs += result.TotalMs;
 
@@ -42,8 +46,12 @@ public sealed class MetricsCollector
     /// </summary>
     public SessionStats GetSessionStats() => new(
         Words: _sessionWords,
+        Chars: _sessionChars,
         Sessions: _sessionCount,
-        AverageLatencyMs: _sessionCount > 0 ? (double)_sessionTotalMs / _sessionCount : 0);
+        AverageLatencyMs: _sessionCount > 0 ? (double)_sessionTotalMs / _sessionCount : 0,
+        MinutesSinceFirstRequest: _firstRequestTime.HasValue
+            ? (DateTimeOffset.UtcNow - _firstRequestTime.Value).TotalMinutes
+            : 0);
 
     /// <summary>
     /// Returns lifetime stats from the database for today.
@@ -56,4 +64,4 @@ public sealed class MetricsCollector
 /// <summary>
 /// In-memory stats for the current application session.
 /// </summary>
-public sealed record SessionStats(int Words, int Sessions, double AverageLatencyMs);
+public sealed record SessionStats(int Words, int Chars, int Sessions, double AverageLatencyMs, double MinutesSinceFirstRequest);

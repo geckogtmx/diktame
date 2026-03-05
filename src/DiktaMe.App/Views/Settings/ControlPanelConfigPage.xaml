@@ -22,7 +22,7 @@
 
             <StackPanel Spacing="4">
                 <TextBlock Text="Show Session Stats" FontWeight="SemiBold"/>
-                <TextBlock Text="SESS, WORDS, WPM, TOK counters" FontSize="12" Opacity="0.6"/>
+                <TextBlock Text="REQ, CHAR, WORDS, WORD/MIN counters" FontSize="12" Opacity="0.6"/>
                 <ToggleSwitch IsOn="{x:Bind ViewModel.ShowSessionStats, Mode=TwoWay}"/>
             </StackPanel>
 
