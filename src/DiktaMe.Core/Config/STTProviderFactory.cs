@@ -42,4 +42,24 @@ public sealed class STTProviderFactory : ISTTProviderFactory
             _ => throw new NotSupportedException($"Unknown STT provider type: '{providerType}'."),
         };
     }
+
+    /// <inheritdoc/>
+    public bool SupportsStreaming(string providerType)
+        => string.Equals(providerType, "deepgram", StringComparison.OrdinalIgnoreCase);
+
+    /// <inheritdoc/>
+    public IStreamingSTTProvider? CreateStreamingProvider(string providerType, string? apiKey = null)
+    {
+        string? key = apiKey
+            ?? _secureStorage.RetrieveKey(providerType.ToLowerInvariant());
+
+        return providerType.ToLowerInvariant() switch
+        {
+            "deepgram" => new DeepgramStreamingProvider(
+                key ?? throw new InvalidOperationException("Deepgram API key not configured."),
+                _settings.Current.Deepgram),
+
+            _ => null, // Only Deepgram supports streaming
+        };
+    }
 }

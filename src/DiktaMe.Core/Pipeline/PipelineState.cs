@@ -9,6 +9,7 @@ public enum PipelineState
     Idle,
     Recording,
     Transcribing,
+    Streaming,
     Processing,
     Injecting,
     Error,

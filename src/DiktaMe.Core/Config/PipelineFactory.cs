@@ -67,6 +67,32 @@ public sealed class PipelineFactory
         return new ChatPipeline(llm!, stt);
     }
 
+    /// <summary>
+    /// Returns true if the active dictation profile uses a streaming-capable
+    /// STT provider (currently only Deepgram).
+    /// </summary>
+    public bool CanStreamDictation(string? modeOverride = null)
+    {
+        ModeSettings ms = _profiles.GetModeSettings(modeOverride ?? "dictate");
+        return _sttFactory.SupportsStreaming(ms.SttProvider);
+    }
+
+    /// <summary>
+    /// Creates a streaming dictation pipeline, or returns null if the active
+    /// STT provider does not support streaming.
+    /// </summary>
+    public StreamingDictationPipeline? CreateStreamingDictationPipeline(string? modeOverride = null)
+    {
+        ModeSettings ms = _profiles.GetModeSettings(modeOverride ?? "dictate");
+        IStreamingSTTProvider? streaming = _sttFactory.CreateStreamingProvider(ms.SttProvider);
+        if (streaming is null)
+        {
+            return null;
+        }
+
+        return new StreamingDictationPipeline(streaming, _injector);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private (ISTTProvider Stt, ILLMProvider? Llm) GetProviders(string mode, string? modeOverride)

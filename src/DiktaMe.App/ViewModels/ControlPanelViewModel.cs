@@ -377,6 +377,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
                 PipelineState.Idle => "READY",
                 PipelineState.Recording => "LISTENING",
                 PipelineState.Transcribing => "TRANSCRIBING",
+                PipelineState.Streaming => "STREAMING",
                 PipelineState.Processing => "THINKING",
                 PipelineState.Injecting => "TYPING",
                 PipelineState.Error => "ERROR",

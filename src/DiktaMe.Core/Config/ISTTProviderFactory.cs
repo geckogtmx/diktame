@@ -16,4 +16,15 @@ public interface ISTTProviderFactory
     /// </param>
     /// <param name="apiKey">API key (required for cloud providers; ignored for local).</param>
     ISTTProvider CreateProvider(string providerType, string? apiKey = null);
+
+    /// <summary>
+    /// Returns true if the given provider type supports real-time streaming.
+    /// </summary>
+    bool SupportsStreaming(string providerType);
+
+    /// <summary>
+    /// Creates a streaming STT provider, or returns null if the provider type
+    /// does not support streaming.
+    /// </summary>
+    IStreamingSTTProvider? CreateStreamingProvider(string providerType, string? apiKey = null);
 }

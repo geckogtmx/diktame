@@ -9,7 +9,7 @@ namespace DiktaMe.Core.Audio;
 /// temporary WAV file (16 kHz, 16-bit, mono — Whisper-compatible).
 /// Port of python/core/recorder.py from V1.
 /// </summary>
-public sealed class AudioRecorder : IDisposable
+public sealed class AudioRecorder : IAudioDataSource, IDisposable
 {
     // ── Whisper-compatible format ────────────────────────────────────────────
     private const int SampleRate = 16_000;
