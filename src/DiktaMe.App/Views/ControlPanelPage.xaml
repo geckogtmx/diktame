@@ -51,19 +51,24 @@
             <StackPanel x:Name="HeaderButtons" Orientation="Horizontal" Spacing="5"
                         HorizontalAlignment="Right" VerticalAlignment="Center">
                 <!-- STT badge -->
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2">
+                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2"
+                        ToolTipService.ToolTip="{x:Bind ViewModel.SttProviderName, Mode=OneWay}">
                     <TextBlock Text="{x:Bind ViewModel.SttProviderName, Mode=OneWay}"
                                FontSize="10" FontWeight="Medium"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                               Foreground="{StaticResource V1TextPrimaryBrush}"
+                               MaxWidth="90" TextTrimming="CharacterEllipsis"/>
                 </Border>
                 <!-- LLM badge -->
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2">
+                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2"
+                        ToolTipService.ToolTip="{x:Bind ViewModel.LlmProviderName, Mode=OneWay}">
                     <TextBlock Text="{x:Bind ViewModel.LlmProviderName, Mode=OneWay}"
                                FontSize="10" FontWeight="Medium"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                               Foreground="{StaticResource V1TextPrimaryBrush}"
+                               MaxWidth="90" TextTrimming="CharacterEllipsis"/>
                 </Border>
                 <!-- Auth badge -->
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2">
+                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2"
+                        ToolTipService.ToolTip="Authentication mode">
                     <TextBlock Text="{x:Bind ViewModel.AuthBadgeText, Mode=OneWay}"
                                FontSize="10" FontWeight="SemiBold"
                                Foreground="{StaticResource V1AuthBadgeBrush}"/>
