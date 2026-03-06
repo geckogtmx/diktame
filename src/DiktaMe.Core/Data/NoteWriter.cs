@@ -1,4 +1,5 @@
 
+using System.Security;
 using Serilog;
 
 namespace DiktaMe.Core.Data;
@@ -30,6 +31,8 @@ public sealed class NoteWriter
             return;
         }
 
+        ValidateFilePath(filePath);
+
         string? dir = Path.GetDirectoryName(filePath);
         if (!string.IsNullOrEmpty(dir))
         {
@@ -42,5 +45,36 @@ public sealed class NoteWriter
         await File.AppendAllTextAsync(filePath, entry, cancellationToken).ConfigureAwait(false);
 
         Log.Information("NoteWriter: appended {Chars} chars to '{Path}'", text.Length, filePath);
+    }
+
+    /// <summary>
+    /// Validates that the file path is within allowed directories
+    /// (user's Documents folder or %APPDATA%\DiktaMe).
+    /// Prevents path traversal attacks via <c>../</c> sequences or absolute paths.
+    /// </summary>
+    internal static void ValidateFilePath(string filePath)
+    {
+        string canonicalPath = Path.GetFullPath(filePath);
+
+        // Reject UNC paths
+        if (canonicalPath.StartsWith(@"\\", StringComparison.Ordinal))
+        {
+            throw new SecurityException($"NoteWriter: UNC paths are not allowed: '{filePath}'");
+        }
+
+        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string appDataPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "DiktaMe");
+
+        bool isAllowed =
+            canonicalPath.StartsWith(documentsPath, StringComparison.OrdinalIgnoreCase) ||
+            canonicalPath.StartsWith(appDataPath, StringComparison.OrdinalIgnoreCase);
+
+        if (!isAllowed)
+        {
+            throw new SecurityException(
+                $"NoteWriter: path must be within Documents or AppData\\DiktaMe: '{filePath}'");
+        }
     }
 }

@@ -15,11 +15,38 @@ namespace DiktaMe.Core.Security;
 public sealed class SecureStorage
 {
     /// <summary>
-    /// Path to the encrypted keys file.
+    /// Default path to the encrypted keys file.
     /// </summary>
-    public static readonly string KeysFilePath = Path.Combine(
+    public static readonly string DefaultKeysFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "DiktaMe", "keys.dat");
+
+    private readonly string _keysFilePath;
+
+    /// <summary>
+    /// Creates a SecureStorage using the default keys file at <c>%APPDATA%\DiktaMe\keys.dat</c>.
+    /// </summary>
+    public SecureStorage() : this(DefaultKeysFilePath) { }
+
+    /// <summary>
+    /// Creates a SecureStorage using a custom keys file path (for testing).
+    /// </summary>
+    internal SecureStorage(string keysFilePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(keysFilePath);
+        _keysFilePath = keysFilePath;
+    }
+
+    /// <summary>
+    /// Allowed provider names for key storage. Case-insensitive.
+    /// </summary>
+    internal static readonly HashSet<string> ValidProviders = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // API key providers (stored via Settings > API Keys or Wizard)
+        "openai", "deepgram", "gemini", "anthropic", "openrouter",
+        // Internal (trial auth JWT)
+        "trial_token",
+    };
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -32,6 +59,7 @@ public sealed class SecureStorage
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(providerName);
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
+        ValidateProviderName(providerName);
 
         var keys = LoadDecrypted();
         keys[providerName] = apiKey;
@@ -42,6 +70,8 @@ public sealed class SecureStorage
 
     /// <summary>
     /// Retrieves the stored API key for the given provider, or null if not found.
+    /// No allowlist validation — factories call this speculatively for any provider type
+    /// and handle null returns gracefully.
     /// </summary>
     public string? RetrieveKey(string providerName)
     {
@@ -86,18 +116,30 @@ public sealed class SecureStorage
     /// </summary>
     public void WipeAll()
     {
-        if (File.Exists(KeysFilePath))
+        if (File.Exists(_keysFilePath))
         {
-            File.Delete(KeysFilePath);
+            File.Delete(_keysFilePath);
             Log.Information("SecureStorage: wiped all keys");
+        }
+    }
+
+    // ── Validation ─────────────────────────────────────────────────────────────
+
+    private static void ValidateProviderName(string providerName)
+    {
+        if (!ValidProviders.Contains(providerName))
+        {
+            throw new ArgumentException(
+                $"Unknown provider '{providerName}'. Valid providers: {string.Join(", ", ValidProviders)}",
+                nameof(providerName));
         }
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
-    private static Dictionary<string, string> LoadDecrypted()
+    private Dictionary<string, string> LoadDecrypted()
     {
-        if (!File.Exists(KeysFilePath))
+        if (!File.Exists(_keysFilePath))
         {
             return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
@@ -105,7 +147,7 @@ public sealed class SecureStorage
         byte[] encryptedBlob;
         try
         {
-            encryptedBlob = File.ReadAllBytes(KeysFilePath);
+            encryptedBlob = File.ReadAllBytes(_keysFilePath);
         }
         catch (Exception ex)
         {
@@ -146,7 +188,7 @@ public sealed class SecureStorage
         }
     }
 
-    private static void SaveEncrypted(Dictionary<string, string> keys)
+    private void SaveEncrypted(Dictionary<string, string> keys)
     {
         string json = JsonSerializer.Serialize(keys, SecureStorageJsonContext.Default.DictionaryStringString);
         byte[] plainBytes = Encoding.UTF8.GetBytes(json);
@@ -162,16 +204,16 @@ public sealed class SecureStorage
             Array.Clear(plainBytes, 0, plainBytes.Length);
         }
 
-        string? dir = Path.GetDirectoryName(KeysFilePath);
+        string? dir = Path.GetDirectoryName(_keysFilePath);
         if (!string.IsNullOrEmpty(dir))
         {
             Directory.CreateDirectory(dir);
         }
 
         // Atomic write: write to .tmp then rename
-        string tmpPath = KeysFilePath + ".tmp";
+        string tmpPath = _keysFilePath + ".tmp";
         File.WriteAllBytes(tmpPath, encryptedBlob);
-        File.Move(tmpPath, KeysFilePath, overwrite: true);
+        File.Move(tmpPath, _keysFilePath, overwrite: true);
     }
 }
 

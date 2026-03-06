@@ -1,4 +1,5 @@
 
+using DiktaMe.Core.Config;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
 using DiktaMe.Core.STT;
@@ -60,13 +61,29 @@ public sealed class ChatPipelineTests
         return m;
     }
 
+    private static SettingsManager MockSettings(PrivacyLevel level = PrivacyLevel.Full, bool piiScrubEnabled = false)
+    {
+        string tempPath = Path.Combine(Path.GetTempPath(), $"diktame_chat_test_{Guid.NewGuid()}.json");
+        var settings = new SettingsManager(tempPath);
+        var updated = settings.Current with
+        {
+            Privacy = settings.Current.Privacy with
+            {
+                Level = level,
+                PiiScrubEnabled = piiScrubEnabled,
+            }
+        };
+        settings.UpdateAsync(updated).Wait();
+        return settings;
+    }
+
     // ── Text input path ───────────────────────────────────────────────────────
 
     [Fact]
     public async Task RunAsync_WithTextInput_SkipsSttAndReturnsAnswer()
     {
         var llm = OkLlm("The answer is 42.");
-        var pipeline = new ChatPipeline(llm.Object);
+        var pipeline = new ChatPipeline(llm.Object, MockSettings());
 
         var result = await pipeline.RunAsync(new ChatOptions
         {
@@ -85,7 +102,7 @@ public sealed class ChatPipelineTests
     [Fact]
     public async Task RunAsync_WithWhitespaceTextInput_ReturnsFailure()
     {
-        var pipeline = new ChatPipeline(OkLlm().Object);
+        var pipeline = new ChatPipeline(OkLlm().Object, MockSettings());
 
         var result = await pipeline.RunAsync(new ChatOptions
         {
@@ -101,7 +118,7 @@ public sealed class ChatPipelineTests
     public async Task RunAsync_WithTextInput_PassesQuestionToLlm()
     {
         var llm = OkLlm();
-        var pipeline = new ChatPipeline(llm.Object);
+        var pipeline = new ChatPipeline(llm.Object, MockSettings());
 
         await pipeline.RunAsync(new ChatOptions
         {
@@ -123,7 +140,7 @@ public sealed class ChatPipelineTests
     {
         var stt = OkStt("what is the meaning of life");
         var llm = OkLlm("The answer is 42.");
-        var pipeline = new ChatPipeline(llm.Object, stt.Object);
+        var pipeline = new ChatPipeline(llm.Object, MockSettings(), stt.Object);
 
         var result = await pipeline.RunAsync(new ChatOptions
         {
@@ -141,7 +158,7 @@ public sealed class ChatPipelineTests
     [Fact]
     public async Task RunAsync_WithEmptyTranscription_ReturnsFailure()
     {
-        var pipeline = new ChatPipeline(OkLlm().Object, EmptyStt().Object);
+        var pipeline = new ChatPipeline(OkLlm().Object, MockSettings(), EmptyStt().Object);
 
         var result = await pipeline.RunAsync(new ChatOptions
         {
@@ -156,7 +173,7 @@ public sealed class ChatPipelineTests
     [Fact]
     public async Task RunAsync_WithAudioButNoStt_Throws()
     {
-        var pipeline = new ChatPipeline(OkLlm().Object, stt: null);
+        var pipeline = new ChatPipeline(OkLlm().Object, MockSettings(), stt: null);
 
         Func<Task> act = () => pipeline.RunAsync(new ChatOptions
         {
@@ -179,7 +196,7 @@ public sealed class ChatPipelineTests
     [Fact]
     public async Task RunAsync_WithNeitherInputNorAudio_ReturnsFailure()
     {
-        var pipeline = new ChatPipeline(OkLlm().Object);
+        var pipeline = new ChatPipeline(OkLlm().Object, MockSettings());
 
         var result = await pipeline.RunAsync(new ChatOptions
         {
@@ -195,7 +212,7 @@ public sealed class ChatPipelineTests
     [Fact]
     public async Task RunAsync_WhenLlmReturnsEmpty_ReturnsFailure()
     {
-        var pipeline = new ChatPipeline(EmptyLlm().Object);
+        var pipeline = new ChatPipeline(EmptyLlm().Object, MockSettings());
 
         var result = await pipeline.RunAsync(new ChatOptions
         {
@@ -219,7 +236,7 @@ public sealed class ChatPipelineTests
                 It.IsAny<CancellationToken>()))
            .ThrowsAsync(new OperationCanceledException());
 
-        var pipeline = new ChatPipeline(llm.Object);
+        var pipeline = new ChatPipeline(llm.Object, MockSettings());
 
         var result = await pipeline.RunAsync(new ChatOptions
         {
@@ -237,7 +254,7 @@ public sealed class ChatPipelineTests
     [Fact]
     public async Task RunAsync_RaisesStateChangedAndCompletedEvents()
     {
-        var pipeline = new ChatPipeline(OkLlm().Object);
+        var pipeline = new ChatPipeline(OkLlm().Object, MockSettings());
         var states = new List<PipelineState>();
         PipelineResult? completedResult = null;
 
@@ -261,7 +278,7 @@ public sealed class ChatPipelineTests
     [Fact]
     public async Task RunAsync_SuccessResult_HasNonZeroTotalMs()
     {
-        var pipeline = new ChatPipeline(OkLlm().Object);
+        var pipeline = new ChatPipeline(OkLlm().Object, MockSettings());
 
         var result = await pipeline.RunAsync(new ChatOptions
         {

@@ -1,6 +1,8 @@
 
 using System.Diagnostics;
+using DiktaMe.Core.Config;
 using DiktaMe.Core.LLM;
+using DiktaMe.Core.Security;
 using DiktaMe.Core.STT;
 using Serilog;
 
@@ -15,6 +17,7 @@ public sealed class AskPipeline
 {
     private readonly ISTTProvider _stt;
     private readonly ILLMProvider _llm;
+    private readonly SettingsManager _settings;
 
     /// <summary>Raised when the pipeline transitions to a new stage.</summary>
     public event EventHandler<PipelineState>? StateChanged;
@@ -22,10 +25,11 @@ public sealed class AskPipeline
     /// <summary>Raised when the pipeline completes (success or failure).</summary>
     public event EventHandler<PipelineResult>? Completed;
 
-    public AskPipeline(ISTTProvider stt, ILLMProvider llm)
+    public AskPipeline(ISTTProvider stt, ILLMProvider llm, SettingsManager settings)
     {
         _stt = stt;
         _llm = llm;
+        _settings = settings;
     }
 
     /// <summary>
@@ -62,7 +66,7 @@ public sealed class AskPipeline
             }
 
             string question = sttResult.Text;
-            Log.Information("AskPipeline: question = '{Question}'", question);
+            LogUserText("AskPipeline: question", question);
 
             // ── Stage 2: Ask the LLM ──────────────────────────────────────
             SetState(PipelineState.Processing);
@@ -124,4 +128,37 @@ public sealed class AskPipeline
     }
 
     private void SetState(PipelineState state) => StateChanged?.Invoke(this, state);
+
+    /// <summary>
+    /// Logs user text respecting privacy settings:
+    /// - Ghost: No logging
+    /// - Stats: No text logging (metrics only)
+    /// - Balanced: Log with PII scrubbing (if enabled)
+    /// - Full: Log verbatim
+    /// </summary>
+    private void LogUserText(string prefix, string text)
+    {
+        var level = _settings.Current.Privacy.Level;
+
+        if (level == PrivacyLevel.Ghost || level == PrivacyLevel.Stats)
+        {
+            // Ghost and Stats: don't log user text
+            return;
+        }
+
+        string loggedText = text;
+
+        if (level == PrivacyLevel.Balanced && _settings.Current.Privacy.PiiScrubEnabled)
+        {
+            // Balanced with PII scrubbing enabled: scrub before logging
+            if (PIIScrubber.ContainsPII(text))
+            {
+                Log.Warning("{Prefix}: contains PII (scrubbed in log)", prefix);
+            }
+            loggedText = PIIScrubber.Scrub(text);
+        }
+
+        // Full level or Balanced with scrubbing disabled: log as-is
+        Log.Information("{Prefix} = '{Text}'", prefix, loggedText);
+    }
 }

@@ -436,7 +436,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Streaming Dictate pipeline failed");
-            _notifications.ShowToast("Error", "Dictation failed", NotificationType.Error);
+            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
         }
         finally
         {
@@ -529,7 +529,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Dictate pipeline failed");
-            _notifications.ShowToast("Error", "Dictation failed", NotificationType.Error);
+            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
         }
         finally
         {
@@ -600,7 +600,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Refine Auto pipeline failed");
-            _notifications.ShowToast("Error", "Refine failed", NotificationType.Error);
+            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
         }
         finally
         {
@@ -667,7 +667,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Refine Voice pipeline failed");
-            _notifications.ShowToast("Error", "Refine failed", NotificationType.Error);
+            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
         }
         finally
         {
@@ -761,7 +761,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Ask pipeline failed");
-            _notifications.ShowToast("Error", "Ask failed", NotificationType.Error);
+            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
         }
         finally
         {
@@ -831,7 +831,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Translate pipeline failed");
-            _notifications.ShowToast("Error", "Translate failed", NotificationType.Error);
+            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
         }
         finally
         {
@@ -898,7 +898,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Note pipeline failed");
-            _notifications.ShowToast("Error", "Note failed", NotificationType.Error);
+            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
         }
         finally
         {

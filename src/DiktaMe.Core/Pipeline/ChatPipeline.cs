@@ -1,6 +1,8 @@
 
 using System.Diagnostics;
+using DiktaMe.Core.Config;
 using DiktaMe.Core.LLM;
+using DiktaMe.Core.Security;
 using DiktaMe.Core.STT;
 using Serilog;
 
@@ -21,6 +23,7 @@ public sealed class ChatPipeline
 {
     private readonly ISTTProvider? _stt;
     private readonly ILLMProvider _llm;
+    private readonly SettingsManager _settings;
 
     /// <summary>Raised when the pipeline transitions to a new stage.</summary>
     public event EventHandler<PipelineState>? StateChanged;
@@ -29,14 +32,16 @@ public sealed class ChatPipeline
     public event EventHandler<PipelineResult>? Completed;
 
     /// <param name="llm">LLM provider (or router) for chat responses.</param>
+    /// <param name="settings">Settings manager for privacy-aware logging.</param>
     /// <param name="stt">
     /// Optional STT provider for voice input.
     /// Required when <see cref="ChatOptions.AudioFilePath"/> is set.
     /// Null is valid for text-only usage.
     /// </param>
-    public ChatPipeline(ILLMProvider llm, ISTTProvider? stt = null)
+    public ChatPipeline(ILLMProvider llm, SettingsManager settings, ISTTProvider? stt = null)
     {
         _llm = llm;
+        _settings = settings;
         _stt = stt;
     }
 
@@ -104,7 +109,7 @@ public sealed class ChatPipeline
                 }
 
                 question = sttResult.Text;
-                Log.Information("ChatPipeline: transcribed question = '{Question}'", question);
+                LogUserText("ChatPipeline: transcribed question", question);
             }
             else
             {
@@ -171,4 +176,37 @@ public sealed class ChatPipeline
     }
 
     private void SetState(PipelineState state) => StateChanged?.Invoke(this, state);
+
+    /// <summary>
+    /// Logs user text respecting privacy settings:
+    /// - Ghost: No logging
+    /// - Stats: No text logging (metrics only)
+    /// - Balanced: Log with PII scrubbing (if enabled)
+    /// - Full: Log verbatim
+    /// </summary>
+    private void LogUserText(string prefix, string text)
+    {
+        var level = _settings.Current.Privacy.Level;
+
+        if (level == PrivacyLevel.Ghost || level == PrivacyLevel.Stats)
+        {
+            // Ghost and Stats: don't log user text
+            return;
+        }
+
+        string loggedText = text;
+
+        if (level == PrivacyLevel.Balanced && _settings.Current.Privacy.PiiScrubEnabled)
+        {
+            // Balanced with PII scrubbing enabled: scrub before logging
+            if (PIIScrubber.ContainsPII(text))
+            {
+                Log.Warning("{Prefix}: contains PII (scrubbed in log)", prefix);
+            }
+            loggedText = PIIScrubber.Scrub(text);
+        }
+
+        // Full level or Balanced with scrubbing disabled: log as-is
+        Log.Information("{Prefix} = '{Text}'", prefix, loggedText);
+    }
 }

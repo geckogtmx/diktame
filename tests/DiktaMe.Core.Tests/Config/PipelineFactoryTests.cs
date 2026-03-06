@@ -48,7 +48,7 @@ public sealed class PipelineFactoryTests
         llmFactory.Setup(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                   .Returns(MakeLlm().Object);
 
-        var factory = new PipelineFactory(profiles, sttFactory.Object, llmFactory.Object, injector);
+        var factory = new PipelineFactory(profiles, sttFactory.Object, llmFactory.Object, injector, sm);
         return (factory, sttFactory, llmFactory);
     }
 
@@ -201,7 +201,7 @@ public sealed class PipelineFactoryTests
         llmFactory.Setup(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                   .Returns(MakeLlm().Object);
 
-        var factory = new PipelineFactory(profiles, sttFactory.Object, llmFactory.Object, new TextInjector());
+        var factory = new PipelineFactory(profiles, sttFactory.Object, llmFactory.Object, new TextInjector(), sm);
 
         await profiles.SwitchProfileAsync(1);
         factory.CreateDictationPipeline();

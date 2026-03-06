@@ -1,4 +1,5 @@
 
+using System.Security;
 using DiktaMe.Core.Data;
 using Xunit;
 
@@ -11,7 +12,10 @@ public sealed class NoteWriterTests : IDisposable
 
     public NoteWriterTests()
     {
-        _testDir = Path.Combine(Path.GetTempPath(), $"diktame_notes_{Guid.NewGuid()}");
+        // Use Documents subfolder — NoteWriter validates paths are within Documents or AppData\DiktaMe
+        _testDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            $"diktame_notes_test_{Guid.NewGuid()}");
         _testFile = Path.Combine(_testDir, "notes.md");
     }
 
@@ -126,5 +130,60 @@ public sealed class NoteWriterTests : IDisposable
         // Already-cancelled token should throw OperationCanceledException
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => NoteWriter.AppendAsync(_testFile, "should not write", cancellationToken: cts.Token));
+    }
+
+    // ── Path traversal validation ────────────────────────────────────────────
+
+    [Fact]
+    public void ValidateFilePath_DocumentsPath_Succeeds()
+    {
+        string docsPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            "notes", "test.md");
+
+        // Should not throw
+        NoteWriter.ValidateFilePath(docsPath);
+    }
+
+    [Fact]
+    public void ValidateFilePath_AppDataPath_Succeeds()
+    {
+        string appDataPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "DiktaMe", "notes", "test.md");
+
+        // Should not throw
+        NoteWriter.ValidateFilePath(appDataPath);
+    }
+
+    [Fact]
+    public void ValidateFilePath_PathTraversal_ThrowsSecurityException()
+    {
+        Assert.Throws<SecurityException>(
+            () => NoteWriter.ValidateFilePath(@"C:\Windows\System32\evil.txt"));
+    }
+
+    [Fact]
+    public void ValidateFilePath_DotDotTraversal_ThrowsSecurityException()
+    {
+        string docsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string traversal = Path.Combine(docsPath, "..", "..", "Windows", "evil.txt");
+
+        Assert.Throws<SecurityException>(
+            () => NoteWriter.ValidateFilePath(traversal));
+    }
+
+    [Fact]
+    public void ValidateFilePath_UncPath_ThrowsSecurityException()
+    {
+        Assert.Throws<SecurityException>(
+            () => NoteWriter.ValidateFilePath(@"\\server\share\evil.txt"));
+    }
+
+    [Fact]
+    public async Task AppendAsync_PathTraversal_ThrowsSecurityException()
+    {
+        await Assert.ThrowsAsync<SecurityException>(
+            () => NoteWriter.AppendAsync(@"C:\Windows\System32\evil.txt", "malicious content"));
     }
 }

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
+using DiktaMe.Core.Security;
 using DiktaMe.Core.STT;
 using Serilog;
 
@@ -26,6 +27,7 @@ public sealed class RefinePipeline
     private readonly ILLMProvider _llm;
     private readonly TextInjector _injector;
     private readonly SnippetManager? _snippets;
+    private readonly SettingsManager _settings;
 
     /// <summary>Raised when the pipeline transitions to a new stage.</summary>
     public event EventHandler<PipelineState>? StateChanged;
@@ -35,6 +37,7 @@ public sealed class RefinePipeline
 
     /// <param name="llm">LLM provider or router.</param>
     /// <param name="injector">Text injector.</param>
+    /// <param name="settings">Settings manager for privacy-aware logging.</param>
     /// <param name="stt">
     /// STT provider for instruction mode.
     /// Pass null to use autopilot mode (no audio recording step).
@@ -42,11 +45,13 @@ public sealed class RefinePipeline
     public RefinePipeline(
         ILLMProvider llm,
         TextInjector injector,
+        SettingsManager settings,
         ISTTProvider? stt = null,
         SnippetManager? snippets = null)
     {
         _llm = llm;
         _injector = injector;
+        _settings = settings;
         _stt = stt;
         _snippets = snippets;
     }
@@ -101,7 +106,7 @@ public sealed class RefinePipeline
                 }
 
                 instruction = sttResult.Text;
-                Log.Information("RefinePipeline: instruction = '{Instruction}'", instruction);
+                LogUserText("RefinePipeline: instruction", instruction);
             }
 
             // ── Stage 2: Capture selection ────────────────────────────────
@@ -257,4 +262,37 @@ public sealed class RefinePipeline
     }
 
     private void SetState(PipelineState state) => StateChanged?.Invoke(this, state);
+
+    /// <summary>
+    /// Logs user text respecting privacy settings:
+    /// - Ghost: No logging
+    /// - Stats: No text logging (metrics only)
+    /// - Balanced: Log with PII scrubbing (if enabled)
+    /// - Full: Log verbatim
+    /// </summary>
+    private void LogUserText(string prefix, string text)
+    {
+        var level = _settings.Current.Privacy.Level;
+
+        if (level == PrivacyLevel.Ghost || level == PrivacyLevel.Stats)
+        {
+            // Ghost and Stats: don't log user text
+            return;
+        }
+
+        string loggedText = text;
+
+        if (level == PrivacyLevel.Balanced && _settings.Current.Privacy.PiiScrubEnabled)
+        {
+            // Balanced with PII scrubbing enabled: scrub before logging
+            if (PIIScrubber.ContainsPII(text))
+            {
+                Log.Warning("{Prefix}: contains PII (scrubbed in log)", prefix);
+            }
+            loggedText = PIIScrubber.Scrub(text);
+        }
+
+        // Full level or Balanced with scrubbing disabled: log as-is
+        Log.Information("{Prefix} = '{Text}'", prefix, loggedText);
+    }
 }

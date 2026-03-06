@@ -1,4 +1,5 @@
 
+using DiktaMe.Core.Config;
 using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
@@ -73,6 +74,22 @@ public sealed class PipelineTests
         m.Setup(l => l.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
          .ReturnsAsync(new LlmResult { Text = text, Provider = "MockLLM" });
         return m;
+    }
+
+    private static SettingsManager MockSettings(PrivacyLevel level = PrivacyLevel.Full, bool piiScrubEnabled = false)
+    {
+        string tempPath = Path.Combine(Path.GetTempPath(), $"diktame_pipeline_test_{Guid.NewGuid()}.json");
+        var settings = new SettingsManager(tempPath);
+        var updated = settings.Current with
+        {
+            Privacy = settings.Current.Privacy with
+            {
+                Level = level,
+                PiiScrubEnabled = piiScrubEnabled,
+            }
+        };
+        settings.UpdateAsync(updated).Wait();
+        return settings;
     }
 
     private static Mock<ILLMProvider> EmptyLlm()
@@ -261,7 +278,7 @@ public sealed class PipelineTests
     [Fact]
     public async Task Ask_FullFlow_ReturnsAnswer()
     {
-        var pipeline = new AskPipeline(OkStt("what is AI?").Object, OkLlm("AI is cool").Object);
+        var pipeline = new AskPipeline(OkStt("what is AI?").Object, OkLlm("AI is cool").Object, MockSettings());
         var opts = new AskOptions { SystemPrompt = "Answer questions.", Language = "en", RecordingDurationMs = 2000 };
 
         var result = await pipeline.RunAsync("audio.wav", opts);
@@ -277,7 +294,7 @@ public sealed class PipelineTests
     [Fact]
     public async Task Ask_EmptyTranscription_ReturnsFailure()
     {
-        var pipeline = new AskPipeline(EmptyStt().Object, OkLlm().Object);
+        var pipeline = new AskPipeline(EmptyStt().Object, OkLlm().Object, MockSettings());
         var opts = new AskOptions { SystemPrompt = "Answer." };
 
         var result = await pipeline.RunAsync("audio.wav", opts);
@@ -289,7 +306,7 @@ public sealed class PipelineTests
     [Fact]
     public async Task Ask_LlmReturnsEmpty_ReturnsFailure()
     {
-        var pipeline = new AskPipeline(OkStt().Object, EmptyLlm().Object);
+        var pipeline = new AskPipeline(OkStt().Object, EmptyLlm().Object, MockSettings());
         var opts = new AskOptions { SystemPrompt = "Answer." };
 
         var result = await pipeline.RunAsync("audio.wav", opts);
@@ -300,7 +317,7 @@ public sealed class PipelineTests
     [Fact]
     public async Task Ask_SttThrows_ReturnsFailure()
     {
-        var pipeline = new AskPipeline(ThrowingStt().Object, OkLlm().Object);
+        var pipeline = new AskPipeline(ThrowingStt().Object, OkLlm().Object, MockSettings());
         var opts = new AskOptions { SystemPrompt = "Answer." };
 
         var result = await pipeline.RunAsync("audio.wav", opts);
@@ -434,7 +451,7 @@ public sealed class PipelineTests
     public async Task Refine_Autopilot_NoSelection_ReturnsFailure()
     {
         // NullInputSimulator returns empty string from Ctrl+C — so CaptureSelection returns null
-        var pipeline = new RefinePipeline(OkLlm().Object, NullInjector(), stt: null);
+        var pipeline = new RefinePipeline(OkLlm().Object, NullInjector(), MockSettings(), stt: null);
         var opts = new RefineOptions { SystemPrompt = "Clean this." };
 
         var result = await pipeline.RunAsync(null, opts);

@@ -169,6 +169,15 @@ public partial class App : Application
     {
         try
         {
+            // Rate limiting: ignore deeplinks within 2 seconds of the last one
+            var now = DateTime.UtcNow;
+            if ((now - _lastDeepLinkTime).TotalMilliseconds < DeepLinkCooldownMs)
+            {
+                Log.Warning("App: ignoring deeplink — rate limited");
+                return;
+            }
+            _lastDeepLinkTime = now;
+
             var parsed = new Uri(uri);
             if (!string.Equals(parsed.Host, "auth", StringComparison.OrdinalIgnoreCase))
             {
@@ -184,6 +193,12 @@ public partial class App : Application
                 return;
             }
 
+            if (!IsValidJwtFormat(token))
+            {
+                Log.Warning("App: deeplink token has invalid JWT format");
+                return;
+            }
+
             Log.Information("App: processing auth deeplink");
             var accountService = Services.GetRequiredService<IAccountService>();
             await accountService.HandleAuthCallbackAsync(token).ConfigureAwait(false);
@@ -196,6 +211,53 @@ public partial class App : Application
         {
             Log.Error(ex, "App: error handling deeplink");
         }
+    }
+
+    private DateTime _lastDeepLinkTime = DateTime.MinValue;
+    private const int DeepLinkCooldownMs = 2000;
+
+    /// <summary>
+    /// Validates that a token has valid JWT structure (3 base64url-encoded segments).
+    /// Does NOT verify the cryptographic signature — that's the server's responsibility.
+    /// </summary>
+    internal static bool IsValidJwtFormat(string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return false;
+        }
+
+        // JWTs must be within a reasonable length range
+        if (token.Length < 50 || token.Length > 4096)
+        {
+            return false;
+        }
+
+        // JWTs have exactly 3 segments separated by dots
+        string[] parts = token.Split('.');
+        if (parts.Length != 3)
+        {
+            return false;
+        }
+
+        // Each segment must be non-empty and contain only base64url characters
+        foreach (string part in parts)
+        {
+            if (part.Length == 0)
+            {
+                return false;
+            }
+
+            foreach (char c in part)
+            {
+                if (!char.IsLetterOrDigit(c) && c != '-' && c != '_' && c != '=')
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -315,11 +377,13 @@ public partial class App : Application
         services.AddTransient<RefinePipeline>(sp => new RefinePipeline(
             llm: sp.GetRequiredService<ILLMProvider>(),
             injector: sp.GetRequiredService<TextInjector>(),
+            settings: sp.GetRequiredService<SettingsManager>(),
             stt: sp.GetRequiredService<ISTTProvider>()));
 
         services.AddTransient<AskPipeline>(sp => new AskPipeline(
             stt: sp.GetRequiredService<ISTTProvider>(),
-            llm: sp.GetRequiredService<ILLMProvider>()));
+            llm: sp.GetRequiredService<ILLMProvider>(),
+            settings: sp.GetRequiredService<SettingsManager>()));
 
         services.AddTransient<TranslatePipeline>(sp => new TranslatePipeline(
             stt: sp.GetRequiredService<ISTTProvider>(),
@@ -332,6 +396,7 @@ public partial class App : Application
 
         services.AddTransient<ChatPipeline>(sp => new ChatPipeline(
             llm: sp.GetRequiredService<ILLMProvider>(),
+            settings: sp.GetRequiredService<SettingsManager>(),
             stt: sp.GetRequiredService<ISTTProvider>()));
 
         // ── Config & Security (E.1 / E.3 / J.2) ─────────────────────────────

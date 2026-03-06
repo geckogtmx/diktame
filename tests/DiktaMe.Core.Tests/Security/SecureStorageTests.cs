@@ -4,107 +4,146 @@ using Xunit;
 
 namespace DiktaMe.Core.Tests.Security;
 /// <summary>
-/// Tests for <see cref="SecureStorage"/> using a temp file to avoid touching
-/// the real %APPDATA%\DiktaMe\keys.dat.
-/// Uses reflection to override the static KeysFilePath via a derived approach,
-/// or — more practically — we test via the public API with the real path
-/// under a unique temp sub-path per test run.
+/// Tests for <see cref="SecureStorage"/> using an isolated temp file
+/// so we never touch the real %APPDATA%\DiktaMe\keys.dat.
 /// </summary>
 [Collection("SecureStorage")]
-[Trait("Category", "Integration")]
 public sealed class SecureStorageTests : IDisposable
 {
-    // Use a test-specific file so we don't clobber the real keys.dat
-    private readonly string _originalDir;
     private readonly string _testDir;
+    private readonly string _testKeysFile;
 
     public SecureStorageTests()
     {
         _testDir = Path.Combine(Path.GetTempPath(), "DiktaMeTests_" + Guid.NewGuid());
         Directory.CreateDirectory(_testDir);
-
-        // Redirect SecureStorage to use our temp dir by temporarily
-        // overwriting the environment variable (not ideal — see note below).
-        // Since KeysFilePath is a static readonly computed from APPDATA,
-        // we test via a subclass/adapter. For simplicity here we just
-        // exercise the real instance (which writes to APPDATA/DiktaMe/keys.dat)
-        // and clean up after. CI machines have isolated home dirs per run.
-        _originalDir = string.Empty; // no override needed — see note
+        _testKeysFile = Path.Combine(_testDir, "keys.dat");
     }
+
+    /// <summary>Creates a SecureStorage that reads/writes to our temp file, not the real one.</summary>
+    private SecureStorage CreateIsolatedStorage() => new(_testKeysFile);
+
+    // ── Core CRUD ──────────────────────────────────────────────────────────────
 
     [Fact]
     public void StoreAndRetrieve_RoundTrip()
     {
-        var storage = new SecureStorage();
-        const string Provider = "test_roundtrip_" + nameof(StoreAndRetrieve_RoundTrip);
-        const string Key = "my-test-api-key-value";
-
-        try
-        {
-            storage.StoreKey(Provider, Key);
-            string? retrieved = storage.RetrieveKey(Provider);
-            Assert.Equal(Key, retrieved);
-        }
-        finally
-        {
-            storage.DeleteKey(Provider);
-        }
+        var storage = CreateIsolatedStorage();
+        storage.StoreKey("openai", "my-test-api-key-value");
+        Assert.Equal("my-test-api-key-value", storage.RetrieveKey("openai"));
     }
 
     [Fact]
     public void RetrieveKey_ReturnsNull_WhenNotStored()
     {
-        var storage = new SecureStorage();
-        string? result = storage.RetrieveKey("nonexistent_provider_" + Guid.NewGuid());
-        Assert.Null(result);
+        var storage = CreateIsolatedStorage();
+        Assert.Null(storage.RetrieveKey("openai"));
     }
 
     [Fact]
     public void DeleteKey_RemovesKey()
     {
-        var storage = new SecureStorage();
-        const string Provider = "test_delete_" + nameof(DeleteKey_RemovesKey);
-        const string Key = "key-to-delete";
-
-        storage.StoreKey(Provider, Key);
-        storage.DeleteKey(Provider);
-        Assert.Null(storage.RetrieveKey(Provider));
+        var storage = CreateIsolatedStorage();
+        storage.StoreKey("anthropic", "key-to-delete");
+        storage.DeleteKey("anthropic");
+        Assert.Null(storage.RetrieveKey("anthropic"));
     }
 
     [Fact]
     public void ListProviders_IncludesStoredProvider()
     {
-        var storage = new SecureStorage();
-        string provider = "test_list_" + Guid.NewGuid();
-
-        try
-        {
-            storage.StoreKey(provider, "some-key-value");
-            var providers = storage.ListProviders();
-            Assert.Contains(provider, providers, StringComparer.OrdinalIgnoreCase);
-        }
-        finally
-        {
-            storage.DeleteKey(provider);
-        }
+        var storage = CreateIsolatedStorage();
+        storage.StoreKey("deepgram", "some-key-value");
+        var providers = storage.ListProviders();
+        Assert.Contains("deepgram", providers, StringComparer.OrdinalIgnoreCase);
     }
 
     [Fact]
     public void StoreKey_Overwrites_ExistingKey()
     {
-        var storage = new SecureStorage();
-        const string Provider = "test_overwrite_" + nameof(StoreKey_Overwrites_ExistingKey);
+        var storage = CreateIsolatedStorage();
+        storage.StoreKey("gemini", "first-key");
+        storage.StoreKey("gemini", "second-key");
+        Assert.Equal("second-key", storage.RetrieveKey("gemini"));
+    }
 
-        try
-        {
-            storage.StoreKey(Provider, "first-key");
-            storage.StoreKey(Provider, "second-key");
-            Assert.Equal("second-key", storage.RetrieveKey(Provider));
-        }
-        finally
-        {
-            storage.DeleteKey(Provider);
-        }
+    [Fact]
+    public void WipeAll_RemovesAllKeys()
+    {
+        var storage = CreateIsolatedStorage();
+        storage.StoreKey("openai", "key1");
+        storage.StoreKey("deepgram", "key2");
+        storage.WipeAll();
+        Assert.Empty(storage.ListProviders());
+    }
+
+    // ── Provider name validation ─────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("openai")]
+    [InlineData("deepgram")]
+    [InlineData("gemini")]
+    [InlineData("anthropic")]
+    [InlineData("openrouter")]
+    [InlineData("trial_token")]
+    public void StoreKey_ValidProvider_Succeeds(string provider)
+    {
+        var storage = CreateIsolatedStorage();
+        // Should not throw
+        storage.StoreKey(provider, "test-key-value-12345");
+        Assert.NotNull(storage.RetrieveKey(provider));
+    }
+
+    [Theory]
+    [InlineData("OpenAI")]
+    [InlineData("DEEPGRAM")]
+    [InlineData("Gemini")]
+    public void StoreKey_ValidProvider_CaseInsensitive(string provider)
+    {
+        var storage = CreateIsolatedStorage();
+        // Should not throw — case-insensitive matching
+        storage.StoreKey(provider, "test-key-value-12345");
+        Assert.NotNull(storage.RetrieveKey(provider));
+    }
+
+    [Theory]
+    [InlineData("invalid_provider")]
+    [InlineData("azure")]
+    [InlineData("aws")]
+    public void StoreKey_InvalidProvider_ThrowsArgumentException(string provider)
+    {
+        var storage = CreateIsolatedStorage();
+        Assert.Throws<ArgumentException>(() => storage.StoreKey(provider, "key"));
+    }
+
+    [Fact]
+    public void RetrieveKey_UnknownProvider_ReturnsNull()
+    {
+        // RetrieveKey does NOT validate — factories call it speculatively
+        var storage = CreateIsolatedStorage();
+        Assert.Null(storage.RetrieveKey("unknown_provider"));
+    }
+
+    [Fact]
+    public void DeleteKey_UnknownProvider_DoesNotThrow()
+    {
+        // DeleteKey does NOT validate — allows cleanup of any provider
+        var storage = CreateIsolatedStorage();
+        storage.DeleteKey("unknown_provider"); // should be no-op, no exception
+    }
+
+    // ── Isolation sanity check ──────────────────────────────────────────────
+
+    [Fact]
+    public void IsolatedStorage_DoesNotTouchDefaultFile()
+    {
+        // Verify we're writing to the temp file, not the default path
+        var storage = CreateIsolatedStorage();
+        storage.StoreKey("openai", "isolation-test-key");
+
+        Assert.True(File.Exists(_testKeysFile), "Should write to temp file");
+        // The default file should not have been modified by this test
+        // (we can't assert it wasn't touched, but we can verify our file exists)
     }
 
     public void Dispose()
