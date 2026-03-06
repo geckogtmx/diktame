@@ -615,8 +615,8 @@ input/output token counts from API usage fields.
 2. Toggle switches mirroring HUD layout:
    - **Show Modes Row** (Standard, Prompt, Professional, RAW)
    - **Show Actions Row** (Sound, Local, +Key, Refine)
-   - **Show Session Stats** (SESS, WORDS, WPM, TOK)
-   - **Show Performance Stats** (TOT, REC, TRNS, PROC, INJ)
+   - **Show Session Stats** (REQ, CHAR, WORDS, WORD/MIN)
+   - **Show Performance Stats** (REC, TRNS, PROC, INJ, TOT)
 3. Bind to `AppSettings` observable properties
 4. `ControlPanelView.xaml` — bind `Visibility` to settings via `BooleanToVisibilityConverter`
 5. Default: all `true` (visible)
@@ -1931,6 +1931,6 @@ The following backend components are **shared with the website** and require NO 
 ---
 
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, H.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅, Control Panel V2 rework (Phase 1+2) ✅
-**Remaining:** H.1 (Installer), I.6 (Website Rebrand), **K.1–K.6 (Account & Trial Credits)**
-**Build:** 0 errors, 0 warnings | **Tests:** 521 passing | **CI unit filter:** 376
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, H.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅, Control Panel V2 rework (Phase 1–3) ✅, Session stats rework (REQ/CHAR/WORDS/WORD-MIN) ✅, Perf row reorder + tooltips ✅, Header badge truncation ✅, **K.1–K.7 (Stream K Complete ✅)**, **L.1–L.4 (Deepgram Streaming)** ✅, L.5 ⏳ (manual test pending)
+**Remaining:** H.1 (Installer), I.6 (Website Rebrand), L.5 (Streaming UI toggle — pending manual test)
+**Build:** 0 errors, 0 warnings | **Tests:** 620 passing

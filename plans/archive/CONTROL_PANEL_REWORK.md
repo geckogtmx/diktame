@@ -1,6 +1,6 @@
 # Control Panel V2 Rework — Implementation Plan
 
-> **Status**: Phase 2 complete. Phase 3 planned (3 tasks: refine wiring, state propagation, stale text).
+> **Status**: Complete (Phase 1–4). All tasks implemented, committed, and pushed.
 
 ## Context
 
@@ -21,13 +21,13 @@ V1 (400x265px, frameless Electron)         V2 Target (520x380px, WinUI 3 with ti
 -------------------------------------      -------------------------------------
  (o)SOUND  (o)LOCAL  (o)+KEY  (o)REFINE     (o)SOUND (o)LOCAL (o)+KEY (o)RAW (o)REFINE
 -------------------------------------      -------------------------------------
-   0    |    0    |   --   |    0            0    |    0    |   --   |    0
-  SESS  |  WORDS  |  WPM   |   TOK         SESS  |  WORDS  |  WPM   |   TOK
+   0    |    0    |   --   |    0            0    |    0    |    0   |   --
+  SESS  |  WORDS  |  WPM   |   TOK         REQ  |  CHAR  | WORDS  | WORD/MIN
 -------------------------------------      -------------------------------------
   --  |  --  |   --   |   --   |   --       --  |  --  |   --   |   --   |   --
-  TOT |  REC |  TRNS  |  PROC  |  INJ      TOT |  REC |  TRNS  |  PROC  |  INJ
+  TOT |  REC |  TRNS  |  PROC  |  INJ      REC | TRNS |  PROC  |  INJ   |  TOT
 -------------------------------------      -------------------------------------
- Hotkeys: [Ctrl+Alt+D] [R] [A] [N] [T]    Hotkeys: [Ctrl+Alt+D] [R] [A] [N] [T]
+ Hotkeys: [Ctrl+Alt+D] [R] [A] [N] [T]             dIKta.me V2.0
 ```
 
 **Key differences from V1**:
@@ -38,7 +38,7 @@ V1 (400x265px, frameless Electron)         V2 Target (520x380px, WinUI 3 with ti
 
 ---
 
-## Completed Changes (Phase 1 + Phase 2)
+## Completed Changes (Phase 1–4)
 
 ### Files Modified
 
@@ -47,7 +47,7 @@ V1 (400x265px, frameless Electron)         V2 Target (520x380px, WinUI 3 with ti
 | 1 | `src/DiktaMe.App/Views/ControlPanelPage.xaml` | DONE | Complete XAML rewrite — 6 rows, V1 color palette, grid-based metric cells, footer |
 | 2 | `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs` | DONE | Auth badge, IsCloudMode→IsLocalMode rename+wiring, +KEY fix, RAW toggle, RefineVoice toggle, formatted perf strings (FormatMs), label properties, hotkey properties, DictationModeItem with Subtitle/BackgroundHex/ForegroundHex |
 | 3 | `src/DiktaMe.App/MainWindow.xaml.cs` | DONE | Window 369×274, custom title bar (ExtendsContentIntoTitleBar + OverlappedPresenter, no caption buttons), SetTitleBar on Loaded |
-| 4 | `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` | DONE | Added `OnPipelineStateChanged(this, PipelineState.Transcribing)` to all 5 pipeline methods |
+| 4 | `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` | DONE | Refine toggle wiring (Auto/Voice), `pipeline.StateChanged += _controlPanel.OnPipelineStateChanged` in all batch+streaming methods |
 | 5 | `src/DiktaMe.App/App.xaml.cs` | DONE | Added `HideMainWindow()` method for tray-hide on close |
 
 ### What Changed in Detail
@@ -68,12 +68,12 @@ V1 (400x265px, frameless Electron)         V2 Target (520x380px, WinUI 3 with ti
 #### ControlPanelPage.xaml
 - **Color palette**: V1 CSS values (`#002029` ink-black, `#00303d` jet-black, `#004052` dark-teal, etc.)
 - **Layout**: 6-row Grid with Padding="0", 1px border separators
-- **Row 0 (Header)**: 10x10 status dot (color-bound via StateToColor), 14pt status text, 3 badges (STT/LLM/Auth), gear button
+- **Row 0 (Header)**: 10x10 status dot (color-bound via StateToColor), 14pt status text, 3 badges (STT/LLM/Auth) with MaxWidth=90 truncation + tooltips, gear + close buttons
 - **Row 1 (Presets)**: ItemsRepeater with UniformGridLayout 4-col, preset buttons with title+subtitle, active state via pre-computed colors
 - **Row 2 (Toggles)**: 5-column Grid — SOUND, LOCAL, +KEY, RAW, REFINE — all ToggleSwitch with dynamic labels
-- **Row 3 (Session)**: 4-column metric grid (1px dividers via background color trick) — SESS, WORDS, WPM, TOK
-- **Row 4 (Perf)**: 5-column metric grid — TOT, REC, TRNS, PROC, INJ — Consolas font, green (#7aff9e)
-- **Row 5 (Footer)**: Hotkey tags with border styling
+- **Row 3 (Session)**: 4-column metric grid (1px dividers via background color trick) — REQ, CHAR, WORDS, WORD/MIN — with tooltips
+- **Row 4 (Perf)**: 5-column metric grid — REC, TRNS, PROC, INJ, TOT (pipeline flow order) — Consolas font, green (#7aff9e) — with tooltips. TOT = pipeline-only latency (excludes recording)
+- **Row 5 (Footer)**: Centered `"dIKta.me V2.0"` branding text
 
 #### LoadingViewModel.cs
 - Added `_controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing)` after audio recording completes in all 5 pipeline methods (Dictate, Refine, Ask, Translate, Note)
@@ -102,52 +102,35 @@ V1 (400x265px, frameless Electron)         V2 Target (520x380px, WinUI 3 with ti
 
 ---
 
-## Phase 3 — Remaining Work
+## Phase 3 — Refine Wiring, State Propagation, Bug Fixes ✅
 
-### Task 1: REFINE toggle → pipeline wiring
+All 3 tasks completed (commit `684cfb6`):
 
-**Problem:** `LoadingViewModel.RunRefinePipelineAsync()` (line ~564) always calls `_pipelines.GetActiveProfile("refine_instruction")`. The `ControlPanelViewModel.RefineMode` toggle (Auto/Voice) is not read — refine always uses the voice/instruction profile.
+1. **REFINE toggle → pipeline wiring** — `LoadingViewModel` reads `_controlPanel.RefineMode` to pick `refine_auto` vs `refine_instruction` profile. Auto mode skips audio recording.
+2. **Pipeline state propagation** — `pipeline.StateChanged += _controlPanel.OnPipelineStateChanged` wired in all 7 batch+streaming methods. Manual Transcribing calls removed.
+3. **Stale description text** — `ControlPanelConfigPage.xaml` updated to match current row contents.
 
-**Fix:** In `LoadingViewModel.RunRefinePipelineAsync()`, read `_controlPanel.RefineMode` to pick the profile:
-```csharp
-string pipelineType = _controlPanel.RefineMode == RefineMode.Auto
-    ? "refine_auto"
-    : "refine_instruction";
-UtilityProfile profile = _pipelines.GetActiveProfile(pipelineType);
-```
-
-When `RefineMode.Auto`, refine should skip audio recording entirely — grab selected text, apply the auto-refine prompt via LLM, and inject the result. When `RefineMode.Voice`, current behavior (record audio instruction → refine).
-
-**File:** `src/DiktaMe.App/ViewModels/LoadingViewModel.cs`
+Also fixed: RefineMode persisted to settings, stale text after cancel, silent toast notifications.
 
 ---
 
-### Task 2: Pipeline state propagation for batch flows
+## Phase 4 — Telemetry Rework + Badge Truncation ✅
 
-**Problem:** All batch pipelines expose `StateChanged` and fire Processing/Injecting internally. But `LoadingViewModel` only manually fires `Transcribing` — never wires the pipeline's `StateChanged` to ControlPanel. Status dot skips THINKING/TYPING for batch flows. (Streaming already works via `streamingPipeline.StateChanged += _controlPanel.OnPipelineStateChanged`.)
+Completed across commits `849e782`, `c32af04`, `8db3491`:
 
-**Fix:** In each of the 5 batch `Run*PipelineAsync` methods, subscribe before `RunAsync`:
-```csharp
-pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
-```
+1. **Session stats rework** — Renamed SESS→REQ, removed TOK (fake `words×1.3`), added CHAR (`Text.Length`), fixed WPM to wall-clock calculation (`words / minutesSinceFirstRequest`). Final order: REQ > CHAR > WORDS > WORD/MIN.
+2. **Perf row reorder** — Reordered to pipeline flow: REC > TRNS > PROC > INJ > TOT.
+3. **Tooltips** — All 9 telemetry cells have `ToolTipService.ToolTip` descriptions.
+4. **TOT pipeline-only** — `TotalMs = total.ElapsedMilliseconds` (excludes recording). Tooltip: "Pipeline latency (excludes recording)".
+5. **Header badge truncation** — STT/LLM badges: `MaxWidth="90"` + `TextTrimming="CharacterEllipsis"` + tooltip showing full provider name. Auth badge: static tooltip "Authentication mode".
 
-Remove the manual `_controlPanel.OnPipelineStateChanged(this, PipelineState.Transcribing)` calls — the pipeline will fire this itself.
-
-**File:** `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` — 5 methods
-
----
-
-### Task 3: Fix stale description text in ControlPanelConfigPage
-
-**Problem:** Two description TextBlocks are outdated:
-- Line 13: `"Standard, Prompt, Professional, RAW mode buttons"` → modes are now user-created presets
-- Line 19: `"Sound, Cloud, +Key quick toggles"` → actions row has 5 toggles now
-
-**Fix:**
-- Line 13 → `"Dictation mode preset buttons"`
-- Line 19 → `"Sound, Local, +Key, Raw, Refine quick toggles"`
-
-**File:** `src/DiktaMe.App/Views/Settings/ControlPanelConfigPage.xaml`
+### Files modified in Phase 4
+- `ControlPanelPage.xaml` — session row, perf row, tooltips, badge truncation
+- `ControlPanelViewModel.cs` — `RequestCount`, `CharCount`, removed `TokenCount`, wall-clock WPM
+- `MetricsCollector.cs` — `_sessionChars`, `_firstRequestTime`, `SessionStats` record extended
+- `PipelineResult.cs` — added `CharCount` computed property
+- `ControlPanelConfigPage.xaml` — updated description text
+- 5 pipeline files — reverted `TotalMs` to pipeline-only
 
 ---
 
@@ -160,21 +143,21 @@ Remove the manual `_controlPanel.OnPipelineStateChanged(this, PipelineState.Tran
 ## Telemetry Fields Reference
 
 ### Session Stats (Row 3, 4 columns)
-| Label | Property | Source | Format |
-|---|---|---|---|
-| SESS | `SessionCount` | `MetricsCollector.GetSessionStats().Sessions` | Integer |
-| WORDS | `WordCount` | `MetricsCollector.GetSessionStats().Words` | Integer |
-| WPM | `WordsPerMinuteFormatted` | `Words / (AverageLatencyMs / 60000)` | Integer or "--" |
-| TOK | `TokenCount` | `Words * 1.3` (rough LLM token estimate) | Integer |
+| Label | Property | Source | Tooltip | Format |
+|---|---|---|---|---|
+| REQ | `RequestCount` | `SessionStats.Sessions` | "Requests this session" | Integer |
+| CHAR | `CharCount` | `SessionStats.Chars` | "Characters produced" | Integer |
+| WORDS | `WordCount` | `SessionStats.Words` | "Words produced" | Integer |
+| WORD/MIN | `WordsPerMinuteFormatted` | `Words / MinutesSinceFirstRequest` | "Words per minute since first request" | Integer or "--" |
 
-### Performance Stats (Row 4, 5 columns)
-| Label | Property | Source | Format |
-|---|---|---|---|
-| TOT | `LastTotalFormatted` | `PipelineResult.TotalMs` | `0.50s` / `12.5s` / "--" |
-| REC | `LastRecordingFormatted` | `PipelineResult.RecordingMs` | Same format |
-| TRNS | `LastTranscriptionFormatted` | `PipelineResult.TranscriptionMs` | Same format |
-| PROC | `LastProcessingFormatted` | `PipelineResult.ProcessingMs` | Same format |
-| INJ | `LastInjectionFormatted` | `PipelineResult.InjectionMs` | Same format |
+### Performance Stats (Row 4, 5 columns — pipeline flow order)
+| Label | Property | Source | Tooltip | Format |
+|---|---|---|---|---|
+| REC | `LastRecordingFormatted` | `PipelineResult.RecordingMs` | "Recording duration" | `0.50s` / `12.5s` / "--" |
+| TRNS | `LastTranscriptionFormatted` | `PipelineResult.TranscriptionMs` | "Transcription latency" | Same format |
+| PROC | `LastProcessingFormatted` | `PipelineResult.ProcessingMs` | "LLM processing latency" | Same format |
+| INJ | `LastInjectionFormatted` | `PipelineResult.InjectionMs` | "Text injection latency" | Same format |
+| TOT | `LastTotalFormatted` | `PipelineResult.TotalMs` (pipeline-only, excludes recording) | "Pipeline latency (excludes recording)" | Same format |
 
 All perf values in seconds. Under 10s = F2 (e.g. `0.50s`), 10s+ = F1 (e.g. `12.5s`). Default = "--".
 
