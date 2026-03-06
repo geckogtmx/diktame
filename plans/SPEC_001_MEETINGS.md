@@ -10,7 +10,9 @@
 
 ## 1. Executive Summary
 
-dIKta.me currently captures ephemeral voice input — you speak, it types, it forgets. The Meeting Intelligence module adds a **persistent session layer**: record a meeting, take rough notes, and let AI synthesize a polished artifact (minutes, action items, follow-up emails).
+dIKta.me currently captures ephemeral voice input — you speak, it types, it forgets. The Meeting Intelligence module adds a **persistent session layer**: record a meeting, type rough notes during it, and let AI synthesize a polished artifact (minutes, action items, follow-up emails).
+
+**The core value is in the intersection of notes and transcript.** The user's typed notes act as **intent signals** — they tell the AI which topics matter to this specific user. The AI then locates every moment in the full transcript where those topics were discussed, identifies who said what, what was agreed, what was contested, and synthesizes a structured output organized around what the user actually cared about. Neither the raw transcript nor the sparse notes are nearly as valuable in isolation — together, they produce a meeting artifact that reflects the user's priorities.
 
 This is the highest-value feature gap vs. the current competitive landscape. Granola ($14/mo) and Fellow ($7-25/mo) both target this space with cloud-dependent SaaS models. dIKta.me's angle: **local-first, privacy-respecting, no meeting bots, single-app experience** that also handles everyday dictation.
 
@@ -79,8 +81,8 @@ This is the highest-value feature gap vs. the current competitive landscape. Gra
 | Capability | Granola | Fellow | HyprNote | dIKta.me V2 | Opportunity |
 |------------|:-------:|:------:|:--------:|:-----------:|-------------|
 | System audio recording (no bot) | Yes | Yes | Yes | No | **HIGH** — must-have |
-| User notes during meeting | Yes | Yes | Yes | No | **HIGH** — core differentiator |
-| AI synthesis (transcript + notes) | Yes | Yes | Yes | No | **HIGH** — the "magic" |
+| User notes during meeting (typed) | Yes | Yes | Yes | Planned | **HIGH** — core differentiator |
+| AI synthesis (transcript + notes) | Yes | Yes | Yes | Planned | **HIGH** — the "magic" |
 | Post-meeting chat with transcript | Yes | Yes | No | No | **HIGH** — high user value |
 | Customizable output templates | Yes | Yes | No | No | **MEDIUM** — nice-to-have at launch |
 | Pre-meeting briefs | No | Yes | No | No | **LOW** — Fellow-unique, enterprise |
@@ -88,9 +90,9 @@ This is the highest-value feature gap vs. the current competitive landscape. Gra
 | Follow-up email generation | Yes | Yes | No | No | **MEDIUM** — quick win |
 | CRM sync (Salesforce, HubSpot) | Yes | Yes | No | No | **LOW** — enterprise, defer |
 | Task tool sync (Asana, Jira, etc.) | No | Yes | No | No | **LOW** — enterprise, defer |
-| MCP server (expose notes to AI tools) | Yes | Yes | No | No | **MEDIUM** — growing ecosystem |
+| MCP server (expose notes to AI tools) | Yes | Yes | No | Planned (local) | **MEDIUM** — local-first differentiator |
 | Multi-language transcription | Yes | Yes | No | Partial (STT) | **MEDIUM** — already have STT infra |
-| Speaker diarization | ? | Yes | No | No | **MEDIUM** — hard locally |
+| Speaker diarization | ? | Yes | No | Planned (Deepgram) | **MEDIUM** — Deepgram batch diarization |
 | Mobile app | Yes | Yes | No | No | **LOW** — defer (Windows-first) |
 | Local/offline processing | No | No | Yes | Partial (Ollama) | **HIGH** — our differentiator |
 | 500+ agenda templates | No | Yes | No | No | **LOW** — over-engineered for us |
@@ -105,7 +107,7 @@ This is the highest-value feature gap vs. the current competitive landscape. Gra
 | Existing Asset | Reuse For |
 |----------------|-----------|
 | `AudioRecorder` (NAudio) | Long-form session recording (needs disk-streaming mode) |
-| Cloud STT (Deepgram) | Meeting transcription (already supports streaming) |
+| Cloud STT (Deepgram) | Meeting transcription (batch mode with diarization) |
 | `LLMRouter` + all providers | Synthesis (Gemini, Anthropic, OpenAI, Ollama) |
 | `HistoryManager` (SQLite) | Session storage model |
 | `PromptRepository` | Template prompts for synthesis |
@@ -113,9 +115,6 @@ This is the highest-value feature gap vs. the current competitive landscape. Gra
 | WinUI 3 app shell | Scribe window (new page in existing app) |
 | `NotificationService` | "Meeting processed" toast |
 | `AudioDucker` | Auto-duck other apps during recording |
-| `NoteWriter` | Append timestamped entries to Markdown file — reuse for session artifacts |
-| `NotePipeline` | Voice → STT → optional LLM → text. Reuse as voice-note capture during sessions |
-| `NoteSettings` | File path, timestamp format, LLM toggle — extend for session export |
 
 ### What Makes Us Different
 
@@ -124,121 +123,28 @@ This is the highest-value feature gap vs. the current competitive landscape. Gra
 3. **No meeting bot** — System audio capture only. No "Fellow AI has joined" awkwardness.
 4. **Single app** — Dictation + Meeting Intelligence in one tool. Not two separate products.
 5. **Privacy-first** — PII scrubber, local processing, no telemetry. Already built (E.3).
-6. **Voice notes during meetings** — Neither Granola nor Fellow let you speak a quick note mid-meeting. We can, because we already have the Note hotkey infrastructure.
 
 ---
 
 ## 4. Feature Specification
 
-### 4.0 Notes Integration: The Bridge Between Quick Notes and Sessions
+### 4.0 Hotkey Behavior During Active Sessions
 
-The existing Notes feature (`Ctrl+Alt+N`) and the new Scribe sessions share a natural connection. Rather than building two isolated systems, they intertwine through a **session-aware routing model**:
+The existing Notes feature (`Ctrl+Alt+N`) and all other voice hotkeys remain **completely independent** from Scribe sessions. No changes are made to `NotePipeline`, `NoteWriter`, or `NoteOptions`.
 
-#### Two Modes, One Hotkey
+During an active Scribe session, the microphone is occupied by meeting recording (system audio + mic). Voice-based hotkeys are **silently disabled** — no toast, no error, the keypress is simply ignored:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Ctrl+Alt+N pressed                       │
-│                            │                                 │
-│                  Active Scribe session?                       │
-│                    /              \                           │
-│                  NO                YES                        │
-│                  │                  │                         │
-│          [Standalone Mode]   [Session Mode]                  │
-│          Same as today:      Voice note captured:            │
-│          STT → LLM format   STT → LLM format                │
-│          → append to         → append to session notepad     │
-│          diktame-notes.md    → tagged with timestamp offset  │
-│                              → also append to notes file     │
-│                                (configurable)                │
-└─────────────────────────────────────────────────────────────┘
-```
+| Hotkey | During Session | Reason |
+|--------|---------------|--------|
+| Dictate | Disabled | Uses mic |
+| Ask | Disabled | Uses mic |
+| Translate | Disabled | Uses mic |
+| Note | Disabled | Uses mic |
+| Refine (Voice mode) | Disabled | Uses mic |
+| Refine (Auto mode) | **Available** | No mic — reads selection, LLM cleanup, injects |
+| Chat | **Available (text-only)** | Quick Chat overlay opens, but mic button is disabled |
 
-**Standalone mode (no active session):** Identical to today. Hotkey → record voice → STT → optional LLM formatting → append to `diktame-notes.md`. Zero breaking changes.
-
-**Session mode (Scribe recording active):** The Note hotkey captures a voice note that is:
-1. Transcribed and formatted via the existing `NotePipeline`
-2. Injected into the active session's left pane (notepad) as a timestamped entry
-3. Stored in `Session.VoiceNotes` with the recording offset (e.g., "at 00:14:32")
-4. Optionally also appended to the flat notes file (user setting)
-
-#### Why Voice Notes Are a Differentiator
-
-Granola and Fellow both require typing during meetings. dIKta.me lets users **speak** a quick thought mid-meeting — hands-free note capture. This is especially valuable when:
-- User's hands are busy (presenting, coding, whiteboarding)
-- A key moment happens and user wants to "bookmark" it without breaking flow
-- User prefers voice input (the whole point of dIKta.me)
-
-Voice notes act as **weighted signals** in the synthesis step — they tell the AI "the user flagged this moment as important."
-
-#### Synthesis: Three Input Streams
-
-The LLM synthesis prompt receives three distinct input streams, each with a different role:
-
-```
-┌─────────────────────────────────────────────────┐
-│              LLM Synthesis Input                  │
-│                                                   │
-│  {{transcript}}     Full meeting transcript        │
-│                     (complete but noisy)           │
-│                                                   │
-│  {{typed_notes}}    User's typed notes from        │
-│                     the left pane (structured,     │
-│                     user-curated)                  │
-│                                                   │
-│  {{voice_notes}}    Voice notes captured via        │
-│                     Ctrl+Alt+N during session       │
-│                     (timestamped highlights —       │
-│                     treat as high-priority flags)  │
-│                                                   │
-│  {{template}}       Output structure template       │
-│                     (meeting minutes, interview,   │
-│                     etc.)                          │
-│                                                   │
-│              ↓                                     │
-│       Structured artifact (Markdown)              │
-└─────────────────────────────────────────────────┘
-```
-
-Example synthesis system prompt addition:
-```
-The user captured voice notes at specific moments during the meeting.
-These are high-priority observations — ensure the topics they reference
-are prominently covered in the output. Include the approximate timestamp
-when relevant.
-```
-
-#### Post-Session: Unified Notes File
-
-After a session completes, the user can optionally append the artifact summary to `diktame-notes.md`. This keeps the flat file as a **unified log** of both quick standalone notes and meeting summaries:
-
-```markdown
-## 2026-03-01 09:15
-Quick note: remember to update the API docs before release.
-
-## 2026-03-01 10:00 — Session: "Sprint Planning"
-### Summary
-Team agreed on Q3 priorities: auth system, meeting module, installer...
-### Action Items
-- [ ] Draft auth spec (Alice, by Mar 7)
-- [ ] Research Opus compression (Bob, by Mar 5)
-
-## 2026-03-01 14:30
-Quick note: the Opus NuGet package is Concentus.OggFile.
-```
-
-#### Implementation Changes to Existing Code
-
-| Component | Change | Effort |
-|-----------|--------|--------|
-| `NotePipeline` | Add session-awareness: check `SessionManager.ActiveSession`. If active, route output to session notepad instead of (or in addition to) flat file | Low |
-| `NoteWriter` | No changes — still a simple append utility. Sessions call it for flat-file export | None |
-| `NoteOptions` | Add `ActiveSessionId: Guid?` field. Pipeline checks this to decide routing | Low |
-| `LoadingViewModel` | Update `RunNotePipelineAsync()` to pass active session ID to pipeline | Low |
-| `Session` model | Add `VoiceNotes: List<TimestampedNote>` field | Low |
-| `SessionManager` | Add `ActiveSession` property, `AddVoiceNote()` method | Low |
-| Synthesis prompt | Include `{{voice_notes}}` section with timestamps and priority weighting | Low |
-| Settings | Add toggle: "Also append voice notes to notes file during sessions" (default: on) | Low |
+When the session ends, all hotkeys are re-enabled automatically.
 
 ### 4.1 The Session Model
 
@@ -252,20 +158,12 @@ Session {
     State: SessionState              // Recording | Processing | Complete | Failed
     AudioPath: string                // Relative path to .wav/.opus file
     TranscriptPath: string?          // Raw transcript JSON (timestamped segments)
-    UserNotesMarkdown: string        // User's typed notes (persisted live)
-    VoiceNotes: List<TimestampedNote> // Voice notes captured via Ctrl+Alt+N during session
+    UserNotesMarkdown: string        // User's typed notes (persisted live, auto-saved)
     ArtifactMarkdown: string?        // AI-synthesized output
     TemplateName: string             // "meeting_minutes" | "interview" | "lecture" | etc.
     Participants: List<string>?      // Optional, extracted from transcript or user input
     WordCount: int                   // Transcript word count (for trial usage tracking)
     ModelUsed: string?               // Which LLM performed synthesis
-}
-
-TimestampedNote {
-    CapturedAt: DateTimeOffset       // Wall-clock time
-    SessionOffset: TimeSpan          // Offset from session start (e.g., 00:14:32)
-    Text: string                     // Formatted voice note text
-    RawTranscript: string            // Original STT output (before LLM formatting)
 }
 ```
 
@@ -275,17 +173,17 @@ TimestampedNote {
 [1] User clicks "Start Session" (or hotkey)
     → Audio recording begins (system audio + mic)
     → Notepad opens for user to type during meeting
+    → Voice hotkeys silently disabled (mic occupied)
 
 [2] During meeting:
     → Audio streams to disk (not RAM)
-    → Optional: live transcription sidebar (Deepgram streaming)
-    → User types rough notes in left pane
-    → Ctrl+Alt+N captures voice notes → injected into notepad with timestamp
+    → User types rough notes in left pane (basic markdown)
 
 [3] User clicks "End Session"
     → Recording stops
+    → Voice hotkeys re-enabled
     → Background: full audio → STT transcription
-    → Background: LLM synthesis (transcript + typed notes + voice notes + template → artifact)
+    → Background: LLM synthesis (transcript + typed notes + template → artifact)
     → Toast notification: "Meeting processed — click to view"
 
 [4] Post-meeting:
@@ -295,7 +193,60 @@ TimestampedNote {
     → Future: share via integration
 ```
 
-### 4.3 The Scribe Window (New WinUI 3 Page)
+### 4.3 Synthesis Model: Notes as Intent Signals
+
+The core value of the Scribe module is not in the transcript or the notes separately — it's in the **intersection**. The user's typed notes act as intent signals that tell the AI which topics matter to this specific user.
+
+**Two input streams + template:**
+
+```
+┌─────────────────────────────────────────────────┐
+│              LLM Synthesis Input                  │
+│                                                   │
+│  {{transcript}}     Full meeting transcript        │
+│                     (complete, but noisy and       │
+│                     unfocused)                     │
+│                                                   │
+│  {{typed_notes}}    User's typed notes from        │
+│                     the left pane — these are      │
+│                     intent signals that tell the   │
+│                     AI which topics matter          │
+│                                                   │
+│  {{template}}       Output structure template       │
+│                     (meeting minutes, interview,   │
+│                     etc.)                          │
+│                                                   │
+│              ↓                                     │
+│       Structured artifact (Markdown)              │
+│       organized around the user's notes            │
+└─────────────────────────────────────────────────┘
+```
+
+**How synthesis works:**
+
+For each topic the user noted, the AI locates every relevant moment in the full transcript — who said what, what was agreed, what was contested, what remains unresolved — and synthesizes it into the template structure. The output is organized around **what the user cared about**, not a generic chronological summary.
+
+**Example:** User types "Budget is $50k" during the meeting. The AI finds all transcript segments where budget was discussed, identifies that Alice proposed $50k, Bob pushed back citing Q2 overruns, and the team settled on $45k with a $5k contingency. The artifact's "Decisions Made" section reflects this nuance — not just "budget was discussed."
+
+**Individual artifacts remain available:** Users can still export the raw transcript or their notes separately. But the primary output — the synthesized artifact — draws its value from combining both.
+
+**Example synthesis system prompt:**
+```
+You are a meeting intelligence assistant. You receive a full meeting
+transcript and the user's typed notes taken during the meeting.
+
+The user's notes indicate which topics they consider important. For each
+noted topic, find all relevant discussion in the transcript and synthesize:
+- What was said and by whom
+- What was agreed or decided
+- What was contested or left unresolved
+- Any action items that emerged
+
+Structure the output according to the provided template. Prioritize depth
+on noted topics over generic coverage of the full transcript.
+```
+
+### 4.4 The Scribe Window (New WinUI 3 Page)
 
 **Layout:**
 ```
@@ -318,15 +269,14 @@ TimestampedNote {
 └──────────────────────────────────────────────────────┘
 ```
 
-**Left Pane — User Notes (typed + voice):**
-- Distraction-free text input (not a full Markdown editor — keep it simple)
+**Left Pane — User Notes:**
+- Basic markdown editor (bold, lists, headings via keyboard shortcuts)
+- Distraction-free — no toolbar, no formatting buttons. Just type.
 - Auto-saves every few seconds
 - Persists if app crashes during recording
-- Voice notes (via `Ctrl+Alt+N`) appear inline with a microphone icon and timestamp badge (e.g., `[🎙 00:14:32] "Budget was confirmed at $50k"`)
-- User can edit/delete voice note entries just like typed text
 
 **Right Pane — AI Output (post-meeting):**
-- During recording: empty or shows live transcript (optional)
+- During recording: empty (or placeholder/instructions)
 - After processing: rendered Markdown artifact
 - "Ask this meeting" chat input at bottom
 - Copy / Export buttons
@@ -336,7 +286,7 @@ TimestampedNote {
 - Template selector dropdown
 - Audio level meter (visual confirmation recording is active)
 
-### 4.4 Output Templates
+### 4.5 Output Templates
 
 | Template | Sections Generated |
 |----------|--------------------|
@@ -347,7 +297,7 @@ TimestampedNote {
 | **Sales Call** | Customer Needs, Budget/Timeline, Objections Raised, Follow-up Actions, Deal Status |
 | **Custom** | User-defined sections via prompt template (reuses `PromptRepository` infrastructure) |
 
-### 4.5 "Ask This Meeting" Chat
+### 4.6 "Ask This Meeting" Chat
 
 Post-meeting RAG-like feature. Implementation options:
 
@@ -357,7 +307,7 @@ Post-meeting RAG-like feature. Implementation options:
 
 **Recommendation:** Start with Option A. Most meetings are under 2 hours — well within modern context windows.
 
-### 4.6 Audio Capture
+### 4.7 Audio Capture
 
 **System audio** (what participants hear) + **microphone** (what user says):
 - NAudio `WasapiLoopbackCapture` for system audio
@@ -368,15 +318,28 @@ Post-meeting RAG-like feature. Implementation options:
 
 **No meeting bot.** No calendar integration for MVP. User manually starts/stops.
 
-### 4.7 Transcription Strategy
+### 4.8 Transcription Strategy
+
+All transcription is **batch/post-meeting** — the full audio file is submitted after the session ends. No streaming transcription during the meeting (the user is already in the meeting hearing everything live).
 
 | Mode | Tool | Use Case |
 |------|------|----------|
-| **Cloud (default)** | Deepgram (existing) | Fast, accurate, supports 30+ languages, streaming capable |
+| **Cloud (default)** | Deepgram (existing) | Fast, accurate, supports 30+ languages |
 | **Local (optional)** | Whisper.net or faster-whisper sidecar | Privacy-first users. Slower but no data leaves machine |
 | **Hybrid** | Cloud STT + Local LLM synthesis | Transcript via cloud, synthesis via Ollama |
 
-**Speaker diarization:** Defer to Phase 2. Start without speaker labels — label all text as continuous transcript. Deepgram offers diarization in cloud mode which can be enabled later.
+**Recommended Deepgram parameters:** `diarize=true&utterances=true&smart_format=true`
+
+**Speaker diarization** (`diarize=true`): Assigns numeric speaker labels (`Speaker 0`, `Speaker 1`, ...) to every word in the transcript with confidence scores. Deepgram's June 2024 diarization model showed 61.5% improved accuracy specifically on meeting audio. Accuracy is professional-grade for 2-3 speakers, good for 4-6, and degrades for 7+ (all vendors struggle at that level). No cap on number of speakers. Cost: ~$0.002/min extra.
+
+**Utterances** (`utterances=true`): Segments the transcript into speaker-attributed paragraph blocks — each utterance has start/end timestamps, speaker label, and full text. This is the most natural format for a readable meeting transcript.
+
+**Smart formatting** (`smart_format=true`): Automatic punctuation, capitalization, and entity formatting (dates, currency, phone numbers). Included at no extra cost.
+
+**Speaker naming** (Phase 3): Diarization only provides numeric labels, not names. Speaker identification requires a separate step:
+- **LLM inference**: Feed the diarized transcript to the LLM and ask it to infer names from conversational context ("Hey Alice", "Thanks Bob"). Works well when participants address each other by name.
+- **Manual labeling**: Post-meeting UI where the user assigns names to Speaker 0, Speaker 1, etc.
+- **Calendar attendees**: If calendar integration is available, pre-fill candidate names from the meeting invite.
 
 ---
 
@@ -385,46 +348,47 @@ Post-meeting RAG-like feature. Implementation options:
 ### Phase 1: Core Session Engine (MVP)
 **Effort:** ~4-5 days
 
-1. `Session` + `TimestampedNote` data models + `SessionManager` (CRUD, SQLite storage, `ActiveSession` property)
+1. `Session` data model + `SessionManager` (CRUD, SQLite storage, `ActiveSession` property)
 2. Long-form audio recording (disk-streaming via NAudio)
 3. Post-recording transcription (batch — send full audio to Deepgram/Whisper)
-4. LLM synthesis: `(transcript + typed_notes + voice_notes + template_prompt) → artifact`
-5. Basic Scribe window: notepad (left) + rendered artifact (right) + record controls
+4. LLM synthesis: `(transcript + typed_notes + template_prompt) → artifact` — notes as intent signals (see 4.3)
+5. Basic Scribe window: notepad with basic markdown (left) + rendered artifact (right) + record controls
 6. Session list view (history of past meetings)
-7. **Notes integration:** Session-aware `NotePipeline` — `Ctrl+Alt+N` routes voice notes to active session notepad with timestamp offset. Other hotkeys disabled during active session.
-8. Post-session export: optionally append artifact summary to `diktame-notes.md` via `NoteWriter`
+7. Disable voice hotkeys during active session; Refine Auto and Chat (text-only) remain available
 
-### Phase 2: Live Experience
+### Phase 2: Post-Meeting Experience
 **Effort:** ~2-3 days
 
-1. Live transcription sidebar during recording (Deepgram streaming WebSocket)
-2. Audio level meter (visual recording confirmation)
-3. "Ask this meeting" chat (full-context, Option A)
-4. Template selector with 5 built-in templates
-5. Copy/export artifact (Markdown, clipboard, file)
+1. Audio level meter (visual recording confirmation)
+2. "Ask this meeting" chat (full-context, Option A)
+3. Template selector with 5 built-in templates
+4. Copy/export artifact (Markdown, clipboard, file)
 
 ### Phase 3: Polish & Integration
 **Effort:** ~2-3 days
 
 1. Session search (full-text across all past meetings)
 2. Audio playback linked to transcript timestamps (click to seek)
-3. Speaker diarization (Deepgram cloud)
+3. Speaker naming UI (assign names to Speaker 0/1/2 — manual + LLM inference from conversation context)
 4. Auto-title generation from transcript
 5. Hotkey to start/stop session (global, like existing dictation hotkeys)
 6. `AudioDucker` integration (auto-duck when session recording starts)
 7. Notification: "Meeting processed" toast with quick-view
+8. Calendar sync (Google Calendar / Outlook OAuth — auto-detect meetings, pre-fill title + participants)
 
 ### Phase 4: Advanced (Future)
 **Effort:** TBD
 
 1. Cross-meeting search ("What did we decide about pricing across all meetings?")
 2. RAG over meeting corpus (LanceDB or similar)
-3. MCP server (expose meeting notes to Claude/Cursor/ChatGPT)
-4. Calendar integration (auto-detect meeting start/end)
-5. Export integrations (Notion, Slack, email)
-6. Participant extraction from transcript
+3. MCP server — local, app-wide (expose sessions, dictation history, notes to Claude/Cursor/ChatGPT)
+4. Local REST API / export hooks (localhost API + file-based triggers for automation)
+5. Notion export (push artifact as Markdown → Notion page)
+6. Confluence export (push artifact as Markdown → Confluence page)
 7. Follow-up email generation
 8. Local Whisper transcription option
+9. CRM sync (Salesforce/HubSpot — enterprise, significant effort)
+10. Task tool sync (Jira/Linear/Asana — 2-way action items, enterprise)
 
 ---
 
@@ -442,12 +406,12 @@ Post-meeting RAG-like feature. Implementation options:
 - Well within Gemini (1M), Anthropic (200k), OpenAI (128k), even Ollama models (32-128k)
 - Only a concern for 4+ hour recordings — handle with chunked summarization
 
-### Concurrent Recording + Dictation
-- Session recording uses system audio loopback + mic
-- Dictation and Note modes use mic only
-- **Potential conflict:** If user triggers dictation/note during a session, mic input could be captured by both
-- **Solution for Note hotkey:** This is the *intended* use case — voice notes during sessions. Briefly pause session mic capture during the note burst to avoid echo, then resume. The note audio is processed by `NotePipeline` independently.
-- **Solution for other hotkeys (Dictate, Ask, Refine, Translate):** Disable during active session. These modes inject text into external apps, which conflicts with the meeting context. Show a toast: "Pause or end session to use dictation."
+### Hotkey Behavior During Sessions
+- Session recording occupies the microphone (system audio loopback + mic)
+- All voice hotkeys (Dictate, Ask, Translate, Note, Refine Voice) are silently disabled during an active session
+- Refine Auto remains available (no mic — reads selection, processes via LLM, injects)
+- Chat remains available with text input only (mic button disabled in Quick Chat overlay)
+- Hotkeys are re-enabled automatically when the session ends
 
 ### Storage Location
 - Sessions stored under `%APPDATA%/DiktaMe/sessions/{session_id}/`
@@ -457,7 +421,42 @@ Post-meeting RAG-like feature. Implementation options:
 
 ---
 
-## 7. Pricing Comparison & Positioning
+## 7. Integrations & Ecosystem
+
+### 7.1 What Competitors Offer
+
+**Granola** integrations: Slack (auto-post per folder), Notion (manual push), HubSpot/Attio/Affinity (CRM note push), Zapier (2 triggers, 8000+ downstream apps), MCP server (official cloud + community local), Enterprise API (read-only). All require paid plan ($14/mo+).
+
+**Fellow** integrations: 50+ tools. Calendar sync (Google/Outlook), CRM (Salesforce with AI field suggestions, HubSpot, Pipedrive), task management (Jira/Linear/ClickUp/Asana — all 2-way sync), Slack/Teams, Notion/Confluence, Zapier (5 triggers + 3 actions), REST API + webhooks, MCP server (5 read-only tools), HRIS (BambooHR/Workday), Glean (enterprise search). Most require paid plan.
+
+**Key insight:** Both competitors' integrations are cloud-hosted. dIKta.me's local-first architecture means we can offer MCP and API access without cloud dependencies — a genuine differentiator.
+
+### 7.2 dIKta.me Integration Roadmap
+
+| Integration | What It Does | Phase | Notes |
+|---|---|---|---|
+| **Clipboard export** | Copy artifact as Markdown | 1 | Must-have. Zero integration effort. |
+| **Diarization** | Speaker-labeled transcript via Deepgram `diarize=true` | 1 | See 4.8. Numeric labels; naming deferred. |
+| **File export** | Save artifact as `.md` file | 2 | One-click save to user-chosen location. |
+| **Speaker naming** | Assign names to Speaker 0/1/2 via LLM inference or manual UI | 3 | LLM can infer from "Hey Alice" patterns in transcript. |
+| **Calendar sync** | Google Calendar / Outlook via OAuth. Auto-detect meetings, pre-fill session title + participants from calendar event. Tray notification before meetings. | 3 | App-wide capability — could also be used for reminders. |
+| **MCP server** | Local server exposing sessions, dictation history, notes to AI tools (Claude, Cursor, ChatGPT). Read-only. Tools: `search_sessions`, `get_session_transcript`, `get_session_artifact`, `get_dictation_history`, `search_notes`. | 4 | **Differentiator**: local-first MCP vs competitors' cloud-only. App-wide — not just Scribe. |
+| **Local API / export hooks** | Lightweight REST API on localhost. File-based triggers (artifact → watched folder for automation). Optional webhook POST on events. | 4 | Replaces Zapier need without cloud infra. |
+| **Notion export** | Push artifact as Markdown → Notion page via Notion API | 4 | One-click from artifact view. |
+| **Confluence export** | Push artifact as Markdown → Confluence page via REST API | 4 | One-click from artifact view. |
+| **CRM sync** | Push meeting notes to Salesforce/HubSpot contact/deal records | 4+ | Enterprise feature. Both Granola and Fellow offer this. Significant integration effort. |
+| **Task tool sync** | 2-way action item sync with Jira/Linear/Asana/ClickUp | 4+ | Enterprise feature. Fellow's deepest integration category. |
+
+### 7.3 Integration Architecture Principles
+
+1. **Local-first**: No cloud relay for integrations. MCP server runs on localhost. API serves from the app process.
+2. **Clipboard-first**: The simplest "integration" is copying Markdown to clipboard. This covers most ad-hoc needs without building anything.
+3. **App-wide**: MCP server, local API, and calendar sync benefit the entire app (dictation history, notes, chat), not just Scribe.
+4. **No Zapier**: Zapier requires a cloud-hosted webhook receiver and app registration. Doesn't fit our architecture. The local API + MCP server + file export cover the same use cases.
+
+---
+
+## 8. Pricing Comparison & Positioning
 
 | | Granola | Fellow | dIKta.me (proposed) |
 |---|---------|--------|---------------------|
@@ -472,25 +471,24 @@ Post-meeting RAG-like feature. Implementation options:
 
 ---
 
-## 8. Open Questions
+## 9. Open Questions
 
-1. **Calendar integration for MVP?** — Probably no. Manual start/stop is simpler and avoids permission complexity. Revisit in Phase 4.
+1. **Calendar integration for MVP?** — No. Manual start/stop for MVP. Calendar sync planned for Phase 3 (Google Calendar / Outlook OAuth).
 2. **Separate window or tab in main app?** — Recommend: separate window (like Quick Chat), launchable from tray menu + hotkey.
 3. **Audio format for long recordings?** — WAV during recording (simplest), auto-compress to Opus after session ends.
 4. **How to handle "Ask this meeting" for local models with small context?** — Chunked summarization for Ollama models with <32k context. Or require cloud provider for chat feature.
 5. **Should sessions be shareable?** — Defer. Export to Markdown file is sufficient for MVP.
-6. **MCP server priority?** — Both Granola and Fellow have MCP. Consider as Phase 4 item — growing ecosystem play.
+6. **MCP server priority?** — Phase 4. Both Granola and Fellow have cloud-hosted MCP. Ours will be local-first (differentiator). App-wide scope (not just Scribe).
 
 ---
 
-## 9. Success Criteria
+## 10. Success Criteria
 
 - [ ] User can record a 1-hour meeting with system audio + mic
-- [ ] User can type notes during the recording
-- [ ] User can capture voice notes via `Ctrl+Alt+N` during a session — they appear in the notepad with timestamp
-- [ ] Voice notes are weighted as high-priority signals in synthesis output
-- [ ] `Ctrl+Alt+N` without an active session works exactly as before (standalone mode)
-- [ ] AI synthesizes transcript + typed notes + voice notes into a structured artifact within 60 seconds of session end
+- [ ] User can type notes (basic markdown) during the recording
+- [ ] AI synthesis output is organized around user's typed notes — each noted topic is enriched with relevant transcript context (who said what, decisions, disagreements)
+- [ ] AI synthesizes transcript + typed notes into a structured artifact within 60 seconds of session end
+- [ ] All voice hotkeys are silently disabled during active session; Refine Auto and Chat (text-only) remain available
 - [ ] User can view, copy, and export the artifact
 - [ ] User can "ask" the meeting transcript questions and get accurate answers
 - [ ] Works fully offline with Ollama (local STT + local LLM)
@@ -499,7 +497,7 @@ Post-meeting RAG-like feature. Implementation options:
 
 ---
 
-## 10. References
+## 11. References
 
 - V1 Spec: `E:\git\diktate\docs\internal\specs\deferred\SPEC_003_SCRIBE_LAYER.md`
 - Granola: https://www.granola.ai — Features, pricing ($0/$14/$35), MCP support
