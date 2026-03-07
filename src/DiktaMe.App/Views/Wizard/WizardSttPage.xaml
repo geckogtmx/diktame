@@ -1,23 +1,23 @@
 <Page x:Class="DiktaMe.App.Views.Wizard.WizardSttPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:l="using:WinUI3Localizer">
 
     <StackPanel VerticalAlignment="Center" Spacing="16" MaxWidth="450" Margin="24,0">
-        <TextBlock Text="Speech-to-Text" FontSize="24" FontWeight="SemiBold"/>
-        <TextBlock TextWrapping="Wrap" FontSize="14" Opacity="0.7"
-                   Text="Choose how you want to convert speech to text. Cloud providers offer higher accuracy; local runs entirely on your machine."/>
+        <TextBlock l:Uids.Uid="Wizard_Stt_Title" FontSize="24" FontWeight="SemiBold"/>
+        <TextBlock l:Uids.Uid="Wizard_Stt_Description" TextWrapping="Wrap" FontSize="14" Opacity="0.7"/>
 
         <RadioButtons x:Name="SttRadio" MaxColumns="1" SelectionChanged="SttRadio_SelectionChanged">
             <RadioButton x:Name="SttCloud" Tag="cloud" IsChecked="True">
                 <StackPanel Spacing="2">
-                    <TextBlock Text="Cloud STT" FontWeight="SemiBold"/>
-                    <TextBlock Text="High accuracy, requires API key (Deepgram, OpenAI, etc.)" FontSize="12" Opacity="0.6"/>
+                    <TextBlock l:Uids.Uid="Wizard_Stt_Cloud_Title" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Wizard_Stt_Cloud_Description" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
             </RadioButton>
             <RadioButton x:Name="SttLocal" Tag="local">
                 <StackPanel Spacing="2">
-                    <TextBlock Text="Local STT (Whisper)" FontWeight="SemiBold"/>
-                    <TextBlock Text="Runs offline, no API key needed, requires model download" FontSize="12" Opacity="0.6"/>
+                    <TextBlock l:Uids.Uid="Wizard_Stt_Local_Title" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Wizard_Stt_Local_Description" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
             </RadioButton>
         </RadioButtons>

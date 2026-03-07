@@ -1,36 +1,37 @@
 <Page x:Class="DiktaMe.App.Views.Settings.PrivacySettingsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:l="using:WinUI3Localizer"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <ScrollViewer Padding="24,24,24,32">
         <StackPanel Spacing="24" MaxWidth="600">
-            <TextBlock Text="Privacy" FontSize="24" FontWeight="SemiBold"/>
+            <TextBlock l:Uids.Uid="Settings_Privacy_Title" FontSize="24" FontWeight="SemiBold"/>
 
             <!-- Logging Intensity -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Logging Intensity" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Privacy_LoggingIntensity_Label" FontWeight="SemiBold"/>
                 <TextBlock Text="{x:Bind ViewModel.PrivacyLevelLabel, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
                 <Slider Minimum="0" Maximum="3" StepFrequency="1"
                         SnapsTo="StepValues"
                         Value="{x:Bind ViewModel.PrivacyLevel, Mode=TwoWay}"/>
                 <Grid>
-                    <TextBlock Text="Ghost" FontSize="11" Opacity="0.4" HorizontalAlignment="Left"/>
-                    <TextBlock Text="Full" FontSize="11" Opacity="0.4" HorizontalAlignment="Right"/>
+                    <TextBlock l:Uids.Uid="Settings_Privacy_Slider_Ghost" FontSize="11" Opacity="0.4" HorizontalAlignment="Left"/>
+                    <TextBlock l:Uids.Uid="Settings_Privacy_Slider_Full" FontSize="11" Opacity="0.4" HorizontalAlignment="Right"/>
                 </Grid>
             </StackPanel>
 
             <!-- PII Scrubber -->
             <StackPanel Spacing="4">
-                <TextBlock Text="PII Scrubber" FontWeight="SemiBold"/>
-                <TextBlock Text="Automatically redact emails, phone numbers, and other personal data" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Description" FontSize="12" Opacity="0.6"/>
                 <ToggleSwitch IsOn="{x:Bind ViewModel.PiiScrubEnabled, Mode=TwoWay}"/>
             </StackPanel>
 
             <!-- History Retention -->
             <StackPanel Spacing="4">
-                <TextBlock Text="History Retention" FontWeight="SemiBold"/>
-                <TextBlock Text="Auto-delete history older than this many days" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_Privacy_HistoryRetention_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Privacy_HistoryRetention_Description" FontSize="12" Opacity="0.6"/>
                 <NumberBox Value="{x:Bind ViewModel.HistoryRetentionDays, Mode=TwoWay}"
                            Minimum="1" Maximum="365" SpinButtonPlacementMode="Compact"
                            HorizontalAlignment="Left" MinWidth="180"/>
@@ -38,9 +39,9 @@
 
             <!-- Wipe Data -->
             <StackPanel Spacing="8" Margin="0,16,0,0">
-                <TextBlock Text="Data Management" FontWeight="SemiBold"/>
-                <TextBlock Text="Permanently delete all stored history and metrics" FontSize="12" Opacity="0.6"/>
-                <Button Content="Wipe All Data"
+                <TextBlock l:Uids.Uid="Settings_Privacy_DataManagement_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Privacy_DataManagement_Description" FontSize="12" Opacity="0.6"/>
+                <Button l:Uids.Uid="Settings_Privacy_WipeAllData"
                         Command="{x:Bind ViewModel.WipeAllDataCommand}"
                         Style="{ThemeResource AccentButtonStyle}"
                         Background="#DC2626"/>

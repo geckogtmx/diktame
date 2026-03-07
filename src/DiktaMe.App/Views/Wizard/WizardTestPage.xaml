@@ -1,18 +1,18 @@
 <Page x:Class="DiktaMe.App.Views.Wizard.WizardTestPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:l="using:WinUI3Localizer">
 
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16" MaxWidth="450">
-        <TextBlock Text="Quick Test" FontSize="24" FontWeight="SemiBold"/>
-        <TextBlock TextWrapping="Wrap" FontSize="14" Opacity="0.7"
-                   Text="Test your setup by recording a short phrase. This verifies your microphone and chosen providers are working."/>
+        <TextBlock l:Uids.Uid="Wizard_Test_Title" FontSize="24" FontWeight="SemiBold"/>
+        <TextBlock l:Uids.Uid="Wizard_Test_Description" TextWrapping="Wrap" FontSize="14" Opacity="0.7"/>
 
         <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="8" Padding="16" Margin="0,8,0,0">
             <StackPanel Spacing="12">
                 <!-- Microphone selector -->
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Microphone" FontSize="13" Opacity="0.7"/>
+                    <TextBlock l:Uids.Uid="Wizard_Test_MicLabel" FontSize="13" Opacity="0.7"/>
                     <ComboBox x:Name="MicrophoneComboBox"
                               HorizontalAlignment="Stretch"
                               DisplayMemberPath="Name"
@@ -20,7 +20,7 @@
                 </StackPanel>
 
                 <!-- Record button -->
-                <Button x:Name="RecordButton" Content="Record (3 seconds)"
+                <Button x:Name="RecordButton" l:Uids.Uid="Wizard_Test_RecordButton"
                         HorizontalAlignment="Center"
                         Style="{ThemeResource AccentButtonStyle}"
                         Click="RecordButton_Click"/>
@@ -33,7 +33,6 @@
             </StackPanel>
         </Border>
 
-        <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Opacity="0.5"
-                   Text="This step is optional — you can skip it and test later."/>
+        <TextBlock l:Uids.Uid="Wizard_Test_SkipHint" TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Opacity="0.5"/>
     </StackPanel>
 </Page>

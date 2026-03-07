@@ -1,4 +1,5 @@
 
+using DiktaMe.App.Services;
 using DiktaMe.App.ViewModels;
 using DiktaMe.App.Views.Wizard;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ namespace DiktaMe.App.Views;
 public sealed partial class WizardWindow : Window
 {
     public WizardViewModel ViewModel { get; }
+    private readonly LocalizationService _loc;
 
     private readonly Type[] _stepPages =
     {
@@ -22,6 +24,7 @@ public sealed partial class WizardWindow : Window
     public WizardWindow()
     {
         ViewModel = App.Current.Services.GetRequiredService<WizardViewModel>();
+        _loc = App.Current.Services.GetRequiredService<LocalizationService>();
         this.InitializeComponent();
 
         // Size the window
@@ -50,7 +53,7 @@ public sealed partial class WizardWindow : Window
     private void NavigateToCurrentStep()
     {
         int step = ViewModel.CurrentStep;
-        StepLabel.Text = $"Step {step + 1} of {WizardViewModel.TotalSteps}";
+        StepLabel.Text = _loc.GetFormatted("Wizard_StepLabel", step + 1, WizardViewModel.TotalSteps);
         StepProgress.Value = step;
         ContentFrame.Navigate(_stepPages[step]);
 

@@ -29,8 +29,9 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly ControlPanelViewModel _controlPanel;
     private readonly IAccountService _accountService;
     private readonly ITrialService _trialService;
+    private readonly LocalizationService _loc;
 
-    [ObservableProperty] private string _statusText = "Initializing...";
+    [ObservableProperty] private string _statusText = "";
     [ObservableProperty] private double _progress;
 
     private AudioRecorder? _currentRecorder;
@@ -54,7 +55,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         TextInjector textInjector,
         ControlPanelViewModel controlPanel,
         IAccountService accountService,
-        ITrialService trialService)
+        ITrialService trialService,
+        LocalizationService loc)
     {
         _settings = settings;
         _history = history;
@@ -70,6 +72,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         _controlPanel = controlPanel;
         _accountService = accountService;
         _trialService = trialService;
+        _loc = loc;
+        _statusText = _loc.GetString("Loading_Initializing");
     }
 
     public async Task InitializeAsync()
@@ -77,23 +81,23 @@ public sealed partial class LoadingViewModel : ObservableObject
         try
         {
             // Step 1: Load settings
-            StatusText = "Loading settings...";
+            StatusText = _loc.GetString("Loading_Settings");
             Progress = 0;
             await _settings.LoadAsync();
             Progress = 25;
 
             // Step 2: Initialize database
-            StatusText = "Initializing database...";
+            StatusText = _loc.GetString("Loading_Database");
             await _history.InitAsync();
             Progress = 50;
 
             // Step 3: Load snippets
-            StatusText = "Loading snippets...";
+            StatusText = _loc.GetString("Loading_Snippets");
             await _snippets.LoadAsync();
             Progress = 75;
 
             // Step 4: Check Ollama (if configured as local LLM)
-            StatusText = "Checking local services...";
+            StatusText = _loc.GetString("Loading_LocalServices");
             try
             {
                 await _ollama.CheckAsync(_settings.Current.OllamaModel);
@@ -108,7 +112,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             // Step 5: Sync trial account status (if signed in)
             if (_accountService.HasValidToken)
             {
-                StatusText = "Syncing account...";
+                StatusText = _loc.GetString("Loading_Account");
                 try
                 {
                     await _trialService.RefreshStatusAsync();
@@ -122,15 +126,15 @@ public sealed partial class LoadingViewModel : ObservableObject
             Progress = 90;
 
             // Step 6: Start hotkey manager and register hotkeys
-            StatusText = "Registering hotkeys...";
+            StatusText = _loc.GetString("Loading_Hotkeys");
             InitializeHotkeys();
             Progress = 100;
 
-            StatusText = "Ready";
+            StatusText = _loc.GetString("Loading_Ready");
         }
         catch (Exception ex)
         {
-            StatusText = "Initialization error — starting with defaults";
+            StatusText = _loc.GetString("Loading_Error");
             Log.Error(ex, "Loading initialization failed");
             await Task.Delay(1500); // Let user see the error briefly
         }
@@ -279,8 +283,8 @@ public sealed partial class LoadingViewModel : ObservableObject
             e.Id, e.HotkeyString, e.Reason);
 
         _notifications.ShowToast(
-            "Hotkey Conflict",
-            $"{e.Id} hotkey ({e.HotkeyString}) is already in use by another application",
+            _loc.GetString("Loading_HotkeyConflict_Title"),
+            _loc.GetFormatted("Loading_HotkeyConflict_Message", e.Id, e.HotkeyString),
             NotificationType.Error);
     }
 
@@ -462,7 +466,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (audioFile == null)
             {
                 Log.Warning("Dictate: No audio file produced");
-                _notifications.ShowToast("Error", "Recording failed", NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error);
                 return;
             }
 
@@ -482,7 +486,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (activeMode == null)
             {
                 Log.Warning("Dictate: No dictation modes configured");
-                _notifications.ShowToast("Error", "No dictation modes configured", NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_NoModesConfigured"), NotificationType.Error);
                 return;
             }
 
@@ -620,7 +624,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (audioFile == null)
             {
                 Log.Warning("Refine: No audio file produced");
-                _notifications.ShowToast("Error", "Recording failed", NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error);
                 return;
             }
 
@@ -688,7 +692,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (audioFile == null)
             {
                 Log.Warning("Ask: No audio file produced");
-                _notifications.ShowToast("Error", "Recording failed", NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error);
                 return;
             }
 
@@ -782,7 +786,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (audioFile == null)
             {
                 Log.Warning("Translate: No audio file produced");
-                _notifications.ShowToast("Error", "Recording failed", NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error);
                 return;
             }
 
@@ -852,7 +856,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (audioFile == null)
             {
                 Log.Warning("Note: No audio file produced");
-                _notifications.ShowToast("Error", "Recording failed", NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error);
                 return;
             }
 
@@ -887,7 +891,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             {
                 // result.Text contains the note content that was appended
                 Log.Information("Note: Saved to {FilePath}", options.NotesFilePath);
-                _notifications.ShowToast("Note Saved", $"Appended to {System.IO.Path.GetFileName(options.NotesFilePath)}", NotificationType.Success);
+                _notifications.ShowToast(_loc.GetString("Loading_NoteSaved_Title"), _loc.GetFormatted("Loading_NoteSaved_Message", System.IO.Path.GetFileName(options.NotesFilePath)), NotificationType.Success);
             }
             else
             {

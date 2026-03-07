@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:DiktaMe.App.ViewModels"
         xmlns:converters="using:DiktaMe.App.Converters"
+        xmlns:l="using:WinUI3Localizer"
         Title="Quick Chat">
 
     <Grid Padding="16" RowSpacing="12">
@@ -36,11 +37,11 @@
             </Grid.ColumnDefinitions>
 
             <TextBox x:Name="InputBox"
+                     l:Uids.Uid="QuickChat_Input"
                      Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     PlaceholderText="Type a message..."
                      KeyDown="InputBox_KeyDown"/>
 
-            <Button Grid.Column="1" Content="Send"
+            <Button l:Uids.Uid="QuickChat_SendButton" Grid.Column="1"
                     Command="{x:Bind ViewModel.SendCommand}"
                     Style="{ThemeResource AccentButtonStyle}"/>
         </Grid>

@@ -1,6 +1,7 @@
 <Window x:Class="DiktaMe.App.Views.WizardWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:WinUI3Localizer"
         Title="dIKta.me — Setup Wizard">
 
     <Grid RowSpacing="16" Padding="32">
@@ -12,7 +13,7 @@
 
         <!-- Progress indicator -->
         <StackPanel Spacing="8">
-            <TextBlock x:Name="StepLabel" Text="Step 1 of 5" FontSize="12" Opacity="0.5"/>
+            <TextBlock x:Name="StepLabel" FontSize="12" Opacity="0.5"/>
             <ProgressBar x:Name="StepProgress" Minimum="0" Maximum="4" Value="0" Height="4"/>
         </StackPanel>
 
@@ -28,9 +29,9 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Content="Skip" Command="{x:Bind ViewModel.SkipWizardCommand}" Opacity="0.6"/>
+            <Button l:Uids.Uid="Wizard_SkipButton" Command="{x:Bind ViewModel.SkipWizardCommand}" Opacity="0.6"/>
 
-            <Button x:Name="BackButton" Grid.Column="2" Content="Back"
+            <Button x:Name="BackButton" l:Uids.Uid="Wizard_BackButton" Grid.Column="2"
                     Command="{x:Bind ViewModel.GoBackCommand}"
                     Visibility="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"/>
 

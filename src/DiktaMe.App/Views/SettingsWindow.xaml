@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:settings="using:DiktaMe.App.Views.Settings"
+    xmlns:l="using:WinUI3Localizer"
     Title="dIKta.me — Settings">
 
     <muxc:NavigationView x:Name="NavView"
@@ -11,67 +12,67 @@
                          IsBackButtonVisible="Collapsed"
                          IsSettingsVisible="False"
                          SelectionChanged="NavView_SelectionChanged"
-                         OpenPaneLength="180">
+                         OpenPaneLength="210">
         <muxc:NavigationView.PaneFooter>
             <settings:UserPaneFooter x:Name="UserFooter"/>
         </muxc:NavigationView.PaneFooter>
         <muxc:NavigationView.MenuItems>
-            <muxc:NavigationViewItem Content="General" Tag="general">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_General" Tag="general">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE713;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Hotkeys" Tag="hotkeys">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Hotkeys" Tag="hotkeys">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE765;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="AI Engine" Tag="aiengine">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_AIEngine" Tag="aiengine">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE774;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Dictation Presets" Tag="dictationmodes">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_DictationPresets" Tag="dictationmodes">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE70F;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Modes" Tag="modes">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Modes" Tag="modes">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE762;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Audio" Tag="audio">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Audio" Tag="audio">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE720;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Privacy" Tag="privacy">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Privacy" Tag="privacy">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE72E;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="API Keys" Tag="apikeys">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_ApiKeys" Tag="apikeys">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE8D7;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Ollama" Tag="ollama">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Ollama" Tag="ollama">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE968;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Snippets" Tag="snippets">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Snippets" Tag="snippets">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE8FD;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Control Panel" Tag="controlpanel">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_ControlPanel" Tag="controlpanel">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE7B5;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="About" Tag="about">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_About" Tag="about">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE946;"/>
                 </muxc:NavigationViewItem.Icon>

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DiktaMe.App.Services;
 using DiktaMe.Core.Audio;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Data;
@@ -43,6 +44,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private readonly DictationModeManager _dictationModes;
     private readonly AudioRecorder _recorder;
     private readonly MetricsCollector _metrics;
+    private readonly LocalizationService _loc;
     private readonly DispatcherQueue _dispatcher;
 
     // Active-state colors (V1 palette)
@@ -57,7 +59,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private PipelineState _currentState = PipelineState.Idle;
 
     [ObservableProperty]
-    private string _statusText = "READY";
+    private string _statusText = "";
 
     // ── Dictation modes (CRUD system) ───────────────────────────────────────
 
@@ -75,7 +77,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     /// <summary>Display-only: Title of the currently active mode (for XAML compatibility).</summary>
     public string ActiveMode => _dictationModes.GetAllModes()
-        .FirstOrDefault(m => string.Equals(m.Id, ActiveDictationModeId, StringComparison.Ordinal))?.Title ?? "Standard";
+        .FirstOrDefault(m => string.Equals(m.Id, ActiveDictationModeId, StringComparison.Ordinal))?.Title ?? _loc.GetString("ControlPanel_Mode_Standard");
 
     // ── Session stats ───────────────────────────────────────────────────────
 
@@ -161,11 +163,11 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     // ── Toggle labels ─────────────────────────────────────────────────────
 
-    public string SoundLabel => IsSoundEnabled ? "SOUND: ON" : "SOUND: OFF";
-    public string LocalLabel => IsLocalMode ? "LOCAL" : "CLOUD";
-    public string KeyLabel => IsAdditionalKeyEnabled ? "+KEY: ON" : "+KEY: OFF";
-    public string RawLabel => IsRawModeEnabled ? "RAW: ON" : "RAW: OFF";
-    public string RefineLabel => RefineMode == RefineMode.Voice ? "REFINE: VOICE" : "REFINE: AUTO";
+    public string SoundLabel => IsSoundEnabled ? _loc.GetString("ControlPanel_Sound_On") : _loc.GetString("ControlPanel_Sound_Off");
+    public string LocalLabel => IsLocalMode ? _loc.GetString("ControlPanel_Local") : _loc.GetString("ControlPanel_Cloud");
+    public string KeyLabel => IsAdditionalKeyEnabled ? _loc.GetString("ControlPanel_Key_On") : _loc.GetString("ControlPanel_Key_Off");
+    public string RawLabel => IsRawModeEnabled ? _loc.GetString("ControlPanel_Raw_On") : _loc.GetString("ControlPanel_Raw_Off");
+    public string RefineLabel => RefineMode == RefineMode.Voice ? _loc.GetString("ControlPanel_Refine_Voice") : _loc.GetString("ControlPanel_Refine_Auto");
 
     // ── Hotkey display ────────────────────────────────────────────────────
 
@@ -202,13 +204,16 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         SettingsManager settings,
         DictationModeManager dictationModes,
         AudioRecorder recorder,
-        MetricsCollector metrics)
+        MetricsCollector metrics,
+        LocalizationService loc)
     {
         _settings = settings;
         _dictationModes = dictationModes;
         _recorder = recorder;
         _metrics = metrics;
+        _loc = loc;
         _dispatcher = DispatcherQueue.GetForCurrentThread();
+        _statusText = _loc.GetString("ControlPanel_State_Ready");
 
         // Subscribe to recorder events
         _recorder.RecordingStarted += OnRecordingStarted;
@@ -380,14 +385,14 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             CurrentState = state;
             StatusText = state switch
             {
-                PipelineState.Idle => "READY",
-                PipelineState.Recording => "LISTENING",
-                PipelineState.Transcribing => "TRANSCRIBING",
-                PipelineState.Streaming => "STREAMING",
-                PipelineState.Processing => "THINKING",
-                PipelineState.Injecting => "TYPING",
-                PipelineState.Error => "ERROR",
-                _ => "READY",
+                PipelineState.Idle => _loc.GetString("ControlPanel_State_Ready"),
+                PipelineState.Recording => _loc.GetString("ControlPanel_State_Listening"),
+                PipelineState.Transcribing => _loc.GetString("ControlPanel_State_Transcribing"),
+                PipelineState.Streaming => _loc.GetString("ControlPanel_State_Streaming"),
+                PipelineState.Processing => _loc.GetString("ControlPanel_State_Thinking"),
+                PipelineState.Injecting => _loc.GetString("ControlPanel_State_Typing"),
+                PipelineState.Error => _loc.GetString("ControlPanel_State_Error"),
+                _ => _loc.GetString("ControlPanel_State_Ready"),
             };
         });
     }
@@ -432,7 +437,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
             // Reset state to idle after completion
             CurrentState = PipelineState.Idle;
-            StatusText = "READY";
+            StatusText = _loc.GetString("ControlPanel_State_Ready");
 
             // Refresh session stats
             RefreshSessionStats();
@@ -460,7 +465,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         _dispatcher.TryEnqueue(() =>
         {
             CurrentState = PipelineState.Recording;
-            StatusText = "LISTENING";
+            StatusText = _loc.GetString("ControlPanel_State_Listening");
         });
     }
 
@@ -471,7 +476,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             if (CurrentState == PipelineState.Recording)
             {
                 CurrentState = PipelineState.Idle;
-                StatusText = "READY";
+                StatusText = _loc.GetString("ControlPanel_State_Ready");
             }
         });
     }
@@ -547,7 +552,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         // Build a short subtitle from the profile
         string subtitle = profile.UseLlm
             ? (string.IsNullOrEmpty(profile.ModelName) ? "LLM" : TruncateModel(profile.ModelName))
-            : "Raw STT";
+            : _loc.GetString("ControlPanel_Mode_RawStt");
 
         return new DictationModeItem(
             mode.Id,

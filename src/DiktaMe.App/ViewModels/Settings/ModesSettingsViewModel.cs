@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DiktaMe.App.Services;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.LLM;
 using Serilog;
@@ -21,6 +22,7 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
     private readonly PipelineConfigManager _pipelineManager;
     private readonly SettingsManager _settings;
     private readonly ModelListService _modelListService;
+    private readonly LocalizationService _loc;
 
     // ── Left sidebar list ──────────────────────────────────────────────────
 
@@ -72,7 +74,12 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _selectedAskOutputIndex;
 
-    public string[] AskOutputOptions { get; } = ["Toast Only", "Clipboard Only", "Inject Only", "Clipboard + Toast"];
+    public string[] AskOutputOptions => [
+        _loc.GetString("Settings_Modes_AskOutput_ToastOnly"),
+        _loc.GetString("Settings_Modes_AskOutput_ClipboardOnly"),
+        _loc.GetString("Settings_Modes_AskOutput_InjectOnly"),
+        _loc.GetString("Settings_Modes_AskOutput_ClipboardToast"),
+    ];
 
     [ObservableProperty]
     private bool _isAskSelected;
@@ -105,7 +112,12 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _chatSelectedThemeIndex;
 
-    public string[] ChatThemeOptions { get; } = ["System", "Light", "Dark"];
+    public string[] ChatThemeOptions => [
+        _loc.GetString("Settings_Modes_ChatTheme_System"),
+        _loc.GetString("Settings_Modes_ChatTheme_Light"),
+        _loc.GetString("Settings_Modes_ChatTheme_Dark"),
+    ];
+    private static readonly string[] ChatThemeCodes = ["System", "Light", "Dark"];
 
     [ObservableProperty]
     private bool _chatForgetOnClose;
@@ -133,11 +145,13 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
     public ModesSettingsViewModel(
         PipelineConfigManager pipelineManager,
         SettingsManager settings,
-        ModelListService modelListService)
+        ModelListService modelListService,
+        LocalizationService loc)
     {
         _pipelineManager = pipelineManager;
         _settings = settings;
         _modelListService = modelListService;
+        _loc = loc;
 
         LoadModeList();
         _ = LoadModelsAsync();
@@ -252,7 +266,7 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
         // Cloud models (no Ollama)
         CloudModelNames.Clear();
         _cloudModelIds.Clear();
-        CloudModelNames.Add("(Default — use provider default)");
+        CloudModelNames.Add(_loc.GetString("Settings_Modes_ModelDefault_Cloud"));
         _cloudModelIds.Add("");
 
         var cloudModels = models.Where(m => !string.Equals(m.Provider, "Ollama (Local)", StringComparison.OrdinalIgnoreCase));
@@ -265,7 +279,7 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
         // Local models (Ollama only)
         LocalModelNames.Clear();
         _localModelIds.Clear();
-        LocalModelNames.Add("(Default — global Ollama model)");
+        LocalModelNames.Add(_loc.GetString("Settings_Modes_ModelDefault_Local"));
         _localModelIds.Add("");
 
         var localModels = models.Where(m => string.Equals(m.Provider, "Ollama (Local)", StringComparison.OrdinalIgnoreCase));
@@ -348,7 +362,7 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                 ChatMaxHistoryMessages = chatSettings.MaxHistoryMessages;
                 ChatShowTimestamps = chatSettings.ShowTimestamps;
                 ChatEnableMarkdown = chatSettings.EnableMarkdown;
-                ChatSelectedThemeIndex = Array.IndexOf(ChatThemeOptions, chatSettings.Theme);
+                ChatSelectedThemeIndex = Array.IndexOf(ChatThemeCodes, chatSettings.Theme);
                 if (ChatSelectedThemeIndex < 0) { ChatSelectedThemeIndex = 0; }
                 break;
         }
@@ -427,8 +441,8 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                         MaxHistoryMessages = ChatMaxHistoryMessages,
                         ShowTimestamps = ChatShowTimestamps,
                         EnableMarkdown = ChatEnableMarkdown,
-                        Theme = ChatSelectedThemeIndex >= 0 && ChatSelectedThemeIndex < ChatThemeOptions.Length
-                            ? ChatThemeOptions[ChatSelectedThemeIndex]
+                        Theme = ChatSelectedThemeIndex >= 0 && ChatSelectedThemeIndex < ChatThemeCodes.Length
+                            ? ChatThemeCodes[ChatSelectedThemeIndex]
                             : "System",
                     };
                     var newSettingsChat = _settings.Current with { Chat = newChatSettings };
@@ -476,7 +490,7 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                 ChatMaxHistoryMessages = chatDefaults.MaxHistoryMessages;
                 ChatShowTimestamps = chatDefaults.ShowTimestamps;
                 ChatEnableMarkdown = chatDefaults.EnableMarkdown;
-                ChatSelectedThemeIndex = Array.IndexOf(ChatThemeOptions, chatDefaults.Theme);
+                ChatSelectedThemeIndex = Array.IndexOf(ChatThemeCodes, chatDefaults.Theme);
                 CloudSystemPrompt = PromptDefaults.Chat;
                 LocalSystemPrompt = PromptDefaults.Chat;
                 break;

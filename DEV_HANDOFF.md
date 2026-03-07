@@ -4,7 +4,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 620 passing locally (479 on CI — DPAPI/Clipboard/Audio tests skipped on runners) |
+| **Tests** | 647 passing locally (479 on CI — DPAPI/Clipboard/Audio tests skipped on runners) |
 | **Build** | 0 errors, 0 warnings |
 | **CI** | Passing on main |
 | **Branch** | main |
@@ -33,6 +33,13 @@
 - **Gitleaks:** `.gitleaks.toml` allowlists `website/QUICKSTART.md` (historical fake JWTs in git history)
 - **Test threshold:** `ci/test-threshold.json` set to 470 (local runs 620, CI runs ~479 due to skipped tests)
 - **Vercel:** Connected to `geckogtmx/diktame`, Root Directory = `website`
+
+## i18n Notes (SPEC_004)
+
+- **WinUI3Localizer** adopted — `ApplicationLanguages.PrimaryLanguageOverride` does NOT work in unpackaged apps
+- All 24 XAML files migrated from `x:Uid` → `l:Uids.Uid` (WinUI3Localizer namespace)
+- en + es-MX `.resw` files (370+ keys each) + CoreStrings `.resx` (8 keys)
+- **TODO:** Some labels and tooltips still need translation review — check all screens in es-MX locale for missing or untranslated strings
 
 ## Remaining Work
 

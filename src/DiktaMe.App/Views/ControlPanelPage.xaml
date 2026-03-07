@@ -3,7 +3,8 @@
     x:Name="RootPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="using:DiktaMe.App.Converters">
+    xmlns:converters="using:DiktaMe.App.Converters"
+    xmlns:l="using:WinUI3Localizer">
 
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
@@ -236,7 +237,7 @@
                                FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource V1TextPrimaryBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="REQ" FontSize="8" CharacterSpacing="50"
+                    <TextBlock l:Uids.Uid="ControlPanel_Stat_Req" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -250,7 +251,7 @@
                                FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource V1TextPrimaryBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="CHAR" FontSize="8" CharacterSpacing="50"
+                    <TextBlock l:Uids.Uid="ControlPanel_Stat_Char" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -264,7 +265,7 @@
                                FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource V1TextPrimaryBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="WORDS" FontSize="8" CharacterSpacing="50"
+                    <TextBlock l:Uids.Uid="ControlPanel_Stat_Words" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -278,7 +279,7 @@
                                FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource V1TextPrimaryBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="WORD/MIN" FontSize="8" CharacterSpacing="50"
+                    <TextBlock l:Uids.Uid="ControlPanel_Stat_WordMin" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -309,7 +310,7 @@
                                FontFamily="Consolas"
                                Foreground="{StaticResource V1PerfGreenBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="REC" FontSize="8" CharacterSpacing="50"
+                    <TextBlock l:Uids.Uid="ControlPanel_Perf_Rec" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -324,7 +325,7 @@
                                FontFamily="Consolas"
                                Foreground="{StaticResource V1PerfGreenBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="TRNS" FontSize="8" CharacterSpacing="50"
+                    <TextBlock l:Uids.Uid="ControlPanel_Perf_Trns" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -339,7 +340,7 @@
                                FontFamily="Consolas"
                                Foreground="{StaticResource V1PerfGreenBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="PROC" FontSize="8" CharacterSpacing="50"
+                    <TextBlock l:Uids.Uid="ControlPanel_Perf_Proc" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -354,7 +355,7 @@
                                FontFamily="Consolas"
                                Foreground="{StaticResource V1PerfGreenBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="INJ" FontSize="8" CharacterSpacing="50"
+                    <TextBlock l:Uids.Uid="ControlPanel_Perf_Inj" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -369,7 +370,7 @@
                                FontFamily="Consolas"
                                Foreground="{StaticResource V1PerfGreenBrush}"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="TOT" FontSize="8" CharacterSpacing="50"
+                    <TextBlock l:Uids.Uid="ControlPanel_Perf_Tot" FontSize="8" CharacterSpacing="50"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>

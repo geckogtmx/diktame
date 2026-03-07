@@ -1,6 +1,7 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DiktaMe.App.Services;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Data;
 using DiktaMe.Core.Security;
@@ -12,6 +13,7 @@ public sealed partial class PrivacySettingsViewModel : ObservableObject
     private readonly SettingsManager _settings;
     private readonly HistoryManager _history;
     private readonly SecureStorage _secureStorage;
+    private readonly LocalizationService _loc;
     private bool _isLoading;
 
     [ObservableProperty]
@@ -29,11 +31,12 @@ public sealed partial class PrivacySettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isWiping;
 
-    public PrivacySettingsViewModel(SettingsManager settings, HistoryManager history, SecureStorage secureStorage)
+    public PrivacySettingsViewModel(SettingsManager settings, HistoryManager history, SecureStorage secureStorage, LocalizationService loc)
     {
         _settings = settings;
         _history = history;
         _secureStorage = secureStorage;
+        _loc = loc;
         LoadFromSettings();
     }
 
@@ -80,11 +83,11 @@ public sealed partial class PrivacySettingsViewModel : ObservableObject
     {
         PrivacyLevelLabel = (int)PrivacyLevel switch
         {
-            0 => "Ghost — No data stored",
-            1 => "Stats Only — Metrics without text",
-            2 => "Balanced — PII scrubbed history",
-            3 => "Full — Complete history",
-            _ => "Balanced",
+            0 => _loc.GetString("Settings_Privacy_Level_Ghost"),
+            1 => _loc.GetString("Settings_Privacy_Level_Stats"),
+            2 => _loc.GetString("Settings_Privacy_Level_Balanced"),
+            3 => _loc.GetString("Settings_Privacy_Level_Full"),
+            _ => _loc.GetString("Settings_Privacy_Level_Balanced"),
         };
     }
 

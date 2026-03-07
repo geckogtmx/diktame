@@ -1,5 +1,6 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
+using DiktaMe.App.Services;
 using DiktaMe.Core.Config;
 using Serilog;
 
@@ -7,6 +8,7 @@ namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class AIEngineSettingsViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
+    private readonly LocalizationService _loc;
     private bool _isLoading;
 
     [ObservableProperty]
@@ -45,15 +47,26 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isDictationEnabled = true;
 
-    public AIEngineSettingsViewModel(SettingsManager settings)
+    public AIEngineSettingsViewModel(SettingsManager settings, LocalizationService loc)
     {
         _settings = settings;
+        _loc = loc;
         LoadFromSettings();
     }
 
-    public string[] SttModes { get; } = ["Cloud (Deepgram / Gemini)", "Local (Whisper)"];
-    public string[] LlmModes { get; } = ["Cloud (Gemini / OpenAI / Anthropic)", "Local (Ollama)", "Skip LLM"];
-    public string[] DeepgramModels { get; } = ["nova-3 (recommended)", "nova-2"];
+    public string[] SttModes => [
+        _loc.GetString("Settings_AIEngine_STT_Cloud"),
+        _loc.GetString("Settings_AIEngine_STT_Local"),
+    ];
+    public string[] LlmModes => [
+        _loc.GetString("Settings_AIEngine_LLM_Cloud"),
+        _loc.GetString("Settings_AIEngine_LLM_Local"),
+        _loc.GetString("Settings_AIEngine_LLM_Skip"),
+    ];
+    public string[] DeepgramModels => [
+        _loc.GetString("Settings_AIEngine_Deepgram_Nova3"),
+        _loc.GetString("Settings_AIEngine_Deepgram_Nova2"),
+    ];
     public string[] DeepgramModelCodes { get; } = ["nova-3", "nova-2"];
 
     private void LoadFromSettings()

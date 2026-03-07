@@ -1,5 +1,7 @@
 using System.Net.Http;
+using DiktaMe.App.Services;
 using DiktaMe.App.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Serilog;
@@ -7,10 +9,12 @@ using Serilog;
 namespace DiktaMe.App.Views.Wizard;
 public sealed partial class WizardApiKeysPage : Page, IWizardStepPage
 {
+    private readonly LocalizationService _loc;
     private WizardViewModel? _viewModel;
 
     public WizardApiKeysPage()
     {
+        _loc = App.Current.Services.GetRequiredService<LocalizationService>();
         this.InitializeComponent();
         this.Loaded += OnLoaded;
     }
@@ -80,7 +84,7 @@ public sealed partial class WizardApiKeysPage : Page, IWizardStepPage
         TestSttKeyButton.IsEnabled = false;
         SttKeyStatus.Visibility = Visibility.Visible;
         SttKeyProgress.IsActive = true;
-        SttKeyStatusText.Text = "Testing connection...";
+        SttKeyStatusText.Text = _loc.GetString("Wizard_ApiKeys_Testing");
 
         try
         {
@@ -93,19 +97,19 @@ public sealed partial class WizardApiKeysPage : Page, IWizardStepPage
 
             if (response.IsSuccessStatusCode)
             {
-                SttKeyStatusText.Text = "✓ API key is valid";
+                SttKeyStatusText.Text = _loc.GetString("Wizard_ApiKeys_Valid");
                 SttKeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                     Microsoft.UI.Colors.Green);
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                SttKeyStatusText.Text = "✗ Invalid API key";
+                SttKeyStatusText.Text = _loc.GetString("Wizard_ApiKeys_Invalid");
                 SttKeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                     Microsoft.UI.Colors.Red);
             }
             else
             {
-                SttKeyStatusText.Text = $"✗ Test failed: {response.StatusCode}";
+                SttKeyStatusText.Text = _loc.GetFormatted("Wizard_ApiKeys_TestFailed", response.StatusCode);
                 SttKeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                     Microsoft.UI.Colors.Orange);
             }
@@ -113,7 +117,7 @@ public sealed partial class WizardApiKeysPage : Page, IWizardStepPage
         catch (Exception ex)
         {
             Log.Warning(ex, "Deepgram API key test failed");
-            SttKeyStatusText.Text = $"✗ Connection failed: {ex.Message}";
+            SttKeyStatusText.Text = _loc.GetFormatted("Wizard_ApiKeys_ConnectionFailed", ex.Message);
             SttKeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                 Microsoft.UI.Colors.Red);
         }
@@ -135,7 +139,7 @@ public sealed partial class WizardApiKeysPage : Page, IWizardStepPage
         TestLlmKeyButton.IsEnabled = false;
         LlmKeyStatus.Visibility = Visibility.Visible;
         LlmKeyProgress.IsActive = true;
-        LlmKeyStatusText.Text = "Testing connection...";
+        LlmKeyStatusText.Text = _loc.GetString("Wizard_ApiKeys_Testing");
 
         try
         {
@@ -146,7 +150,7 @@ public sealed partial class WizardApiKeysPage : Page, IWizardStepPage
 
             if (response.IsSuccessStatusCode)
             {
-                LlmKeyStatusText.Text = "✓ API key is valid";
+                LlmKeyStatusText.Text = _loc.GetString("Wizard_ApiKeys_Valid");
                 LlmKeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                     Microsoft.UI.Colors.Green);
             }
@@ -154,13 +158,13 @@ public sealed partial class WizardApiKeysPage : Page, IWizardStepPage
                      response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
                      response.StatusCode == (System.Net.HttpStatusCode)400)
             {
-                LlmKeyStatusText.Text = "✗ Invalid API key";
+                LlmKeyStatusText.Text = _loc.GetString("Wizard_ApiKeys_Invalid");
                 LlmKeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                     Microsoft.UI.Colors.Red);
             }
             else
             {
-                LlmKeyStatusText.Text = $"✗ Test failed: {response.StatusCode}";
+                LlmKeyStatusText.Text = _loc.GetFormatted("Wizard_ApiKeys_TestFailed", response.StatusCode);
                 LlmKeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                     Microsoft.UI.Colors.Orange);
             }
@@ -168,7 +172,7 @@ public sealed partial class WizardApiKeysPage : Page, IWizardStepPage
         catch (Exception ex)
         {
             Log.Warning(ex, "Gemini API key test failed");
-            LlmKeyStatusText.Text = $"✗ Connection failed: {ex.Message}";
+            LlmKeyStatusText.Text = _loc.GetFormatted("Wizard_ApiKeys_ConnectionFailed", ex.Message);
             LlmKeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                 Microsoft.UI.Colors.Red);
         }

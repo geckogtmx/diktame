@@ -1,0 +1,1380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Common (shared across multiple pages)
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Common_Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Common_Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Record" xml:space="preserve">
+    <value>Record</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Common_Browse" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="Common_Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       SettingsWindow Navigation Items
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Nav_General.Content" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Nav_Hotkeys.Content" xml:space="preserve">
+    <value>Hotkeys</value>
+  </data>
+  <data name="Nav_AIEngine.Content" xml:space="preserve">
+    <value>AI Engine</value>
+  </data>
+  <data name="Nav_DictationPresets.Content" xml:space="preserve">
+    <value>Dictation Presets</value>
+  </data>
+  <data name="Nav_Modes.Content" xml:space="preserve">
+    <value>Modes</value>
+  </data>
+  <data name="Nav_Audio.Content" xml:space="preserve">
+    <value>Audio</value>
+  </data>
+  <data name="Nav_Privacy.Content" xml:space="preserve">
+    <value>Privacy</value>
+  </data>
+  <data name="Nav_ApiKeys.Content" xml:space="preserve">
+    <value>API Keys</value>
+  </data>
+  <data name="Nav_Ollama.Content" xml:space="preserve">
+    <value>Ollama</value>
+  </data>
+  <data name="Nav_Snippets.Content" xml:space="preserve">
+    <value>Snippets</value>
+  </data>
+  <data name="Nav_ControlPanel.Content" xml:space="preserve">
+    <value>Control Panel</value>
+  </data>
+  <data name="Nav_About.Content" xml:space="preserve">
+    <value>About</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > General
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_General_Title.Text" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Settings_General_UiLanguage_Label.Text" xml:space="preserve">
+    <value>UI Language</value>
+  </data>
+  <data name="Settings_General_UiLanguage_Description.Text" xml:space="preserve">
+    <value>Interface display language (requires restart)</value>
+  </data>
+  <data name="Settings_General_Language_Label.Text" xml:space="preserve">
+    <value>Transcription Language</value>
+  </data>
+  <data name="Settings_General_Language_Description.Text" xml:space="preserve">
+    <value>Default transcription language</value>
+  </data>
+  <data name="Settings_General_AutoStart_Label.Text" xml:space="preserve">
+    <value>Auto-Start</value>
+  </data>
+  <data name="Settings_General_AutoStart_Description.Text" xml:space="preserve">
+    <value>Launch dIKta.me when Windows starts</value>
+  </data>
+  <data name="Settings_General_SoundFeedback_Label.Text" xml:space="preserve">
+    <value>Sound Feedback</value>
+  </data>
+  <data name="Settings_General_SoundFeedback_Description.Text" xml:space="preserve">
+    <value>Play sounds for recording start/stop and notifications</value>
+  </data>
+  <data name="Settings_General_AdditionalKey_Label.Text" xml:space="preserve">
+    <value>Additional Key After Injection</value>
+  </data>
+  <data name="Settings_General_AdditionalKey_Description.Text" xml:space="preserve">
+    <value>Optionally press a key after text is injected</value>
+  </data>
+  <data name="Settings_General_TrailingSpace_Label.Text" xml:space="preserve">
+    <value>Trailing Space</value>
+  </data>
+  <data name="Settings_General_TrailingSpace_Description.Text" xml:space="preserve">
+    <value>Add a space after injected text</value>
+  </data>
+  <data name="Settings_General_RestartInfoBar.Title" xml:space="preserve">
+    <value>Restart Required</value>
+  </data>
+  <data name="Settings_General_RestartInfoBar.Message" xml:space="preserve">
+    <value>Restart dIKta.me for the language change to take effect.</value>
+  </data>
+  <data name="Settings_General_RestartButton.Content" xml:space="preserve">
+    <value>Restart Now</value>
+  </data>
+  <!-- C# keys -->
+  <data name="Settings_General_Lang_English" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="Settings_General_Lang_Spanish" xml:space="preserve">
+    <value>Spanish</value>
+  </data>
+  <data name="Settings_General_UiLang_English" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="Settings_General_UiLang_Spanish" xml:space="preserve">
+    <value>Espa&#241;ol (M&#233;xico)</value>
+  </data>
+  <data name="Settings_General_AdditionalKey_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Settings_General_AdditionalKey_Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
+  <data name="Settings_General_AdditionalKey_Tab" xml:space="preserve">
+    <value>Tab</value>
+  </data>
+  <data name="Settings_General_AdditionalKey_Space" xml:space="preserve">
+    <value>Space</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Hotkeys
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_Hotkeys_Title.Text" xml:space="preserve">
+    <value>Hotkeys</value>
+  </data>
+  <data name="Settings_Hotkeys_Dictate_Label.Text" xml:space="preserve">
+    <value>Dictate</value>
+  </data>
+  <data name="Settings_Hotkeys_Dictate_Description.Text" xml:space="preserve">
+    <value>Start voice dictation mode</value>
+  </data>
+  <data name="Settings_Hotkeys_Refine_Label.Text" xml:space="preserve">
+    <value>Refine</value>
+  </data>
+  <data name="Settings_Hotkeys_Refine_Description.Text" xml:space="preserve">
+    <value>Start refine mode to improve selected text</value>
+  </data>
+  <data name="Settings_Hotkeys_Ask_Label.Text" xml:space="preserve">
+    <value>Ask</value>
+  </data>
+  <data name="Settings_Hotkeys_Ask_Description.Text" xml:space="preserve">
+    <value>Start ask mode to query AI about selected text</value>
+  </data>
+  <data name="Settings_Hotkeys_Translate_Label.Text" xml:space="preserve">
+    <value>Translate</value>
+  </data>
+  <data name="Settings_Hotkeys_Translate_Description.Text" xml:space="preserve">
+    <value>Translate selected text</value>
+  </data>
+  <data name="Settings_Hotkeys_Oops_Label.Text" xml:space="preserve">
+    <value>Oops (Undo Last)</value>
+  </data>
+  <data name="Settings_Hotkeys_Oops_Description.Text" xml:space="preserve">
+    <value>Undo the last AI text injection</value>
+  </data>
+  <data name="Settings_Hotkeys_Note_Label.Text" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="Settings_Hotkeys_Note_Description.Text" xml:space="preserve">
+    <value>Save voice note to file</value>
+  </data>
+  <data name="Settings_Hotkeys_Chat_Label.Text" xml:space="preserve">
+    <value>Chat</value>
+  </data>
+  <data name="Settings_Hotkeys_Chat_Description.Text" xml:space="preserve">
+    <value>Open Quick Chat overlay window</value>
+  </data>
+  <data name="Settings_Hotkeys_Placeholder.PlaceholderText" xml:space="preserve">
+    <value>Click Record to set hotkey</value>
+  </data>
+  <data name="Settings_Hotkeys_InfoBar.Message" xml:space="preserve">
+    <value>Click Record, then press your desired key combination. Changes save automatically. Restart required for new hotkeys to take effect.</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > AI Engine
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_AIEngine_Title.Text" xml:space="preserve">
+    <value>AI Engine</value>
+  </data>
+  <data name="Settings_AIEngine_STT_Label.Text" xml:space="preserve">
+    <value>Speech-to-Text (Ears)</value>
+  </data>
+  <data name="Settings_AIEngine_STT_Description.Text" xml:space="preserve">
+    <value>Choose how voice audio is transcribed to text</value>
+  </data>
+  <data name="Settings_AIEngine_LLM_Label.Text" xml:space="preserve">
+    <value>Language Model (Brain)</value>
+  </data>
+  <data name="Settings_AIEngine_LLM_Description.Text" xml:space="preserve">
+    <value>Choose how text is processed by AI</value>
+  </data>
+  <data name="Settings_AIEngine_CurrentConfig_Label.Text" xml:space="preserve">
+    <value>Current Configuration</value>
+  </data>
+  <data name="Settings_AIEngine_InfoBar.Title" xml:space="preserve">
+    <value>Per-mode overrides</value>
+  </data>
+  <data name="Settings_AIEngine_InfoBar.Message" xml:space="preserve">
+    <value>Fine-grained provider and model selection is available on the Modes tab for each workflow mode.</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Section.Text" xml:space="preserve">
+    <value>Deepgram Settings</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Model_Label.Text" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Model_Description.Text" xml:space="preserve">
+    <value>Nova-3 has 47% lower word error rate than Nova-2</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Punctuate_Label.Text" xml:space="preserve">
+    <value>Auto-Punctuation</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Punctuate_Description.Text" xml:space="preserve">
+    <value>Add punctuation marks and capitalization to transcripts</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Dictation_Label.Text" xml:space="preserve">
+    <value>Dictation Mode</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Dictation_Description.Text" xml:space="preserve">
+    <value>Say "comma", "period", "question mark" to insert punctuation. English only.</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_SmartFormat_Label.Text" xml:space="preserve">
+    <value>Smart Formatting</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_SmartFormat_Description.Text" xml:space="preserve">
+    <value>Auto-format dates, currency, phone numbers, emails. Includes punctuation.</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_SmartFormat_Warning.Text" xml:space="preserve">
+    <value>Adds ~3 second buffer in streaming mode while formatting entities</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Replace_Label.Text" xml:space="preserve">
+    <value>Find and Replace</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Replace_Description.Text" xml:space="preserve">
+    <value>Server-side replacements applied before LLM. One per line: find:replace</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Replace_Help.Text" xml:space="preserve">
+    <value>Find terms must be lowercase. Complements Snippets (which run after LLM).</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Streaming_Label.Text" xml:space="preserve">
+    <value>Real-Time Streaming</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Streaming_Description.Text" xml:space="preserve">
+    <value>Stream audio over WebSocket for instant transcription. Always operates in raw mode (no LLM).</value>
+  </data>
+  <!-- C# keys -->
+  <data name="Settings_AIEngine_STT_Cloud" xml:space="preserve">
+    <value>Cloud (Deepgram / Gemini)</value>
+  </data>
+  <data name="Settings_AIEngine_STT_Local" xml:space="preserve">
+    <value>Local (Whisper)</value>
+  </data>
+  <data name="Settings_AIEngine_LLM_Cloud" xml:space="preserve">
+    <value>Cloud (Gemini / OpenAI / Anthropic)</value>
+  </data>
+  <data name="Settings_AIEngine_LLM_Local" xml:space="preserve">
+    <value>Local (Ollama)</value>
+  </data>
+  <data name="Settings_AIEngine_LLM_Skip" xml:space="preserve">
+    <value>Skip LLM</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Nova3" xml:space="preserve">
+    <value>nova-3 (recommended)</value>
+  </data>
+  <data name="Settings_AIEngine_Deepgram_Nova2" xml:space="preserve">
+    <value>nova-2</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Dictation Presets
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_DictationModes_Presets_Title.Text" xml:space="preserve">
+    <value>Presets</value>
+  </data>
+  <data name="Settings_DictationModes_Title_Label.Text" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="Settings_DictationModes_Title_Placeholder.PlaceholderText" xml:space="preserve">
+    <value>Mode title</value>
+  </data>
+  <data name="Settings_DictationModes_CloudProfile_Title.Text" xml:space="preserve">
+    <value>Cloud Profile</value>
+  </data>
+  <data name="Settings_DictationModes_LlmModel_Label.Text" xml:space="preserve">
+    <value>LLM Model</value>
+  </data>
+  <data name="Settings_DictationModes_LlmModel_Description.Text" xml:space="preserve">
+    <value>Select a model for Cloud processing</value>
+  </data>
+  <data name="Settings_DictationModes_SystemPrompt_Label.Text" xml:space="preserve">
+    <value>System Prompt</value>
+  </data>
+  <data name="Settings_DictationModes_SystemPrompt_CloudDescription.Text" xml:space="preserve">
+    <value>Instruction sent to the LLM before the transcribed text</value>
+  </data>
+  <data name="Settings_DictationModes_SystemPrompt_Placeholder.PlaceholderText" xml:space="preserve">
+    <value>Enter system prompt...</value>
+  </data>
+  <data name="Settings_DictationModes_UseLlm_Label.Text" xml:space="preserve">
+    <value>Use LLM</value>
+  </data>
+  <data name="Settings_DictationModes_UseLlm_Description.Text" xml:space="preserve">
+    <value>Disable for raw STT output (no AI processing)</value>
+  </data>
+  <data name="Settings_DictationModes_LocalProfile_Title.Text" xml:space="preserve">
+    <value>Local Profile</value>
+  </data>
+  <data name="Settings_DictationModes_OllamaInfoBar.Title" xml:space="preserve">
+    <value>Ollama Model</value>
+  </data>
+  <data name="Settings_DictationModes_OllamaInfoBar.Message" xml:space="preserve">
+    <value>Local profile uses the global Ollama model configured in the AI Engine tab.</value>
+  </data>
+  <data name="Settings_DictationModes_NoSelection.Text" xml:space="preserve">
+    <value>Select a preset to edit</value>
+  </data>
+  <!-- C# keys -->
+  <data name="Settings_DictationModes_Tooltip_New" xml:space="preserve">
+    <value>New Preset</value>
+  </data>
+  <data name="Settings_DictationModes_Tooltip_MoveUp" xml:space="preserve">
+    <value>Move Up</value>
+  </data>
+  <data name="Settings_DictationModes_Tooltip_MoveDown" xml:space="preserve">
+    <value>Move Down</value>
+  </data>
+  <data name="Settings_DictationModes_Tooltip_Delete" xml:space="preserve">
+    <value>Delete Preset</value>
+  </data>
+  <data name="Settings_DictationModes_Tooltip_RefreshModels" xml:space="preserve">
+    <value>Refresh model list</value>
+  </data>
+  <data name="Settings_DictationModes_DefaultTitle" xml:space="preserve">
+    <value>New Mode</value>
+  </data>
+  <data name="Settings_DictationModes_ModelDefault" xml:space="preserve">
+    <value>(Default &#8212; use provider default)</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Modes
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_Modes_Pipelines_Title.Text" xml:space="preserve">
+    <value>Pipelines</value>
+  </data>
+  <data name="Settings_Modes_OutputMode_Label.Text" xml:space="preserve">
+    <value>Output Mode</value>
+  </data>
+  <data name="Settings_Modes_OutputMode_Description.Text" xml:space="preserve">
+    <value>How Ask pipeline results are delivered</value>
+  </data>
+  <data name="Settings_Modes_CloudModel_Label.Text" xml:space="preserve">
+    <value>Cloud Model</value>
+  </data>
+  <data name="Settings_Modes_CloudModel_Description.Text" xml:space="preserve">
+    <value>Model for Cloud profile (when using API providers)</value>
+  </data>
+  <data name="Settings_Modes_CloudPrompt_Label.Text" xml:space="preserve">
+    <value>Cloud System Prompt</value>
+  </data>
+  <data name="Settings_Modes_LocalModel_Label.Text" xml:space="preserve">
+    <value>Local Model</value>
+  </data>
+  <data name="Settings_Modes_LocalModel_Description.Text" xml:space="preserve">
+    <value>Model for Local profile (Ollama only)</value>
+  </data>
+  <data name="Settings_Modes_LocalPrompt_Label.Text" xml:space="preserve">
+    <value>Local System Prompt</value>
+  </data>
+  <data name="Settings_Modes_OllamaInfoBar.Message" xml:space="preserve">
+    <value>Local profile uses the global Ollama model configured in the AI Engine tab.</value>
+  </data>
+  <data name="Settings_Modes_NoteFilePath_Label.Text" xml:space="preserve">
+    <value>Note File Path</value>
+  </data>
+  <data name="Settings_Modes_LlmProcessing_Label.Text" xml:space="preserve">
+    <value>LLM Processing</value>
+  </data>
+  <data name="Settings_Modes_LlmProcessing_Description.Text" xml:space="preserve">
+    <value>Enable AI formatting for notes</value>
+  </data>
+  <data name="Settings_Modes_TimestampFormat_Label.Text" xml:space="preserve">
+    <value>Timestamp Format</value>
+  </data>
+  <data name="Settings_Modes_TimestampFormat_Description.Text" xml:space="preserve">
+    <value>C# DateTime format string</value>
+  </data>
+  <data name="Settings_Modes_LivePreview_Label.Text" xml:space="preserve">
+    <value>Live Preview</value>
+  </data>
+  <data name="Settings_Modes_FontSize_Label.Text" xml:space="preserve">
+    <value>Font Size</value>
+  </data>
+  <data name="Settings_Modes_WindowOpacity_Label.Text" xml:space="preserve">
+    <value>Window Opacity</value>
+  </data>
+  <data name="Settings_Modes_Theme_Label.Text" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="Settings_Modes_ForgetOnClose_Label.Text" xml:space="preserve">
+    <value>Forget on Close</value>
+  </data>
+  <data name="Settings_Modes_ForgetOnClose_Description.Text" xml:space="preserve">
+    <value>Clear chat history when window closes</value>
+  </data>
+  <data name="Settings_Modes_MaxHistory_Label.Text" xml:space="preserve">
+    <value>Max History Messages</value>
+  </data>
+  <data name="Settings_Modes_ShowTimestamps_Label.Text" xml:space="preserve">
+    <value>Show Timestamps</value>
+  </data>
+  <data name="Settings_Modes_EnableMarkdown_Label.Text" xml:space="preserve">
+    <value>Enable Markdown</value>
+  </data>
+  <data name="Settings_Modes_ResetToDefaults.Content" xml:space="preserve">
+    <value>Reset to Defaults</value>
+  </data>
+  <!-- C# keys -->
+  <data name="Settings_Modes_AskOutput_ToastOnly" xml:space="preserve">
+    <value>Toast Only</value>
+  </data>
+  <data name="Settings_Modes_AskOutput_ClipboardOnly" xml:space="preserve">
+    <value>Clipboard Only</value>
+  </data>
+  <data name="Settings_Modes_AskOutput_InjectOnly" xml:space="preserve">
+    <value>Inject Only</value>
+  </data>
+  <data name="Settings_Modes_AskOutput_ClipboardToast" xml:space="preserve">
+    <value>Clipboard + Toast</value>
+  </data>
+  <data name="Settings_Modes_ChatTheme_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Settings_Modes_ChatTheme_Light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Settings_Modes_ChatTheme_Dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Settings_Modes_ModelDefault_Cloud" xml:space="preserve">
+    <value>(Default &#8212; use provider default)</value>
+  </data>
+  <data name="Settings_Modes_ModelDefault_Local" xml:space="preserve">
+    <value>(Default &#8212; global Ollama model)</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Audio
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_Audio_Title.Text" xml:space="preserve">
+    <value>Audio</value>
+  </data>
+  <data name="Settings_Audio_RecordingDevice_Label.Text" xml:space="preserve">
+    <value>Recording Device</value>
+  </data>
+  <data name="Settings_Audio_RecordingDevice_Description.Text" xml:space="preserve">
+    <value>Microphone used for voice input</value>
+  </data>
+  <data name="Settings_Audio_MaxDuration_Label.Text" xml:space="preserve">
+    <value>Maximum Recording Duration</value>
+  </data>
+  <data name="Settings_Audio_MaxDuration_Description.Text" xml:space="preserve">
+    <value>Auto-stop recording after this duration</value>
+  </data>
+  <data name="Settings_Audio_Ducking_Label.Text" xml:space="preserve">
+    <value>Audio Ducking</value>
+  </data>
+  <data name="Settings_Audio_Ducking_Description.Text" xml:space="preserve">
+    <value>Lower other app volumes while recording</value>
+  </data>
+  <data name="Settings_Audio_DuckLevel_Label.Text" xml:space="preserve">
+    <value>Duck Level</value>
+  </data>
+  <data name="Settings_Audio_DuckLevel_Prefix.Text" xml:space="preserve">
+    <value>Other apps reduced to </value>
+  </data>
+  <data name="Settings_Audio_DuckLevel_Suffix.Text" xml:space="preserve">
+    <value>% volume</value>
+  </data>
+  <data name="Settings_Audio_SoundFeedback_Section.Text" xml:space="preserve">
+    <value>Sound Feedback</value>
+  </data>
+  <data name="Settings_Audio_EnableSounds_Label.Text" xml:space="preserve">
+    <value>Enable Sounds</value>
+  </data>
+  <data name="Settings_Audio_EnableSounds_Description.Text" xml:space="preserve">
+    <value>Play audio cues when recording starts and stops</value>
+  </data>
+  <data name="Settings_Audio_StartSound_Label.Text" xml:space="preserve">
+    <value>Dictate Start Sound</value>
+  </data>
+  <data name="Settings_Audio_StartSound_Description.Text" xml:space="preserve">
+    <value>Played when dictation recording begins</value>
+  </data>
+  <data name="Settings_Audio_StopSound_Label.Text" xml:space="preserve">
+    <value>Dictate Stop Sound</value>
+  </data>
+  <data name="Settings_Audio_StopSound_Description.Text" xml:space="preserve">
+    <value>Played when dictation recording stops</value>
+  </data>
+  <data name="Settings_Audio_UtilitySound_Label.Text" xml:space="preserve">
+    <value>Utility Sound</value>
+  </data>
+  <data name="Settings_Audio_UtilitySound_Description.Text" xml:space="preserve">
+    <value>Played for Ask, Refine, Translate, and Note pipelines</value>
+  </data>
+  <!-- C# keys -->
+  <data name="Settings_Audio_Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="Settings_Audio_Duration_30s" xml:space="preserve">
+    <value>30 seconds</value>
+  </data>
+  <data name="Settings_Audio_Duration_60s" xml:space="preserve">
+    <value>60 seconds</value>
+  </data>
+  <data name="Settings_Audio_Duration_120s" xml:space="preserve">
+    <value>120 seconds</value>
+  </data>
+  <data name="Settings_Audio_Duration_Unlimited" xml:space="preserve">
+    <value>Unlimited</value>
+  </data>
+  <data name="Settings_Audio_DefaultDevice" xml:space="preserve">
+    <value>(Default device)</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Privacy
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_Privacy_Title.Text" xml:space="preserve">
+    <value>Privacy</value>
+  </data>
+  <data name="Settings_Privacy_LoggingIntensity_Label.Text" xml:space="preserve">
+    <value>Logging Intensity</value>
+  </data>
+  <data name="Settings_Privacy_Slider_Ghost.Text" xml:space="preserve">
+    <value>Ghost</value>
+  </data>
+  <data name="Settings_Privacy_Slider_Full.Text" xml:space="preserve">
+    <value>Full</value>
+  </data>
+  <data name="Settings_Privacy_PiiScrubber_Label.Text" xml:space="preserve">
+    <value>PII Scrubber</value>
+  </data>
+  <data name="Settings_Privacy_PiiScrubber_Description.Text" xml:space="preserve">
+    <value>Automatically redact emails, phone numbers, and other personal data</value>
+  </data>
+  <data name="Settings_Privacy_HistoryRetention_Label.Text" xml:space="preserve">
+    <value>History Retention</value>
+  </data>
+  <data name="Settings_Privacy_HistoryRetention_Description.Text" xml:space="preserve">
+    <value>Auto-delete history older than this many days</value>
+  </data>
+  <data name="Settings_Privacy_DataManagement_Label.Text" xml:space="preserve">
+    <value>Data Management</value>
+  </data>
+  <data name="Settings_Privacy_DataManagement_Description.Text" xml:space="preserve">
+    <value>Permanently delete all stored history and metrics</value>
+  </data>
+  <data name="Settings_Privacy_WipeAllData.Content" xml:space="preserve">
+    <value>Wipe All Data</value>
+  </data>
+  <!-- C# keys -->
+  <data name="Settings_Privacy_Level_Ghost" xml:space="preserve">
+    <value>Ghost &#8212; No data stored</value>
+  </data>
+  <data name="Settings_Privacy_Level_Stats" xml:space="preserve">
+    <value>Stats Only &#8212; Metrics without text</value>
+  </data>
+  <data name="Settings_Privacy_Level_Balanced" xml:space="preserve">
+    <value>Balanced &#8212; PII scrubbed history</value>
+  </data>
+  <data name="Settings_Privacy_Level_Full" xml:space="preserve">
+    <value>Full &#8212; Complete history</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > API Keys
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_ApiKeys_Title.Text" xml:space="preserve">
+    <value>API Keys</value>
+  </data>
+  <data name="Settings_ApiKeys_Description.Text" xml:space="preserve">
+    <value>Keys are encrypted with Windows DPAPI and stored locally.</value>
+  </data>
+  <data name="Settings_ApiKeys_Deepgram_Placeholder.PlaceholderText" xml:space="preserve">
+    <value>Deepgram API key</value>
+  </data>
+  <!-- C# keys -->
+  <data name="Settings_ApiKeys_Status_Saved" xml:space="preserve">
+    <value>Saved</value>
+  </data>
+  <data name="Settings_ApiKeys_Status_NotSet" xml:space="preserve">
+    <value>Not set</value>
+  </data>
+  <data name="Settings_ApiKeys_Status_InvalidFormat" xml:space="preserve">
+    <value>Invalid format</value>
+  </data>
+  <data name="Settings_ApiKeys_Status_SaveFailed" xml:space="preserve">
+    <value>Save failed</value>
+  </data>
+  <data name="Settings_ApiKeys_Status_DeleteFailed" xml:space="preserve">
+    <value>Delete failed</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Account
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_Account_Title.Text" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Settings_Account_SignInBar.Title" xml:space="preserve">
+    <value>Sign in to your dIKta.me account</value>
+  </data>
+  <data name="Settings_Account_SignInBar.Message" xml:space="preserve">
+    <value>Link your account to sync settings, access free trial credits, and more.</value>
+  </data>
+  <data name="Settings_Account_TrialCredits_Title.Text" xml:space="preserve">
+    <value>Trial Credits</value>
+  </data>
+  <!-- C# keys -->
+  <data name="Settings_Account_SignIn" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Settings_Account_SignOut" xml:space="preserve">
+    <value>Sign out</value>
+  </data>
+  <data name="Settings_Account_ManageAccount" xml:space="preserve">
+    <value>Manage account</value>
+  </data>
+  <data name="Settings_Account_Status_NotSignedIn" xml:space="preserve">
+    <value>Not signed in</value>
+  </data>
+  <data name="Settings_Account_Status_Active" xml:space="preserve">
+    <value>Account active</value>
+  </data>
+  <data name="Settings_Account_Status_Expired" xml:space="preserve">
+    <value>Trial expired</value>
+  </data>
+  <data name="Settings_Account_Status_DaysRemaining" xml:space="preserve">
+    <value>{0} days remaining</value>
+  </data>
+  <data name="Settings_Account_UsageText" xml:space="preserve">
+    <value>{0:N0} / {1:N0} words</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Ollama
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_Ollama_Title.Text" xml:space="preserve">
+    <value>Ollama</value>
+  </data>
+  <data name="Settings_Ollama_Status_Label.Text" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Settings_Ollama_Version_Label.Text" xml:space="preserve">
+    <value>Version:</value>
+  </data>
+  <data name="Settings_Ollama_CheckHealth.Content" xml:space="preserve">
+    <value>Check Health</value>
+  </data>
+  <data name="Settings_Ollama_DefaultModel_Label.Text" xml:space="preserve">
+    <value>Default Model</value>
+  </data>
+  <data name="Settings_Ollama_DefaultModel_Description.Text" xml:space="preserve">
+    <value>The Ollama model to use for local LLM processing</value>
+  </data>
+  <data name="Settings_Ollama_DefaultModel_Placeholder.PlaceholderText" xml:space="preserve">
+    <value>e.g. llama3.2</value>
+  </data>
+  <data name="Settings_Ollama_InstalledModels_Label.Text" xml:space="preserve">
+    <value>Installed Models</value>
+  </data>
+  <data name="Settings_Ollama_RescueInfoBar.Title" xml:space="preserve">
+    <value>Version Compatibility Issue</value>
+  </data>
+  <data name="Settings_Ollama_UseFallback.Content" xml:space="preserve">
+    <value>Use Fallback Model</value>
+  </data>
+  <data name="Settings_Ollama_DownloadLink.Content" xml:space="preserve">
+    <value>Download latest Ollama</value>
+  </data>
+  <!-- C# keys -->
+  <data name="Settings_Ollama_Status_NotChecked" xml:space="preserve">
+    <value>Not checked</value>
+  </data>
+  <data name="Settings_Ollama_Status_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="Settings_Ollama_Status_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Settings_Ollama_Status_Offline" xml:space="preserve">
+    <value>Offline &#8212; is Ollama running?</value>
+  </data>
+  <data name="Settings_Ollama_Status_TooOld" xml:space="preserve">
+    <value>Ollama {0} is too old (needs {1})</value>
+  </data>
+  <data name="Settings_Ollama_Status_ModelNotInstalled" xml:space="preserve">
+    <value>Model '{0}' not installed</value>
+  </data>
+  <data name="Settings_Ollama_Status_CheckFailed" xml:space="preserve">
+    <value>Check failed</value>
+  </data>
+  <data name="Settings_Ollama_Rescue_Message" xml:space="preserve">
+    <value>Model '{0}' requires Ollama {1}+, you have {2}.</value>
+  </data>
+  <data name="Settings_Ollama_Rescue_Switched" xml:space="preserve">
+    <value>Switched to fallback model: {0}</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Snippets
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_Snippets_Title.Text" xml:space="preserve">
+    <value>Voice Snippets</value>
+  </data>
+  <data name="Settings_Snippets_TriggerHeader.Header" xml:space="preserve">
+    <value>Trigger phrase</value>
+  </data>
+  <data name="Settings_Snippets_TriggerPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>e.g. my email</value>
+  </data>
+  <data name="Settings_Snippets_ContentHeader.Header" xml:space="preserve">
+    <value>Expansion content</value>
+  </data>
+  <data name="Settings_Snippets_ContentPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>e.g. hello@example.com</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Control Panel
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_ControlPanel_Title.Text" xml:space="preserve">
+    <value>Control Panel</value>
+  </data>
+  <data name="Settings_ControlPanel_Description.Text" xml:space="preserve">
+    <value>Choose which rows are visible on the Control Panel dashboard.</value>
+  </data>
+  <data name="Settings_ControlPanel_ShowModesRow_Label.Text" xml:space="preserve">
+    <value>Show Modes Row</value>
+  </data>
+  <data name="Settings_ControlPanel_ShowModesRow_Description.Text" xml:space="preserve">
+    <value>Dictation mode preset buttons</value>
+  </data>
+  <data name="Settings_ControlPanel_ShowActionsRow_Label.Text" xml:space="preserve">
+    <value>Show Actions Row</value>
+  </data>
+  <data name="Settings_ControlPanel_ShowActionsRow_Description.Text" xml:space="preserve">
+    <value>Sound, Local, +Key, Raw, Refine quick toggles</value>
+  </data>
+  <data name="Settings_ControlPanel_ShowSessionStats_Label.Text" xml:space="preserve">
+    <value>Show Session Stats</value>
+  </data>
+  <data name="Settings_ControlPanel_ShowSessionStats_Description.Text" xml:space="preserve">
+    <value>REQ, CHAR, WORDS, WORD/MIN counters</value>
+  </data>
+  <data name="Settings_ControlPanel_ShowPerformanceStats_Label.Text" xml:space="preserve">
+    <value>Show Performance Stats</value>
+  </data>
+  <data name="Settings_ControlPanel_ShowPerformanceStats_Description.Text" xml:space="preserve">
+    <value>REC, TRANS, PROC, INJ per-stage latencies</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > About
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_About_Title.Text" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="Settings_About_Version.Text" xml:space="preserve">
+    <value>Version 2.0.0</value>
+  </data>
+  <data name="Settings_About_Description.Text" xml:space="preserve">
+    <value>A native Windows dictation engine with voice-to-text, AI-powered text processing, and multi-provider support. Built with C# + WinUI 3 + .NET 8.</value>
+  </data>
+  <data name="Settings_About_TechStack_Title.Text" xml:space="preserve">
+    <value>Technology Stack</value>
+  </data>
+  <data name="Settings_About_TechStack_WinUI.Text" xml:space="preserve">
+    <value>WinUI 3 + Windows App SDK 1.6</value>
+  </data>
+  <data name="Settings_About_TechStack_DotNet.Text" xml:space="preserve">
+    <value>.NET 8 (self-contained, x64)</value>
+  </data>
+  <data name="Settings_About_TechStack_NAudio.Text" xml:space="preserve">
+    <value>NAudio (audio capture + WASAPI)</value>
+  </data>
+  <data name="Settings_About_TechStack_SQLite.Text" xml:space="preserve">
+    <value>SQLite (session history)</value>
+  </data>
+  <data name="Settings_About_TechStack_DPAPI.Text" xml:space="preserve">
+    <value>DPAPI (secure key storage)</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       UserPane Footer
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="UserPane_SignIn" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Additional XAML x:Uid keys (Phase 2 — button/control labels)
+       ══════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Snippets buttons + combined input controls -->
+  <data name="Settings_Snippets_AddButton.Content" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Settings_Snippets_EditButton.Content" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Settings_Snippets_DeleteButton.Content" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Settings_Snippets_SaveButton.Content" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Settings_Snippets_CancelButton.Content" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Settings_Snippets_TriggerInput.Header" xml:space="preserve">
+    <value>Trigger phrase</value>
+  </data>
+  <data name="Settings_Snippets_TriggerInput.PlaceholderText" xml:space="preserve">
+    <value>e.g. my email</value>
+  </data>
+  <data name="Settings_Snippets_ContentInput.Header" xml:space="preserve">
+    <value>Expansion content</value>
+  </data>
+  <data name="Settings_Snippets_ContentInput.PlaceholderText" xml:space="preserve">
+    <value>e.g. hello@example.com</value>
+  </data>
+
+  <!-- Account page buttons -->
+  <data name="Settings_Account_SignInButton.Content" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Settings_Account_SignOutButton.Content" xml:space="preserve">
+    <value>Sign out</value>
+  </data>
+  <data name="Settings_Account_ManageAccountLink.Content" xml:space="preserve">
+    <value>Manage account</value>
+  </data>
+  <data name="Settings_Account_RefreshButton.Content" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+
+  <!-- API Keys — Deepgram placeholder (alt key name used in XAML) -->
+  <data name="Settings_ApiKeys_DeepgramPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Deepgram API key</value>
+  </data>
+
+  <!-- Dictation Modes — split Cloud/Local labels -->
+  <data name="Settings_DictationModes_CloudSystemPrompt_Label.Text" xml:space="preserve">
+    <value>System Prompt</value>
+  </data>
+  <data name="Settings_DictationModes_LocalSystemPrompt_Label.Text" xml:space="preserve">
+    <value>System Prompt</value>
+  </data>
+  <data name="Settings_DictationModes_CloudPrompt_Placeholder.PlaceholderText" xml:space="preserve">
+    <value>Enter system prompt...</value>
+  </data>
+  <data name="Settings_DictationModes_LocalPrompt_Placeholder.PlaceholderText" xml:space="preserve">
+    <value>Enter system prompt...</value>
+  </data>
+  <data name="Settings_DictationModes_CloudUseLlm_Label.Text" xml:space="preserve">
+    <value>Use LLM</value>
+  </data>
+  <data name="Settings_DictationModes_CloudUseLlm_Description.Text" xml:space="preserve">
+    <value>Disable for raw STT output (no AI processing)</value>
+  </data>
+  <data name="Settings_DictationModes_LocalUseLlm_Label.Text" xml:space="preserve">
+    <value>Use LLM</value>
+  </data>
+  <data name="Settings_DictationModes_LocalUseLlm_Description.Text" xml:space="preserve">
+    <value>Disable for raw STT output (no AI processing)</value>
+  </data>
+  <data name="Settings_DictationModes_SaveButton.Content" xml:space="preserve">
+    <value>Save</value>
+  </data>
+
+  <!-- Modes page buttons -->
+  <data name="Settings_Modes_CloudRefreshButton.Content" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Settings_Modes_LocalRefreshButton.Content" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Settings_Modes_BrowseButton.Content" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="Settings_Modes_SaveButton.Content" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Settings_Modes_FontSizeUnit.Text" xml:space="preserve">
+    <value>pt</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Control Panel Page
+       ══════════════════════════════════════════════════════════════════════ -->
+  <!-- Session Stats labels -->
+  <data name="ControlPanel_Stat_Req.Text" xml:space="preserve">
+    <value>REQ</value>
+  </data>
+  <data name="ControlPanel_Stat_Char.Text" xml:space="preserve">
+    <value>CHAR</value>
+  </data>
+  <data name="ControlPanel_Stat_Words.Text" xml:space="preserve">
+    <value>WORDS</value>
+  </data>
+  <data name="ControlPanel_Stat_WordMin.Text" xml:space="preserve">
+    <value>WORD/MIN</value>
+  </data>
+  <!-- Performance Stats labels -->
+  <data name="ControlPanel_Perf_Rec.Text" xml:space="preserve">
+    <value>REC</value>
+  </data>
+  <data name="ControlPanel_Perf_Trns.Text" xml:space="preserve">
+    <value>TRNS</value>
+  </data>
+  <data name="ControlPanel_Perf_Proc.Text" xml:space="preserve">
+    <value>PROC</value>
+  </data>
+  <data name="ControlPanel_Perf_Inj.Text" xml:space="preserve">
+    <value>INJ</value>
+  </data>
+  <data name="ControlPanel_Perf_Tot.Text" xml:space="preserve">
+    <value>TOT</value>
+  </data>
+  <!-- Tooltips (C# keys for ToolTipService.ToolTip — cannot use x:Uid on ToolTip) -->
+  <data name="ControlPanel_Tooltip_Req" xml:space="preserve">
+    <value>Requests this session</value>
+  </data>
+  <data name="ControlPanel_Tooltip_Char" xml:space="preserve">
+    <value>Characters produced</value>
+  </data>
+  <data name="ControlPanel_Tooltip_Words" xml:space="preserve">
+    <value>Words produced</value>
+  </data>
+  <data name="ControlPanel_Tooltip_WordMin" xml:space="preserve">
+    <value>Words per minute since first request</value>
+  </data>
+  <data name="ControlPanel_Tooltip_Rec" xml:space="preserve">
+    <value>Recording duration</value>
+  </data>
+  <data name="ControlPanel_Tooltip_Trns" xml:space="preserve">
+    <value>Transcription latency</value>
+  </data>
+  <data name="ControlPanel_Tooltip_Proc" xml:space="preserve">
+    <value>LLM processing latency</value>
+  </data>
+  <data name="ControlPanel_Tooltip_Inj" xml:space="preserve">
+    <value>Text injection latency</value>
+  </data>
+  <data name="ControlPanel_Tooltip_Tot" xml:space="preserve">
+    <value>Pipeline latency (excludes recording)</value>
+  </data>
+  <data name="ControlPanel_Tooltip_Auth" xml:space="preserve">
+    <value>Authentication mode</value>
+  </data>
+  <!-- C# keys — ControlPanelViewModel toggle labels -->
+  <data name="ControlPanel_Sound_On" xml:space="preserve">
+    <value>SOUND: ON</value>
+  </data>
+  <data name="ControlPanel_Sound_Off" xml:space="preserve">
+    <value>SOUND: OFF</value>
+  </data>
+  <data name="ControlPanel_Local" xml:space="preserve">
+    <value>LOCAL</value>
+  </data>
+  <data name="ControlPanel_Cloud" xml:space="preserve">
+    <value>CLOUD</value>
+  </data>
+  <data name="ControlPanel_Key_On" xml:space="preserve">
+    <value>+KEY: ON</value>
+  </data>
+  <data name="ControlPanel_Key_Off" xml:space="preserve">
+    <value>+KEY: OFF</value>
+  </data>
+  <data name="ControlPanel_Raw_On" xml:space="preserve">
+    <value>RAW: ON</value>
+  </data>
+  <data name="ControlPanel_Raw_Off" xml:space="preserve">
+    <value>RAW: OFF</value>
+  </data>
+  <data name="ControlPanel_Refine_Voice" xml:space="preserve">
+    <value>REFINE: VOICE</value>
+  </data>
+  <data name="ControlPanel_Refine_Auto" xml:space="preserve">
+    <value>REFINE: AUTO</value>
+  </data>
+  <!-- Pipeline state text -->
+  <data name="ControlPanel_State_Ready" xml:space="preserve">
+    <value>READY</value>
+  </data>
+  <data name="ControlPanel_State_Listening" xml:space="preserve">
+    <value>LISTENING</value>
+  </data>
+  <data name="ControlPanel_State_Transcribing" xml:space="preserve">
+    <value>TRANSCRIBING</value>
+  </data>
+  <data name="ControlPanel_State_Streaming" xml:space="preserve">
+    <value>STREAMING</value>
+  </data>
+  <data name="ControlPanel_State_Thinking" xml:space="preserve">
+    <value>THINKING</value>
+  </data>
+  <data name="ControlPanel_State_Typing" xml:space="preserve">
+    <value>TYPING</value>
+  </data>
+  <data name="ControlPanel_State_Error" xml:space="preserve">
+    <value>ERROR</value>
+  </data>
+  <!-- Mode subtitle fallback -->
+  <data name="ControlPanel_Mode_Standard" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="ControlPanel_Mode_RawStt" xml:space="preserve">
+    <value>Raw STT</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Quick Chat Window
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="QuickChat_Title" xml:space="preserve">
+    <value>Quick Chat</value>
+  </data>
+  <data name="QuickChat_Input.PlaceholderText" xml:space="preserve">
+    <value>Type a message...</value>
+  </data>
+  <data name="QuickChat_SendButton.Content" xml:space="preserve">
+    <value>Send</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Wizard Window
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Wizard_SkipButton.Content" xml:space="preserve">
+    <value>Skip</value>
+  </data>
+  <data name="Wizard_BackButton.Content" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <!-- C# keys -->
+  <data name="Wizard_StepLabel" xml:space="preserve">
+    <value>Step {0} of {1}</value>
+  </data>
+  <data name="Wizard_Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="Wizard_Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Wizard Pages
+       ══════════════════════════════════════════════════════════════════════ -->
+  <!-- GetStarted page -->
+  <data name="Wizard_GetStarted_Title.Text" xml:space="preserve">
+    <value>How do you want to get started?</value>
+  </data>
+  <data name="Wizard_GetStarted_Trial_Title.Text" xml:space="preserve">
+    <value>Try for free</value>
+  </data>
+  <data name="Wizard_GetStarted_Trial_Description.Text" xml:space="preserve">
+    <value>15,000 words free &#8212; no API key or setup needed.</value>
+  </data>
+  <data name="Wizard_GetStarted_ApiKeys_Title.Text" xml:space="preserve">
+    <value>I have my own API keys</value>
+  </data>
+  <data name="Wizard_GetStarted_ApiKeys_Description.Text" xml:space="preserve">
+    <value>Configure your preferred STT and LLM providers.</value>
+  </data>
+
+  <!-- Welcome page -->
+  <data name="Wizard_Welcome_Title.Text" xml:space="preserve">
+    <value>Welcome to dIKta.me V2</value>
+  </data>
+  <data name="Wizard_Welcome_Description.Text" xml:space="preserve">
+    <value>This wizard will help you configure your speech-to-text and AI providers. You can always change these settings later.</value>
+  </data>
+  <data name="Wizard_Welcome_Hint.Text" xml:space="preserve">
+    <value>Click Next to get started, or Skip to use defaults.</value>
+  </data>
+
+  <!-- STT page -->
+  <data name="Wizard_Stt_Title.Text" xml:space="preserve">
+    <value>Speech-to-Text</value>
+  </data>
+  <data name="Wizard_Stt_Description.Text" xml:space="preserve">
+    <value>Choose how you want to convert speech to text. Cloud providers offer higher accuracy; local runs entirely on your machine.</value>
+  </data>
+  <data name="Wizard_Stt_Cloud_Title.Text" xml:space="preserve">
+    <value>Cloud STT</value>
+  </data>
+  <data name="Wizard_Stt_Cloud_Description.Text" xml:space="preserve">
+    <value>High accuracy, requires API key (Deepgram, OpenAI, etc.)</value>
+  </data>
+  <data name="Wizard_Stt_Local_Title.Text" xml:space="preserve">
+    <value>Local STT (Whisper)</value>
+  </data>
+  <data name="Wizard_Stt_Local_Description.Text" xml:space="preserve">
+    <value>Runs offline, no API key needed, requires model download</value>
+  </data>
+
+  <!-- LLM page -->
+  <data name="Wizard_Llm_Title.Text" xml:space="preserve">
+    <value>AI Processing</value>
+  </data>
+  <data name="Wizard_Llm_Description.Text" xml:space="preserve">
+    <value>Choose how AI should process your dictated text. This controls grammar correction, formatting, and intelligent editing.</value>
+  </data>
+  <data name="Wizard_Llm_Cloud_Title.Text" xml:space="preserve">
+    <value>Cloud AI</value>
+  </data>
+  <data name="Wizard_Llm_Cloud_Description.Text" xml:space="preserve">
+    <value>Best quality, requires API key (Gemini, Claude, GPT, etc.)</value>
+  </data>
+  <data name="Wizard_Llm_Local_Title.Text" xml:space="preserve">
+    <value>Local AI (Ollama)</value>
+  </data>
+  <data name="Wizard_Llm_Local_Description.Text" xml:space="preserve">
+    <value>Runs offline, requires Ollama installed with a model</value>
+  </data>
+  <data name="Wizard_Llm_Skip_Title.Text" xml:space="preserve">
+    <value>None (Raw dictation)</value>
+  </data>
+  <data name="Wizard_Llm_Skip_Description.Text" xml:space="preserve">
+    <value>Skip AI processing, output raw speech-to-text</value>
+  </data>
+
+  <!-- API Keys page -->
+  <data name="Wizard_ApiKeys_Title.Text" xml:space="preserve">
+    <value>API Keys</value>
+  </data>
+  <data name="Wizard_ApiKeys_Description.Text" xml:space="preserve">
+    <value>Enter your API keys for the cloud services you selected. Keys are stored securely and encrypted.</value>
+  </data>
+  <data name="Wizard_ApiKeys_SttTitle.Text" xml:space="preserve">
+    <value>Speech-to-Text API Key</value>
+  </data>
+  <data name="Wizard_ApiKeys_SttHint.Text" xml:space="preserve">
+    <value>For Deepgram, get your key from: </value>
+  </data>
+  <data name="Wizard_ApiKeys_SttPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter Deepgram API key</value>
+  </data>
+  <data name="Wizard_ApiKeys_SttTestButton.Content" xml:space="preserve">
+    <value>Test</value>
+  </data>
+  <data name="Wizard_ApiKeys_LlmTitle.Text" xml:space="preserve">
+    <value>AI Processing API Key</value>
+  </data>
+  <data name="Wizard_ApiKeys_LlmHint.Text" xml:space="preserve">
+    <value>For Gemini, get your key from: </value>
+  </data>
+  <data name="Wizard_ApiKeys_LlmPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter Gemini API key</value>
+  </data>
+  <data name="Wizard_ApiKeys_LlmTestButton.Content" xml:space="preserve">
+    <value>Test</value>
+  </data>
+  <data name="Wizard_ApiKeys_InfoBar.Message" xml:space="preserve">
+    <value>Your API keys are stored encrypted in Windows Credential Manager. You can change them later in Settings &#8594; API Keys.</value>
+  </data>
+  <data name="Wizard_ApiKeys_SkipHint.Text" xml:space="preserve">
+    <value>You can skip this step and add API keys later from Settings. The Quick Test will be skipped.</value>
+  </data>
+  <!-- C# keys for API key testing -->
+  <data name="Wizard_ApiKeys_Testing" xml:space="preserve">
+    <value>Testing connection...</value>
+  </data>
+  <data name="Wizard_ApiKeys_Valid" xml:space="preserve">
+    <value>&#x2713; API key is valid</value>
+  </data>
+  <data name="Wizard_ApiKeys_Invalid" xml:space="preserve">
+    <value>&#x2717; Invalid API key</value>
+  </data>
+  <data name="Wizard_ApiKeys_TestFailed" xml:space="preserve">
+    <value>&#x2717; Test failed: {0}</value>
+  </data>
+  <data name="Wizard_ApiKeys_ConnectionFailed" xml:space="preserve">
+    <value>&#x2717; Connection failed: {0}</value>
+  </data>
+
+  <!-- Test page -->
+  <data name="Wizard_Test_Title.Text" xml:space="preserve">
+    <value>Quick Test</value>
+  </data>
+  <data name="Wizard_Test_Description.Text" xml:space="preserve">
+    <value>Test your setup by recording a short phrase. This verifies your microphone and chosen providers are working.</value>
+  </data>
+  <data name="Wizard_Test_MicLabel.Text" xml:space="preserve">
+    <value>Microphone</value>
+  </data>
+  <data name="Wizard_Test_RecordButton.Content" xml:space="preserve">
+    <value>Record (3 seconds)</value>
+  </data>
+  <data name="Wizard_Test_SkipHint.Text" xml:space="preserve">
+    <value>This step is optional &#8212; you can skip it and test later.</value>
+  </data>
+  <!-- C# keys for test page -->
+  <data name="Wizard_Test_MicWarning" xml:space="preserve">
+    <value>Warning: Could not load microphone list</value>
+  </data>
+  <data name="Wizard_Test_Recording" xml:space="preserve">
+    <value>Recording...</value>
+  </data>
+  <data name="Wizard_Test_Success" xml:space="preserve">
+    <value>&#x2713; Captured {0} KB of audio. Your microphone is working!</value>
+  </data>
+  <data name="Wizard_Test_NoFile" xml:space="preserve">
+    <value>&#x2717; Recording completed but no audio file was produced.</value>
+  </data>
+  <data name="Wizard_Test_Failed" xml:space="preserve">
+    <value>&#x2717; Recording failed: {0}</value>
+  </data>
+
+  <!-- Ready page -->
+  <data name="Wizard_Ready_Title.Text" xml:space="preserve">
+    <value>You're All Set!</value>
+  </data>
+  <data name="Wizard_Ready_Description.Text" xml:space="preserve">
+    <value>dIKta.me is ready to use. Your chosen providers have been configured for all modes.</value>
+  </data>
+  <data name="Wizard_Ready_SettingsHint.Text" xml:space="preserve">
+    <value>You can change these settings anytime from the system tray menu.</value>
+  </data>
+  <data name="Wizard_Ready_FinishHint.Text" xml:space="preserve">
+    <value>Click Finish to start using dIKta.me.</value>
+  </data>
+  <!-- C# keys for ready page summary -->
+  <data name="Wizard_Ready_Stt_Whisper" xml:space="preserve">
+    <value>Whisper (local)</value>
+  </data>
+  <data name="Wizard_Ready_Stt_Deepgram" xml:space="preserve">
+    <value>Deepgram (cloud)</value>
+  </data>
+  <data name="Wizard_Ready_Llm_Ollama" xml:space="preserve">
+    <value>Ollama (local)</value>
+  </data>
+  <data name="Wizard_Ready_Llm_None" xml:space="preserve">
+    <value>None (raw dictation)</value>
+  </data>
+  <data name="Wizard_Ready_Llm_Gemini" xml:space="preserve">
+    <value>Gemini (cloud)</value>
+  </data>
+  <data name="Wizard_Ready_SttSummary" xml:space="preserve">
+    <value>Speech-to-Text: {0}</value>
+  </data>
+  <data name="Wizard_Ready_LlmSummary" xml:space="preserve">
+    <value>AI Processing: {0}</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Tray Icon
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Tray_OpenControlPanel" xml:space="preserve">
+    <value>Open Control Panel</value>
+  </data>
+  <data name="Tray_QuickChat" xml:space="preserve">
+    <value>Quick Chat</value>
+  </data>
+  <data name="Tray_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Tray_Quit" xml:space="preserve">
+    <value>Quit dIKta.me</value>
+  </data>
+  <data name="Tray_State_Idle" xml:space="preserve">
+    <value>Idle</value>
+  </data>
+  <data name="Tray_State_Recording" xml:space="preserve">
+    <value>Recording...</value>
+  </data>
+  <data name="Tray_State_Processing" xml:space="preserve">
+    <value>Processing...</value>
+  </data>
+  <data name="Tray_State_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Loading Window
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Loading_Initializing" xml:space="preserve">
+    <value>Initializing...</value>
+  </data>
+  <data name="Loading_Settings" xml:space="preserve">
+    <value>Loading settings...</value>
+  </data>
+  <data name="Loading_Database" xml:space="preserve">
+    <value>Initializing database...</value>
+  </data>
+  <data name="Loading_Snippets" xml:space="preserve">
+    <value>Loading snippets...</value>
+  </data>
+  <data name="Loading_LocalServices" xml:space="preserve">
+    <value>Checking local services...</value>
+  </data>
+  <data name="Loading_Account" xml:space="preserve">
+    <value>Syncing account...</value>
+  </data>
+  <data name="Loading_Hotkeys" xml:space="preserve">
+    <value>Registering hotkeys...</value>
+  </data>
+  <data name="Loading_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="Loading_Error" xml:space="preserve">
+    <value>Initialization error &#8212; starting with defaults</value>
+  </data>
+  <data name="Loading_HotkeyConflict_Title" xml:space="preserve">
+    <value>Hotkey Conflict</value>
+  </data>
+  <data name="Loading_HotkeyConflict_Message" xml:space="preserve">
+    <value>{0} hotkey ({1}) is already in use by another application</value>
+  </data>
+  <data name="Loading_RecordingFailed" xml:space="preserve">
+    <value>Recording failed</value>
+  </data>
+  <data name="Loading_NoModesConfigured" xml:space="preserve">
+    <value>No dictation modes configured</value>
+  </data>
+  <data name="Loading_NoteSaved_Title" xml:space="preserve">
+    <value>Note Saved</value>
+  </data>
+  <data name="Loading_NoteSaved_Message" xml:space="preserve">
+    <value>Appended to {0}</value>
+  </data>
+
+</root>

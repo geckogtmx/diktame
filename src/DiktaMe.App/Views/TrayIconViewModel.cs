@@ -1,6 +1,8 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DiktaMe.App.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Serilog;
 
@@ -23,13 +25,21 @@ public enum TrayIconState
 /// </summary>
 public sealed partial class TrayIconViewModel : ObservableObject
 {
+    private readonly LocalizationService _loc;
+
+    public TrayIconViewModel()
+    {
+        _loc = App.Current.Services.GetRequiredService<LocalizationService>();
+        _tooltipText = $"dIKta.me — {_loc.GetString("Tray_State_Idle")}";
+    }
+
     // ── Observable properties ─────────────────────────────────────────────────
 
     [ObservableProperty]
     private TrayIconState _iconState = TrayIconState.Idle;
 
     [ObservableProperty]
-    private string _tooltipText = "dIKta.me — Idle";
+    private string _tooltipText = "";
 
     [ObservableProperty]
     private bool _isRecording;
@@ -83,10 +93,10 @@ public sealed partial class TrayIconViewModel : ObservableObject
 
         string status = statusSuffix ?? state switch
         {
-            TrayIconState.Idle => "Idle",
-            TrayIconState.Recording => "Recording...",
-            TrayIconState.Processing => "Processing...",
-            TrayIconState.Error => "Error",
+            TrayIconState.Idle => _loc.GetString("Tray_State_Idle"),
+            TrayIconState.Recording => _loc.GetString("Tray_State_Recording"),
+            TrayIconState.Processing => _loc.GetString("Tray_State_Processing"),
+            TrayIconState.Error => _loc.GetString("Tray_State_Error"),
             _ => state.ToString(),
         };
 

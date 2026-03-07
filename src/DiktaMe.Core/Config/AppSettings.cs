@@ -68,6 +68,10 @@ public sealed record ModeSettings
 public sealed record GeneralSettings
 {
     public string Language { get; init; } = "en";
+
+    /// <summary>UI display language code (e.g. "en", "es-MX"). Requires restart to take effect.</summary>
+    public string UiLanguage { get; init; } = "en";
+
     public bool AutoStart { get; init; } = false;
     public bool SoundFeedback { get; init; } = true;
 

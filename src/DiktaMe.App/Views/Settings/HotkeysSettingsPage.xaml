@@ -1,16 +1,17 @@
 <Page x:Class="DiktaMe.App.Views.Settings.HotkeysSettingsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:l="using:WinUI3Localizer"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <ScrollViewer Padding="24,24,24,32">
         <StackPanel Spacing="24" MaxWidth="600">
-            <TextBlock Text="Hotkeys" FontSize="24" FontWeight="SemiBold"/>
+            <TextBlock l:Uids.Uid="Settings_Hotkeys_Title" FontSize="24" FontWeight="SemiBold"/>
 
             <!-- Dictate -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Dictate" FontWeight="SemiBold"/>
-                <TextBlock Text="Start voice dictation mode" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Description" FontSize="12" Opacity="0.6"/>
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -37,8 +38,8 @@
 
             <!-- Refine -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Refine" FontWeight="SemiBold"/>
-                <TextBlock Text="Start refine mode to improve selected text" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Description" FontSize="12" Opacity="0.6"/>
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -65,8 +66,8 @@
 
             <!-- Ask -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Ask" FontWeight="SemiBold"/>
-                <TextBlock Text="Start ask mode to query AI about selected text" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Description" FontSize="12" Opacity="0.6"/>
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -93,8 +94,8 @@
 
             <!-- Translate -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Translate" FontWeight="SemiBold"/>
-                <TextBlock Text="Translate selected text" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Description" FontSize="12" Opacity="0.6"/>
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -121,8 +122,8 @@
 
             <!-- Oops -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Oops (Undo Last)" FontWeight="SemiBold"/>
-                <TextBlock Text="Undo the last AI text injection" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Description" FontSize="12" Opacity="0.6"/>
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -149,8 +150,8 @@
 
             <!-- Note -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Note" FontWeight="SemiBold"/>
-                <TextBlock Text="Save voice note to file" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Description" FontSize="12" Opacity="0.6"/>
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -177,8 +178,8 @@
 
             <!-- Chat -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Chat" FontWeight="SemiBold"/>
-                <TextBlock Text="Open Quick Chat overlay window" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Description" FontSize="12" Opacity="0.6"/>
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -204,10 +205,9 @@
             </StackPanel>
 
             <!-- Info Box -->
-            <InfoBar Severity="Informational"
+            <InfoBar l:Uids.Uid="Settings_Hotkeys_InfoBar" Severity="Informational"
                      IsOpen="True"
-                     IsClosable="False"
-                     Message="Click Record, then press your desired key combination. Changes save automatically. Restart required for new hotkeys to take effect."/>
+                     IsClosable="False"/>
         </StackPanel>
     </ScrollViewer>
 </Page>

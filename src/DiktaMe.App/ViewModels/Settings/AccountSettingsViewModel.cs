@@ -1,6 +1,7 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DiktaMe.App.Services;
 using DiktaMe.Core.Account;
 using DiktaMe.Core.Config;
 using Serilog;
@@ -11,6 +12,7 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     private readonly IAccountService _accountService;
     private readonly ITrialService _trialService;
     private readonly SettingsManager _settings;
+    private readonly LocalizationService _loc;
 
     [ObservableProperty] private bool _isSignedIn;
     [ObservableProperty] private string _email = string.Empty;
@@ -20,14 +22,15 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     [ObservableProperty] private int _daysRemaining;
     [ObservableProperty] private bool _trialActive;
     [ObservableProperty] private double _usagePercent;
-    [ObservableProperty] private string _usageText = "0 / 15,000 words";
-    [ObservableProperty] private string _statusText = "Not signed in";
+    [ObservableProperty] private string _usageText = "";
+    [ObservableProperty] private string _statusText = "";
 
-    public AccountSettingsViewModel(IAccountService accountService, ITrialService trialService, SettingsManager settings)
+    public AccountSettingsViewModel(IAccountService accountService, ITrialService trialService, SettingsManager settings, LocalizationService loc)
     {
         _accountService = accountService;
         _trialService = trialService;
         _settings = settings;
+        _loc = loc;
         Refresh();
     }
 
@@ -80,11 +83,11 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
         DaysRemaining = trial.TrialDaysRemaining;
         TrialActive = trial.TrialActive;
         UsagePercent = WordsQuota > 0 ? Math.Min(100.0, (double)WordsUsed / WordsQuota * 100.0) : 0;
-        UsageText = $"{WordsUsed:N0} / {WordsQuota:N0} words";
+        UsageText = _loc.GetFormatted("Settings_Account_UsageText", WordsUsed, WordsQuota);
         StatusText = IsSignedIn
             ? (HasTrialData
-                ? (TrialActive ? $"{DaysRemaining} days remaining" : "Trial expired")
-                : "Account active")
-            : "Not signed in";
+                ? (TrialActive ? _loc.GetFormatted("Settings_Account_Status_DaysRemaining", DaysRemaining) : _loc.GetString("Settings_Account_Status_Expired"))
+                : _loc.GetString("Settings_Account_Status_Active"))
+            : _loc.GetString("Settings_Account_Status_NotSignedIn");
     }
 }

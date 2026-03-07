@@ -1,4 +1,5 @@
 
+using DiktaMe.App.Services;
 using DiktaMe.App.ViewModels;
 using DiktaMe.Core.Audio;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,11 +10,13 @@ using Serilog;
 namespace DiktaMe.App.Views.Wizard;
 public sealed partial class WizardTestPage : Page, IWizardStepPage
 {
+    private readonly LocalizationService _loc;
     private WizardViewModel? _viewModel;
     private AudioRecorder? _currentRecorder;
 
     public WizardTestPage()
     {
+        _loc = App.Current.Services.GetRequiredService<LocalizationService>();
         this.InitializeComponent();
         LoadMicrophones();
     }
@@ -39,7 +42,7 @@ public sealed partial class WizardTestPage : Page, IWizardStepPage
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to load microphone devices");
-            ResultText.Text = "Warning: Could not load microphone list";
+            ResultText.Text = _loc.GetString("Wizard_Test_MicWarning");
         }
     }
 
@@ -47,7 +50,7 @@ public sealed partial class WizardTestPage : Page, IWizardStepPage
     {
         RecordButton.IsEnabled = false;
         RecordingProgress.IsActive = true;
-        ResultText.Text = "Recording...";
+        ResultText.Text = _loc.GetString("Wizard_Test_Recording");
 
         // Dispose previous recorder if any
         _currentRecorder?.Dispose();
@@ -78,18 +81,18 @@ public sealed partial class WizardTestPage : Page, IWizardStepPage
             if (filePath is not null)
             {
                 var fileInfo = new System.IO.FileInfo(filePath);
-                ResultText.Text = $"✓ Captured {fileInfo.Length / 1024} KB of audio. Your microphone is working!";
+                ResultText.Text = _loc.GetFormatted("Wizard_Test_Success", fileInfo.Length / 1024);
                 Log.Information("WizardTestPage: Recording success, file size={Size} bytes", fileInfo.Length);
             }
             else
             {
-                ResultText.Text = "✗ Recording completed but no audio file was produced.";
+                ResultText.Text = _loc.GetString("Wizard_Test_NoFile");
                 Log.Warning("WizardTestPage: Recording returned null file path");
             }
         }
         catch (Exception ex)
         {
-            ResultText.Text = $"✗ Recording failed: {ex.Message}";
+            ResultText.Text = _loc.GetFormatted("Wizard_Test_Failed", ex.Message);
             Log.Error(ex, "Wizard test recording failed");
         }
         finally

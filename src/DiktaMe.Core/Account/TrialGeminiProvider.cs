@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using DiktaMe.Core.LLM;
+using DiktaMe.Core.Resources;
 using DiktaMe.Core.Security;
 using Serilog;
 
@@ -83,7 +84,7 @@ public sealed class TrialGeminiProvider : ILLMProvider, IDisposable
                 await _accountService.LogoutAsync(cancellationToken).ConfigureAwait(false);
                 return new LlmResult
                 {
-                    Text = "Trial session expired. Please sign in again.",
+                    Text = CoreStrings.Trial_SessionExpired,
                     Provider = ProviderName,
                     LatencyMs = sw.ElapsedMilliseconds,
                 };
@@ -94,7 +95,7 @@ public sealed class TrialGeminiProvider : ILLMProvider, IDisposable
                 Log.Warning("TrialGeminiProvider: 403 — quota exceeded");
                 return new LlmResult
                 {
-                    Text = "Trial quota exceeded. You've used all 15,000 free words.",
+                    Text = CoreStrings.Trial_QuotaExceeded,
                     Provider = ProviderName,
                     LatencyMs = sw.ElapsedMilliseconds,
                 };

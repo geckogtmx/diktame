@@ -1,6 +1,7 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DiktaMe.App.Services;
 using DiktaMe.Core.Account;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Security;
@@ -12,11 +13,12 @@ public sealed partial class WizardViewModel : ObservableObject
     private readonly SettingsManager _settings;
     private readonly SecureStorage _secureStorage;
     private readonly IAccountService _accountService;
+    private readonly LocalizationService _loc;
 
     [ObservableProperty] private int _currentStep;
     [ObservableProperty] private bool _canGoBack;
     [ObservableProperty] private bool _canGoNext = true;
-    [ObservableProperty] private string _nextButtonText = "Next";
+    [ObservableProperty] private string _nextButtonText = "";
 
     // Step 0: Onboarding choice ("trial" or "apikeys")
     [ObservableProperty] private string _onboardingChoice = "trial";
@@ -36,11 +38,13 @@ public sealed partial class WizardViewModel : ObservableObject
     public event Action? StepChanged;
     public event Action? WizardCompleted;
 
-    public WizardViewModel(SettingsManager settings, SecureStorage secureStorage, IAccountService accountService)
+    public WizardViewModel(SettingsManager settings, SecureStorage secureStorage, IAccountService accountService, LocalizationService loc)
     {
         _settings = settings;
         _secureStorage = secureStorage;
         _accountService = accountService;
+        _loc = loc;
+        _nextButtonText = _loc.GetString("Wizard_Next");
     }
 
     [RelayCommand]
@@ -172,6 +176,6 @@ public sealed partial class WizardViewModel : ObservableObject
     private void UpdateNavState()
     {
         CanGoBack = CurrentStep > 0;
-        NextButtonText = CurrentStep == TotalSteps - 1 ? "Finish" : "Next";
+        NextButtonText = CurrentStep == TotalSteps - 1 ? _loc.GetString("Wizard_Finish") : _loc.GetString("Wizard_Next");
     }
 }

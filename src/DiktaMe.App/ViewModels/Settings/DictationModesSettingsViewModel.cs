@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DiktaMe.App.Services;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.LLM;
 using Serilog;
@@ -18,6 +19,7 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
     private readonly DictationModeManager _modeManager;
     private readonly SettingsManager _settings;
     private readonly ModelListService _modelListService;
+    private readonly LocalizationService _loc;
 
     // ── Left sidebar list ──────────────────────────────────────────────────
 
@@ -73,11 +75,13 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
     public DictationModesSettingsViewModel(
         DictationModeManager modeManager,
         SettingsManager settings,
-        ModelListService modelListService)
+        ModelListService modelListService,
+        LocalizationService loc)
     {
         _modeManager = modeManager;
         _settings = settings;
         _modelListService = modelListService;
+        _loc = loc;
 
         LoadModeList();
         _ = LoadModelsAsync();
@@ -146,7 +150,7 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
         _cloudModelIds.Clear();
 
         // First entry: "Default (provider default)"
-        CloudModelNames.Add("(Default — use provider default)");
+        CloudModelNames.Add(_loc.GetString("Settings_DictationModes_ModelDefault"));
         _cloudModelIds.Add("");
 
         // Filter out Ollama models - Cloud profile should only show cloud API providers
@@ -316,7 +320,7 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
                 Hotkey = null,
             };
 
-            var newMode = await _modeManager.CreateModeAsync("New Mode", cloudProfile, localProfile)
+            var newMode = await _modeManager.CreateModeAsync(_loc.GetString("Settings_DictationModes_DefaultTitle"), cloudProfile, localProfile)
                 .ConfigureAwait(true);
 
             // Refresh list and select the new mode

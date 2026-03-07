@@ -1,29 +1,29 @@
 <Page x:Class="DiktaMe.App.Views.Wizard.WizardLlmPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:l="using:WinUI3Localizer">
 
     <StackPanel VerticalAlignment="Center" Spacing="16" MaxWidth="450" Margin="24,0">
-        <TextBlock Text="AI Processing" FontSize="24" FontWeight="SemiBold"/>
-        <TextBlock TextWrapping="Wrap" FontSize="14" Opacity="0.7"
-                   Text="Choose how AI should process your dictated text. This controls grammar correction, formatting, and intelligent editing."/>
+        <TextBlock l:Uids.Uid="Wizard_Llm_Title" FontSize="24" FontWeight="SemiBold"/>
+        <TextBlock l:Uids.Uid="Wizard_Llm_Description" TextWrapping="Wrap" FontSize="14" Opacity="0.7"/>
 
         <RadioButtons x:Name="LlmRadio" MaxColumns="1" SelectionChanged="LlmRadio_SelectionChanged">
             <RadioButton x:Name="LlmCloud" Tag="cloud" IsChecked="True">
                 <StackPanel Spacing="2">
-                    <TextBlock Text="Cloud AI" FontWeight="SemiBold"/>
-                    <TextBlock Text="Best quality, requires API key (Gemini, Claude, GPT, etc.)" FontSize="12" Opacity="0.6"/>
+                    <TextBlock l:Uids.Uid="Wizard_Llm_Cloud_Title" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Wizard_Llm_Cloud_Description" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
             </RadioButton>
             <RadioButton x:Name="LlmLocal" Tag="local">
                 <StackPanel Spacing="2">
-                    <TextBlock Text="Local AI (Ollama)" FontWeight="SemiBold"/>
-                    <TextBlock Text="Runs offline, requires Ollama installed with a model" FontSize="12" Opacity="0.6"/>
+                    <TextBlock l:Uids.Uid="Wizard_Llm_Local_Title" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Wizard_Llm_Local_Description" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
             </RadioButton>
             <RadioButton x:Name="LlmSkip" Tag="skip">
                 <StackPanel Spacing="2">
-                    <TextBlock Text="None (Raw dictation)" FontWeight="SemiBold"/>
-                    <TextBlock Text="Skip AI processing, output raw speech-to-text" FontSize="12" Opacity="0.6"/>
+                    <TextBlock l:Uids.Uid="Wizard_Llm_Skip_Title" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Wizard_Llm_Skip_Description" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
             </RadioButton>
         </RadioButtons>

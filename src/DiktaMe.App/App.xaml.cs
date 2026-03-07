@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Web;
 using DiktaMe.App.Services;
 using DiktaMe.App.Views;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Serilog;
+using WinUI3Localizer;
 
 namespace DiktaMe.App;
 
@@ -117,6 +119,9 @@ public partial class App : Application
         // Register diktame:// protocol handler (HKCU, no admin needed)
         ProtocolRegistrar.Register();
 
+        // ── Initialize localizer before any UI is created ──────────────────────
+        InitializeLocalizer();
+
         // ── Configure DI ─────────────────────────────────────────────────────
         var services = new ServiceCollection();
         ConfigureServices(services);
@@ -215,6 +220,51 @@ public partial class App : Application
 
     private DateTime _lastDeepLinkTime = DateTime.MinValue;
     private const int DeepLinkCooldownMs = 2000;
+
+    /// <summary>
+    /// Initializes WinUI3Localizer from .resw files on disk and sets the
+    /// UI language from settings.json. Must be called before any UI is created.
+    /// </summary>
+    private static void InitializeLocalizer()
+    {
+        try
+        {
+            // Build localizer from on-disk .resw files (bypasses broken PrimaryLanguageOverride)
+            string stringsFolderPath = Path.Combine(AppContext.BaseDirectory, "Strings");
+            new LocalizerBuilder()
+                .AddStringResourcesFolderForLanguageDictionaries(stringsFolderPath)
+                .SetOptions(options => options.DefaultLanguage = "en")
+                .Build()
+                .GetAwaiter()
+                .GetResult();
+
+            // Read UiLanguage from settings.json (before DI exists)
+            string settingsPath = SettingsManager.DefaultSettingsFilePath;
+            if (!File.Exists(settingsPath))
+            {
+                return; // First run — English defaults
+            }
+
+            string json = File.ReadAllText(settingsPath);
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.TryGetProperty("General", out var general) &&
+                general.TryGetProperty("UiLanguage", out var langEl) &&
+                langEl.ValueKind == JsonValueKind.String)
+            {
+                string? lang = langEl.GetString();
+                if (!string.IsNullOrWhiteSpace(lang) &&
+                    !string.Equals(lang, "en", StringComparison.OrdinalIgnoreCase))
+                {
+                    Localizer.Get().SetLanguage(lang).GetAwaiter().GetResult();
+                    Log.Information("App: UI language set to '{Lang}' via WinUI3Localizer", lang);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "App: failed to initialize localizer — using default language");
+        }
+    }
 
     /// <summary>
     /// Validates that a token has valid JWT structure (3 base64url-encoded segments).
@@ -431,6 +481,7 @@ public partial class App : Application
         services.AddSingleton<OllamaManager>();
 
         // ── UI Services (F.5) ──────────────────────────────────────────────────
+        services.AddSingleton<Services.LocalizationService>();
         services.AddSingleton<Services.NotificationService>();
 
         // ── UI ViewModels (F.2+) ───────────────────────────────────────────────

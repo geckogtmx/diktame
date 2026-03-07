@@ -1,3 +1,5 @@
+using DiktaMe.Core.Resources;
+
 namespace DiktaMe.Core;
 
 /// <summary>
@@ -33,8 +35,8 @@ public sealed record CapabilityReport
     /// <summary>Summary string for display in system tray tooltip.</summary>
     public string ToSummary()
     {
-        var stt = HasCloudSTT ? "Cloud STT" : HasLocalSTT ? "Local STT" : "No STT";
-        var llm = HasCloudLLM ? "Cloud LLM" : HasLocalLLM ? "Ollama" : "No LLM";
+        var stt = HasCloudSTT ? CoreStrings.Capabilities_CloudStt : HasLocalSTT ? CoreStrings.Capabilities_LocalStt : CoreStrings.Capabilities_NoStt;
+        var llm = HasCloudLLM ? CoreStrings.Capabilities_CloudLlm : HasLocalLLM ? CoreStrings.Capabilities_Ollama : CoreStrings.Capabilities_NoLlm;
         return $"{stt} + {llm}";
     }
 }

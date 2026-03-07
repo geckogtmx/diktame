@@ -33,6 +33,15 @@
   <!-- Embedded resources -->
   <ItemGroup>
     <EmbeddedResource Include="System\models.json" />
+    <EmbeddedResource Update="Resources\CoreStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Resources\CoreStrings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CoreStrings.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
   </ItemGroup>
 
   <!-- Whisper.net native runtimes must not be trimmed (P/Invoke, no trim annotations) -->

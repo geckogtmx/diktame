@@ -1,34 +1,35 @@
 <Page x:Class="DiktaMe.App.Views.Settings.ControlPanelConfigPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:l="using:WinUI3Localizer"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <ScrollViewer Padding="24,24,24,32">
         <StackPanel Spacing="24" MaxWidth="600">
-            <TextBlock Text="Control Panel" FontSize="24" FontWeight="SemiBold"/>
-            <TextBlock Text="Choose which rows are visible on the Control Panel dashboard." FontSize="13" Opacity="0.6"/>
+            <TextBlock l:Uids.Uid="Settings_ControlPanel_Title" FontSize="24" FontWeight="SemiBold"/>
+            <TextBlock l:Uids.Uid="Settings_ControlPanel_Description" FontSize="13" Opacity="0.6"/>
 
             <StackPanel Spacing="4">
-                <TextBlock Text="Show Modes Row" FontWeight="SemiBold"/>
-                <TextBlock Text="Dictation mode preset buttons" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Description" FontSize="12" Opacity="0.6"/>
                 <ToggleSwitch IsOn="{x:Bind ViewModel.ShowModesRow, Mode=TwoWay}"/>
             </StackPanel>
 
             <StackPanel Spacing="4">
-                <TextBlock Text="Show Actions Row" FontWeight="SemiBold"/>
-                <TextBlock Text="Sound, Local, +Key, Raw, Refine quick toggles" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Description" FontSize="12" Opacity="0.6"/>
                 <ToggleSwitch IsOn="{x:Bind ViewModel.ShowActionsRow, Mode=TwoWay}"/>
             </StackPanel>
 
             <StackPanel Spacing="4">
-                <TextBlock Text="Show Session Stats" FontWeight="SemiBold"/>
-                <TextBlock Text="REQ, CHAR, WORDS, WORD/MIN counters" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Description" FontSize="12" Opacity="0.6"/>
                 <ToggleSwitch IsOn="{x:Bind ViewModel.ShowSessionStats, Mode=TwoWay}"/>
             </StackPanel>
 
             <StackPanel Spacing="4">
-                <TextBlock Text="Show Performance Stats" FontWeight="SemiBold"/>
-                <TextBlock Text="REC, TRANS, PROC, INJ per-stage latencies" FontSize="12" Opacity="0.6"/>
+                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Description" FontSize="12" Opacity="0.6"/>
                 <ToggleSwitch IsOn="{x:Bind ViewModel.ShowPerformanceStats, Mode=TwoWay}"/>
             </StackPanel>
         </StackPanel>

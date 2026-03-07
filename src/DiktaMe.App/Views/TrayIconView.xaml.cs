@@ -1,7 +1,9 @@
 
 using System.Drawing;
+using DiktaMe.App.Services;
 using H.NotifyIcon;
 using H.NotifyIcon.Core;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Serilog;
 
@@ -15,6 +17,7 @@ namespace DiktaMe.App.Views;
 public sealed partial class TrayIconView : UserControl, IDisposable
 {
     private readonly TrayIcon _trayIcon;
+    private readonly LocalizationService _loc;
     private Icon? _icon; // Must stay alive — disposing it invalidates the HICON handle.
 
     /// <summary>Gets the ViewModel backing this tray icon.</summary>
@@ -22,6 +25,7 @@ public sealed partial class TrayIconView : UserControl, IDisposable
 
     public TrayIconView()
     {
+        _loc = App.Current.Services.GetRequiredService<LocalizationService>();
         this.InitializeComponent();
 
         // Create the native tray icon directly via H.NotifyIcon.Core.TrayIcon
@@ -42,7 +46,7 @@ public sealed partial class TrayIconView : UserControl, IDisposable
             Log.Warning("TrayIcon: icon file not found at {Path}", icoPath);
         }
 
-        _trayIcon.ToolTip = "dIKta.me — Idle";
+        _trayIcon.ToolTip = $"dIKta.me — {_loc.GetString("Tray_State_Idle")}";
 
         // Wire up mouse events
         _trayIcon.MessageWindow.MouseEventReceived += OnMouseEvent;
@@ -73,20 +77,20 @@ public sealed partial class TrayIconView : UserControl, IDisposable
     {
         var menu = new PopupMenu();
 
-        menu.Items.Add(new PopupMenuItem("Open Control Panel", (_, _) =>
+        menu.Items.Add(new PopupMenuItem(_loc.GetString("Tray_OpenControlPanel"), (_, _) =>
         {
             ViewModel.OpenControlPanelCommand.Execute(null);
         }));
-        menu.Items.Add(new PopupMenuItem("Quick Chat", (_, _) =>
+        menu.Items.Add(new PopupMenuItem(_loc.GetString("Tray_QuickChat"), (_, _) =>
         {
             ViewModel.OpenQuickChatCommand.Execute(null);
         }));
-        menu.Items.Add(new PopupMenuItem("Settings", (_, _) =>
+        menu.Items.Add(new PopupMenuItem(_loc.GetString("Tray_Settings"), (_, _) =>
         {
             ViewModel.OpenSettingsCommand.Execute(null);
         }));
         menu.Items.Add(new PopupMenuSeparator());
-        menu.Items.Add(new PopupMenuItem("Quit dIKta.me", (_, _) =>
+        menu.Items.Add(new PopupMenuItem(_loc.GetString("Tray_Quit"), (_, _) =>
         {
             ViewModel.QuitCommand.Execute(null);
         }));

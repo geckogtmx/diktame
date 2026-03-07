@@ -12,6 +12,7 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
     private readonly NotificationService _notifications;
+    private readonly LocalizationService _loc;
     private bool _isLoading;
 
     [ObservableProperty]
@@ -46,22 +47,28 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _selectedUtilitySoundIndex = -1;
 
-    public AudioSettingsViewModel(SettingsManager settings, NotificationService notifications)
+    public AudioSettingsViewModel(SettingsManager settings, NotificationService notifications, LocalizationService loc)
     {
         _settings = settings;
         _notifications = notifications;
+        _loc = loc;
         LoadDevices();
         LoadSounds();
         LoadFromSettings();
     }
 
-    public string[] DurationLabels { get; } = ["30 seconds", "60 seconds", "120 seconds", "Unlimited"];
+    public string[] DurationLabels => [
+        _loc.GetString("Settings_Audio_Duration_30s"),
+        _loc.GetString("Settings_Audio_Duration_60s"),
+        _loc.GetString("Settings_Audio_Duration_120s"),
+        _loc.GetString("Settings_Audio_Duration_Unlimited"),
+    ];
     public int[] DurationValues { get; } = [30, 60, 120, 0];
 
     private void LoadDevices()
     {
         Devices.Clear();
-        Devices.Add("(Default device)");
+        Devices.Add(_loc.GetString("Settings_Audio_DefaultDevice"));
         foreach (var device in AudioDeviceManager.GetInputDevices())
         {
             Devices.Add(device.Name);
