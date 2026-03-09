@@ -254,6 +254,33 @@ public sealed record ChatSettings
 
     /// <summary>Theme for chat UI ("Light", "Dark", "System").</summary>
     public string Theme { get; init; } = "System";
+
+    /// <summary>
+    /// Default LLM model ID for new conversations (e.g., "gpt-4o-mini", "gemini-2.5-flash").
+    /// When null, uses the profile's default model.
+    /// </summary>
+    public string? DefaultModelId { get; init; }
+
+    /// <summary>Chat window width in device-independent pixels.</summary>
+    public double WindowWidth { get; init; } = 600;
+
+    /// <summary>Chat window height in device-independent pixels.</summary>
+    public double WindowHeight { get; init; } = 600;
+
+    /// <summary>Whether the chat window stays on top of other windows.</summary>
+    public bool AlwaysOnTop { get; init; } = true;
+
+    /// <summary>
+    /// Default system prompt for new conversations.
+    /// When null, uses the built-in default.
+    /// </summary>
+    public string? DefaultSystemPrompt { get; init; }
+
+    /// <summary>
+    /// When true, Gemini models use Google Search grounding to provide
+    /// up-to-date answers with web sources. Only affects Gemini provider.
+    /// </summary>
+    public bool WebSearchEnabled { get; init; } = false;
 }
 
 /// <summary>

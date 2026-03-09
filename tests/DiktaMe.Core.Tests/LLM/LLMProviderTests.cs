@@ -178,6 +178,52 @@ public sealed class OpenAICompatibleProviderTests
 
         Assert.Contains("'''inject'''", handler.LastBody ?? "");
     }
+
+    [Fact]
+    public async Task ProcessConversation_ValidResponse_ReturnsText()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, OaiResponse);
+        using var http = new HttpClient(handler);
+        using var p = new OpenAICompatibleProvider(
+            OpenAICompatibleProvider.OpenAIBaseUrl, "key", "gpt-4o-mini", "OpenAI", http);
+
+        var history = new List<ConversationTurn>
+        {
+            new("user", "hello"),
+            new("assistant", "hi there"),
+            new("user", "how are you?"),
+        };
+
+        var result = await p.ProcessConversationAsync(history, "You are helpful.");
+
+        Assert.Equal("cleaned text", result.Text);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ProcessConversation_BodyContainsSystemAndHistory()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, OaiResponse);
+        using var http = new HttpClient(handler);
+        using var p = new OpenAICompatibleProvider(
+            OpenAICompatibleProvider.OpenAIBaseUrl, "key", "gpt-4o-mini", "OpenAI", http);
+
+        var history = new List<ConversationTurn>
+        {
+            new("user", "hello"),
+            new("assistant", "hi"),
+        };
+
+        await p.ProcessConversationAsync(history, "Be helpful.");
+
+        var body = handler.LastBody ?? "";
+        Assert.Contains("\"role\":\"system\"", body);
+        Assert.Contains("Be helpful.", body);
+        Assert.Contains("\"role\":\"user\"", body);
+        Assert.Contains("hello", body);
+        Assert.Contains("\"role\":\"assistant\"", body);
+        Assert.Contains("hi", body);
+    }
 }
 
 // ── GeminiProvider ────────────────────────────────────────────────────────────
@@ -254,6 +300,46 @@ public sealed class GeminiProviderTests
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => p.ProcessAsync("text", "prompt"));
     }
+
+    [Fact]
+    public async Task ProcessConversation_ValidResponse_ReturnsText()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, GeminiResponse);
+        using var http = new HttpClient(handler);
+        using var p = new GeminiProvider("aikey", httpClient: http);
+
+        var history = new List<ConversationTurn>
+        {
+            new("user", "hello"),
+            new("assistant", "hi there"),
+        };
+
+        var result = await p.ProcessConversationAsync(history, "Be helpful.");
+
+        Assert.Equal("gemini output", result.Text);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ProcessConversation_BodyUsesModelRoleNotAssistant()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, GeminiResponse);
+        using var http = new HttpClient(handler);
+        using var p = new GeminiProvider("aikey", httpClient: http);
+
+        var history = new List<ConversationTurn>
+        {
+            new("user", "hello"),
+            new("assistant", "hi there"),
+        };
+
+        await p.ProcessConversationAsync(history, "Be helpful.");
+
+        var body = handler.LastBody ?? "";
+        Assert.Contains("\"role\":\"model\"", body);
+        Assert.Contains("systemInstruction", body);
+        Assert.DoesNotContain("\"role\":\"assistant\"", body);
+    }
 }
 
 // ── AnthropicProvider ─────────────────────────────────────────────────────────
@@ -315,6 +401,46 @@ public sealed class AnthropicProviderTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => p.ProcessAsync("text", "prompt"));
+    }
+
+    [Fact]
+    public async Task ProcessConversation_ValidResponse_ReturnsText()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, AnthropicResponse);
+        using var http = new HttpClient(handler);
+        using var p = new AnthropicProvider("sk-ant-key", httpClient: http);
+
+        var history = new List<ConversationTurn>
+        {
+            new("user", "hello"),
+            new("assistant", "hi"),
+        };
+
+        var result = await p.ProcessConversationAsync(history, "Be helpful.");
+
+        Assert.Equal("claude output", result.Text);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ProcessConversation_BodyHasSystemFieldAndMessages()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, AnthropicResponse);
+        using var http = new HttpClient(handler);
+        using var p = new AnthropicProvider("sk-ant-key", httpClient: http);
+
+        var history = new List<ConversationTurn>
+        {
+            new("user", "hello"),
+            new("assistant", "hi"),
+        };
+
+        await p.ProcessConversationAsync(history, "Be helpful.");
+
+        var body = handler.LastBody ?? "";
+        Assert.Contains("\"system\":\"Be helpful.\"", body);
+        Assert.Contains("\"role\":\"user\"", body);
+        Assert.Contains("\"role\":\"assistant\"", body);
     }
 }
 
@@ -391,6 +517,41 @@ public sealed class OllamaProviderTests
         var result = await p.ProcessAsync("text", "prompt");
 
         Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ProcessConversation_ValidResponse_ReturnsText()
+    {
+        const string chatResponse = """{"message":{"role":"assistant","content":"ollama chat output"}}""";
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, chatResponse);
+        using var http = new HttpClient(handler);
+        using var p = new OllamaProvider("llama3.2", httpClient: http);
+
+        var history = new List<ConversationTurn>
+        {
+            new("user", "hello"),
+            new("assistant", "hi"),
+            new("user", "how are you?"),
+        };
+
+        var result = await p.ProcessConversationAsync(history, "Be helpful.");
+
+        Assert.Equal("ollama chat output", result.Text);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ProcessConversation_UsesChatEndpoint()
+    {
+        const string chatResponse = """{"message":{"role":"assistant","content":"output"}}""";
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, chatResponse);
+        using var http = new HttpClient(handler);
+        using var p = new OllamaProvider("llama3.2", httpClient: http);
+
+        var history = new List<ConversationTurn> { new("user", "hi") };
+        await p.ProcessConversationAsync(history, "prompt");
+
+        Assert.Contains("/api/chat", handler.LastRequestUri?.AbsolutePath ?? "");
     }
 }
 
@@ -553,6 +714,70 @@ public sealed class LLMRouterTests
 
         Assert.Equal("primary output", result.Text);
         factory.Verify(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string?>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessConversation_PrimarySucceeds_ReturnsPrimaryResult()
+    {
+        var history = new List<ConversationTurn> { new("user", "hi") };
+        var primary = new Mock<ILLMProvider>();
+        primary.Setup(p => p.ProcessConversationAsync(history, "prompt", "chat", It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OkResult("primary chat", "Primary"));
+        var router = new LLMRouter(primary.Object, MockFactory().Object);
+
+        var result = await router.ProcessConversationAsync(history, "prompt");
+
+        Assert.Equal("primary chat", result.Text);
+    }
+
+    [Fact]
+    public async Task ProcessConversation_PrimaryFails_UsesFallback()
+    {
+        var history = new List<ConversationTurn> { new("user", "hi") };
+
+        var primary = new Mock<ILLMProvider>();
+        primary.Setup(p => p.ProviderName).Returns("Primary");
+        primary.Setup(p => p.ProcessConversationAsync(
+                It.IsAny<IReadOnlyList<ConversationTurn>>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new InvalidOperationException("primary failed"));
+
+        var fallback = new Mock<ILLMProvider>();
+        fallback.Setup(p => p.ProviderName).Returns("Fallback");
+        fallback.Setup(p => p.ProcessConversationAsync(
+                It.IsAny<IReadOnlyList<ConversationTurn>>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OkResult("fallback chat", "Fallback"));
+
+        var router = new LLMRouter(primary.Object, MockFactory().Object, fallback.Object);
+        var result = await router.ProcessConversationAsync(history, "prompt");
+
+        Assert.Equal("fallback chat", result.Text);
+    }
+
+    [Fact]
+    public async Task ProcessConversation_BothFail_ReturnsEmptyResult()
+    {
+        var history = new List<ConversationTurn> { new("user", "hi") };
+
+        var primary = new Mock<ILLMProvider>();
+        primary.Setup(p => p.ProviderName).Returns("Primary");
+        primary.Setup(p => p.ProcessConversationAsync(
+                It.IsAny<IReadOnlyList<ConversationTurn>>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new InvalidOperationException());
+
+        var fallback = new Mock<ILLMProvider>();
+        fallback.Setup(p => p.ProviderName).Returns("Fallback");
+        fallback.Setup(p => p.ProcessConversationAsync(
+                It.IsAny<IReadOnlyList<ConversationTurn>>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new InvalidOperationException());
+
+        var router = new LLMRouter(primary.Object, MockFactory().Object, fallback.Object);
+        var result = await router.ProcessConversationAsync(history, "prompt");
+
+        Assert.False(result.IsSuccess);
     }
 }
 

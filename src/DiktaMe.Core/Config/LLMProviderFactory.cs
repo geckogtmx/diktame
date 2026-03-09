@@ -86,4 +86,11 @@ internal sealed class NullLlmProvider : ILLMProvider
         string mode = "dictate",
         CancellationToken cancellationToken = default)
         => Task.FromResult(new LlmResult { Text = string.Empty, Provider = ProviderName });
+
+    public Task<LlmResult> ProcessConversationAsync(
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        string mode = "chat",
+        CancellationToken cancellationToken = default)
+        => Task.FromResult(new LlmResult { Text = string.Empty, Provider = ProviderName });
 }

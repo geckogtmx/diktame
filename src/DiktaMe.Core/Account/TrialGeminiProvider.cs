@@ -137,6 +137,91 @@ public sealed class TrialGeminiProvider : ILLMProvider, IDisposable
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<LlmResult> ProcessConversationAsync(
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        string mode = "chat",
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string? token = _secureStorage.RetrieveKey(TokenKey);
+        if (string.IsNullOrEmpty(token))
+        {
+            throw new InvalidOperationException("TrialGeminiProvider: no trial token available.");
+        }
+
+        string body = BuildConversationRequestJson(systemPrompt, history);
+        var sw = Stopwatch.StartNew();
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, ProxyUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+            using var response = await _http.SendAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                Log.Warning("TrialGeminiProvider: 401 — token expired or invalid, auto-logout");
+                await _accountService.LogoutAsync(cancellationToken).ConfigureAwait(false);
+                return new LlmResult
+                {
+                    Text = CoreStrings.Trial_SessionExpired,
+                    Provider = ProviderName,
+                    LatencyMs = sw.ElapsedMilliseconds,
+                };
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                Log.Warning("TrialGeminiProvider: 403 — quota exceeded");
+                return new LlmResult
+                {
+                    Text = CoreStrings.Trial_QuotaExceeded,
+                    Provider = ProviderName,
+                    LatencyMs = sw.ElapsedMilliseconds,
+                };
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string errBody = await response.Content.ReadAsStringAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                throw new InvalidOperationException(
+                    $"TrialGeminiProvider: status {(int)response.StatusCode}: {errBody}");
+            }
+
+            sw.Stop();
+            string json = await response.Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
+            (string output, int? inTok, int? outTok) = ParseResponse(json);
+
+            int wordCount = output.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+            _ = _trialService.RecordUsageAsync("gemini", "gemini-2.5-flash", wordCount, cancellationToken);
+
+            Log.Information("{Provider}: conversation processed in {Ms}ms [{Mode}]",
+                ProviderName, sw.ElapsedMilliseconds, mode);
+
+            return new LlmResult
+            {
+                Text = output,
+                Provider = ProviderName,
+                LatencyMs = sw.ElapsedMilliseconds,
+                InputTokens = inTok,
+                OutputTokens = outTok,
+            };
+        }
+        catch (HttpRequestException ex)
+        {
+            Log.Warning(ex, "TrialGeminiProvider: network error");
+            throw new InvalidOperationException("TrialGeminiProvider: network error.", ex);
+        }
+    }
+
     // ── Helpers (reuse GeminiProvider patterns) ──────────────────────────────
 
     private static string SanitizeInput(string text)
@@ -151,6 +236,30 @@ public sealed class TrialGeminiProvider : ILLMProvider, IDisposable
               "generationConfig": { "temperature": 0.1, "maxOutputTokens": 1024 }
             }
             """;
+    }
+
+    private static string BuildConversationRequestJson(
+        string systemPrompt, IReadOnlyList<ConversationTurn> history)
+    {
+        var sb = new StringBuilder();
+        sb.Append('{');
+        sb.Append("\"systemInstruction\":{\"parts\":[{\"text\":\"")
+          .Append(EscapeJsonString(systemPrompt)).Append("\"}]},");
+        sb.Append("\"contents\":[");
+
+        for (int i = 0; i < history.Count; i++)
+        {
+            if (i > 0) sb.Append(',');
+            string role = string.Equals(history[i].Role, "assistant", StringComparison.Ordinal)
+                ? "model" : "user";
+            sb.Append("{\"role\":\"").Append(role)
+              .Append("\",\"parts\":[{\"text\":\"")
+              .Append(EscapeJsonString(SanitizeInput(history[i].Content)))
+              .Append("\"}]}");
+        }
+
+        sb.Append("],\"generationConfig\":{\"temperature\":0.1,\"maxOutputTokens\":1024}}");
+        return sb.ToString();
     }
 
     private static (string Text, int? InputTokens, int? OutputTokens) ParseResponse(string json)

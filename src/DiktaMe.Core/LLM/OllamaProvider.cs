@@ -21,6 +21,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
 
     private readonly HttpClient _http;
     private readonly string _generateUrl;
+    private readonly string _chatUrl;
     private readonly string _tagsUrl;
     private readonly string _model;
     private bool _disposed;
@@ -47,6 +48,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
         _model = model;
         string trimmed = baseUrl.TrimEnd('/');
         _generateUrl = trimmed + "/api/generate";
+        _chatUrl = trimmed + "/api/chat";
         _tagsUrl = trimmed + "/api/tags";
 
         _http = httpClient ?? new HttpClient
@@ -187,6 +189,72 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
         throw new InvalidOperationException($"Ollama: all {MaxRetries} attempts failed.");
     }
 
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Uses the Ollama <c>/api/chat</c> endpoint (not <c>/api/generate</c>) for multi-turn
+    /// conversations, which accepts a messages array with system/user/assistant roles.
+    /// </remarks>
+    public async Task<LlmResult> ProcessConversationAsync(
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        string mode = "chat",
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string body = BuildConversationRequestJson(_model, systemPrompt, history);
+        var sw = Stopwatch.StartNew();
+
+        const int MaxRetries = 3;
+        for (int attempt = 0; attempt < MaxRetries; attempt++)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, _chatUrl);
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    Log.Warning("OllamaProvider: chat status {S} on attempt {A}: {Body}",
+                        (int)response.StatusCode, attempt + 1, errBody);
+
+                    if (attempt < MaxRetries - 1)
+                    {
+                        await DelayAsync(attempt).ConfigureAwait(false);
+                        continue;
+                    }
+                    throw new InvalidOperationException(
+                        $"Ollama: status {(int)response.StatusCode}: {errBody}");
+                }
+
+                sw.Stop();
+                string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                string output = ParseChatResponse(json);
+
+                Log.Information("{Provider}: conversation processed in {Ms}ms [{Mode}]",
+                    ProviderName, sw.ElapsedMilliseconds, mode);
+
+                return new LlmResult
+                {
+                    Text = output,
+                    Provider = ProviderName,
+                    LatencyMs = sw.ElapsedMilliseconds,
+                };
+            }
+            catch (HttpRequestException ex) when (attempt < MaxRetries - 1)
+            {
+                Log.Warning(ex, "OllamaProvider: connection error on attempt {A}/{Max}",
+                    attempt + 1, MaxRetries);
+                await DelayAsync(attempt).ConfigureAwait(false);
+            }
+        }
+
+        throw new InvalidOperationException($"Ollama: all {MaxRetries} attempts failed.");
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static string SanitizeInput(string text)
@@ -210,6 +278,53 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
               "keep_alive": "10m"
             }
             """;
+    }
+
+    private static string BuildConversationRequestJson(
+        string model, string systemPrompt, IReadOnlyList<ConversationTurn> history)
+    {
+        // Ollama /api/chat uses the same messages format as OpenAI
+        var sb = new StringBuilder();
+        sb.Append('{');
+        sb.Append("\"model\":\"").Append(EscapeJsonString(model)).Append("\",");
+        sb.Append("\"messages\":[");
+        sb.Append("{\"role\":\"system\",\"content\":\"").Append(EscapeJsonString(systemPrompt)).Append("\"}");
+
+        foreach (var turn in history)
+        {
+            sb.Append(",{\"role\":\"").Append(EscapeJsonString(turn.Role))
+              .Append("\",\"content\":\"").Append(EscapeJsonString(SanitizeInput(turn.Content)))
+              .Append("\"}");
+        }
+
+        sb.Append("],\"stream\":false,\"options\":{\"temperature\":0.1,\"num_ctx\":2048},\"keep_alive\":\"10m\"}");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Parses Ollama /api/chat response.
+    /// Path: message.content
+    /// </summary>
+    private static string ParseChatResponse(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            if (root.TryGetProperty("message", out var message) &&
+                message.TryGetProperty("content", out var content))
+            {
+                return content.GetString()?.Trim() ?? string.Empty;
+            }
+
+            return string.Empty;
+        }
+        catch (JsonException ex)
+        {
+            Log.Warning(ex, "OllamaProvider: failed to parse chat response JSON");
+            return string.Empty;
+        }
     }
 
     /// <summary>

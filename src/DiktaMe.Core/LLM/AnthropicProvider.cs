@@ -118,6 +118,74 @@ public sealed class AnthropicProvider : ILLMProvider, IDisposable
         throw new InvalidOperationException($"Anthropic: all {MaxRetries} attempts failed.");
     }
 
+    /// <inheritdoc/>
+    public async Task<LlmResult> ProcessConversationAsync(
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        string mode = "chat",
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string body = BuildConversationRequestJson(_model, systemPrompt, history);
+        var sw = Stopwatch.StartNew();
+
+        const int MaxRetries = 3;
+        for (int attempt = 0; attempt < MaxRetries; attempt++)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, MessagesUrl);
+                request.Headers.Add("x-api-key", _apiKey);
+                request.Headers.Add("anthropic-version", ApiVersion);
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    throw new InvalidOperationException("Anthropic: invalid API key (401).");
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    if ((int)response.StatusCode == 429 && attempt < MaxRetries - 1)
+                    {
+                        await DelayAsync(attempt).ConfigureAwait(false);
+                        continue;
+                    }
+                    string errBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    throw new InvalidOperationException(
+                        $"Anthropic: status {(int)response.StatusCode}: {errBody}");
+                }
+
+                sw.Stop();
+                string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                (string output, int? inTok, int? outTok) = ParseResponse(json);
+
+                Log.Information("{Provider}: conversation processed in {Ms}ms [{Mode}]",
+                    ProviderName, sw.ElapsedMilliseconds, mode);
+
+                return new LlmResult
+                {
+                    Text = output,
+                    Provider = ProviderName,
+                    LatencyMs = sw.ElapsedMilliseconds,
+                    InputTokens = inTok,
+                    OutputTokens = outTok,
+                };
+            }
+            catch (HttpRequestException ex) when (attempt < MaxRetries - 1)
+            {
+                Log.Warning(ex, "AnthropicProvider: network error on attempt {A}/{Max}",
+                    attempt + 1, MaxRetries);
+                await DelayAsync(attempt).ConfigureAwait(false);
+            }
+        }
+
+        throw new InvalidOperationException($"Anthropic: all {MaxRetries} attempts failed.");
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static string SanitizeInput(string text)
@@ -137,6 +205,27 @@ public sealed class AnthropicProvider : ILLMProvider, IDisposable
               "max_tokens": 1024
             }
             """;
+    }
+
+    private static string BuildConversationRequestJson(
+        string model, string systemPrompt, IReadOnlyList<ConversationTurn> history)
+    {
+        var sb = new StringBuilder();
+        sb.Append('{');
+        sb.Append("\"model\":\"").Append(EscapeJsonString(model)).Append("\",");
+        sb.Append("\"system\":\"").Append(EscapeJsonString(systemPrompt)).Append("\",");
+        sb.Append("\"messages\":[");
+
+        for (int i = 0; i < history.Count; i++)
+        {
+            if (i > 0) sb.Append(',');
+            sb.Append("{\"role\":\"").Append(EscapeJsonString(history[i].Role))
+              .Append("\",\"content\":\"").Append(EscapeJsonString(SanitizeInput(history[i].Content)))
+              .Append("\"}");
+        }
+
+        sb.Append("],\"max_tokens\":1024}");
+        return sb.ToString();
     }
 
     /// <summary>

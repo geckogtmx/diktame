@@ -214,6 +214,13 @@ public sealed class ModelListService : IDisposable
                         }
                     }
 
+                    // Exclude non-text models (image gen, robotics, embeddings)
+                    // that support generateContent but aren't useful for text chat
+                    if (IsNonTextGeminiModel(id))
+                    {
+                        continue;
+                    }
+
                     models.Add(new ModelInfo
                     {
                         ModelId = id,
@@ -264,6 +271,17 @@ public sealed class ModelListService : IDisposable
                     string displayName = model.TryGetProperty("name", out var n)
                         ? n.GetString() ?? id
                         : id;
+
+                    // Only include models that output text (exclude image/audio generators)
+                    if (model.TryGetProperty("architecture", out var arch)
+                        && arch.TryGetProperty("modality", out var modality))
+                    {
+                        string mod = modality.GetString() ?? "";
+                        if (!mod.EndsWith("text", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+                    }
 
                     int? contextLength = model.TryGetProperty("context_length", out var cl)
                         ? cl.GetInt32()
@@ -389,6 +407,20 @@ public sealed class ModelListService : IDisposable
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns true if the Gemini model ID looks like a non-text model
+    /// (image generation, robotics, embeddings, etc.) that supports generateContent
+    /// but isn't useful for multi-turn text chat.
+    /// </summary>
+    private static bool IsNonTextGeminiModel(string modelId)
+    {
+        string lower = modelId.ToLowerInvariant();
+        return lower.Contains("imagen", StringComparison.Ordinal)
+            || lower.Contains("robotics", StringComparison.Ordinal)
+            || lower.Contains("embedding", StringComparison.Ordinal)
+            || lower.Contains("aqa", StringComparison.Ordinal);
+    }
 
     /// <summary>
     /// Returns true if the model ID looks like a chat-capable OpenAI model.

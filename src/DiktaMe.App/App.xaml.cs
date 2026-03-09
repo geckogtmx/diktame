@@ -354,18 +354,25 @@ public partial class App : Application
 
     /// <summary>
     /// Toggles the Quick Chat overlay window (show/hide).
+    /// Window is preserved across toggle to maintain conversation state.
     /// </summary>
     public void ToggleQuickChat()
     {
         if (_quickChatWindow is not null)
         {
-            _quickChatWindow.Close();
+            // Hide instead of destroy to preserve conversation state
+            _quickChatWindow.AppWindow.Hide();
             _quickChatWindow = null;
             return;
         }
 
         _quickChatWindow = new Views.QuickChatWindow();
-        _quickChatWindow.Closed += (_, _) => _quickChatWindow = null;
+        _quickChatWindow.AppWindow.Closing += (s, e) =>
+        {
+            e.Cancel = true;
+            _quickChatWindow.AppWindow.Hide();
+            _quickChatWindow = null;
+        };
         _quickChatWindow.Activate();
     }
 
@@ -473,9 +480,10 @@ public partial class App : Application
         services.AddSingleton<IAccountService>(sp => sp.GetRequiredService<TrialAccountService>());
         services.AddSingleton<ITrialService>(sp => sp.GetRequiredService<TrialAccountService>());
 
-        // ── Data (E.2) ───────────────────────────────────────────────────────
+        // ── Data (E.2 + SPEC_007) ────────────────────────────────────────────
         services.AddSingleton<HistoryManager>();
         services.AddSingleton<MetricsCollector>();
+        services.AddSingleton<ConversationManager>();
 
         // ── System (I.5) ──────────────────────────────────────────────────────
         services.AddSingleton<OllamaManager>();

@@ -119,6 +119,7 @@ public sealed class ChatPipeline
 
             // ── LLM chat response ─────────────────────────────────────────
             SetState(PipelineState.Processing);
+            ApplyProviderSettings(options);
             Log.Information("ChatPipeline: sending to LLM ({Provider})", _llm.ProviderName);
 
             var llmSw = Stopwatch.StartNew();
@@ -172,6 +173,153 @@ public sealed class ChatPipeline
             var r = PipelineResult.Failure(Mode, ex.Message);
             Completed?.Invoke(this, r);
             return r;
+        }
+    }
+
+    /// <summary>
+    /// Runs the Chat pipeline with multi-turn conversation history.
+    /// Truncates the history to fit within the context window budget,
+    /// then delegates to <see cref="ILLMProvider.ProcessConversationAsync"/>.
+    /// Text-only (no STT path).
+    /// </summary>
+    public async Task<PipelineResult> RunConversationAsync(
+        ChatOptions options,
+        IReadOnlyList<ConversationTurn> history,
+        int? contextWindowTokens = null,
+        CancellationToken cancellationToken = default)
+    {
+        const string Mode = "chat";
+        var total = Stopwatch.StartNew();
+
+        try
+        {
+            if (history.Count == 0)
+            {
+                Log.Information("ChatPipeline: empty conversation history — aborting");
+                SetState(PipelineState.Idle);
+                var empty = PipelineResult.Failure(Mode, "No messages in conversation");
+                Completed?.Invoke(this, empty);
+                return empty;
+            }
+
+            // ── Context window truncation ────────────────────────────────
+            var truncated = TruncateHistory(history, options.SystemPrompt, contextWindowTokens ?? 8192);
+
+            // ── LLM conversation response ────────────────────────────────
+            SetState(PipelineState.Processing);
+            ApplyProviderSettings(options);
+            Log.Information("ChatPipeline: sending {Count} turns to LLM ({Provider})",
+                truncated.Count, _llm.ProviderName);
+
+            var llmSw = Stopwatch.StartNew();
+            LlmResult llmResult = await _llm
+                .ProcessConversationWithModelAsync(truncated, options.SystemPrompt,
+                    options.ModelName, Mode, cancellationToken)
+                .ConfigureAwait(false);
+            llmSw.Stop();
+            total.Stop();
+
+            if (!llmResult.IsSuccess)
+            {
+                Log.Warning("ChatPipeline: LLM returned empty conversation answer");
+                SetState(PipelineState.Idle);
+                var empty = PipelineResult.Failure(Mode, "LLM returned empty answer");
+                Completed?.Invoke(this, empty);
+                return empty;
+            }
+
+            Log.Information("ChatPipeline: conversation answer ({Chars} chars), total={Total}ms",
+                llmResult.Text.Length, total.ElapsedMilliseconds);
+
+            SetState(PipelineState.Idle);
+
+            var result = new PipelineResult
+            {
+                Text = llmResult.Text,
+                RawTranscript = history[^1].Content,
+                Mode = Mode,
+                IsSuccess = true,
+                TranscriptionMs = 0,
+                ProcessingMs = llmSw.ElapsedMilliseconds,
+                TotalMs = total.ElapsedMilliseconds,
+                LlmProvider = llmResult.Provider,
+                InputTokens = llmResult.InputTokens,
+                OutputTokens = llmResult.OutputTokens,
+            };
+            Completed?.Invoke(this, result);
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            Log.Information("ChatPipeline: conversation cancelled");
+            SetState(PipelineState.Idle);
+            var r = PipelineResult.Failure(Mode, "Cancelled");
+            Completed?.Invoke(this, r);
+            return r;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "ChatPipeline: conversation unhandled error");
+            SetState(PipelineState.Error);
+            var r = PipelineResult.Failure(Mode, ex.Message);
+            Completed?.Invoke(this, r);
+            return r;
+        }
+    }
+
+    /// <summary>
+    /// Truncates conversation history to fit within the context window.
+    /// Keeps the most recent messages that fit within 80% of the budget
+    /// (reserving 20% for the response). System prompt tokens are subtracted first.
+    /// Token estimation: 1 token ≈ 4 characters.
+    /// </summary>
+    internal static IReadOnlyList<ConversationTurn> TruncateHistory(
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        int contextWindowTokens)
+    {
+        const double ResponseReserve = 0.20;
+        const int CharsPerToken = 4;
+
+        int budget = (int)(contextWindowTokens * (1.0 - ResponseReserve));
+        int systemTokens = systemPrompt.Length / CharsPerToken;
+        budget -= systemTokens;
+
+        if (budget <= 0)
+        {
+            // System prompt alone exceeds budget — return just the last message
+            return history.Count > 0 ? [history[^1]] : [];
+        }
+
+        // Walk backwards, accumulating messages until budget is exhausted
+        var selected = new List<ConversationTurn>();
+        int usedTokens = 0;
+
+        for (int i = history.Count - 1; i >= 0; i--)
+        {
+            int msgTokens = history[i].Content.Length / CharsPerToken;
+            if (usedTokens + msgTokens > budget && selected.Count > 0)
+            {
+                break; // Would exceed budget, stop (but always include at least one)
+            }
+
+            selected.Add(history[i]);
+            usedTokens += msgTokens;
+        }
+
+        selected.Reverse(); // Restore chronological order
+        return selected;
+    }
+
+    /// <summary>
+    /// Applies per-request chat settings to the LLM provider.
+    /// Currently sets Gemini web search grounding when enabled.
+    /// </summary>
+    private void ApplyProviderSettings(ChatOptions options)
+    {
+        if (_llm is GeminiProvider gemini)
+        {
+            gemini.WebSearchEnabled = options.WebSearchEnabled;
         }
     }
 

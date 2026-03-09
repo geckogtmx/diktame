@@ -25,6 +25,12 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
     private readonly bool _isOAuth;
     private bool _disposed;
 
+    /// <summary>
+    /// When true, adds Google Search grounding to requests.
+    /// The model autonomously decides whether to search based on the query.
+    /// </summary>
+    public bool WebSearchEnabled { get; set; }
+
     /// <inheritdoc/>
     public string ProviderName => $"{_model} (Gemini)";
 
@@ -139,20 +145,129 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
         throw new InvalidOperationException($"Gemini: all {MaxRetries} attempts failed.");
     }
 
+    /// <inheritdoc/>
+    public async Task<LlmResult> ProcessConversationAsync(
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        string mode = "chat",
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string body = BuildConversationRequestJson(systemPrompt, history);
+
+        string url = _isOAuth
+            ? $"{ApiBase.Replace("/models", "", StringComparison.Ordinal)}/models/{_model}:generateContent"
+            : $"{ApiBase}/{_model}:generateContent?key={_apiKey}";
+
+        var sw = Stopwatch.StartNew();
+
+        const int MaxRetries = 3;
+        for (int attempt = 0; attempt < MaxRetries; attempt++)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                if (_isOAuth)
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                }
+
+                using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    throw new InvalidOperationException("Gemini: invalid API key or OAuth token (401).");
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    if ((int)response.StatusCode == 429 && attempt < MaxRetries - 1)
+                    {
+                        await DelayAsync(attempt).ConfigureAwait(false);
+                        continue;
+                    }
+                    string errBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    throw new InvalidOperationException(
+                        $"Gemini: status {(int)response.StatusCode}: {errBody}");
+                }
+
+                sw.Stop();
+                string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                (string output, int? inTok, int? outTok) = ParseResponse(json);
+
+                Log.Information("{Provider}: conversation processed in {Ms}ms [{Mode}]",
+                    ProviderName, sw.ElapsedMilliseconds, mode);
+
+                return new LlmResult
+                {
+                    Text = output,
+                    Provider = ProviderName,
+                    LatencyMs = sw.ElapsedMilliseconds,
+                    InputTokens = inTok,
+                    OutputTokens = outTok,
+                };
+            }
+            catch (HttpRequestException ex) when (attempt < MaxRetries - 1)
+            {
+                Log.Warning(ex, "GeminiProvider: network error on attempt {A}/{Max}",
+                    attempt + 1, MaxRetries);
+                await DelayAsync(attempt).ConfigureAwait(false);
+            }
+        }
+
+        throw new InvalidOperationException($"Gemini: all {MaxRetries} attempts failed.");
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static string SanitizeInput(string text)
         => text.Replace("```", "'''").Replace("{text}", "[text]");
 
-    private static string BuildRequestJson(string userContent)
+    private string BuildRequestJson(string userContent)
     {
         string escaped = EscapeJsonString(userContent);
+        string tools = WebSearchEnabled ? ",\"tools\":[{\"google_search\":{}}]" : "";
         return $$"""
             {
               "contents": [{ "parts": [{ "text": "{{escaped}}" }] }],
-              "generationConfig": { "temperature": 0.1, "maxOutputTokens": 1024 }
+              "generationConfig": { "temperature": 0.1, "maxOutputTokens": 1024 }{{tools}}
             }
             """;
+    }
+
+    private string BuildConversationRequestJson(
+        string systemPrompt, IReadOnlyList<ConversationTurn> history)
+    {
+        // Gemini uses "user" and "model" roles (not "assistant")
+        var sb = new StringBuilder();
+        sb.Append('{');
+        sb.Append("\"systemInstruction\":{\"parts\":[{\"text\":\"")
+          .Append(EscapeJsonString(systemPrompt)).Append("\"}]},");
+        sb.Append("\"contents\":[");
+
+        for (int i = 0; i < history.Count; i++)
+        {
+            if (i > 0) sb.Append(',');
+            string role = string.Equals(history[i].Role, "assistant", StringComparison.Ordinal)
+                ? "model" : "user";
+            sb.Append("{\"role\":\"").Append(role)
+              .Append("\",\"parts\":[{\"text\":\"")
+              .Append(EscapeJsonString(SanitizeInput(history[i].Content)))
+              .Append("\"}]}");
+        }
+
+        sb.Append("],\"generationConfig\":{\"temperature\":0.1,\"maxOutputTokens\":1024}");
+
+        if (WebSearchEnabled)
+        {
+            sb.Append(",\"tools\":[{\"google_search\":{}}]");
+        }
+
+        sb.Append('}');
+        return sb.ToString();
     }
 
     /// <summary>

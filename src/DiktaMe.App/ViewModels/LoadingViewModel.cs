@@ -17,6 +17,7 @@ public sealed partial class LoadingViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
     private readonly HistoryManager _history;
+    private readonly ConversationManager _conversations;
     private readonly SnippetManager _snippets;
     private readonly OllamaManager _ollama;
     private readonly HotkeyManager _hotkeyManager;
@@ -44,6 +45,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     public LoadingViewModel(
         SettingsManager settings,
         HistoryManager history,
+        ConversationManager conversations,
         SnippetManager snippets,
         OllamaManager ollama,
         HotkeyManager hotkeyManager,
@@ -60,6 +62,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     {
         _settings = settings;
         _history = history;
+        _conversations = conversations;
         _snippets = snippets;
         _ollama = ollama;
         _hotkeyManager = hotkeyManager;
@@ -89,6 +92,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             // Step 2: Initialize database
             StatusText = _loc.GetString("Loading_Database");
             await _history.InitAsync();
+            await _conversations.InitAsync();
             Progress = 50;
 
             // Step 3: Load snippets

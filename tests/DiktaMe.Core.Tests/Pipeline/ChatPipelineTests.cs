@@ -289,4 +289,157 @@ public sealed class ChatPipelineTests
         result.TotalMs.Should().BeGreaterThanOrEqualTo(0);
         result.ProcessingMs.Should().BeGreaterThanOrEqualTo(0);
     }
+
+    // ── Conversation (multi-turn) path ────────────────────────────────────
+
+    [Fact]
+    public async Task RunConversationAsync_WithHistory_ReturnsAnswer()
+    {
+        var llm = new Mock<ILLMProvider>();
+        llm.Setup(l => l.ProviderName).Returns("MockLLM");
+        llm.Setup(l => l.ProcessConversationAsync(
+                It.IsAny<IReadOnlyList<ConversationTurn>>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+           .ReturnsAsync(new LlmResult { Text = "conversation answer", Provider = "MockLLM" });
+
+        var pipeline = new ChatPipeline(llm.Object, MockSettings());
+        var history = new List<ConversationTurn>
+        {
+            new("user", "hello"),
+            new("assistant", "hi there"),
+            new("user", "how are you?"),
+        };
+
+        var result = await pipeline.RunConversationAsync(
+            new ChatOptions { SystemPrompt = DefaultPrompt },
+            history);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Text.Should().Be("conversation answer");
+        result.RawTranscript.Should().Be("how are you?");
+        result.Mode.Should().Be("chat");
+    }
+
+    [Fact]
+    public async Task RunConversationAsync_EmptyHistory_ReturnsFailure()
+    {
+        var pipeline = new ChatPipeline(OkLlm().Object, MockSettings());
+
+        var result = await pipeline.RunConversationAsync(
+            new ChatOptions { SystemPrompt = DefaultPrompt },
+            Array.Empty<ConversationTurn>());
+
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("No messages");
+    }
+
+    [Fact]
+    public async Task RunConversationAsync_LlmReturnsEmpty_ReturnsFailure()
+    {
+        var llm = new Mock<ILLMProvider>();
+        llm.Setup(l => l.ProviderName).Returns("MockLLM");
+        llm.Setup(l => l.ProcessConversationAsync(
+                It.IsAny<IReadOnlyList<ConversationTurn>>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+           .ReturnsAsync(new LlmResult { Text = string.Empty, Provider = "MockLLM" });
+
+        var pipeline = new ChatPipeline(llm.Object, MockSettings());
+        var history = new List<ConversationTurn> { new("user", "hi") };
+
+        var result = await pipeline.RunConversationAsync(
+            new ChatOptions { SystemPrompt = DefaultPrompt },
+            history);
+
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("empty answer");
+    }
+
+    [Fact]
+    public async Task RunConversationAsync_WhenCancelled_ReturnsFailure()
+    {
+        var llm = new Mock<ILLMProvider>();
+        llm.Setup(l => l.ProviderName).Returns("MockLLM");
+        llm.Setup(l => l.ProcessConversationAsync(
+                It.IsAny<IReadOnlyList<ConversationTurn>>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+           .ThrowsAsync(new OperationCanceledException());
+
+        var pipeline = new ChatPipeline(llm.Object, MockSettings());
+        var history = new List<ConversationTurn> { new("user", "hi") };
+
+        var result = await pipeline.RunConversationAsync(
+            new ChatOptions { SystemPrompt = DefaultPrompt },
+            history);
+
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Be("Cancelled");
+    }
+
+    // ── Context window truncation ─────────────────────────────────────────
+
+    [Fact]
+    public void TruncateHistory_SmallHistory_KeepsAll()
+    {
+        var history = new List<ConversationTurn>
+        {
+            new("user", "hello"),
+            new("assistant", "hi"),
+        };
+
+        var result = ChatPipeline.TruncateHistory(history, "Be helpful.", contextWindowTokens: 8192);
+
+        result.Should().HaveCount(2);
+        result[0].Content.Should().Be("hello");
+        result[1].Content.Should().Be("hi");
+    }
+
+    [Fact]
+    public void TruncateHistory_LargeHistory_TruncatesOldest()
+    {
+        // Budget: 100 tokens * 0.80 = 80 tokens. System prompt "sys" = 0 tokens (3 chars / 4 = 0).
+        // Each message: "message NN" = 10 chars / 4 = 2 tokens.
+        // So ~40 messages fit. Create 50 messages, expect some to be truncated.
+        var history = new List<ConversationTurn>();
+        for (int i = 0; i < 50; i++)
+        {
+            history.Add(new(i % 2 == 0 ? "user" : "assistant", $"message {i:D2}"));
+        }
+
+        var result = ChatPipeline.TruncateHistory(history, "sys", contextWindowTokens: 100);
+
+        result.Count.Should().BeLessThan(50);
+        // Last message should always be included
+        result[^1].Content.Should().Be("message 49");
+    }
+
+    [Fact]
+    public void TruncateHistory_AlwaysIncludesAtLeastOneMessage()
+    {
+        // Huge message that exceeds entire budget
+        var history = new List<ConversationTurn>
+        {
+            new("user", new string('x', 100_000)),
+        };
+
+        var result = ChatPipeline.TruncateHistory(history, "sys", contextWindowTokens: 100);
+
+        result.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void TruncateHistory_HugeSystemPrompt_ReturnsLastMessage()
+    {
+        var history = new List<ConversationTurn>
+        {
+            new("user", "hello"),
+            new("assistant", "hi"),
+        };
+
+        // System prompt uses entire budget
+        var result = ChatPipeline.TruncateHistory(
+            history, new string('x', 100_000), contextWindowTokens: 100);
+
+        result.Should().HaveCount(1);
+        result[0].Content.Should().Be("hi"); // Last message
+    }
 }

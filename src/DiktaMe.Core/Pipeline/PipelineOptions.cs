@@ -169,6 +169,12 @@ public sealed record ChatOptions
 
     /// <summary>Language hint for audio transcription (default "en").</summary>
     public string Language { get; init; } = "en";
+
+    /// <summary>
+    /// When true, enables web search grounding for Gemini models.
+    /// The model will use Google Search to provide up-to-date answers.
+    /// </summary>
+    public bool WebSearchEnabled { get; init; }
 }
 
 /// <summary>

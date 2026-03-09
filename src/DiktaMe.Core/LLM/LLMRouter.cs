@@ -129,6 +129,71 @@ public sealed class LLMRouter : ILLMProvider
             .ConfigureAwait(false);
     }
 
+    /// <inheritdoc/>
+    public Task<LlmResult> ProcessConversationAsync(
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        string mode = "chat",
+        CancellationToken cancellationToken = default)
+    {
+        return ProcessConversationAsync(history, systemPrompt, modelName: null, mode, cancellationToken);
+    }
+
+    /// <summary>
+    /// Processes a multi-turn conversation with optional per-request model override.
+    /// </summary>
+    /// <param name="history">Ordered conversation turns.</param>
+    /// <param name="systemPrompt">The system prompt for the LLM.</param>
+    /// <param name="modelName">Optional model override. When null, uses the primary provider.</param>
+    /// <param name="mode">The pipeline mode (e.g., "chat").</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The LLM result.</returns>
+    public async Task<LlmResult> ProcessConversationAsync(
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        string? modelName,
+        string mode = "chat",
+        CancellationToken cancellationToken = default)
+    {
+        // Trial mode — route through managed Gemini proxy
+        if (_settings?.Current.AuthMode == AuthMode.Trial && _trialProvider is not null)
+        {
+            Log.Debug("LLMRouter: AuthMode=Trial — routing conversation to {Provider}", _trialProvider.ProviderName);
+            return await _trialProvider.ProcessConversationAsync(history, systemPrompt, mode, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        // If no model override, use the primary provider
+        if (string.IsNullOrWhiteSpace(modelName))
+        {
+            return await ProcessConversationWithProviderAsync(
+                _primary, _fallback, history, systemPrompt, mode, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        // Resolve provider from model name
+        ILLMProvider? provider;
+        try
+        {
+            provider = ResolveProviderForModel(modelName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "LLMRouter: Failed to resolve provider for model '{ModelName}'", modelName);
+            return new LlmResult
+            {
+                Text = string.Empty,
+                Provider = "unknown",
+                LatencyMs = 0,
+            };
+        }
+
+        // Use resolved provider (no fallback for per-mode model selection)
+        return await ProcessConversationWithProviderAsync(
+            provider, fallback: null, history, systemPrompt, mode, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     /// <summary>
     /// Resolves the appropriate LLM provider for a given model name.
     /// Uses <see cref="ModelListService.ResolveProviderFromModelId"/> for prefix matching,
@@ -144,9 +209,20 @@ public sealed class LLMRouter : ILLMProvider
     }
 
     /// <summary>
+    /// Applies per-request settings to the provider (e.g. Gemini web search grounding).
+    /// </summary>
+    private void ApplyProviderSettings(ILLMProvider provider)
+    {
+        if (provider is GeminiProvider gemini && _settings is not null)
+        {
+            gemini.WebSearchEnabled = _settings.Current.Chat.WebSearchEnabled;
+        }
+    }
+
+    /// <summary>
     /// Executes the LLM processing with fallback support.
     /// </summary>
-    private static async Task<LlmResult> ProcessWithProviderAsync(
+    private async Task<LlmResult> ProcessWithProviderAsync(
         ILLMProvider primary,
         ILLMProvider? fallback,
         string text,
@@ -157,6 +233,7 @@ public sealed class LLMRouter : ILLMProvider
         // ── Try primary ───────────────────────────────────────────────────────
         try
         {
+            ApplyProviderSettings(primary);
             var result = await primary.ProcessAsync(text, systemPrompt, mode, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -180,6 +257,7 @@ public sealed class LLMRouter : ILLMProvider
         {
             try
             {
+                ApplyProviderSettings(fallback);
                 var fallbackResult = await fallback.ProcessAsync(text, systemPrompt, mode, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -196,6 +274,71 @@ public sealed class LLMRouter : ILLMProvider
 
         // ── Both failed ───────────────────────────────────────────────────────
         Log.Error("LLMRouter: all providers failed");
+        return new LlmResult
+        {
+            Text = string.Empty,
+            Provider = primary.ProviderName,
+            LatencyMs = 0,
+        };
+    }
+
+    /// <summary>
+    /// Executes the conversation processing with fallback support.
+    /// </summary>
+    private async Task<LlmResult> ProcessConversationWithProviderAsync(
+        ILLMProvider primary,
+        ILLMProvider? fallback,
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        string mode,
+        CancellationToken cancellationToken)
+    {
+        // ── Try primary ───────────────────────────────────────────────────────
+        try
+        {
+            ApplyProviderSettings(primary);
+            var result = await primary.ProcessConversationAsync(history, systemPrompt, mode, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (result.IsSuccess)
+            {
+                Log.Debug("LLMRouter: primary {Provider} conversation succeeded", primary.ProviderName);
+                return result;
+            }
+
+            Log.Warning("LLMRouter: primary {Provider} conversation returned empty — trying fallback",
+                primary.ProviderName);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "LLMRouter: primary {Provider} conversation threw — trying fallback",
+                primary.ProviderName);
+        }
+
+        // ── Fallback ──────────────────────────────────────────────────────────
+        if (fallback is not null)
+        {
+            try
+            {
+                ApplyProviderSettings(fallback);
+                var fallbackResult = await fallback.ProcessConversationAsync(
+                    history, systemPrompt, mode, cancellationToken)
+                    .ConfigureAwait(false);
+
+                Log.Information("LLMRouter: fallback {Provider} conversation result: success={Success}",
+                    fallback.ProviderName, fallbackResult.IsSuccess);
+
+                return fallbackResult;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "LLMRouter: fallback {Provider} conversation also threw",
+                    fallback.ProviderName);
+            }
+        }
+
+        // ── Both failed ───────────────────────────────────────────────────────
+        Log.Error("LLMRouter: all providers failed for conversation");
         return new LlmResult
         {
             Text = string.Empty,

@@ -94,6 +94,53 @@ public sealed class LLMRouterTrialTests : IDisposable
     }
 
     [Fact]
+    public async Task ProcessConversationAsync_AuthModeTrial_RoutesToTrialProvider()
+    {
+        // Arrange: AuthMode = Trial + store a token
+        await _settings.UpdateAsync(_settings.Current with { AuthMode = AuthMode.Trial });
+        _secureStorage.StoreKey("trial_token", "eyJ.test.token");
+
+        var accountService = new Mock<IAccountService>();
+        accountService.Setup(s => s.LogoutAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var trialService = new Mock<ITrialService>();
+        trialService.Setup(s => s.RecordUsageAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var handler = new RouterFakeHandler(HttpStatusCode.OK, GeminiResponse);
+        using var http = new HttpClient(handler);
+        using var trialProvider = new TrialGeminiProvider(_secureStorage, accountService.Object, trialService.Object, http);
+
+        var primaryMock = new Mock<ILLMProvider>();
+        primaryMock.Setup(p => p.ProviderName).Returns("Primary");
+
+        var factory = new Mock<ILLMProviderFactory>();
+        var router = new LLMRouter(
+            primary: primaryMock.Object,
+            factory: factory.Object,
+            settings: _settings,
+            trialProvider: trialProvider);
+
+        var history = new List<ConversationTurn>
+        {
+            new("user", "hello"),
+            new("assistant", "hi"),
+            new("user", "how are you?"),
+        };
+
+        // Act
+        var result = await router.ProcessConversationAsync(history, "prompt");
+
+        // Assert — trial provider was used for conversation
+        result.Text.Should().Be("trial result");
+        result.Provider.Should().Be("Gemini (Trial)");
+        handler.WasCalled.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task ProcessAsync_AuthModeNone_RoutesToPrimaryProvider()
     {
         // Arrange: AuthMode = None (default) — trial provider should be skipped

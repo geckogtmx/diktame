@@ -23,6 +23,20 @@ public interface ILLMProvider
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Processes a multi-turn conversation through the LLM.
+    /// Each provider builds the correct API-specific JSON from the conversation history.
+    /// </summary>
+    /// <param name="history">Ordered list of conversation turns (user/assistant alternating).</param>
+    /// <param name="systemPrompt">System-level instruction defining the model's behaviour.</param>
+    /// <param name="mode">Workflow mode hint for logging/metrics.</param>
+    /// <returns>The processing result for the latest assistant response.</returns>
+    Task<LlmResult> ProcessConversationAsync(
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        string mode = "chat",
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Checks whether this provider is currently reachable and configured.
     /// Should not throw — returns <c>false</c> on any error.
     /// </summary>
@@ -59,6 +73,11 @@ public sealed record LlmResult
     public bool IsSuccess => !string.IsNullOrWhiteSpace(Text);
 }
 
+/// <summary>A single turn in a conversation.</summary>
+/// <param name="Role">"user" or "assistant".</param>
+/// <param name="Content">The message text.</param>
+public sealed record ConversationTurn(string Role, string Content);
+
 /// <summary>
 /// Extension methods for <see cref="ILLMProvider"/> that provide model-aware routing.
 /// </summary>
@@ -83,5 +102,26 @@ public static class LLMProviderExtensions
         }
 
         return provider.ProcessAsync(text, systemPrompt, mode, cancellationToken);
+    }
+
+    /// <summary>
+    /// Processes a multi-turn conversation with optional per-mode model override.
+    /// If the provider is a <see cref="LLMRouter"/> and a model name is specified,
+    /// uses the model-aware overload. Otherwise falls back to the standard call.
+    /// </summary>
+    public static Task<LlmResult> ProcessConversationWithModelAsync(
+        this ILLMProvider provider,
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        string? modelName,
+        string mode = "chat",
+        CancellationToken cancellationToken = default)
+    {
+        if (provider is LLMRouter router && !string.IsNullOrWhiteSpace(modelName))
+        {
+            return router.ProcessConversationAsync(history, systemPrompt, modelName, mode, cancellationToken);
+        }
+
+        return provider.ProcessConversationAsync(history, systemPrompt, mode, cancellationToken);
     }
 }

@@ -1,107 +1,206 @@
 # SPEC_005: Elgato Stream Deck Integration
 
 > **Status:** DRAFT
-> **Date:** 2026-03-07
+> **Date:** 2026-03-08
+> **Priority:** Low — personal quality-of-life feature, not user-facing roadmap
 > **Parent Specs:** `DEVELOPMENT_ROADMAP.md`
 
 ---
 
 ## 1. Overview & Value Proposition
 
-A Stream Deck is not merely a collection of external hotkeys; it is a **dynamic physical dashboard** capable of two-way communication, state tracking, and telemetry display. 
+Mapping dIKta.me's global hotkeys to a Stream Deck via the built-in "System: Hotkey" action already works — but it's a dumb one-way trigger with no feedback. A native plugin adds two things that matter:
 
-Mapping dIKta.me's global hotkeys to a Stream Deck natively via the "System: Hotkey" action is already possible, but incredibly limiting. A native, value-centered Stream Deck plugin elevates the user experience by leveraging the hardware's full capabilities:
+1. **Mode-Specific Buttons:** Bypass the globally selected dictation mode. Dedicate physical buttons to specific modes (e.g., "Standard", "Developer", "Email") without cycling through the UI.
+2. **Visual Feedback:** Buttons reflect pipeline state (Idle/Recording/Processing) so you know what's happening without looking at the screen.
 
-1. **Granular, Mode-Specific Triggers:** Bypass the globally selected dictation mode. Map physical buttons to specific custom modes (e.g., Button 1 = "Standard Dictation", Button 2 = "Developer Refactor", Button 3 = "Email Drafter").
-2. **Visual State & Telemetry Display:** The LCD buttons act as a live monitor. They can dynamically show the pipeline state (Idle, Recording, Processing), display a live recording timer, or briefly flash the transcribed word count upon completion.
-3. **Hardware Settings Toggles:** Map buttons to act as active toggle switches for core `AppSettings` (e.g., turning `RawModeOverride`, `StreamingEnabled`, or `AudioDucking` on/off). The button explicitly lights up or dims based on the app's real-time state.
-4. **Multi-Action Workflows:** By exposing distinct actions to the Stream Deck software, users can sequence dIKta.me triggers with other plugins (e.g., *Press Button* -> *Mute Discord* -> *Turn Philips Hue light RED* -> *Start dIKta.me Dictation*).
+That's the 80/20. Everything else is gravy.
 
 ---
 
-## 2. The Action Catalog (Plugin Features)
+## 2. The Action Catalog
 
-The C# plugin will expose the following distinct "Actions" to the Stream Deck software:
+Two actions. Keep it simple.
 
-### 2.1 The "Dictation Runner" Action
-A button dedicated to running the dictation pipeline.
-*   **Property Inspector (Settings):** Dropdown populated dynamically via IPC with all user-defined Modes from `DictationModeManager`. User selects a specific Mode, or "Use App Default".
-*   **Visual Behavior:** 
-    *   State 1 (Idle): Custom icon for the mode.
-    *   State 2 (Recording): Icon changes to a red microphone; LCD text shows a live `00:00` recording timer.
-    *   State 3 (Processing): Icon changes to a spinner/gear.
-    *   State 4 (Success): Briefly displays `[Checkmark] 150 chars` before reverting to Idle.
+### 2.1 "Pipeline Trigger" Action (Unified)
 
-### 2.2 The "Utility Pipeline" Action
-A button dedicated to running specific non-dictation pipelines.
-*   **Property Inspector:** Dropdown to select the pipeline: *Ask, Refine Voice, Refine Auto, Translate, Note, Chat*.
-*   **Overrides:** Checkbox to override the global `AskOutputMode` (e.g., Force "Inject" instead of "Toast").
+A single action type that can trigger **any** pipeline — dictation modes or utility pipelines — configured per-button via the Property Inspector.
 
-### 2.3 The "Settings Toggle" Action
-A button that acts as a binary physical switch.
-*   **Property Inspector:** Dropdown to select the setting to bind to:
-    *   `GeneralSettings.RawModeOverride` (Bypass LLM)
-    *   `GeneralSettings.StreamingEnabled` (WebSocket vs Batch)
-    *   `AudioDucking.Enabled`
-    *   `ActiveProfileName` (Cloud vs Local Engine)
-*   **Visual Behavior:** Tracks the real-time state of `AppSettings`. If the user clicks the button, the setting toggles and the icon changes (Lit / Dim). If the user changes the setting inside the dIKta.me WinUI app, the Stream Deck button instantly updates to match.
+**Property Inspector:**
+- **Pipeline type** dropdown: *Dictate, Ask, Refine Auto, Refine Voice, Translate, Note*.
+- **Mode selector** (visible when Dictate is selected): Dropdown populated from `DictationModeManager.GetAllModes()`, plus "Use App Default".
+- Chat is excluded — it opens a window, which doesn't make sense from a Stream Deck button.
 
-### 2.4 The "Telemetry Monitor" Action (Passive)
-A passive display key (no click action).
-*   **Visual Behavior:** Subscribes to `MetricsCollector` data over IPC. Constantly displays the stats of the *last* run (e.g., "750ms STT | 1.2s LLM | Deepgram/OpenAI").
+**Visual Behavior (2 states only):**
+- **Idle:** Static icon (customizable per pipeline type).
+- **Active:** Icon changes to indicate recording/processing. Reverts to Idle on completion or error.
+
+No live timers, no character count flashes, no multi-state animation sequences. Two states. If you want to know details, glance at the Control Panel.
+
+### 2.2 "Settings Toggle" Action
+
+A button that toggles a binary setting and reflects its current state.
+
+**Property Inspector:** Dropdown to select the setting:
+- Raw Mode (bypass LLM)
+- Streaming (WebSocket vs Batch)
+- Audio Ducking
+- Engine (Cloud vs Local)
+
+**Visual Behavior:** Lit = on, dim = off. Bidirectional — toggling in the WinUI app updates the button, and vice versa.
+
+### What's Cut (and Why)
+
+| Dropped | Reason |
+|---------|--------|
+| Telemetry Monitor action | Gold-plating. The data is in the Control Panel. A passive LCD readout adds dev cost for zero workflow improvement. |
+| Live recording timer | Requires `telemetry_tick` events every second over IPC. Complexity for a glanceable number you can see on screen. |
+| Per-completion char count flash | Cute, but adds a state machine to the button for a 2-second visual. Not worth it. |
+| AskOutputMode override per button | Over-engineering. Use the global setting. |
 
 ---
 
-## 3. Architecture & Bidirectional IPC
+## 3. Architecture
 
-To support this deep integration without muddying the WinUI 3 application layer, we introduce a dedicated API boundary.
+### 3.1 IPC: Named Pipe Server in `DiktaMe.App`
 
-### 3.1 `DiktaMe.V2.Api` Named Pipe Server
-`DiktaMe.App` hosts an asynchronous `NamedPipeServerStream` (`PipeDirection.InOut`). 
+`DiktaMe.App` hosts a `NamedPipeServerStream` (`PipeDirection.InOut`, newline-delimited JSON). Named pipes: zero firewall config, fast, user-scoped via `PipeAccessRights`.
 
-*   **Why Named Pipes?** Zero firewall configuration, native to Windows, extremely fast, and can be isolated (`PipeAccessRights`) to the current user making it highly secure.
-*   **Protocol:** Newline-delimited JSON payloads.
+Existing reference: `SingleInstanceManager.cs` already runs a named pipe for deeplinks. The API pipe follows the same pattern but bidirectional.
 
-### 3.2 The IPC Data Contract
-The data contract must handle bidirectional sync:
+**Pipe name:** `DiktaMe.V2.Api`
+
+### 3.2 IPC Contract
+
+Keep it minimal. No message IDs, no request/response correlation, no schema versioning. Add those if they're ever needed.
 
 **Commands (Plugin → App):**
-*   `{"action": "trigger_dictate", "modeId": "guid-here"}`
-*   `{"action": "toggle_setting", "setting": "RawModeOverride", "value": true}`
-*   `{"action": "query_config", "target": "modes"}`
+```json
+{"action": "trigger", "pipeline": "dictate", "modeId": "guid-or-null"}
+{"action": "trigger", "pipeline": "refine_auto"}
+{"action": "trigger", "pipeline": "ask"}
+{"action": "toggle", "setting": "RawModeOverride"}
+{"action": "query", "target": "modes"}
+{"action": "query", "target": "settings"}
+```
 
 **Events (App → Plugin):**
-*   `{"event": "state_changed", "pipeline": "dictate", "state": "Recording"}`
-*   `{"event": "telemetry_tick", "durationMs": 1500}` (Sent every second during recording to update the Stream Deck timer).
-*   `{"event": "settings_synced", "RawModeOverride": true, "StreamingEnabled": false}` (Broadcast whenever `SettingsManager.UpdateAsync` completes, keeping toggle buttons in sync).
+```json
+{"event": "state", "state": "Recording"}
+{"event": "state", "state": "Idle"}
+{"event": "settings", "RawModeOverride": false, "StreamingEnabled": true, "AudioDucking": true, "ActiveProfile": "Cloud"}
+{"event": "modes", "modes": [{"id": "...", "title": "Standard"}, ...]}
+{"event": "busy"}
+{"event": "error", "message": "No audio device found"}
+```
 
-### 3.3 Core Codebase Refactoring
-Currently, `LoadingViewModel.cs` intensely couples hotkeys to pipeline execution. This must be refactored:
+Note: `busy` is sent when a pipeline trigger arrives while another is already running. The plugin shows a brief flash or ignores the press. No queueing.
 
-1.  Extract execution logic from `LoadingViewModel` into a new `DiktaMe.Core.Pipeline.PipelineOrchestrator` singleton.
-2.  The `PipelineOrchestrator` accepts execution requests (with optional `modeId` or overrides).
-3.  Both `HotkeyManager` (local global hotkeys) and the new `LocalApiServer` (IPC requests from Stream Deck) call into the `PipelineOrchestrator` to execute workflows.
+### 3.3 Where Execution Logic Lives
+
+**No PipelineOrchestrator refactor.** The spec originally called for extracting all pipeline execution from `LoadingViewModel` into a new orchestrator class. That's a major refactor (audio recording lifecycle, dispatcher marshaling, toggle-stop logic, toast notifications, Ask output routing — all tangled together in 600+ lines). It would touch every pipeline flow and risk breaking the working hotkey system, all for the sake of architectural purity.
+
+Instead: **add a thin `LocalApiServer` in `DiktaMe.App.Services` that translates IPC commands into the same calls `LoadingViewModel` already makes.**
+
+```
+Stream Deck Plugin
+    ↓ Named Pipe (JSON)
+LocalApiServer (DiktaMe.App.Services)
+    ↓ Dispatches to UI thread
+LoadingViewModel (existing methods, unchanged)
+    ↓
+PipelineFactory → Pipeline → Result
+    ↓ Events
+LocalApiServer listens, broadcasts state/settings over pipe
+```
+
+`LocalApiServer` responsibilities:
+- Host the named pipe, accept connections, parse JSON commands.
+- On `trigger` command: dispatch to `LoadingViewModel.TriggerPipelineAsync(pipelineType, modeId)` via `DispatcherQueue`. This is a **single new public method** on the VM that calls the existing private `RunXxxPipelineAsync` methods.
+- On `toggle` command: update the setting via `SettingsManager.UpdateAsync()`.
+- On `query` command: serialize modes/settings from `DictationModeManager` / `SettingsManager` and write to pipe.
+- Subscribe to `SettingsManager.SettingsChanged` → broadcast `settings` event.
+- Subscribe to pipeline `StateChanged` events (via a simple event on `LoadingViewModel`) → broadcast `state` event.
+- Handle pipe disconnection: log it, wait for reconnection. No crash, no drama.
+
+**What changes in LoadingViewModel:** One new public method (~15 lines) that maps a pipeline type string to the existing private `RunXxxPipelineAsync` calls. Plus exposing `StateChanged` as a public event (it already fires `_controlPanel.OnPipelineStateChanged` — just add a parallel event). That's it.
+
+### 3.4 Risk: SDK Support
+
+Elgato's official Stream Deck SDK 2.0 is now JavaScript/Node.js only. C# plugins still work because the underlying protocol is WebSocket-based, but Elgato no longer documents or officially supports native executables.
+
+The community library **[StreamDeck-Tools](https://www.nuget.org/packages/StreamDeck-Tools/)** (by BarRaider) fills this gap:
+- Version 6.4.0, updated **March 2026**, targets **.NET 8.0**
+- Supports Stream Deck Plus XL and latest hardware
+- 7.0.0-beta.3 available (active development)
+- Wraps all WebSocket communication, action registration, and Property Inspector plumbing
+
+This is the right library. It's battle-tested and actively maintained. The risk is that a future Stream Deck software update could break compatibility, but BarRaider has tracked SDK changes for years. Acceptable risk for a personal-use feature.
 
 ---
 
-## 4. Implementation Details
+## 4. Implementation Plan
 
-### Phase 1: Core IPC & Orchestration (Tasks J.7 - J.8)
-1. Write `PipelineOrchestrator` and decouple `LoadingViewModel`.
-2. Implement `LocalApiServer.cs` in `DiktaMe.App\Services`.
-3. Wire `SettingsManager.SettingsChanged` events to broadcast config updates over the pipe.
-4. Wire `DictationPipeline.StateChanged` to broadcast execution states over the pipe.
+### Phase 1: IPC Server (~8 hours)
 
-### Phase 2: The Stream Deck Plugin (`DiktaMe.StreamDeck`) (Task J.9)
-1. Create a `net8.0-windows` Console App.
-2. Integrate `streamdeck-client-csharp` for WebSocket communication with the Stream Deck Software.
-3. Build the `NamedPipeClientStream` connection logic, implementing aggressive auto-reconnect with exponential backoff if `DiktaMe.App` is closed or crashes.
-4. If the pipe is disconnected, all Stream Deck buttons must cleanly fallback to an "Offline" warning icon.
+1. Create `LocalApiServer.cs` in `DiktaMe.App\Services`.
+2. Host `NamedPipeServerStream` with async read/write loop (follow `SingleInstanceManager` pattern).
+3. Parse incoming JSON commands, dispatch `trigger` to LoadingViewModel, handle `toggle`/`query` directly.
+4. Wire `SettingsManager.SettingsChanged` → broadcast settings JSON over pipe.
+5. Add `PipelineStateChanged` public event on `LoadingViewModel`, wire to broadcast.
+6. Add `LoadingViewModel.TriggerPipelineAsync(string pipelineType, string? modeId)` — public entry point that maps to existing private methods.
 
-### Phase 3: The Property Inspector (UI)
-1. Build `property_inspector/index.html` using Stream Deck's standard CSS library.
-2. Write the JavaScript necessary to request configuration data (Modes list) from the plugin (which passes it through from the IPC pipe) and populate HTML dropdowns dynamically.
+### Phase 2: Stream Deck Plugin (~12 hours)
 
-### Phase 4: CI/CD & Deployment
-1. Use Elgato's `DistributionTool.exe` in the GitHub Actions pipeline to compile the plugin and bundle resources (icons, HTML).
-2. Distribute the `.sdPlugin` file as a supplementary download alongside the standard `diktame-setup.exe` installer.
+1. Create `DiktaMe.StreamDeck` project — `net8.0-windows` console app.
+2. Add `StreamDeck-Tools` 6.4.0 NuGet package.
+3. Implement `PipelineTriggerAction` — on keyDown, send `trigger` command over named pipe. On `state` event, update button icon (Idle/Active).
+4. Implement `SettingsToggleAction` — on keyDown, send `toggle` command. On `settings` event, update button icon (Lit/Dim).
+5. Named pipe client with auto-reconnect (3s interval, not exponential — keep it simple). On disconnect, set all buttons to "Offline" icon.
+
+### Phase 3: Property Inspector (~4 hours)
+
+1. Build `property_inspector/index.html` — standard Stream Deck CSS, minimal JS.
+2. Pipeline type dropdown (static list: Dictate, Ask, Refine Auto, Refine Voice, Translate, Note).
+3. Mode selector dropdown (populated dynamically: plugin queries modes via pipe on PI open, forwards JSON to the HTML via `sendToPropertyInspector`).
+4. Settings toggle dropdown (static list: Raw Mode, Streaming, Audio Ducking, Engine).
+
+### Phase 4: Packaging & Distribution (~2 hours)
+
+1. Create `manifest.json` with action definitions and icons.
+2. Use `DistributionTool.exe` to package `.streamDeckPlugin` file.
+3. Distribute as a separate download on the website/GitHub releases. Not bundled with the main installer — Stream Deck is niche.
+4. No CI/CD automation for this. Manual build-and-package is fine for a low-frequency release.
+
+**Total estimate: ~26 hours.**
+
+---
+
+## 5. What Good Looks Like
+
+A user with a Stream Deck and 6 spare buttons gets:
+
+| Button | Action | Idle Icon | Active Icon |
+|--------|--------|-----------|-------------|
+| 1 | Dictate (Standard) | Mic | Red Mic |
+| 2 | Dictate (Developer) | Code icon | Red Code |
+| 3 | Refine Auto | Wand | Spinning Wand |
+| 4 | Ask | Question mark | Spinning Q |
+| 5 | Toggle: Raw Mode | "RAW" dim | "RAW" lit |
+| 6 | Toggle: Cloud/Local | Cloud icon | Gear icon |
+
+Press button 2 → recording starts → icon goes red → processing → icon reverts. Meanwhile button 5 lets you flip raw mode without touching the app. That's it. No dashboards, no telemetry readouts, no live timers. Just buttons that do things and show their state.
+
+---
+
+## Appendix: Key Code References
+
+| Component | Path | Role in Integration |
+|-----------|------|-------------------|
+| SingleInstanceManager | `src/DiktaMe.App/Services/SingleInstanceManager.cs` | Named pipe pattern to follow |
+| LoadingViewModel | `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` | Pipeline execution entry point (lines 356-913) |
+| PipelineFactory | `src/DiktaMe.Core/Config/PipelineFactory.cs` | Creates all 8 pipeline types |
+| SettingsManager | `src/DiktaMe.Core/Config/SettingsManager.cs` | `SettingsChanged` event (line 42) |
+| DictationModeManager | `src/DiktaMe.Core/Config/DictationModeManager.cs` | `GetAllModes()` for Property Inspector |
+| PipelineState | `src/DiktaMe.Core/Pipeline/PipelineState.cs` | State enum (Idle, Recording, Transcribing, etc.) |
+| StreamDeck-Tools | [NuGet](https://www.nuget.org/packages/StreamDeck-Tools/) | v6.4.0, .NET 8, maintained by BarRaider |
