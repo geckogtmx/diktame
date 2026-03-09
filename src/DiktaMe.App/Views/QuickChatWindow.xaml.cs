@@ -23,8 +23,8 @@ public sealed partial class QuickChatWindow : Window
         var chatSettings = settings.Current.Chat;
         int width = (int)chatSettings.WindowWidth;
         int height = (int)chatSettings.WindowHeight;
-        if (width < 300) width = 600;
-        if (height < 300) height = 600;
+        if (width < 300) { width = 600; }
+        if (height < 300) { height = 600; }
 
         var appWindow = this.AppWindow;
         appWindow.Resize(new Windows.Graphics.SizeInt32(width, height));

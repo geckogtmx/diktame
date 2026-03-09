@@ -249,7 +249,7 @@ public sealed class TrialGeminiProvider : ILLMProvider, IDisposable
 
         for (int i = 0; i < history.Count; i++)
         {
-            if (i > 0) sb.Append(',');
+            if (i > 0) { sb.Append(','); }
             string role = string.Equals(history[i].Role, "assistant", StringComparison.Ordinal)
                 ? "model" : "user";
             sb.Append("{\"role\":\"").Append(role)

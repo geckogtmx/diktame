@@ -218,7 +218,7 @@ public sealed class AnthropicProvider : ILLMProvider, IDisposable
 
         for (int i = 0; i < history.Count; i++)
         {
-            if (i > 0) sb.Append(',');
+            if (i > 0) { sb.Append(','); }
             sb.Append("{\"role\":\"").Append(EscapeJsonString(history[i].Role))
               .Append("\",\"content\":\"").Append(EscapeJsonString(SanitizeInput(history[i].Content)))
               .Append("\"}");
