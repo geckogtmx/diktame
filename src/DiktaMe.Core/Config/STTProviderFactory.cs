@@ -33,7 +33,8 @@ public sealed class STTProviderFactory : ISTTProviderFactory
             "gemini-audio" => new GeminiAudioProvider(
                 key ?? throw new InvalidOperationException("Gemini API key not configured.")),
 
-            "whisper" or "whisper-turbo" => new WhisperProvider("turbo"),
+            "whisper" => new WhisperProvider(_settings.Current.WhisperModel),
+            "whisper-turbo" => new WhisperProvider("turbo"),
             "whisper-small" => new WhisperProvider("small"),
             "whisper-base" => new WhisperProvider("base"),
             "whisper-tiny" => new WhisperProvider("tiny"),

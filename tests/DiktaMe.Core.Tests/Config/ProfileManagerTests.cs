@@ -13,44 +13,9 @@ public sealed class ProfileManagerTests
         var sm = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_profile_{Guid.NewGuid()}.json"));
         if (initial is not null)
         {
-            // UpdateAsync fires SettingsChanged; we use the sync-compatible path here
-            // by calling UpdateAsync synchronously through Task.Run in test setup.
             sm.UpdateAsync(initial).GetAwaiter().GetResult();
         }
         return (sm, new ProfileManager(sm));
-    }
-
-    // ── Active profile ────────────────────────────────────────────────────────
-
-    [Fact]
-    public void ActiveProfile_Default_IsZero()
-    {
-        var (_, manager) = Make();
-        Assert.Equal(0, manager.ActiveProfile);
-    }
-
-    [Fact]
-    public async Task SwitchProfileAsync_ChangesActiveProfile()
-    {
-        var (sm, manager) = Make();
-        await manager.SwitchProfileAsync(1);
-        Assert.Equal(1, manager.ActiveProfile);
-    }
-
-    [Fact]
-    public async Task SwitchProfileAsync_ToProfile0_Works()
-    {
-        var (sm, manager) = Make(new AppSettings { ActiveProfile = 1 });
-        await manager.SwitchProfileAsync(0);
-        Assert.Equal(0, manager.ActiveProfile);
-    }
-
-    [Fact]
-    public async Task SwitchProfileAsync_InvalidProfile_Throws()
-    {
-        var (_, manager) = Make();
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => manager.SwitchProfileAsync(2));
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => manager.SwitchProfileAsync(-1));
     }
 
     // ── GetModeSettings ───────────────────────────────────────────────────────
@@ -71,7 +36,6 @@ public sealed class ProfileManagerTests
     {
         var settings = new AppSettings
         {
-            ActiveProfile = 0,
             ModeProfiles = new Dictionary<string, ModeSettings>
             {
                 ["dictate_0"] = new ModeSettings { SttProvider = "whisper", LlmProvider = "ollama" },
@@ -82,26 +46,6 @@ public sealed class ProfileManagerTests
         var ms = manager.GetModeSettings("dictate");
         Assert.Equal("whisper", ms.SttProvider);
         Assert.Equal("ollama", ms.LlmProvider);
-    }
-
-    [Fact]
-    public async Task GetModeSettings_UsesActiveProfile()
-    {
-        var settings = new AppSettings
-        {
-            ActiveProfile = 0,
-            ModeProfiles = new Dictionary<string, ModeSettings>
-            {
-                ["dictate_0"] = new ModeSettings { SttProvider = "deepgram" },
-                ["dictate_1"] = new ModeSettings { SttProvider = "whisper" },
-            },
-        };
-        var (_, manager) = Make(settings);
-
-        Assert.Equal("deepgram", manager.GetModeSettings("dictate").SttProvider);
-
-        await manager.SwitchProfileAsync(1);
-        Assert.Equal("whisper", manager.GetModeSettings("dictate").SttProvider);
     }
 
     [Fact]

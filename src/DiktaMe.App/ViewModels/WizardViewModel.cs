@@ -128,7 +128,16 @@ public sealed partial class WizardViewModel : ObservableObject
                 _ => "gemini",
             };
 
-            var updated = _settings.Current with { WizardCompleted = true };
+            // LLM choice determines ActiveProfileName (controls model name resolution).
+            // STT choice is independent — handled by ModeProfiles provider field.
+            string profileName = string.Equals(LlmChoice, "local", StringComparison.Ordinal)
+                ? "Local" : "Cloud";
+
+            var updated = _settings.Current with
+            {
+                WizardCompleted = true,
+                ActiveProfileName = profileName,
+            };
 
             // Update default mode profiles to use chosen providers
             var profiles = new Dictionary<string, ModeSettings>(updated.ModeProfiles);

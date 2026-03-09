@@ -243,6 +243,18 @@
   <data name="Settings_AIEngine_InfoBar.Message" xml:space="preserve">
     <value>Fine-grained provider and model selection is available on the Modes tab for each workflow mode.</value>
   </data>
+  <data name="Settings_AIEngine_Whisper_Section.Text" xml:space="preserve">
+    <value>Whisper (Local STT)</value>
+  </data>
+  <data name="Settings_AIEngine_Whisper_Model_Label.Text" xml:space="preserve">
+    <value>Model Size</value>
+  </data>
+  <data name="Settings_AIEngine_Whisper_Model_Description.Text" xml:space="preserve">
+    <value>Larger models are more accurate but require more VRAM. Small is recommended for 8 GB GPUs.</value>
+  </data>
+  <data name="Settings_AIEngine_Whisper_AutoDownload_Note.Text" xml:space="preserve">
+    <value>Models are downloaded automatically on first use during app startup.</value>
+  </data>
   <data name="Settings_AIEngine_Deepgram_Section.Text" xml:space="preserve">
     <value>Deepgram Settings</value>
   </data>
@@ -1343,8 +1355,14 @@
   <data name="Loading_Snippets" xml:space="preserve">
     <value>Loading snippets...</value>
   </data>
+  <data name="Loading_DownloadingWhisper" xml:space="preserve">
+    <value>Downloading Whisper model...</value>
+  </data>
   <data name="Loading_LocalServices" xml:space="preserve">
     <value>Checking local services...</value>
+  </data>
+  <data name="Loading_WarmingOllama" xml:space="preserve">
+    <value>Warming up Ollama model...</value>
   </data>
   <data name="Loading_Account" xml:space="preserve">
     <value>Syncing account...</value>

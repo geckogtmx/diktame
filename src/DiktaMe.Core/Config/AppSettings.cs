@@ -321,9 +321,10 @@ public sealed record AppSettings
     public string?[] CustomPrompts { get; init; } = new string?[16];
 
     /// <summary>
-    /// Currently active profile index (0 or 1). Maps to the ModeProfiles key suffix.
-    /// DEPRECATED: Replaced by ActiveProfile (string "Cloud" or "Local") in Stream J.
-    /// Kept for backwards compatibility during migration.
+    /// MIGRATION-ONLY: Legacy profile index (0 or 1).
+    /// No runtime code reads this. Kept solely so existing JSON settings files
+    /// can be deserialized and migrated to <see cref="ActiveProfileName"/> on first load.
+    /// See SettingsManager.MigrateActiveProfile() for the migration logic.
     /// </summary>
     public int ActiveProfile { get; init; } = 0;
 
@@ -333,7 +334,10 @@ public sealed record AppSettings
         "diktame-notes.md");
 
     /// <summary>Ollama model to use as the default local LLM.</summary>
-    public string OllamaModel { get; init; } = "llama3.2";
+    public string OllamaModel { get; init; } = "gemma3";
+
+    /// <summary>Whisper model size for local STT (tiny, base, small, medium, large, turbo).</summary>
+    public string WhisperModel { get; init; } = "small";
 
     // ── Stream J: CRUD Dictation Modes (NEW) ──────────────────────────────────
 

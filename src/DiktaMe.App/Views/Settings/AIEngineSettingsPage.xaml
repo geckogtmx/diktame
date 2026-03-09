@@ -38,59 +38,84 @@
 
             <InfoBar l:Uids.Uid="Settings_AIEngine_InfoBar" IsOpen="True" IsClosable="False" Severity="Informational"/>
 
-            <!-- Deepgram STT Settings -->
-            <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Section" FontSize="20" FontWeight="SemiBold" Margin="0,16,0,0"/>
+            <!-- ═══════════════════════════════════════════════════════════════
+                 Whisper (Local STT) Settings — visible when STT = Local
+                 ═══════════════════════════════════════════════════════════════ -->
+            <StackPanel Spacing="16"
+                        Visibility="{x:Bind ViewModel.IsWhisperSectionVisible, Mode=OneWay}">
+                <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Section" FontSize="20" FontWeight="SemiBold" Margin="0,16,0,0"/>
 
-            <!-- Model -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Description" FontSize="12" Opacity="0.6"/>
-                <ComboBox ItemsSource="{x:Bind ViewModel.DeepgramModels}"
-                          SelectedIndex="{x:Bind ViewModel.DeepgramModelIndex, Mode=TwoWay}"
-                          HorizontalAlignment="Stretch"/>
-            </StackPanel>
+                <!-- Model -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Model_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Model_Description" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.WhisperModels}"
+                              SelectedIndex="{x:Bind ViewModel.WhisperModelIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
 
-            <!-- Punctuate -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Description" FontSize="12" Opacity="0.6"/>
-                <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramPunctuate, Mode=TwoWay}"/>
-            </StackPanel>
-
-            <!-- Dictation -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Description" FontSize="12" Opacity="0.6"/>
-                <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramDictation, Mode=TwoWay}"
-                              IsEnabled="{x:Bind ViewModel.IsDictationEnabled, Mode=OneWay}"/>
-            </StackPanel>
-
-            <!-- Smart Format -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Description" FontSize="12" Opacity="0.6"/>
-                <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramSmartFormat, Mode=TwoWay}"/>
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Warning"
-                           FontSize="11" Opacity="0.5" Visibility="{x:Bind ViewModel.DeepgramSmartFormat, Mode=OneWay}"/>
-            </StackPanel>
-
-            <!-- Replacements -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Description" FontSize="12" Opacity="0.6"/>
-                <TextBox Text="{x:Bind ViewModel.DeepgramReplacements, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                         AcceptsReturn="True" TextWrapping="Wrap"
-                         MinHeight="80" MaxHeight="160"
-                         PlaceholderText="monika:Monica&#x0a;zen desk:Zendesk"/>
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Help"
+                <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_AutoDownload_Note"
                            FontSize="11" Opacity="0.5"/>
             </StackPanel>
 
-            <!-- Streaming -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Description" FontSize="12" Opacity="0.6"/>
-                <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramStreaming, Mode=TwoWay}"/>
+            <!-- ═══════════════════════════════════════════════════════════════
+                 Deepgram (Cloud STT) Settings — visible when STT = Cloud
+                 ═══════════════════════════════════════════════════════════════ -->
+            <StackPanel Spacing="16"
+                        Visibility="{x:Bind ViewModel.IsDeepgramSectionVisible, Mode=OneWay}">
+                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Section" FontSize="20" FontWeight="SemiBold" Margin="0,16,0,0"/>
+
+                <!-- Model -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Description" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.DeepgramModels}"
+                              SelectedIndex="{x:Bind ViewModel.DeepgramModelIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+                <!-- Punctuate -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramPunctuate, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <!-- Dictation -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramDictation, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.IsDictationEnabled, Mode=OneWay}"/>
+                </StackPanel>
+
+                <!-- Smart Format -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramSmartFormat, Mode=TwoWay}"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Warning"
+                               FontSize="11" Opacity="0.5" Visibility="{x:Bind ViewModel.DeepgramSmartFormat, Mode=OneWay}"/>
+                </StackPanel>
+
+                <!-- Replacements -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Description" FontSize="12" Opacity="0.6"/>
+                    <TextBox Text="{x:Bind ViewModel.DeepgramReplacements, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                             AcceptsReturn="True" TextWrapping="Wrap"
+                             MinHeight="80" MaxHeight="160"
+                             PlaceholderText="monika:Monica&#x0a;zen desk:Zendesk"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Help"
+                               FontSize="11" Opacity="0.5"/>
+                </StackPanel>
+
+                <!-- Streaming -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramStreaming, Mode=TwoWay}"/>
+                </StackPanel>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

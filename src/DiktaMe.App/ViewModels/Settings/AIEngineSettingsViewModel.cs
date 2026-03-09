@@ -20,6 +20,14 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _capabilitySummary = "";
 
+    // ── Whisper settings ────────────────────────────────────────────────────
+
+    [ObservableProperty]
+    private int _whisperModelIndex;
+
+    [ObservableProperty]
+    private bool _isWhisperSectionVisible;
+
     // ── Deepgram settings ────────────────────────────────────────────────────
 
     [ObservableProperty]
@@ -39,6 +47,9 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _deepgramStreaming;
+
+    [ObservableProperty]
+    private bool _isDeepgramSectionVisible = true;
 
     /// <summary>
     /// Dictation toggle is disabled when Punctuate is off and SmartFormat is off
@@ -68,6 +79,17 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         _loc.GetString("Settings_AIEngine_Deepgram_Nova2"),
     ];
     public string[] DeepgramModelCodes { get; } = ["nova-3", "nova-2"];
+
+    public string[] WhisperModels { get; } =
+    [
+        "Tiny (~75 MB)",
+        "Base (~142 MB)",
+        "Small (~466 MB, recommended)",
+        "Medium (~1.5 GB)",
+        "Large (~3 GB)",
+        "Turbo (~1.6 GB)",
+    ];
+    public string[] WhisperModelCodes { get; } = ["tiny", "base", "small", "medium", "large", "turbo"];
 
     private void LoadFromSettings()
     {
@@ -99,6 +121,11 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
 
         CapabilitySummary = $"STT: {sttLabel}  |  LLM: {llmLabel}";
 
+        // Whisper settings
+        WhisperModelIndex = Array.IndexOf(WhisperModelCodes, s.WhisperModel) is var wi and >= 0 ? wi : 2; // default: small (index 2)
+        IsWhisperSectionVisible = SttModeIndex == 1;
+        IsDeepgramSectionVisible = SttModeIndex == 0;
+
         // Deepgram settings
         var dg = s.Deepgram;
         DeepgramModelIndex = Array.IndexOf(DeepgramModelCodes, dg.Model) is var mi and >= 0 ? mi : 0;
@@ -112,7 +139,131 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         _isLoading = false;
     }
 
-    // ── Change handlers ──────────────────────────────────────────────────────
+    // ── Mode change handlers ────────────────────────────────────────────────
+
+    partial void OnSttModeIndexChanged(int value)
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        string sttProvider = value == 1 ? "whisper" : "deepgram";
+        IsWhisperSectionVisible = value == 1;
+        IsDeepgramSectionVisible = value == 0;
+
+        // Update all ModeProfiles
+        var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
+        string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
+        foreach (var mode in modes)
+        {
+            for (int p = 0; p < 2; p++)
+            {
+                string key = $"{mode}_{p}";
+                var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
+                profiles[key] = existing with { SttProvider = sttProvider };
+            }
+        }
+
+        var updated = _settings.Current with { ModeProfiles = profiles };
+        UpdateCapabilitySummary(updated);
+        _ = _settings.UpdateAsync(updated).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception, "Failed to save STT mode change");
+            }
+        }, TaskScheduler.Default);
+    }
+
+    partial void OnLlmModeIndexChanged(int value)
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        string llmProvider = value switch
+        {
+            1 => "ollama",
+            2 => "none",
+            _ => "gemini",
+        };
+        bool useLlm = !string.Equals(llmProvider, "none", StringComparison.Ordinal);
+
+        // LLM choice determines ActiveProfileName
+        string profileName = value == 1 ? "Local" : "Cloud";
+
+        // Update all ModeProfiles
+        var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
+        string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
+        foreach (var mode in modes)
+        {
+            for (int p = 0; p < 2; p++)
+            {
+                string key = $"{mode}_{p}";
+                var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
+                profiles[key] = existing with { LlmProvider = llmProvider, UseLlm = useLlm };
+            }
+        }
+
+        var updated = _settings.Current with
+        {
+            ModeProfiles = profiles,
+            ActiveProfileName = profileName,
+        };
+        UpdateCapabilitySummary(updated);
+        _ = _settings.UpdateAsync(updated).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception, "Failed to save LLM mode change");
+            }
+        }, TaskScheduler.Default);
+    }
+
+    private void UpdateCapabilitySummary(AppSettings s)
+    {
+        var defaultMode = s.ModeProfiles.GetValueOrDefault("dictate_0", new ModeSettings());
+        var sttLabel = defaultMode.SttProvider switch
+        {
+            "whisper" => "Local Whisper",
+            "deepgram" => "Deepgram Cloud",
+            "gemini-audio" => "Gemini Audio",
+            _ => defaultMode.SttProvider,
+        };
+        var llmLabel = defaultMode.LlmProvider switch
+        {
+            "ollama" => $"Ollama ({s.OllamaModel})",
+            "none" => "Disabled",
+            _ => defaultMode.LlmProvider,
+        };
+        CapabilitySummary = $"STT: {sttLabel}  |  LLM: {llmLabel}";
+    }
+
+    // ── Whisper change handler ──────────────────────────────────────────────
+
+    partial void OnWhisperModelIndexChanged(int value)
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        string model = value >= 0 && value < WhisperModelCodes.Length
+            ? WhisperModelCodes[value] : "small";
+
+        var updated = _settings.Current with { WhisperModel = model };
+        _ = _settings.UpdateAsync(updated).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception, "Failed to save Whisper model setting");
+            }
+        }, TaskScheduler.Default);
+    }
+
+    // ── Deepgram change handlers ────────────────────────────────────────────
 
     partial void OnDeepgramModelIndexChanged(int value) => SaveDeepgram();
     partial void OnDeepgramSmartFormatChanged(bool value)

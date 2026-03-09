@@ -101,6 +101,7 @@ public sealed class DictationPipeline
             string finalText = rawText;
             long processingMs = 0;
             string? llmProvider = null;
+            string? warningMessage = null;
 
             bool useLlm = !options.RawMode
                 && _llm is not null
@@ -108,24 +109,35 @@ public sealed class DictationPipeline
 
             if (useLlm)
             {
-                Log.Information("DictationPipeline: sending to LLM ({Provider})", _llm!.ProviderName);
-                var llmSw = Stopwatch.StartNew();
-                LlmResult llmResult = await _llm!
-                    .ProcessWithModelAsync(rawText, options.SystemPrompt!, options.ModelName, Mode, cancellationToken)
-                    .ConfigureAwait(false);
-                llmSw.Stop();
-                processingMs = llmSw.ElapsedMilliseconds;
-                llmProvider = llmResult.Provider;
+                try
+                {
+                    Log.Information("DictationPipeline: sending to LLM ({Provider})", _llm!.ProviderName);
+                    var llmSw = Stopwatch.StartNew();
+                    LlmResult llmResult = await _llm!
+                        .ProcessWithModelAsync(rawText, options.SystemPrompt!, options.ModelName, Mode, cancellationToken)
+                        .ConfigureAwait(false);
+                    llmSw.Stop();
+                    processingMs = llmSw.ElapsedMilliseconds;
+                    llmProvider = llmResult.Provider;
 
-                if (llmResult.IsSuccess)
-                {
-                    finalText = llmResult.Text;
-                    Log.Information("DictationPipeline: LLM produced {Chars} chars", finalText.Length);
+                    if (llmResult.IsSuccess)
+                    {
+                        finalText = llmResult.Text;
+                        Log.Information("DictationPipeline: LLM produced {Chars} chars", finalText.Length);
+                    }
+                    else
+                    {
+                        Log.Warning("DictationPipeline: LLM returned empty — falling back to raw transcript");
+                    }
                 }
-                else
+                catch (OperationCanceledException)
                 {
-                    Log.Warning("DictationPipeline: LLM returned empty — falling back to raw transcript");
-                    // finalText remains rawText (V1 fallback behaviour)
+                    throw; // let outer catch handle cancellation
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "DictationPipeline: LLM failed — falling back to raw transcript");
+                    warningMessage = "LLM unavailable — raw transcription injected";
                 }
             }
             else
@@ -166,6 +178,7 @@ public sealed class DictationPipeline
                 RawTranscript = rawText,
                 Mode = Mode,
                 IsSuccess = true,
+                WarningMessage = warningMessage,
                 RecordingMs = options.RecordingDurationMs,
                 TranscriptionMs = sttSw.ElapsedMilliseconds,
                 ProcessingMs = processingMs,

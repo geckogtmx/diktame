@@ -102,6 +102,10 @@
   <data name="Settings_AIEngine_CurrentConfig_Label.Text" xml:space="preserve"><value>Configuraci&#243;n Actual</value></data>
   <data name="Settings_AIEngine_InfoBar.Title" xml:space="preserve"><value>Configuraci&#243;n por modo</value></data>
   <data name="Settings_AIEngine_InfoBar.Message" xml:space="preserve"><value>La selecci&#243;n detallada de proveedor y modelo est&#225; disponible en la pesta&#241;a Modos para cada flujo de trabajo.</value></data>
+  <data name="Settings_AIEngine_Whisper_Section.Text" xml:space="preserve"><value>Whisper (STT Local)</value></data>
+  <data name="Settings_AIEngine_Whisper_Model_Label.Text" xml:space="preserve"><value>Tama&#241;o del modelo</value></data>
+  <data name="Settings_AIEngine_Whisper_Model_Description.Text" xml:space="preserve"><value>Modelos m&#225;s grandes son m&#225;s precisos pero requieren m&#225;s VRAM. Small es recomendado para GPUs de 8 GB.</value></data>
+  <data name="Settings_AIEngine_Whisper_AutoDownload_Note.Text" xml:space="preserve"><value>Los modelos se descargan autom&#225;ticamente en el primer uso durante el inicio de la aplicaci&#243;n.</value></data>
   <data name="Settings_AIEngine_Deepgram_Section.Text" xml:space="preserve"><value>Configuraci&#243;n de Deepgram</value></data>
   <data name="Settings_AIEngine_Deepgram_Model_Label.Text" xml:space="preserve"><value>Modelo</value></data>
   <data name="Settings_AIEngine_Deepgram_Model_Description.Text" xml:space="preserve"><value>Nova-3 tiene 47% menos tasa de error que Nova-2</value></data>
@@ -499,7 +503,9 @@
   <data name="Loading_Settings" xml:space="preserve"><value>Cargando configuraci&#243;n...</value></data>
   <data name="Loading_Database" xml:space="preserve"><value>Inicializando base de datos...</value></data>
   <data name="Loading_Snippets" xml:space="preserve"><value>Cargando snippets...</value></data>
+  <data name="Loading_DownloadingWhisper" xml:space="preserve"><value>Descargando modelo Whisper...</value></data>
   <data name="Loading_LocalServices" xml:space="preserve"><value>Verificando servicios locales...</value></data>
+  <data name="Loading_WarmingOllama" xml:space="preserve"><value>Calentando modelo Ollama...</value></data>
   <data name="Loading_Account" xml:space="preserve"><value>Sincronizando cuenta...</value></data>
   <data name="Loading_Hotkeys" xml:space="preserve"><value>Registrando atajos...</value></data>
   <data name="Loading_Ready" xml:space="preserve"><value>Listo</value></data>

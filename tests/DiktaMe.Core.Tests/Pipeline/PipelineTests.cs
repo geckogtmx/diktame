@@ -218,15 +218,16 @@ public sealed class PipelineTests
     }
 
     [Fact]
-    public async Task Dictation_LlmThrows_ReturnFailure()
+    public async Task Dictation_LlmThrows_FallsBackToRawTranscript()
     {
         var pipeline = new DictationPipeline(OkStt().Object, ThrowingLlm().Object, NullInjector());
         var opts = new DictationOptions { SystemPrompt = "Clean." };
 
         var result = await pipeline.RunAsync("audio.wav", opts);
 
-        result.IsSuccess.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("LLM error");
+        result.IsSuccess.Should().BeTrue();
+        result.Text.Should().Be("hello world");
+        result.WarningMessage.Should().NotBeNullOrEmpty();
     }
 
     [Fact]

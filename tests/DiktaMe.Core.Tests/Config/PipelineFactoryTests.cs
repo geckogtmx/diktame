@@ -176,36 +176,4 @@ public sealed class PipelineFactoryTests
         sttFactory.Verify(f => f.CreateProvider("gemini-audio", It.IsAny<string>()), Times.Once);
     }
 
-    // ── Profile switching ─────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task CreateDictationPipeline_AfterProfileSwitch_UsesProfile1Settings()
-    {
-        var settings = new AppSettings
-        {
-            ActiveProfile = 0,
-            ModeProfiles = new Dictionary<string, ModeSettings>
-            {
-                ["dictate_0"] = new ModeSettings { SttProvider = "deepgram" },
-                ["dictate_1"] = new ModeSettings { SttProvider = "whisper" },
-            },
-        };
-        var sm = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_pf_{Guid.NewGuid()}.json"));
-        await sm.UpdateAsync(settings);
-        var profiles = new ProfileManager(sm);
-
-        var sttFactory = new Mock<ISTTProviderFactory>();
-        var llmFactory = new Mock<ILLMProviderFactory>();
-        sttFactory.Setup(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string>()))
-                  .Returns(MakeStt().Object);
-        llmFactory.Setup(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                  .Returns(MakeLlm().Object);
-
-        var factory = new PipelineFactory(profiles, sttFactory.Object, llmFactory.Object, new TextInjector(), sm);
-
-        await profiles.SwitchProfileAsync(1);
-        factory.CreateDictationPipeline();
-
-        sttFactory.Verify(f => f.CreateProvider("whisper", It.IsAny<string>()), Times.Once);
-    }
 }

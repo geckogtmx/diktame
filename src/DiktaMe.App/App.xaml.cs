@@ -395,7 +395,11 @@ public partial class App : Application
 
         // ── STT providers ────────────────────────────────────────────────────
         // Local Whisper (no API key needed — requires model download)
-        services.AddSingleton<WhisperProvider>();
+        services.AddSingleton<WhisperProvider>(sp =>
+        {
+            var settings = sp.GetRequiredService<SettingsManager>();
+            return new WhisperProvider(settings.Current.WhisperModel);
+        });
 
         // Cloud providers registered as concrete types so they can be resolved
         // by PipelineFactory (E.1) once SecureStorage provides real API keys.
@@ -411,7 +415,11 @@ public partial class App : Application
 
         // ── LLM providers ────────────────────────────────────────────────────
         // Ollama (local, no API key — works out of the box when Ollama is running)
-        services.AddSingleton<OllamaProvider>(sp => new OllamaProvider("llama3.2"));
+        services.AddSingleton<OllamaProvider>(sp =>
+        {
+            var settings = sp.GetRequiredService<SettingsManager>();
+            return new OllamaProvider(settings.Current.OllamaModel);
+        });
 
         // Trial Gemini provider (managed proxy, Bearer JWT auth)
         services.AddSingleton<TrialGeminiProvider>();

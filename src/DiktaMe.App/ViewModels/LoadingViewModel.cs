@@ -6,7 +6,9 @@ using DiktaMe.Core.Audio;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Data;
 using DiktaMe.Core.Input;
+using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
+using DiktaMe.Core.STT;
 using DiktaMe.Core.SystemManagement;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
@@ -31,6 +33,8 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly IAccountService _accountService;
     private readonly ITrialService _trialService;
     private readonly LocalizationService _loc;
+    private readonly WhisperProvider _whisper;
+    private readonly OllamaProvider _ollamaProvider;
 
     [ObservableProperty] private string _statusText = "";
     [ObservableProperty] private double _progress;
@@ -58,7 +62,9 @@ public sealed partial class LoadingViewModel : ObservableObject
         ControlPanelViewModel controlPanel,
         IAccountService accountService,
         ITrialService trialService,
-        LocalizationService loc)
+        LocalizationService loc,
+        WhisperProvider whisper,
+        OllamaProvider ollamaProvider)
     {
         _settings = settings;
         _history = history;
@@ -76,6 +82,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         _accountService = accountService;
         _trialService = trialService;
         _loc = loc;
+        _whisper = whisper;
+        _ollamaProvider = ollamaProvider;
         _statusText = _loc.GetString("Loading_Initializing");
     }
 
@@ -100,16 +108,57 @@ public sealed partial class LoadingViewModel : ObservableObject
             await _snippets.LoadAsync();
             Progress = 75;
 
-            // Step 4: Check Ollama (if configured as local LLM)
+            // Step 4a: Download Whisper model if STT is local and model not present
+            string sttProvider = GetActiveProvider("SttProvider");
+            if (string.Equals(sttProvider, "whisper", StringComparison.OrdinalIgnoreCase)
+                && !_whisper.IsModelDownloaded)
+            {
+                StatusText = _loc.GetString("Loading_DownloadingWhisper");
+                try
+                {
+                    _whisper.DownloadProgress += (_, e) =>
+                    {
+                        StatusText = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                            $"Downloading Whisper model... {e.Percent:F0}%");
+                    };
+                    await _whisper.DownloadModelAsync();
+                    Log.Information("Whisper model downloaded successfully");
+                }
+                catch (Exception ex)
+                {
+                    // Non-fatal — user will get FileNotFoundException at dictation time
+                    Log.Warning(ex, "Whisper model download failed during loading");
+                }
+            }
+
+            // Step 4b: Check Ollama + warmup if LLM is local
             StatusText = _loc.GetString("Loading_LocalServices");
+            string llmProvider = GetActiveProvider("LlmProvider");
+            OllamaCheckResult? ollamaResult = null;
             try
             {
-                await _ollama.CheckAsync(_settings.Current.OllamaModel);
+                ollamaResult = await _ollama.CheckAsync(_settings.Current.OllamaModel);
             }
             catch (Exception ex)
             {
                 // Non-fatal — Ollama may not be installed
                 Log.Debug(ex, "Ollama check skipped during loading");
+            }
+
+            // Warmup Ollama if LLM is local and Ollama is ready
+            if (string.Equals(llmProvider, "ollama", StringComparison.OrdinalIgnoreCase)
+                && ollamaResult?.Status == OllamaStatus.Ready)
+            {
+                StatusText = _loc.GetString("Loading_WarmingOllama");
+                try
+                {
+                    await _ollamaProvider.WarmUpAsync();
+                    Log.Information("Ollama warmup completed");
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Ollama warmup failed during loading");
+                }
             }
             Progress = 85;
 
@@ -295,6 +344,25 @@ public sealed partial class LoadingViewModel : ObservableObject
     }
 
     // ── Helper Methods ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Reads the active provider name (STT or LLM) from ModeProfiles for the dictate mode.
+    /// Always reads profile 0, which is the canonical copy written by the wizard and Settings UI.
+    /// </summary>
+    private string GetActiveProvider(string propertyName)
+    {
+        if (!_settings.Current.ModeProfiles.TryGetValue("dictate_0", out var ms))
+        {
+            return string.Empty;
+        }
+
+        return propertyName switch
+        {
+            "SttProvider" => ms.SttProvider,
+            "LlmProvider" => ms.LlmProvider,
+            _ => string.Empty,
+        };
+    }
 
     /// <summary>
     /// Records audio from the configured input device using event-based async,
@@ -529,6 +597,10 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (result.IsSuccess)
             {
                 Log.Information("Dictate: Success, {Chars} chars injected", result.Text.Length);
+                if (result.WarningMessage is not null)
+                {
+                    _notifications.ShowToast("Warning", result.WarningMessage, NotificationType.Warning);
+                }
             }
             else
             {

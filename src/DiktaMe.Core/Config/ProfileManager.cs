@@ -1,9 +1,10 @@
 namespace DiktaMe.Core.Config;
 
 /// <summary>
-/// Manages the dual-profile system. Each of the 8 workflow modes has
-/// independent settings per profile (provider, model, prompt).
-/// Profile 0 = primary, Profile 1 = secondary (e.g. "local mode").
+/// Reads per-mode provider settings (STT provider, LLM provider, model) from <see cref="ModeSettings"/>.
+/// Always reads from profile 0, which is the canonical copy written by the wizard and Settings UI.
+/// Cloud/Local switching is handled by <see cref="DictationModeManager"/> and <see cref="PipelineConfigManager"/>
+/// via <see cref="AppSettings.ActiveProfileName"/> — this class only provides provider names.
 /// </summary>
 public sealed class ProfileManager
 {
@@ -14,17 +15,15 @@ public sealed class ProfileManager
         _settings = settings;
     }
 
-    /// <summary>Index of the currently active profile (0 or 1).</summary>
-    public int ActiveProfile => _settings.Current.ActiveProfile;
-
     /// <summary>
-    /// Returns the <see cref="ModeSettings"/> for the given mode in the active profile.
+    /// Returns the <see cref="ModeSettings"/> for the given mode.
+    /// Always reads profile 0 (the canonical copy written by wizard and Settings UI).
     /// Falls back to default <see cref="ModeSettings"/> if not configured.
     /// </summary>
     /// <param name="mode">Mode name: "dictate", "refine", "ask", "translate", "note", "chat".</param>
     public ModeSettings GetModeSettings(string mode)
     {
-        string key = $"{mode}_{ActiveProfile}";
+        string key = $"{mode}_0";
         return _settings.Current.ModeProfiles.TryGetValue(key, out var ms)
             ? ms
             : new ModeSettings();
@@ -39,20 +38,6 @@ public sealed class ProfileManager
         return _settings.Current.ModeProfiles.TryGetValue(key, out var ms)
             ? ms
             : new ModeSettings();
-    }
-
-    /// <summary>
-    /// Switches the active profile and saves settings.
-    /// </summary>
-    public async Task SwitchProfileAsync(int profile, CancellationToken cancellationToken = default)
-    {
-        if (profile is not (0 or 1))
-        {
-            throw new ArgumentOutOfRangeException(nameof(profile), "Profile must be 0 or 1.");
-        }
-
-        var updated = _settings.Current with { ActiveProfile = profile };
-        await _settings.UpdateAsync(updated, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

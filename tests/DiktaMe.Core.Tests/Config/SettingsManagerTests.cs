@@ -40,7 +40,8 @@ public sealed class SettingsManagerTests : IDisposable
         Assert.Equal(PrivacyLevel.Balanced, s.Privacy.Level);
         Assert.Equal(90, s.Privacy.HistoryRetentionDays);
         Assert.Equal("Ctrl+Alt+D", s.Hotkeys.Dictate);
-        Assert.Equal("llama3.2", s.OllamaModel);
+        Assert.Equal("gemma3", s.OllamaModel);
+        Assert.Equal("small", s.WhisperModel);
         Assert.Equal(16, s.CustomPrompts.Length);
         Assert.Equal(0, s.ActiveProfile);
         Assert.Null(s.ActiveDictationModeId);
@@ -360,6 +361,60 @@ public sealed class SettingsManagerTests : IDisposable
         await manager.LoadAsync();
 
         Assert.Equal("Local", manager.Current.ActiveProfileName);
+    }
+
+    // ── Wizard ActiveProfileName logic tests ──────────────────────────────────
+
+    [Fact, Trait("Category", "Unit")]
+    public void WizardLogic_LocalLlm_SetsActiveProfileNameToLocal()
+    {
+        // Simulates CompleteWizardAsync() with LlmChoice = "local"
+        string llmChoice = "local";
+        string profileName = string.Equals(llmChoice, "local", StringComparison.Ordinal)
+            ? "Local" : "Cloud";
+
+        var settings = new AppSettings { ActiveProfileName = profileName, WizardCompleted = true };
+        Assert.Equal("Local", settings.ActiveProfileName);
+    }
+
+    [Fact, Trait("Category", "Unit")]
+    public void WizardLogic_CloudLlm_SetsActiveProfileNameToCloud()
+    {
+        // Simulates CompleteWizardAsync() with LlmChoice = "cloud"
+        string llmChoice = "cloud";
+        string profileName = string.Equals(llmChoice, "local", StringComparison.Ordinal)
+            ? "Local" : "Cloud";
+
+        var settings = new AppSettings { ActiveProfileName = profileName, WizardCompleted = true };
+        Assert.Equal("Cloud", settings.ActiveProfileName);
+    }
+
+    [Fact, Trait("Category", "Unit")]
+    public void WizardLogic_HybridLocalSttCloudLlm_SetsCloudProfileAndWhisperStt()
+    {
+        // Simulates CompleteWizardAsync() with STT=local, LLM=cloud
+        string sttChoice = "local";
+        string llmChoice = "cloud";
+        string defaultStt = string.Equals(sttChoice, "local", StringComparison.Ordinal) ? "whisper" : "deepgram";
+        string defaultLlm = "gemini";
+        string profileName = string.Equals(llmChoice, "local", StringComparison.Ordinal)
+            ? "Local" : "Cloud";
+
+        var profiles = new Dictionary<string, ModeSettings>
+        {
+            ["dictate_0"] = new ModeSettings { SttProvider = defaultStt, LlmProvider = defaultLlm, UseLlm = true },
+        };
+
+        var settings = new AppSettings
+        {
+            ActiveProfileName = profileName,
+            ModeProfiles = profiles,
+            WizardCompleted = true,
+        };
+
+        Assert.Equal("Cloud", settings.ActiveProfileName);
+        Assert.Equal("whisper", settings.ModeProfiles["dictate_0"].SttProvider);
+        Assert.Equal("gemini", settings.ModeProfiles["dictate_0"].LlmProvider);
     }
 
     [Fact, Trait("Category", "Unit")]

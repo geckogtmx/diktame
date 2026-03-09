@@ -18,6 +18,12 @@ public sealed record PipelineResult
     /// <summary>Human-readable error description when <see cref="IsSuccess"/> is false.</summary>
     public string? ErrorMessage { get; init; }
 
+    /// <summary>
+    /// Optional warning when the pipeline succeeded but with degraded quality
+    /// (e.g. LLM unavailable, fell back to raw transcript).
+    /// </summary>
+    public string? WarningMessage { get; init; }
+
     /// <summary>The pipeline mode that produced this result (e.g. "dictate", "ask").</summary>
     public required string Mode { get; init; }
 
