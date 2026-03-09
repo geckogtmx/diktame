@@ -49,7 +49,43 @@ public sealed class TextInjector
         }
 
         Log.Information("TextInjector: re-injecting last text ({Chars} chars)", LastInjectedText.Length);
+
+        // Wait for hotkey modifier keys to be released before pasting.
+        // Oops (Ctrl+Alt+V) fires immediately — if we send Ctrl+V while Alt is
+        // still held, the target app receives Ctrl+Alt+V instead of Ctrl+V.
+        WaitForModifierRelease();
+
         InjectText(LastInjectedText, trailingSpace, additionalKey);
+    }
+
+    /// <summary>
+    /// Polls until Ctrl, Alt, and Shift are all released, or a timeout is reached.
+    /// Prevents hotkey modifier bleed into subsequent SendInput keystrokes.
+    /// </summary>
+    private static void WaitForModifierRelease(int timeoutMs = 1000)
+    {
+        var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
+        while (DateTime.UtcNow < deadline)
+        {
+            bool ctrl = (NativeMethods.GetAsyncKeyState(0x11) & 0x8000) != 0;  // VK_CONTROL
+            bool alt = (NativeMethods.GetAsyncKeyState(0x12) & 0x8000) != 0;   // VK_MENU
+            bool shift = (NativeMethods.GetAsyncKeyState(0x10) & 0x8000) != 0; // VK_SHIFT
+
+            if (!ctrl && !alt && !shift)
+            {
+                return;
+            }
+
+            Thread.Sleep(10);
+        }
+
+        Log.Warning("TextInjector: modifier keys still held after {TimeoutMs}ms — proceeding anyway", timeoutMs);
+    }
+
+    private static class NativeMethods
+    {
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        internal static extern short GetAsyncKeyState(int vKey);
     }
 
     /// <summary>

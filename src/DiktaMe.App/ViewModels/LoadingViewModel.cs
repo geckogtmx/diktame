@@ -267,10 +267,12 @@ public sealed partial class LoadingViewModel : ObservableObject
                         break;
 
                     case HotkeyId.Oops:
-                        Log.Warning("Hotkey Oops triggered but Undo functionality not yet implemented");
-#pragma warning disable MA0026 // Deferred: Undo functionality requires clipboard history tracking
-                        // TODO: Implement Undo/Oops functionality
-#pragma warning restore MA0026
+                        _ = Task.Run(() =>
+                        {
+                            _textInjector.ReInjectLast();
+                            var sound = _settings.Current.Sound ?? new();
+                            _notifications.PlayCustomSound(sound.StopSound);
+                        });
                         break;
                 }
             }
