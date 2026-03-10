@@ -78,7 +78,7 @@ Before starting:
 
 | # | Action | Expected | Pass? |
 |---|--------|----------|-------|
-| 1.15 | Ctrl+Alt+D → speak → wait | Deepgram → Gemini → text injected (all cloud) | [ ] |
+| 1.15 | Ctrl+Alt+D → speak → wait | Deepgram → Gemini → text injected (all cloud) | [✓] |
 
 ---
 
@@ -100,51 +100,51 @@ Before starting:
 
 | # | Action | Expected | Pass? |
 |---|--------|----------|-------|
-| 2.1 | Launch app | Wizard appears (Step 1 of 7) — Language selection | [ ] |
-| 2.2 | Step 0 (Language): Select English → Next | Moves to onboarding step | [ ] |
-| 2.3 | Step 1 (Get Started): Select **"I have API Keys"** → Next | Moves to STT step | [ ] |
-| 2.4 | Step 2 (STT): Select **"Local (Whisper)"** | Download panel shows "Model will be downloaded when you click Next" | [ ] |
-| 2.5 | Click **Next** | Download starts, Next button **disabled**, progress bar fills | [ ] |
-| 2.6 | Download completes (~466 MB) | Status shows **"Whisper model ready"**, auto-advances to LLM step | [ ] |
-| 2.8 | Step 3 (LLM): Select **"Cloud (Gemini)"** → Next | Moves to API Keys step | [ ] |
-| 2.9 | Step 4 (API Keys): STT section **hidden**, LLM section **visible** | Enter Gemini key | [ ] |
-| 2.10 | Enter Gemini API key → Next | Moves to Audio Test | [ ] |
-| 2.11 | Step 5 (Audio Test): Select mic, record test → Next | Moves to Ready | [ ] |
-| 2.12 | Step 6 (Ready): Summary shows "Whisper" + "Gemini" → Finish | Wizard completes | [ ] |
+| 2.1 | Launch app | Wizard appears (Step 1 of 7) — Language selection | [✓] |
+| 2.2 | Step 0 (Language): Select English → Next | Moves to onboarding step | [✓] |
+| 2.3 | Step 1 (Get Started): Select **"I have API Keys"** → Next | Moves to STT step | [✓] |
+| 2.4 | Step 2 (STT): Select **"Local (Whisper)"** | Download panel shows "Model will be downloaded when you click Next" | [✓] |
+| 2.5 | Click **Next** | Download starts, Next button **disabled**, progress bar fills | [✓] |
+| 2.6 | Download completes (~466 MB) | Status shows **"Whisper model ready"**, auto-advances to LLM step | [✓] |
+| 2.8 | Step 3 (LLM): Select **"Cloud (Gemini)"** → Next | Moves to API Keys step | [✓] |
+| 2.9 | Step 4 (API Keys): STT section **hidden**, LLM section **visible** | Enter Gemini key | [✓] |
+| 2.10 | Enter Gemini API key → Next | Moves to Audio Test | [✓] |
+| 2.11 | Step 5 (Audio Test): Select mic, record test → Next | Moves to Ready | [✓] |
+| 2.12 | Step 6 (Ready): Summary shows "Whisper" + "Gemini" → Finish | Wizard completes | [✓] |
 
 #### Wizard Download Cancellation Test (Optional)
 
 | # | Action | Expected | Pass? |
 |---|--------|----------|-------|
-| 2.13 | On STT step: select "Local", click Next to start download | Progress bar updating | [ ] |
-| 2.14 | Click **Back** mid-download | Download cancels, returns to previous step | [ ] |
-| 2.15 | Return to STT step, select "Local", click Next again | Download resumes from scratch (partial file cleaned up) | [ ] |
+| 2.13 | On STT step: select "Local", click Next to start download | Progress bar updating | [✓] |
+| 2.14 | Click **Back** mid-download | Download cancels, returns to previous step | [✓] |
+| 2.15 | Return to STT step, select "Local", click Next again | Download resumes from scratch (partial file cleaned up) | [✓] |
 
 #### Loading Screen
 
 | # | Expected | Pass? |
 |---|----------|-------|
-| 2.16 | **NO** "Downloading Whisper model..." (already downloaded in wizard) | [ ] |
-| 2.17 | "Checking local services..." appears briefly | [ ] |
-| 2.18 | **NO** "Warming up Ollama..." (LLM is cloud, Ollama not installed) | [ ] |
-| 2.19 | **NO crash** despite Ollama being absent | [ ] |
-| 2.20 | Loading completes, main window opens | [ ] |
+| 2.16 | **NO** "Downloading Whisper model..." (already downloaded in wizard) | [✓] |
+| 2.17 | "Checking local services..." appears briefly | [✓] |
+| 2.18 | **NO** "Warming up Ollama..." (LLM is cloud, Ollama not installed) | [✓] |
+| 2.19 | **NO crash** despite Ollama being absent | [✓] |
+| 2.20 | Loading completes, main window opens | [✓] |
 
 #### Settings Verification
 
 | # | Check | Expected | Pass? |
 |---|-------|----------|-------|
-| 2.21 | `ActiveProfileName` | `"Cloud"` (LLM choice drives this) | [ ] |
-| 2.22 | `ModeProfiles.dictate_0.SttProvider` | `"whisper"` | [ ] |
-| 2.23 | `ModeProfiles.dictate_0.LlmProvider` | `"gemini"` | [ ] |
-| 2.24 | Whisper model file exists | `%APPDATA%\DiktaMe\models\ggml-small.bin` (~466 MB) | [ ] |
+| 2.21 | `ActiveProfileName` | `"Cloud"` (LLM choice drives this) | [✓] |
+| 2.22 | `ModeProfiles.dictate_0.SttProvider` | `"whisper"` | [✓] |
+| 2.23 | `ModeProfiles.dictate_0.LlmProvider` | `"gemini"` | [✓] |
+| 2.24 | Whisper model file exists | `%APPDATA%\DiktaMe\models\ggml-small.bin` (~466 MB) | [✓] |
 
 #### Dictation Test
 
 | # | Action | Expected | Pass? |
 |---|--------|----------|-------|
-| 2.25 | Ctrl+Alt+D → speak → wait | Whisper transcribes locally, Gemini processes via cloud, text injected | [ ] |
-| 2.26 | Check logs | No Ollama calls, Gemini API used for LLM | [ ] |
+| 2.25 | Ctrl+Alt+D → speak → wait | Whisper transcribes locally, Gemini processes via cloud, text injected | [✓] |
+| 2.26 | Check logs | No Ollama calls, Gemini API used for LLM | [✓] |
 
 ---
 

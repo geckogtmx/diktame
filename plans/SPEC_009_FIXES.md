@@ -179,7 +179,7 @@ _hotkeyManager.RegistrationFailed += OnHotkeyRegistrationFailed;
 | 3 | Wizard: Remove Skip on final step | N/A | No Skip button exists — only Back + Next/Finish |
 | 4 | Default Refine = Auto | Done | `RefineVoiceMode = false` in AppSettings, loaded by ControlPanelVM |
 | 5 | Preload default prompts | Done | All prompts populated from `PromptDefaults` constants |
-| 6 | WPM telemetry garbage on first run | Done | Guard at `ControlPanelViewModel.cs:458` — re-verify manually |
+| 6 | WPM telemetry garbage on first run | Done | Guard at `ControlPanelViewModel.cs:481` + formula fix: `RecordingMs + TotalMs` (wall-clock) instead of `TotalMs` only (pipeline-only). Verified: LLM=124 WPM, RAW=154 WPM for same phrase. |
 | 7 | Whisper download in wizard STT step | Done | Download UI in `WizardSttPage`, blocks Next until complete |
 | 8 | Hotkey double-subscription | Done | Unsubscribe before re-subscribing in `InitializeHotkeys()` |
 | 9 | Download on Next click, not radio | Done | `BeforeLeaveStep` callback pattern in WizardViewModel |

@@ -477,10 +477,15 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         CharCount = stats.Chars;
         WordCount = stats.Words;
 
-        // WPM = words dictated / total pipeline time in minutes (recording + STT + LLM + injection).
-        if (lastResult is not null && lastResult.TotalMs > 0 && lastResult.WordCount > 0)
+        // WPM = words dictated / wall-clock minutes (recording + STT + LLM + injection).
+        // RecordingMs is the speaking time, TotalMs is the pipeline processing after recording.
+        if (lastResult is not null && lastResult.WordCount > 0)
         {
-            WordsPerMinute = Math.Round(lastResult.WordCount / (lastResult.TotalMs / 60_000.0), 1);
+            long wallClockMs = lastResult.RecordingMs + lastResult.TotalMs;
+            if (wallClockMs > 0)
+            {
+                WordsPerMinute = Math.Round(lastResult.WordCount / (wallClockMs / 60_000.0), 1);
+            }
         }
     }
 
