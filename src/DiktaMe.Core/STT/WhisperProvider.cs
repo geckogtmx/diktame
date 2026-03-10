@@ -117,6 +117,21 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
             {
                 var loadedLib = RuntimeOptions.LoadedLibrary;
                 Log.Information("WhisperProvider: loaded runtime={Runtime}", loadedLib);
+
+                // Warn if Vulkan runtime is deployed but CPU was selected (driver issue)
+                if (loadedLib == RuntimeLibrary.Cpu)
+                {
+                    string vulkanDir = Path.Combine(
+                        AppDomain.CurrentDomain.BaseDirectory,
+                        "runtimes", "vulkan", "win-x64");
+                    if (Directory.Exists(vulkanDir))
+                    {
+                        Log.Warning(
+                            "WhisperProvider: Vulkan runtime is deployed but CPU fallback was used. " +
+                            "GPU acceleration is NOT active. Ensure your GPU drivers include Vulkan support (vulkan-1.dll). " +
+                            "All modern NVIDIA, AMD, and Intel Arc drivers include Vulkan.");
+                    }
+                }
             }
             catch (Exception ex)
             {

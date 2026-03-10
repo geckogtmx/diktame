@@ -752,7 +752,7 @@ This is a **deployment blocker**: users cannot be expected to install a 3GB CUDA
 #### Decision: Switch to Vulkan
 
 **Rationale**:
-1. **Self-contained**: Vulkan runtime ships as a single 28MB NuGet package with all native DLLs bundled. No external dependencies.
+1. **Self-contained**: Vulkan runtime ships as a single 28MB NuGet package with all compute backend DLLs bundled. Requires `vulkan-1.dll` from GPU drivers (standard on all modern NVIDIA/AMD/Intel Arc systems); falls back to CPU automatically if missing (see G.8).
 2. **Cross-vendor**: Works on NVIDIA (via Vulkan API), AMD, and Intel Arc GPUs. All modern GPU drivers include Vulkan support.
 3. **Size**: 28MB vs 150-200MB for bundled CUDA. Total app publish grows by ~28MB.
 4. **Known issue resolved**: GitHub issue [#2965](https://github.com/ggerganov/whisper.cpp/issues/2965) (nvoglv64.dll crash on RTX 4060 Ti) was a build configuration bug, **fixed and closed** in March 2025 (PR #2966 merged). This was before Whisper.net 1.9.0 release, so 1.9.0 includes the fix.
@@ -785,6 +785,7 @@ No code changes needed — Whisper.net runtime selection is automatic (probes Vu
 | G.5 | ~~CUDA~~ → **`Whisper.net.Runtime.Vulkan`** NuGet swap | `DiktaMe.Core.csproj` | ✅ |
 | G.6 | Manual verify: `runtime="Vulkan"` + ratio < 0.1x | Logs | ✅ Verified — see §12.10 |
 | G.7 | Fix WhisperProvider ~800ms model reload per dictation | `STTProviderFactory.cs` | ✅ — see §12.10 |
+| G.8 | Vulkan CPU-fallback warning log | `WhisperProvider.cs` | ✅ |
 
 ### 12.10. Vulkan Verification + Model Reload Fix (2026-03-09)
 
@@ -834,6 +835,18 @@ The DI singleton `WhisperProvider` (registered in `App.xaml.cs:398`) was only us
 | 15 | 458 | 459 | 1ms | **541** | 3.3s | **Raw** |
 
 `loaded runtime="Vulkan"` logged once per session (not per dictation). Raw mode end-to-end: **~500ms** (STT ~430ms + injection ~82ms).
+
+#### G.8: Vulkan CPU-Fallback Warning
+
+**Problem**: If a user's system lacks Vulkan support (no `vulkan-1.dll` in system drivers), Whisper.net silently falls back to CPU. The existing `loaded runtime=Cpu` log is informational but doesn't explain *why* — users wouldn't know they're missing GPU acceleration.
+
+**Investigation**: The `Whisper.net.Runtime.Vulkan` NuGet package (28MB) bundles `ggml-vulkan-whisper.dll` but does **not** bundle `vulkan-1.dll` (the Vulkan loader). That DLL ships with GPU drivers — all modern NVIDIA, AMD, and Intel Arc drivers include it. If it's missing, the `NativeLibraryLoader` in Whisper.net fails to load the Vulkan backend and falls back to CPU automatically. No crash, no error — just slow inference.
+
+**Fix**: After logging `RuntimeOptions.LoadedLibrary`, check if the loaded runtime is `Cpu` AND the `runtimes/vulkan/win-x64/` directory exists (meaning Vulkan was deployed but not loaded). If so, log a `Warning` with actionable guidance: "Ensure your GPU drivers include Vulkan support".
+
+**No user install needed**: `vulkan-1.dll` comes from GPU drivers, not from a separate SDK or toolkit. Users just need up-to-date GPU drivers (standard recommendation).
+
+**File**: `src/DiktaMe.Core/STT/WhisperProvider.cs` — runtime logging block (lines 113-145)
 
 #### Note: Check LLM Provider for Same Pattern
 
