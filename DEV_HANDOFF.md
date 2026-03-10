@@ -22,7 +22,7 @@
 | **K** | OAuth & Trial Credits — K.1-K.7 (open bugs below) |
 | **L** | Deepgram Streaming — L.1-L.5 committed. L.6-L.7 (Flux) deferred. |
 | **SPEC_007** | Chat Feature Upgrade — 14/14 tasks complete (committed) |
-| **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-F complete, Phase G in progress (GPU acceleration fix) |
+| **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-F complete, Phase G complete (G.1-G.8: Vulkan GPU, model cache, CPU-fallback warning) |
 
 ## Open Bugs (Stream K)
 
@@ -80,6 +80,8 @@ All fixes verified via manual testing on 2026-03-09. See `plans/SPEC_009_FIXES.m
 
 **G.7 fix**: `STTProviderFactory` was creating a new `WhisperProvider` per dictation, reloading the 466MB model each time (~800ms). Fixed by caching the instance. **Verified**: pipeline `transcription_ms` dropped from ~1250ms to ~440ms. Raw mode end-to-end: ~500ms.
 
+**G.8**: Added CPU-fallback warning log — if Vulkan DLLs are deployed but `Cpu` runtime is loaded, logs a warning suggesting GPU driver update. Vulkan loader (`vulkan-1.dll`) comes from GPU drivers, not from us.
+
 **Full investigation details**: `plans/SPEC_009_LOCALFLOW.md` §12.8–12.10
 
 ## Remaining Work
@@ -89,6 +91,7 @@ All fixes verified via manual testing on 2026-03-09. See `plans/SPEC_009_FIXES.m
 | Task | Effort |
 |------|--------|
 | ~~G.7: Manual verify model cache~~ | ✅ Verified — 0-1ms gap, `loaded runtime` once per session |
+| ~~G.8: Vulkan CPU-fallback warning~~ | ✅ Logs warning if Vulkan deployed but CPU fallback used |
 | **SPEC_009 STT scenarios** | Wizard Local STT tests, Whisper model selection, hybrid STT (see `plans/SPEC_009_TESTING.md`) |
 | **FIX-10: Cloud/Local toggle ignores STT** | Toggle should switch STT provider too (see `plans/SPEC_009_FIXES.md`) |
 
