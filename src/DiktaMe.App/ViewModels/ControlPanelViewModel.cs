@@ -151,7 +151,10 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private bool _isSoundEnabled = true;
 
     [ObservableProperty]
-    private bool _isLocalMode;
+    private bool _isLocalStt;
+
+    [ObservableProperty]
+    private bool _isLocalLlm;
 
     [ObservableProperty]
     private bool _isAdditionalKeyEnabled;
@@ -163,13 +166,14 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [ObservableProperty]
     private bool _isRefineVoice = true;
 
-    // ── Toggle labels ─────────────────────────────────────────────────────
+    // ── Toggle state labels ──────────────────────────────────────────────
 
-    public string SoundLabel => IsSoundEnabled ? _loc.GetString("ControlPanel_Sound_On") : _loc.GetString("ControlPanel_Sound_Off");
-    public string LocalLabel => IsLocalMode ? _loc.GetString("ControlPanel_Local") : _loc.GetString("ControlPanel_Cloud");
-    public string KeyLabel => IsAdditionalKeyEnabled ? _loc.GetString("ControlPanel_Key_On") : _loc.GetString("ControlPanel_Key_Off");
-    public string RawLabel => IsRawModeEnabled ? _loc.GetString("ControlPanel_Raw_On") : _loc.GetString("ControlPanel_Raw_Off");
-    public string RefineLabel => RefineMode == RefineMode.Voice ? _loc.GetString("ControlPanel_Refine_Voice") : _loc.GetString("ControlPanel_Refine_Auto");
+    public string SoundStateLabel => IsSoundEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
+    public string SttStateLabel => IsLocalStt ? _loc.GetString("ControlPanel_State_Local") : _loc.GetString("ControlPanel_State_Cloud");
+    public string LlmStateLabel => IsLocalLlm ? _loc.GetString("ControlPanel_State_Local") : _loc.GetString("ControlPanel_State_Cloud");
+    public string KeyStateLabel => IsAdditionalKeyEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
+    public string RawStateLabel => IsRawModeEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
+    public string RefineStateLabel => RefineMode == RefineMode.Voice ? _loc.GetString("ControlPanel_Refine_Voice_Short") : _loc.GetString("ControlPanel_Refine_Auto_Short");
 
     // ── Hotkey display ────────────────────────────────────────────────────
 
@@ -316,28 +320,79 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             _ = _settings.UpdateAsync(updated);
         }
 
-        OnPropertyChanged(nameof(SoundLabel));
+        OnPropertyChanged(nameof(SoundStateLabel));
     }
 
-    partial void OnIsLocalModeChanged(bool value)
+    partial void OnIsLocalSttChanged(bool value)
+    {
+        if (!_suppressSave)
+        {
+            string sttProvider = value ? "whisper" : "deepgram";
+            var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
+            string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
+            foreach (var mode in modes)
+            {
+                for (int p = 0; p < 2; p++)
+                {
+                    string key = $"{mode}_{p}";
+                    var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
+                    profiles[key] = existing with { SttProvider = sttProvider };
+                }
+            }
+
+            var updated = _settings.Current with { ModeProfiles = profiles };
+            _ = _settings.UpdateAsync(updated);
+        }
+
+        UpdateAuthBadge();
+        OnPropertyChanged(nameof(SttStateLabel));
+        Log.Information("ControlPanel: STT toggled to {Provider}", value ? "whisper" : "deepgram");
+    }
+
+    partial void OnIsLocalLlmChanged(bool value)
     {
         string profileName = value ? "Local" : "Cloud";
         if (!_suppressSave)
         {
+            string llmProvider = value ? "ollama" : "gemini";
+            var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
+            string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
+            foreach (var mode in modes)
+            {
+                for (int p = 0; p < 2; p++)
+                {
+                    string key = $"{mode}_{p}";
+                    var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
+                    profiles[key] = existing with { LlmProvider = llmProvider, UseLlm = true };
+                }
+            }
+
             var updated = _settings.Current with
             {
-                ActiveProfileName = profileName
+                ModeProfiles = profiles,
+                ActiveProfileName = profileName,
             };
             _ = _settings.UpdateAsync(updated);
         }
 
-        AuthBadgeText = value ? "LOC" : "API";
-        OnPropertyChanged(nameof(LocalLabel));
+        UpdateAuthBadge();
+        OnPropertyChanged(nameof(LlmStateLabel));
 
         // Refresh mode items (subtitle may change between Cloud/Local profile)
         LoadAvailableModes();
 
-        Log.Information("ControlPanel: Profile switched to {Profile}", profileName);
+        Log.Information("ControlPanel: LLM toggled to {Provider}, profile={Profile}",
+            value ? "ollama" : "gemini", profileName);
+    }
+
+    private void UpdateAuthBadge()
+    {
+        if (IsLocalStt && IsLocalLlm)
+            AuthBadgeText = "LOC";
+        else if (!IsLocalStt && !IsLocalLlm)
+            AuthBadgeText = "API";
+        else
+            AuthBadgeText = "MIX";
     }
 
     partial void OnIsAdditionalKeyEnabledChanged(bool value)
@@ -357,7 +412,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             _ = _settings.UpdateAsync(updated);
         }
 
-        OnPropertyChanged(nameof(KeyLabel));
+        OnPropertyChanged(nameof(KeyStateLabel));
     }
 
     partial void OnIsRawModeEnabledChanged(bool value)
@@ -371,7 +426,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             _ = _settings.UpdateAsync(updated);
         }
 
-        OnPropertyChanged(nameof(RawLabel));
+        OnPropertyChanged(nameof(RawStateLabel));
         Log.Information("ControlPanel: RAW mode set to {IsEnabled}", value);
     }
 
@@ -387,7 +442,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             _ = _settings.UpdateAsync(updated);
         }
 
-        OnPropertyChanged(nameof(RefineLabel));
+        OnPropertyChanged(nameof(RefineStateLabel));
         Log.Information("ControlPanel: Refine mode set to {Mode}", RefineMode);
     }
 
@@ -528,8 +583,11 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         IsAdditionalKeyEnabled = !string.IsNullOrEmpty(settings.General.AdditionalKey);
         IsRawModeEnabled = settings.General.RawModeOverride;
         IsRefineVoice = settings.General.RefineVoiceMode;
-        IsLocalMode = string.Equals(settings.ActiveProfileName, "Local", StringComparison.OrdinalIgnoreCase);
-        AuthBadgeText = IsLocalMode ? "LOC" : "API";
+        // Read STT/LLM provider from ModeProfiles (dictate_0 is the reference slot)
+        var refSlot = settings.ModeProfiles.GetValueOrDefault("dictate_0", new ModeSettings());
+        IsLocalStt = string.Equals(refSlot.SttProvider, "whisper", StringComparison.OrdinalIgnoreCase);
+        IsLocalLlm = string.Equals(refSlot.LlmProvider, "ollama", StringComparison.OrdinalIgnoreCase);
+        UpdateAuthBadge();
 
         ShowModesRow = settings.ControlPanel.ShowModesRow;
         ShowActionsRow = settings.ControlPanel.ShowActionsRow;
@@ -547,8 +605,10 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         if (!string.Equals(settings.ActiveDictationModeId, ActiveDictationModeId, StringComparison.Ordinal))
         {
             ActiveDictationModeId = settings.ActiveDictationModeId;
-            LoadAvailableModes(); // Refresh mode highlighting
         }
+
+        // Always reload modes — catches creates, deletes, renames, and reorders
+        LoadAvailableModes();
     }
 
     /// <summary>
@@ -578,7 +638,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     private DictationProfile GetActiveProfile(DictationMode mode)
     {
-        return IsLocalMode ? mode.LocalProfile : mode.CloudProfile;
+        return IsLocalLlm ? mode.LocalProfile : mode.CloudProfile;
     }
 
     private DictationModeItem CreateModeItem(DictationMode mode, DictationProfile profile)

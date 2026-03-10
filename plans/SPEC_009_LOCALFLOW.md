@@ -460,6 +460,7 @@ These are intentionally **not** part of this spec:
 | **E** | Integration Verification | 🔶 (automated ✅, manual ⬜) |
 | **F** | Commit & Cleanup | ✅ (committed a95bad8) |
 | **G** | Local Inference Diagnostics (Whisper GPU + Ollama + DB) | 🔶 (G.1-G.7 ✅, G.3 Ollama verify deferred to Tier 2. Vulkan verified, model reload fix applied) |
+| **H** | FIX-10: Split Cloud/Local toggle into separate STT + LLM toggles | ⬜ |
 
 ---
 
@@ -854,3 +855,142 @@ The DI singleton `WhisperProvider` (registered in `App.xaml.cs:398`) was only us
 - `src/DiktaMe.Core/Config/LLMProviderFactory.cs` — does it `new` a provider each call?
 - Cloud providers (`GeminiProvider`, `OpenAiProvider`) — do they create `HttpClient` per instance or share one?
 - `OllamaProvider` — same question
+
+---
+
+## 13. Phase H: FIX-10 — Split Cloud/Local Toggle into STT + LLM
+
+> **Date**: 2026-03-10
+> **Status**: Spec'd, not started
+> **Fixes**: FIX-10 (Cloud/Local toggle ignores STT)
+> **Decision**: Replace the single "LOCAL" toggle with two independent toggles: **STT** and **LLM**
+
+### 13.1. Problem
+
+The Control Panel has a single "LOCAL/CLOUD" toggle that only switches `ActiveProfileName` (which controls LLM model name resolution). It does **not** affect the STT provider — `PipelineFactory` reads STT from `ModeProfiles["{mode}_0"]` which is hardcoded to profile 0 and ignores `ActiveProfileName`.
+
+This means users cannot switch between Whisper and Deepgram from the Control Panel. The wizard correctly captures STT/LLM independently, but the Control Panel toggle doesn't respect that independence.
+
+### 13.2. Design Decision
+
+**Two separate toggles** instead of one. This allows all 4 valid combos:
+
+| STT | LLM | Use Case |
+|-----|-----|----------|
+| Cloud (Deepgram) | Cloud (Gemini) | Full cloud — fastest, needs API keys |
+| Local (Whisper) | Cloud (Gemini) | Privacy for audio, cloud intelligence |
+| Cloud (Deepgram) | Local (Ollama) | Fast STT, offline LLM |
+| Local (Whisper) | Local (Ollama) | Fully offline |
+
+The alternative (expanding presets to bundle STT/LLM/Cloud/Local) was considered but deferred — it requires a major rewire of the DictationMode CRUD system and conflicts with the granular Settings page. Can revisit as a future UX feature.
+
+### 13.3. UI Layout Change
+
+**Current layout** (5-column, toggle above label+state combined):
+
+```
+[toggle]    [toggle]    [toggle]    [toggle]    [toggle]
+SOUND: ON   CLOUD       +KEY: OFF   RAW: ON     REFINE: AUTO
+```
+
+**New layout** (6-column, label above toggle, state below):
+
+```
+  SOUND       STT        LLM       +KEY        RAW       REFINE
+[toggle]    [toggle]   [toggle]   [toggle]   [toggle]   [toggle]
+   ON       WHISPER     GEMINI      OFF         ON        AUTO
+```
+
+Changes per cell:
+- **Top**: Static label TextBlock (name of what the toggle controls)
+- **Middle**: ToggleSwitch (same as today)
+- **Bottom**: Dynamic state TextBlock (current value, bound to ViewModel)
+
+The old single "LOCAL" column (Grid.Column="1") is **replaced** by two columns: "STT" and "LLM".
+
+### 13.4. Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/DiktaMe.App/Views/ControlPanelPage.xaml` | Row 2: 5-col → 6-col grid. Replace LOCAL column with STT + LLM. Restructure all 6 cells to label/toggle/state layout. |
+| `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs` | Replace `IsLocalMode`/`LocalLabel` with `IsLocalStt`/`SttStateLabel` + `IsLocalLlm`/`LlmStateLabel`. Add `OnIsLocalSttChanged` handler that writes to `ModeProfiles`. Split label properties into name + state. |
+| `src/DiktaMe.Core/Config/ProfileManager.cs` | `GetModeSettings()` already reads from `ModeProfiles` — no change needed for STT read, but the STT toggle **write** goes through `ControlPanelViewModel` → `SettingsManager.UpdateAsync()` |
+| `src/DiktaMe.App/Strings/en/Resources.resw` | New keys: `ControlPanel_Toggle_Sound`, `ControlPanel_Toggle_Stt`, `ControlPanel_Toggle_Llm`, `ControlPanel_Toggle_Key`, `ControlPanel_Toggle_Raw`, `ControlPanel_Toggle_Refine` (static labels). New state keys: `ControlPanel_Stt_Whisper`, `ControlPanel_Stt_Deepgram`, `ControlPanel_Llm_Gemini`, `ControlPanel_Llm_Ollama`, `ControlPanel_Llm_None` |
+| `src/DiktaMe.App\Strings\es-MX\Resources.resw` | Same new keys in Spanish |
+
+### 13.5. ViewModel Changes
+
+#### Remove
+- `IsLocalMode` property (single toggle)
+- `LocalLabel` property (combined "LOCAL"/"CLOUD")
+- `OnIsLocalModeChanged()` handler
+
+#### Add
+- `IsLocalStt` (bool) — bound to STT toggle. `true` = Whisper, `false` = Deepgram
+- `IsLocalLlm` (bool) — bound to LLM toggle. `true` = Ollama, `false` = Gemini
+- `SttStateLabel` (string) — "WHISPER" / "DEEPGRAM"
+- `LlmStateLabel` (string) — "OLLAMA" / "GEMINI" / "NONE"
+- Split all existing combined labels into static name + dynamic state:
+  - `SoundLabel` "SOUND: ON" → name is static in XAML, state property `SoundStateLabel` returns "ON"/"OFF"
+  - Same pattern for `KeyStateLabel`, `RawStateLabel`, `RefineStateLabel`
+
+#### `OnIsLocalSttChanged(bool value)`
+```
+1. Determine provider name: value ? "whisper" : "deepgram"
+2. Write to ALL ModeProfiles entries: SttProvider = providerName
+3. Persist via _settings.UpdateAsync()
+4. Update SttStateLabel
+5. Update header badge (SttProviderName)
+6. Log: "ControlPanel: STT switched to {provider}"
+```
+
+#### `OnIsLocalLlmChanged(bool value)`
+```
+1. Determine provider name: value ? "ollama" : "gemini"
+2. Set ActiveProfileName = value ? "Local" : "Cloud"
+3. Write to ALL ModeProfiles entries: LlmProvider = providerName
+4. Persist via _settings.UpdateAsync()
+5. Update LlmStateLabel, AuthBadgeText
+6. Reload available modes (subtitle may change)
+7. Log: "ControlPanel: LLM switched to {provider}, profile={profileName}"
+```
+
+#### `LoadFromSettings()` update
+```
+// Replace:
+IsLocalMode = ActiveProfileName == "Local"
+// With:
+IsLocalStt = ModeProfiles["dictate_0"].SttProvider == "whisper"
+IsLocalLlm = ActiveProfileName == "Local"  (or LlmProvider == "ollama")
+```
+
+### 13.6. Task Log
+
+| # | Subtask | File(s) | Status |
+|---|---------|---------|--------|
+| H.1 | Add new localization keys (EN + ES) — 6 static toggle labels + 5 state labels | `Resources.resw` × 2 | ⬜ |
+| H.2 | ViewModel: Replace `IsLocalMode`/`LocalLabel` with `IsLocalStt`/`IsLocalLlm` + state labels | `ControlPanelViewModel.cs` | ⬜ |
+| H.3 | ViewModel: Split all existing labels into static name + dynamic state | `ControlPanelViewModel.cs` | ⬜ |
+| H.4 | ViewModel: `OnIsLocalSttChanged` handler — writes SttProvider to ModeProfiles | `ControlPanelViewModel.cs` | ⬜ |
+| H.5 | ViewModel: `OnIsLocalLlmChanged` handler — writes LlmProvider + ActiveProfileName | `ControlPanelViewModel.cs` | ⬜ |
+| H.6 | ViewModel: Update `LoadFromSettings()` to read both toggles independently | `ControlPanelViewModel.cs` | ⬜ |
+| H.7 | XAML: Restructure Row 2 from 5-col to 6-col, label/toggle/state layout | `ControlPanelPage.xaml` | ⬜ |
+| H.8 | Build + test pass | `dotnet build && dotnet test` | ⬜ |
+| H.9 | Manual smoke test (see §13.7) | App | ⬜ |
+
+### 13.7. Smoke Test
+
+After implementation, verify these scenarios manually:
+
+| # | Action | Expected |
+|---|--------|----------|
+| S.1 | Launch app (Scenario 2 state: Whisper + Gemini) | STT toggle = ON (local), LLM toggle = OFF (cloud). Labels: "WHISPER" / "GEMINI" |
+| S.2 | Flip STT toggle OFF | Label changes to "DEEPGRAM". `settings.json` → all `SttProvider = "deepgram"`. Header badge updates. |
+| S.3 | Flip STT toggle back ON | Label changes to "WHISPER". `settings.json` → all `SttProvider = "whisper"`. |
+| S.4 | Flip LLM toggle ON | Label changes to "OLLAMA". `ActiveProfileName = "Local"`. Auth badge = "LOC". |
+| S.5 | Flip LLM toggle OFF | Label changes to "GEMINI". `ActiveProfileName = "Cloud"`. Auth badge = "API". |
+| S.6 | Both toggles ON → dictate | Whisper transcribes + Ollama processes (or graceful error if Ollama not running) |
+| S.7 | STT=ON, LLM=OFF → dictate | Whisper transcribes + Gemini processes via cloud |
+| S.8 | STT=OFF, LLM=OFF → dictate | Deepgram transcribes + Gemini processes (full cloud, same as Scenario 1) |
+| S.9 | Close + relaunch app | Both toggles restore from settings correctly |
+| S.10 | All 6 toggles render with label above, toggle middle, state below | Visual check — no overlap, no truncation |

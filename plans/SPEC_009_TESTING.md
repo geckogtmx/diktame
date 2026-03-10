@@ -198,6 +198,23 @@ Before starting:
 | 3.16 | LLM processing step | Fails gracefully — error toast, **no crash** | [ ] |
 | 3.17 | Check logs | Ollama connection error logged, no unhandled exceptions | [ ] |
 
+#### Control Panel Toggle Verification (Phase H / FIX-10)
+
+| # | Action | Expected | Pass? |
+|---|--------|----------|-------|
+| 3.18 | Observe toggle row | 6 columns visible: SOUND / STT / LLM / +KEY / RAW / REFINE (label above toggle, state below) | [ ] |
+| 3.19 | STT toggle state | ON (local), state label shows "LOCAL" | [ ] |
+| 3.20 | LLM toggle state | ON (local), state label shows "LOCAL" | [ ] |
+| 3.21 | Auth badge | "LOC" (both local) | [ ] |
+| 3.22 | Toggle STT OFF | State label changes to "CLOUD" | [ ] |
+| 3.23 | Auth badge after STT off | "MIX" | [ ] |
+| 3.24 | `settings.json` ModeProfiles | `dictate_0.SttProvider` = `"deepgram"` | [ ] |
+| 3.25 | Toggle LLM OFF | State label changes to "CLOUD" | [ ] |
+| 3.26 | Auth badge after both off | "API" | [ ] |
+| 3.27 | `settings.json` after LLM off | `ActiveProfileName` = `"Cloud"`, `dictate_0.LlmProvider` = `"gemini"` | [ ] |
+| 3.28 | Toggle STT back ON | "LOCAL", badge "MIX" | [ ] |
+| 3.29 | Toggle LLM back ON | "LOCAL", badge "LOC" | [ ] |
+
 > **Note**: This scenario documents current behavior (graceful failure).
 > Future work (wizard-time Ollama validation) will add inline guidance before the user gets here.
 

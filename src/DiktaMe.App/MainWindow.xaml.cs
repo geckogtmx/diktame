@@ -15,7 +15,7 @@ public sealed partial class MainWindow : Window
         this.InitializeComponent();
 
         var appWindow = this.AppWindow;
-        appWindow.Resize(new SizeInt32(369, 274));
+        appWindow.Resize(new SizeInt32(420, 274));
         appWindow.Title = "dIKta.me";
 
         // Set window icon

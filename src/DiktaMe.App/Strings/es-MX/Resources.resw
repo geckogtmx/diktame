@@ -388,16 +388,20 @@
   <data name="ControlPanel_Tooltip_Inj" xml:space="preserve"><value>Latencia de inyecci&#243;n de texto</value></data>
   <data name="ControlPanel_Tooltip_Tot" xml:space="preserve"><value>Latencia del pipeline (excluye grabaci&#243;n)</value></data>
   <data name="ControlPanel_Tooltip_Auth" xml:space="preserve"><value>Modo de autenticaci&#243;n</value></data>
-  <data name="ControlPanel_Sound_On" xml:space="preserve"><value>SONIDO: ON</value></data>
-  <data name="ControlPanel_Sound_Off" xml:space="preserve"><value>SONIDO: OFF</value></data>
-  <data name="ControlPanel_Local" xml:space="preserve"><value>LOCAL</value></data>
-  <data name="ControlPanel_Cloud" xml:space="preserve"><value>NUBE</value></data>
-  <data name="ControlPanel_Key_On" xml:space="preserve"><value>+TECLA: ON</value></data>
-  <data name="ControlPanel_Key_Off" xml:space="preserve"><value>+TECLA: OFF</value></data>
-  <data name="ControlPanel_Raw_On" xml:space="preserve"><value>RAW: ON</value></data>
-  <data name="ControlPanel_Raw_Off" xml:space="preserve"><value>RAW: OFF</value></data>
-  <data name="ControlPanel_Refine_Voice" xml:space="preserve"><value>REFINAR: VOZ</value></data>
-  <data name="ControlPanel_Refine_Auto" xml:space="preserve"><value>REFINAR: AUTO</value></data>
+  <!-- XAML static labels (l:Uids.Uid) for toggle columns -->
+  <data name="ControlPanel_Toggle_Sound.Text" xml:space="preserve"><value>SONIDO</value></data>
+  <data name="ControlPanel_Toggle_Stt.Text" xml:space="preserve"><value>STT</value></data>
+  <data name="ControlPanel_Toggle_Llm.Text" xml:space="preserve"><value>LLM</value></data>
+  <data name="ControlPanel_Toggle_Key.Text" xml:space="preserve"><value>+TECLA</value></data>
+  <data name="ControlPanel_Toggle_Raw.Text" xml:space="preserve"><value>RAW</value></data>
+  <data name="ControlPanel_Toggle_Refine.Text" xml:space="preserve"><value>REFINAR</value></data>
+  <!-- C# dynamic state values (ControlPanelViewModel) -->
+  <data name="ControlPanel_State_On" xml:space="preserve"><value>ON</value></data>
+  <data name="ControlPanel_State_Off" xml:space="preserve"><value>OFF</value></data>
+  <data name="ControlPanel_State_Local" xml:space="preserve"><value>LOCAL</value></data>
+  <data name="ControlPanel_State_Cloud" xml:space="preserve"><value>NUBE</value></data>
+  <data name="ControlPanel_Refine_Voice_Short" xml:space="preserve"><value>VOZ</value></data>
+  <data name="ControlPanel_Refine_Auto_Short" xml:space="preserve"><value>AUTO</value></data>
   <data name="ControlPanel_State_Ready" xml:space="preserve"><value>LISTO</value></data>
   <data name="ControlPanel_State_Listening" xml:space="preserve"><value>ESCUCHANDO</value></data>
   <data name="ControlPanel_State_Transcribing" xml:space="preserve"><value>TRANSCRIBIENDO</value></data>

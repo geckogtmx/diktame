@@ -2,7 +2,7 @@
 
 > **Source**: Manual testing of SPEC_009 Scenario 1 (Full Cloud, no Ollama)
 > **Date**: 2026-03-09
-> **Status**: 9/12 complete (FIX-1 deferred to SPEC_008, FIX-10 open, FIX-11 done, FIX-12 done)
+> **Status**: 10/12 complete (FIX-1 deferred to SPEC_008, FIX-11 done, FIX-12 done)
 
 ---
 
@@ -63,7 +63,7 @@
 
 **Problem**: The WORD/MIN reading in the Control Panel shows absurd 5-digit numbers on the first dictation. Corrects itself on the second run.
 
-**Resolution**: Already fixed. `ControlPanelViewModel.RefreshSessionStats()` at line 458 has guard: `if (lastResult is not null && lastResult.TotalMs > 0 && lastResult.WordCount > 0)`. Needs manual re-verification — if the bug persists despite the guard, the issue may be in how `TotalMs` is computed (not a zero-guard issue but a value correctness issue).
+**Resolution**: Fixed in commit `02a9280`. Root cause was `TotalMs` only covering pipeline processing (STT + LLM + injection) — it excluded recording time. The comment on line 480 falsely claimed recording was included. RAW mode exposed this because pipeline-only time was ~500ms, giving absurd 1000+ WPM. Fix: `wallClockMs = RecordingMs + TotalMs` for the WPM denominator. Verified with same phrase dictated in both modes: LLM=123.8 WPM, RAW=154.2 WPM (avg 139 WPM — realistic dictation speed).
 
 ---
 
@@ -134,13 +134,16 @@ _hotkeyManager.RegistrationFailed += OnHotkeyRegistrationFailed;
 
 ## FIX-10: Cloud/Local Toggle Does Not Affect STT Provider
 
-**Problem**: The Cloud/Local toggle switch in the Control Panel does not affect the STT provider. When toggled to "Cloud", Whisper (local) is still used for transcription instead of switching to Deepgram. The toggle currently only switches the LLM between Gemini (cloud) and Ollama (local).
+**Problem**: The single Cloud/Local toggle only wrote `ActiveProfileName` — it never touched `ModeProfiles.SttProvider`, which is what `PipelineFactory` actually reads. Users couldn't switch STT between Whisper and Deepgram from the Control Panel.
 
-**Impact**: Users who select "Cloud" mode expect both STT and LLM to use cloud providers. Currently only LLM switches.
+**Resolution**: Replaced the single LOCAL/CLOUD toggle with two independent toggles (STT + LLM). Each writes directly to all 12 ModeProfiles slots (6 modes x 2 profiles). UI restructured from 5 to 6 columns with label/toggle/state vertical layout. Auth badge shows LOC (both local), API (both cloud), or MIX (hybrid). Window width 369→420.
 
-**Potential Fix**: Consider separate Cloud/Local toggles for STT and LLM independently, or make the single toggle affect both subsystems. Needs design decision.
-
-**Status**: Open — noted for future fix.
+**Files modified**:
+- `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs` — `IsLocalStt`/`IsLocalLlm` replace `IsLocalMode`, new handlers write to ModeProfiles
+- `src/DiktaMe.App/Views/ControlPanelPage.xaml` — 6-column grid, label/toggle/state layout
+- `src/DiktaMe.App/MainWindow.xaml.cs` — Width 369→420
+- `src/DiktaMe.App/Strings/en/Resources.resw` — 14 new keys (6 static labels + 8 state values), 10 old combined keys removed
+- `src/DiktaMe.App/Strings/es-MX/Resources.resw` — Same changes in Spanish
 
 ---
 
@@ -183,6 +186,6 @@ _hotkeyManager.RegistrationFailed += OnHotkeyRegistrationFailed;
 | 7 | Whisper download in wizard STT step | Done | Download UI in `WizardSttPage`, blocks Next until complete |
 | 8 | Hotkey double-subscription | Done | Unsubscribe before re-subscribing in `InitializeHotkeys()` |
 | 9 | Download on Next click, not radio | Done | `BeforeLeaveStep` callback pattern in WizardViewModel |
-| 10 | Cloud/Local toggle ignores STT | Open | Toggle doesn't affect Whisper — always uses Whisper regardless of position. May need separate Cloud/Local toggles for STT and LLM independently. |
+| 10 | Cloud/Local toggle ignores STT | Done | Split into 2 toggles (STT + LLM), each writes to ModeProfiles. 6-col layout, auth badge LOC/API/MIX. |
 | 11 | Whisper download auto-advances | Done | Changed `return true` → `return false` after download; user sees completion, clicks Next again |
 | 12 | Wizard won't show on fresh install | Done | `_suppressSave` guard in `ControlPanelViewModel` prevents premature `settings.json` creation |

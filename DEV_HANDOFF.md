@@ -4,7 +4,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 689 passing locally (479 on CI — DPAPI/Clipboard/Audio tests skipped on runners) |
+| **Tests** | 689 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | 0 errors, 0 warnings |
 | **CI** | Passing on main |
 | **Branch** | main |
@@ -43,16 +43,16 @@
 - en + es-MX `.resw` files (370+ keys each) + CoreStrings `.resx` (8 keys)
 - **TODO:** Some labels and tooltips still need translation review — check all screens in es-MX locale for missing or untranslated strings
 
-## Recent Changes (SPEC_009 Wizard Fixes)
+## Recent Changes (SPEC_009 Wizard Fixes + Telemetry)
 
-All fixes verified via manual testing on 2026-03-09. See `plans/SPEC_009_FIXES.md` for full details.
+All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXES.md` for full details.
 
 | Fix | Summary |
 |-----|---------|
 | FIX-2 | Language selection step added (bilingual EN/ES, Step 0) |
 | FIX-4 | Default Refine mode = Auto (not Voice) |
 | FIX-5 | Default system prompts preloaded for all dictation modes |
-| FIX-6 | WPM telemetry guard for first-run garbage values |
+| FIX-6 | WPM formula fixed — uses wall-clock time (RecordingMs + TotalMs). Verified: LLM=124 WPM, RAW=154 WPM |
 | FIX-7 | Whisper model download UI in wizard STT step (progress bar, blocks Next) |
 | FIX-8 | Hotkey double-subscription fix (singleton LoadingViewModel unsubscribes before re-subscribing) |
 | FIX-9 | Download triggers on Next click, not radio selection (BeforeLeaveStep callback) |
@@ -92,7 +92,7 @@ All fixes verified via manual testing on 2026-03-09. See `plans/SPEC_009_FIXES.m
 |------|--------|
 | ~~G.7: Manual verify model cache~~ | ✅ Verified — 0-1ms gap, `loaded runtime` once per session |
 | ~~G.8: Vulkan CPU-fallback warning~~ | ✅ Logs warning if Vulkan deployed but CPU fallback used |
-| **SPEC_009 STT scenarios** | Wizard Local STT tests, Whisper model selection, hybrid STT (see `plans/SPEC_009_TESTING.md`) |
+| **SPEC_009 STT scenarios** | Scenarios 1-2 passed (cloud + hybrid). Scenarios 3-8 remain (see `plans/SPEC_009_TESTING.md`) |
 | **FIX-10: Cloud/Local toggle ignores STT** | Toggle should switch STT provider too (see `plans/SPEC_009_FIXES.md`) |
 
 ### Tier 2 — Ollama/Local LLM (only after Tier 1 passes)
@@ -119,7 +119,7 @@ All fixes verified via manual testing on 2026-03-09. See `plans/SPEC_009_FIXES.m
 - `ARCHITECTURE.md` — Technical architecture
 - `SECURITY.md` — GitHub security policy
 - `plans/SPEC_009_LOCALFLOW.md` — Local mode E2E spec + GPU investigation (§12)
-- `plans/SPEC_009_FIXES.md` — Wizard fix tracker (9/12 complete)
+- `plans/SPEC_009_FIXES.md` — Wizard fix tracker (10/12 complete, FIX-1 deferred, FIX-10 open)
 - `plans/SPEC_009_TESTING.md` — Manual test scenarios
 - `plans/SPEC_001_MEETINGS.md` / `SPEC_002_VISION.md` / `SPEC_003_TTS.md` — Post-launch feature specs
 - `plans/archive/` — Completed implementation plans (Stream F, K, OAuth Restructure, etc.)

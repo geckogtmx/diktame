@@ -1018,36 +1018,43 @@
   <data name="ControlPanel_Tooltip_Auth" xml:space="preserve">
     <value>Authentication mode</value>
   </data>
-  <!-- C# keys — ControlPanelViewModel toggle labels -->
-  <data name="ControlPanel_Sound_On" xml:space="preserve">
-    <value>SOUND: ON</value>
+  <!-- XAML static labels (l:Uids.Uid) for toggle columns -->
+  <data name="ControlPanel_Toggle_Sound.Text" xml:space="preserve">
+    <value>SOUND</value>
   </data>
-  <data name="ControlPanel_Sound_Off" xml:space="preserve">
-    <value>SOUND: OFF</value>
+  <data name="ControlPanel_Toggle_Stt.Text" xml:space="preserve">
+    <value>STT</value>
   </data>
-  <data name="ControlPanel_Local" xml:space="preserve">
+  <data name="ControlPanel_Toggle_Llm.Text" xml:space="preserve">
+    <value>LLM</value>
+  </data>
+  <data name="ControlPanel_Toggle_Key.Text" xml:space="preserve">
+    <value>+KEY</value>
+  </data>
+  <data name="ControlPanel_Toggle_Raw.Text" xml:space="preserve">
+    <value>RAW</value>
+  </data>
+  <data name="ControlPanel_Toggle_Refine.Text" xml:space="preserve">
+    <value>REFINE</value>
+  </data>
+  <!-- C# dynamic state values (ControlPanelViewModel) -->
+  <data name="ControlPanel_State_On" xml:space="preserve">
+    <value>ON</value>
+  </data>
+  <data name="ControlPanel_State_Off" xml:space="preserve">
+    <value>OFF</value>
+  </data>
+  <data name="ControlPanel_State_Local" xml:space="preserve">
     <value>LOCAL</value>
   </data>
-  <data name="ControlPanel_Cloud" xml:space="preserve">
+  <data name="ControlPanel_State_Cloud" xml:space="preserve">
     <value>CLOUD</value>
   </data>
-  <data name="ControlPanel_Key_On" xml:space="preserve">
-    <value>+KEY: ON</value>
+  <data name="ControlPanel_Refine_Voice_Short" xml:space="preserve">
+    <value>VOICE</value>
   </data>
-  <data name="ControlPanel_Key_Off" xml:space="preserve">
-    <value>+KEY: OFF</value>
-  </data>
-  <data name="ControlPanel_Raw_On" xml:space="preserve">
-    <value>RAW: ON</value>
-  </data>
-  <data name="ControlPanel_Raw_Off" xml:space="preserve">
-    <value>RAW: OFF</value>
-  </data>
-  <data name="ControlPanel_Refine_Voice" xml:space="preserve">
-    <value>REFINE: VOICE</value>
-  </data>
-  <data name="ControlPanel_Refine_Auto" xml:space="preserve">
-    <value>REFINE: AUTO</value>
+  <data name="ControlPanel_Refine_Auto_Short" xml:space="preserve">
+    <value>AUTO</value>
   </data>
   <!-- Pipeline state text -->
   <data name="ControlPanel_State_Ready" xml:space="preserve">
