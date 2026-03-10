@@ -20,12 +20,6 @@
                     <TextBlock l:Uids.Uid="Wizard_Llm_Local_Description" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
             </RadioButton>
-            <RadioButton x:Name="LlmSkip" Tag="skip">
-                <StackPanel Spacing="2">
-                    <TextBlock l:Uids.Uid="Wizard_Llm_Skip_Title" FontWeight="SemiBold"/>
-                    <TextBlock l:Uids.Uid="Wizard_Llm_Skip_Description" FontSize="12" Opacity="0.6"/>
-                </StackPanel>
-            </RadioButton>
         </RadioButtons>
     </StackPanel>
 </Page>

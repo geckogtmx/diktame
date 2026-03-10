@@ -14,7 +14,7 @@
         <!-- Progress indicator -->
         <StackPanel Spacing="8">
             <TextBlock x:Name="StepLabel" FontSize="12" Opacity="0.5"/>
-            <ProgressBar x:Name="StepProgress" Minimum="0" Maximum="4" Value="0" Height="4"/>
+            <ProgressBar x:Name="StepProgress" Minimum="0" Maximum="6" Value="0" Height="4"/>
         </StackPanel>
 
         <!-- Content frame -->
@@ -23,21 +23,19 @@
         <!-- Navigation buttons -->
         <Grid Grid.Row="2" ColumnSpacing="8">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button l:Uids.Uid="Wizard_SkipButton" Command="{x:Bind ViewModel.SkipWizardCommand}" Opacity="0.6"/>
-
-            <Button x:Name="BackButton" l:Uids.Uid="Wizard_BackButton" Grid.Column="2"
+            <Button x:Name="BackButton" l:Uids.Uid="Wizard_BackButton" Grid.Column="1"
                     Command="{x:Bind ViewModel.GoBackCommand}"
                     Visibility="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"/>
 
-            <Button x:Name="NextButton" Grid.Column="3"
+            <Button x:Name="NextButton" Grid.Column="2"
                     Content="{x:Bind ViewModel.NextButtonText, Mode=OneWay}"
                     Command="{x:Bind ViewModel.GoNextCommand}"
+                    IsEnabled="{x:Bind ViewModel.CanGoNext, Mode=OneWay}"
                     Style="{ThemeResource AccentButtonStyle}"/>
         </Grid>
     </Grid>

@@ -21,9 +21,13 @@ public sealed partial class WizardGetStartedPage : Page, IWizardStepPage
         {
             ApiKeysRadio.IsChecked = true;
         }
+        else if (string.Equals(_viewModel.OnboardingChoice, "local", StringComparison.Ordinal))
+        {
+            LocalRadio.IsChecked = true;
+        }
         else
         {
-            TrialRadio.IsChecked = true;
+            WalletRadio.IsChecked = true;
         }
     }
 
@@ -35,6 +39,6 @@ public sealed partial class WizardGetStartedPage : Page, IWizardStepPage
         }
 
         var selected = OnboardingRadio.SelectedItem as RadioButton;
-        _viewModel.OnboardingChoice = selected?.Tag as string ?? "trial";
+        _viewModel.OnboardingChoice = selected?.Tag as string ?? "wallet";
     }
 }

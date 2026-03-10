@@ -95,7 +95,7 @@ public sealed record GeneralSettings
     public bool StreamingEnabled { get; init; } = false;
 
     /// <summary>When true, Refine uses voice instruction mode; when false, uses auto (text selection only).</summary>
-    public bool RefineVoiceMode { get; init; } = true;
+    public bool RefineVoiceMode { get; init; } = false;
 }
 
 /// <summary>
@@ -290,7 +290,7 @@ public sealed record ChatSettings
 public sealed record AppSettings
 {
     /// <summary>Schema version — incremented on breaking changes for migration support.</summary>
-    public int SchemaVersion { get; init; } = 1;
+    public int SchemaVersion { get; init; } = 2;
 
     /// <summary>Whether the first-run wizard has been completed.</summary>
     public bool WizardCompleted { get; init; } = false;

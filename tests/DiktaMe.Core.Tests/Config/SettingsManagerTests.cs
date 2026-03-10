@@ -32,7 +32,7 @@ public sealed class SettingsManagerTests : IDisposable
     public void AppSettings_DefaultValues_AreCorrect()
     {
         var s = new AppSettings();
-        Assert.Equal(1, s.SchemaVersion);
+        Assert.Equal(2, s.SchemaVersion);
         Assert.False(s.WizardCompleted);
         Assert.Equal("en", s.General.Language);
         Assert.False(s.General.AutoStart);
@@ -116,20 +116,22 @@ public sealed class SettingsManagerTests : IDisposable
     [Fact, Trait("Category", "Unit")]
     public void AppSettings_DictationModes_JsonRoundTrip()
     {
-        var preset = DictationModeDefaults.CreateDefaultPreset();
+        var presets = DictationModeDefaults.CreateDefaultPresets();
         var original = new AppSettings
         {
-            DictationModes = [preset],
-            ActiveDictationModeId = preset.Id,
+            DictationModes = presets,
+            ActiveDictationModeId = presets[0].Id,
         };
 
         string json = JsonSerializer.Serialize(original, AppSettingsContext.Default.AppSettings);
         var deserialized = JsonSerializer.Deserialize(json, AppSettingsContext.Default.AppSettings);
 
         Assert.NotNull(deserialized);
-        Assert.Single(deserialized!.DictationModes);
+        Assert.Equal(3, deserialized!.DictationModes.Count);
         Assert.Equal("Standard", deserialized.DictationModes[0].Title);
-        Assert.Equal(preset.Id, deserialized.ActiveDictationModeId);
+        Assert.Equal("Prompt", deserialized.DictationModes[1].Title);
+        Assert.Equal("Professional", deserialized.DictationModes[2].Title);
+        Assert.Equal(presets[0].Id, deserialized.ActiveDictationModeId);
     }
 
     [Fact, Trait("Category", "Unit")]
@@ -166,7 +168,7 @@ public sealed class SettingsManagerTests : IDisposable
         var deserialized = JsonSerializer.Deserialize(loaded, AppSettingsContext.Default.AppSettings);
 
         Assert.NotNull(deserialized);
-        Assert.Equal(1, deserialized!.SchemaVersion);
+        Assert.Equal(2, deserialized!.SchemaVersion);
     }
 
     [Fact, Trait("Category", "Integration")]
@@ -200,7 +202,7 @@ public sealed class SettingsManagerTests : IDisposable
         }
 
         Assert.NotNull(result);
-        Assert.Equal(1, result!.SchemaVersion);
+        Assert.Equal(2, result!.SchemaVersion);
     }
 
     [Fact, Trait("Category", "Integration")]
@@ -277,9 +279,11 @@ public sealed class SettingsManagerTests : IDisposable
         var manager = new SettingsManager(_testFile);
         await manager.LoadAsync();
 
-        // Verify single "Standard" preset was created
-        Assert.Single(manager.Current.DictationModes);
+        // Verify Standard/Prompt/Professional presets were created
+        Assert.Equal(3, manager.Current.DictationModes.Count);
         Assert.Equal("Standard", manager.Current.DictationModes[0].Title);
+        Assert.Equal("Prompt", manager.Current.DictationModes[1].Title);
+        Assert.Equal("Professional", manager.Current.DictationModes[2].Title);
 
         // Verify ActiveDictationModeId was set
         Assert.NotNull(manager.Current.ActiveDictationModeId);
@@ -326,12 +330,12 @@ public sealed class SettingsManagerTests : IDisposable
     [Fact, Trait("Category", "Integration")]
     public async Task LoadAsync_MigratesActiveProfile0_ToCloud()
     {
-        var preset = DictationModeDefaults.CreateDefaultPreset();
+        var presets = DictationModeDefaults.CreateDefaultPresets();
         var oldSettings = new AppSettings
         {
             ActiveProfile = 0,
             ActiveProfileName = string.Empty,
-            DictationModes = [preset],
+            DictationModes = presets,
             UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
         };
         string json = JsonSerializer.Serialize(oldSettings, AppSettingsContext.Default.AppSettings);
@@ -346,12 +350,12 @@ public sealed class SettingsManagerTests : IDisposable
     [Fact, Trait("Category", "Integration")]
     public async Task LoadAsync_MigratesActiveProfile1_ToLocal()
     {
-        var preset = DictationModeDefaults.CreateDefaultPreset();
+        var presets = DictationModeDefaults.CreateDefaultPresets();
         var oldSettings = new AppSettings
         {
             ActiveProfile = 1,
             ActiveProfileName = string.Empty,
-            DictationModes = [preset],
+            DictationModes = presets,
             UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
         };
         string json = JsonSerializer.Serialize(oldSettings, AppSettingsContext.Default.AppSettings);
@@ -361,6 +365,68 @@ public sealed class SettingsManagerTests : IDisposable
         await manager.LoadAsync();
 
         Assert.Equal("Local", manager.Current.ActiveProfileName);
+    }
+
+    [Fact, Trait("Category", "Integration")]
+    public async Task LoadAsync_PopulatesDefaultPresets_WhenDictationModesEmpty()
+    {
+        var oldSettings = new AppSettings
+        {
+            WizardCompleted = true,
+            DictationModes = [],
+            UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
+        };
+        string json = JsonSerializer.Serialize(oldSettings, AppSettingsContext.Default.AppSettings);
+        await File.WriteAllTextAsync(_testFile, json);
+
+        var manager = new SettingsManager(_testFile);
+        await manager.LoadAsync();
+
+        Assert.Equal(3, manager.Current.DictationModes.Count);
+        Assert.Equal("Standard", manager.Current.DictationModes[0].Title);
+        Assert.Equal("Prompt", manager.Current.DictationModes[1].Title);
+        Assert.Equal("Professional", manager.Current.DictationModes[2].Title);
+        Assert.NotNull(manager.Current.ActiveDictationModeId);
+        Assert.Equal(manager.Current.DictationModes[0].Id, manager.Current.ActiveDictationModeId);
+    }
+
+    [Fact, Trait("Category", "Unit")]
+    public async Task LoadAsync_AutoCompletesWizard_ForPreWizardSchemaV1Files()
+    {
+        // Pre-wizard settings file (schema v1): WizardCompleted is false
+        var oldSettings = new AppSettings
+        {
+            SchemaVersion = 1,
+            WizardCompleted = false,
+            UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
+        };
+        string json = JsonSerializer.Serialize(oldSettings, AppSettingsContext.Default.AppSettings);
+        await File.WriteAllTextAsync(_testFile, json);
+
+        var manager = new SettingsManager(_testFile);
+        await manager.LoadAsync();
+
+        Assert.True(manager.Current.WizardCompleted);
+        Assert.Equal(2, manager.Current.SchemaVersion);
+    }
+
+    [Fact, Trait("Category", "Unit")]
+    public async Task LoadAsync_DoesNotAutoCompleteWizard_ForSchemaV2Files()
+    {
+        // New install (schema v2): wizard not yet completed — should stay false
+        var newSettings = new AppSettings
+        {
+            SchemaVersion = 2,
+            WizardCompleted = false,
+            UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
+        };
+        string json = JsonSerializer.Serialize(newSettings, AppSettingsContext.Default.AppSettings);
+        await File.WriteAllTextAsync(_testFile, json);
+
+        var manager = new SettingsManager(_testFile);
+        await manager.LoadAsync();
+
+        Assert.False(manager.Current.WizardCompleted);
     }
 
     // ── Wizard ActiveProfileName logic tests ──────────────────────────────────

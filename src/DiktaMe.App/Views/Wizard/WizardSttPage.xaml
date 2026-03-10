@@ -21,5 +21,13 @@
                 </StackPanel>
             </RadioButton>
         </RadioButtons>
+
+        <!-- Download progress panel (shown when Local is selected) -->
+        <StackPanel x:Name="DownloadPanel" Spacing="8" Visibility="Collapsed">
+            <ProgressBar x:Name="DownloadProgress" Minimum="0" Maximum="100" Value="0"/>
+            <TextBlock x:Name="DownloadStatus" FontSize="12" Opacity="0.7"/>
+            <TextBlock x:Name="DownloadError" FontSize="12" Foreground="Red"
+                       TextWrapping="Wrap" Visibility="Collapsed"/>
+        </StackPanel>
     </StackPanel>
 </Page>

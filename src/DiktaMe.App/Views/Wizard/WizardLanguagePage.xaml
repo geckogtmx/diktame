@@ -1,0 +1,38 @@
+<Page x:Class="DiktaMe.App.Views.Wizard.WizardLanguagePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16" MaxWidth="420">
+        <Image Source="ms-appx:///Assets/loading-logo.png"
+               Width="80" Height="80" HorizontalAlignment="Center"/>
+
+        <!-- Bilingual header — both languages always visible so any user can read it -->
+        <StackPanel Spacing="4" HorizontalAlignment="Center">
+            <TextBlock Text="Choose your language" FontSize="20" FontWeight="SemiBold"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="Elige tu idioma" FontSize="16" Opacity="0.6"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <RadioButtons x:Name="LanguageRadio" SelectionChanged="LanguageRadio_SelectionChanged"
+                      Margin="0,12,0,0">
+
+            <RadioButton x:Name="EnglishRadio" Tag="en" IsChecked="True">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="English" FontWeight="SemiBold"/>
+                    <TextBlock Text="Interface and dictation in English"
+                               FontSize="12" Opacity="0.6"/>
+                </StackPanel>
+            </RadioButton>
+
+            <RadioButton x:Name="SpanishRadio" Tag="es-MX">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="Espa&#241;ol" FontWeight="SemiBold"/>
+                    <TextBlock Text="Interfaz y dictado en espa&#241;ol"
+                               FontSize="12" Opacity="0.6"/>
+                </StackPanel>
+            </RadioButton>
+
+        </RadioButtons>
+    </StackPanel>
+</Page>

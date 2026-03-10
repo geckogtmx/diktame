@@ -6,6 +6,7 @@ using DiktaMe.Core.Account;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Security;
 using Serilog;
+using WinUI3Localizer;
 
 namespace DiktaMe.App.ViewModels;
 public sealed partial class WizardViewModel : ObservableObject
@@ -20,20 +21,30 @@ public sealed partial class WizardViewModel : ObservableObject
     [ObservableProperty] private bool _canGoNext = true;
     [ObservableProperty] private string _nextButtonText = "";
 
-    // Step 0: Onboarding choice ("trial" or "apikeys")
-    [ObservableProperty] private string _onboardingChoice = "trial";
+    // Step 0: Language choice
+    [ObservableProperty] private string _languageChoice = "en";
 
-    // Step 1: STT choice
+    // Step 1: Onboarding choice ("wallet", "apikeys", or "local")
+    [ObservableProperty] private string _onboardingChoice = "wallet";
+
+    // Step 2: STT choice
     [ObservableProperty] private string _sttChoice = "cloud";
 
-    // Step 2: LLM choice
+    // Step 3: LLM choice
     [ObservableProperty] private string _llmChoice = "cloud";
 
-    // Step 3: API Keys (only shown if cloud providers selected)
+    // Step 4: API Keys (only shown if cloud providers selected)
     [ObservableProperty] private string _deepgramApiKey = "";
     [ObservableProperty] private string _geminiApiKey = "";
 
-    public const int TotalSteps = 6;
+    public const int TotalSteps = 7;
+
+    /// <summary>
+    /// Optional async callback set by the current page. Called before leaving the step.
+    /// Return <c>true</c> to allow navigation, <c>false</c> to block it.
+    /// Reset to <c>null</c> when navigating to a new step.
+    /// </summary>
+    public Func<Task<bool>>? BeforeLeaveStep { get; set; }
 
     public event Action? StepChanged;
     public event Action? WizardCompleted;
@@ -53,6 +64,7 @@ public sealed partial class WizardViewModel : ObservableObject
         if (CurrentStep > 0)
         {
             CurrentStep--;
+            BeforeLeaveStep = null;
             UpdateNavState();
             StepChanged?.Invoke();
         }
@@ -61,16 +73,40 @@ public sealed partial class WizardViewModel : ObservableObject
     [RelayCommand]
     private async Task GoNextAsync()
     {
-        // Trial fork — skip entire wizard when "Try for free" is selected at step 0
-        if (CurrentStep == 0 && string.Equals(OnboardingChoice, "trial", StringComparison.Ordinal))
+        // Apply language when leaving the language step (step 0)
+        if (CurrentStep == 0)
         {
-            await StartTrialAsync();
+            await ApplyLanguageAsync();
+        }
+
+        // Wallet fork — skip wizard, open browser for account/wallet login
+        if (CurrentStep == 1 && string.Equals(OnboardingChoice, "wallet", StringComparison.Ordinal))
+        {
+            await StartWalletAsync();
             return;
+        }
+
+        // Local fork — skip wizard, configure Whisper + Ollama directly
+        if (CurrentStep == 1 && string.Equals(OnboardingChoice, "local", StringComparison.Ordinal))
+        {
+            await StartLocalAsync();
+            return;
+        }
+
+        // Let the current page run pre-navigation logic (e.g. Whisper download)
+        if (BeforeLeaveStep is not null)
+        {
+            bool canLeave = await BeforeLeaveStep();
+            if (!canLeave)
+            {
+                return;
+            }
         }
 
         if (CurrentStep < TotalSteps - 1)
         {
             CurrentStep++;
+            BeforeLeaveStep = null; // Reset for next page
             UpdateNavState();
             StepChanged?.Invoke();
         }
@@ -81,7 +117,33 @@ public sealed partial class WizardViewModel : ObservableObject
         }
     }
 
-    private async Task StartTrialAsync()
+    private async Task ApplyLanguageAsync()
+    {
+        try
+        {
+            // Switch UI language for remaining wizard steps
+            if (!string.Equals(LanguageChoice, "en", StringComparison.OrdinalIgnoreCase))
+            {
+                await Localizer.Get().SetLanguage(LanguageChoice);
+                Log.Information("Wizard: switched UI language to {Lang}", LanguageChoice);
+            }
+
+            // Persist language to settings
+            var general = _settings.Current.General with
+            {
+                Language = LanguageChoice,
+                UiLanguage = LanguageChoice,
+            };
+            var updated = _settings.Current with { General = general };
+            await _settings.UpdateAsync(updated);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Wizard: failed to apply language {Lang}", LanguageChoice);
+        }
+    }
+
+    private async Task StartWalletAsync()
     {
         try
         {
@@ -97,21 +159,53 @@ public sealed partial class WizardViewModel : ObservableObject
             // then upgraded to Trial by RefreshStatusAsync if server confirms.
             _accountService.Login();
 
-            Log.Information("Wizard: trial path — wizard completed, browser opened for login");
+            Log.Information("Wizard: wallet path — wizard completed, browser opened for login");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Wizard: failed to start trial");
+            Log.Error(ex, "Wizard: failed to start wallet path");
         }
 
         WizardCompleted?.Invoke();
     }
 
-    [RelayCommand]
-    private async Task SkipWizardAsync()
+    private async Task StartLocalAsync()
     {
-        var updated = _settings.Current with { WizardCompleted = true };
-        await _settings.UpdateAsync(updated);
+        try
+        {
+            // Configure for fully local operation: Whisper STT + Ollama LLM
+            var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
+            string[] modes = { "dictate", "refine", "ask", "translate", "note", "chat" };
+            foreach (var mode in modes)
+            {
+                for (int p = 0; p < 2; p++)
+                {
+                    string key = $"{mode}_{p}";
+                    var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
+                    profiles[key] = existing with
+                    {
+                        SttProvider = "whisper",
+                        LlmProvider = "ollama",
+                        UseLlm = true,
+                    };
+                }
+            }
+
+            var updated = _settings.Current with
+            {
+                WizardCompleted = true,
+                ActiveProfileName = "Local",
+                ModeProfiles = profiles,
+            };
+            await _settings.UpdateAsync(updated);
+
+            Log.Information("Wizard: local path — configured Whisper + Ollama");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Wizard: failed to start local path");
+        }
+
         WizardCompleted?.Invoke();
     }
 
@@ -124,7 +218,6 @@ public sealed partial class WizardViewModel : ObservableObject
             string defaultLlm = LlmChoice switch
             {
                 "local" => "ollama",
-                "skip" => "none",
                 _ => "gemini",
             };
 

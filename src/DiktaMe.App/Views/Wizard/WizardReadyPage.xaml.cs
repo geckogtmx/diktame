@@ -23,7 +23,6 @@ public sealed partial class WizardReadyPage : Page, IWizardStepPage
         string llmName = viewModel.LlmChoice switch
         {
             "local" => _loc.GetString("Wizard_Ready_Llm_Ollama"),
-            "skip" => _loc.GetString("Wizard_Ready_Llm_None"),
             _ => _loc.GetString("Wizard_Ready_Llm_Gemini"),
         };
 

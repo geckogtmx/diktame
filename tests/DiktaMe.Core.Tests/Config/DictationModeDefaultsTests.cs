@@ -5,48 +5,79 @@ namespace DiktaMe.Core.Tests.Config;
 
 public sealed class DictationModeDefaultsTests
 {
-    // ── Default Preset ────────────────────────────────────────────────────
+    // ── Default Presets ───────────────────────────────────────────────────
 
     [Fact]
-    public void CreateDefaultPreset_ReturnsSingleStandardPreset()
+    public void CreateDefaultPresets_ReturnsThreePresets()
     {
-        var preset = DictationModeDefaults.CreateDefaultPreset();
+        var presets = DictationModeDefaults.CreateDefaultPresets();
 
-        preset.Should().NotBeNull();
-        preset.Title.Should().Be("Standard");
-        preset.Id.Should().NotBeNullOrWhiteSpace();
-        preset.SortOrder.Should().Be(0);
+        presets.Should().HaveCount(3);
+        presets[0].Title.Should().Be("Standard");
+        presets[1].Title.Should().Be("Prompt");
+        presets[2].Title.Should().Be("Professional");
     }
 
     [Fact]
-    public void CreateDefaultPreset_HasUniqueIdPerCall()
+    public void CreateDefaultPresets_HasCorrectSortOrder()
     {
-        var preset1 = DictationModeDefaults.CreateDefaultPreset();
-        var preset2 = DictationModeDefaults.CreateDefaultPreset();
+        var presets = DictationModeDefaults.CreateDefaultPresets();
 
-        preset1.Id.Should().NotBe(preset2.Id, "each call should generate a unique GUID");
+        presets[0].SortOrder.Should().Be(0);
+        presets[1].SortOrder.Should().Be(1);
+        presets[2].SortOrder.Should().Be(2);
     }
 
     [Fact]
-    public void CreateDefaultPreset_CloudProfile_UsesDefaultPrompt()
+    public void CreateDefaultPresets_HasUniqueIdsPerCall()
     {
-        var preset = DictationModeDefaults.CreateDefaultPreset();
+        var presets1 = DictationModeDefaults.CreateDefaultPresets();
+        var presets2 = DictationModeDefaults.CreateDefaultPresets();
 
-        preset.CloudProfile.SystemPrompt.Should().Be(PromptDefaults.Dictate);
-        preset.CloudProfile.UseLlm.Should().BeTrue();
-        preset.CloudProfile.ModelName.Should().Be("gpt-4o-mini");
-        preset.CloudProfile.Hotkey.Should().Be("Ctrl+Alt+D");
+        foreach (var p1 in presets1)
+        {
+            foreach (var p2 in presets2)
+            {
+                p1.Id.Should().NotBe(p2.Id, "each call should generate unique GUIDs");
+            }
+        }
     }
 
     [Fact]
-    public void CreateDefaultPreset_LocalProfile_UsesDefaultPrompt()
+    public void CreateDefaultPresets_StandardPreset_UsesCorrectPrompt()
     {
-        var preset = DictationModeDefaults.CreateDefaultPreset();
+        var presets = DictationModeDefaults.CreateDefaultPresets();
+        var standard = presets[0];
 
-        preset.LocalProfile.SystemPrompt.Should().Be(PromptDefaults.Dictate);
-        preset.LocalProfile.UseLlm.Should().BeTrue();
-        preset.LocalProfile.ModelName.Should().BeNull("Local profile uses global Ollama model");
-        preset.LocalProfile.Hotkey.Should().Be("Ctrl+Alt+D");
+        standard.CloudProfile.SystemPrompt.Should().Be(PromptDefaults.Dictate);
+        standard.CloudProfile.UseLlm.Should().BeTrue();
+        standard.CloudProfile.ModelName.Should().Be("gemini-2.5-flash");
+        standard.CloudProfile.Hotkey.Should().Be("Ctrl+Alt+D");
+
+        standard.LocalProfile.SystemPrompt.Should().Be(PromptDefaults.Dictate);
+        standard.LocalProfile.UseLlm.Should().BeTrue();
+        standard.LocalProfile.ModelName.Should().BeNull("Local profile uses global Ollama model");
+        standard.LocalProfile.Hotkey.Should().Be("Ctrl+Alt+D");
+    }
+
+    [Fact]
+    public void CreateDefaultPresets_PromptPreset_UsesCorrectPrompt()
+    {
+        var presets = DictationModeDefaults.CreateDefaultPresets();
+        var prompt = presets[1];
+
+        prompt.CloudProfile.SystemPrompt.Should().Be(PromptDefaults.DictatePrompt);
+        prompt.LocalProfile.SystemPrompt.Should().Be(PromptDefaults.DictatePrompt);
+    }
+
+    [Fact]
+    public void CreateDefaultPresets_ProfessionalPreset_UsesCorrectPrompt()
+    {
+        var presets = DictationModeDefaults.CreateDefaultPresets();
+        var professional = presets[2];
+
+        professional.CloudProfile.SystemPrompt.Should().Be(PromptDefaults.DictateProfessional);
+        professional.LocalProfile.SystemPrompt.Should().Be(PromptDefaults.DictateProfessional);
     }
 
     // ── Utility Pipelines (Modes) ─────────────────────────────────────────
@@ -82,7 +113,7 @@ public sealed class DictationModeDefaultsTests
         var ask = pipelines.Should().ContainSingle(p => p.PipelineType == "ask").Which;
         ask.Hotkey.Should().Be("Ctrl+Alt+A");
         ask.CloudProfile.SystemPrompt.Should().Be(PromptDefaults.Ask);
-        ask.CloudProfile.ModelName.Should().Be("gpt-4o-mini");
+        ask.CloudProfile.ModelName.Should().Be("gemini-2.5-flash");
         ask.LocalProfile.SystemPrompt.Should().Be(PromptDefaults.Ask);
         ask.LocalProfile.ModelName.Should().BeNull();
     }
@@ -95,7 +126,7 @@ public sealed class DictationModeDefaultsTests
         var translate = pipelines.Should().ContainSingle(p => p.PipelineType == "translate").Which;
         translate.Hotkey.Should().Be("Ctrl+Alt+T");
         translate.CloudProfile.SystemPrompt.Should().Be(PromptDefaults.Translate);
-        translate.CloudProfile.ModelName.Should().Be("gpt-4o-mini");
+        translate.CloudProfile.ModelName.Should().Be("gemini-2.5-flash");
     }
 
     [Fact]
@@ -106,7 +137,7 @@ public sealed class DictationModeDefaultsTests
         var note = pipelines.Should().ContainSingle(p => p.PipelineType == "note").Which;
         note.Hotkey.Should().Be("Ctrl+Alt+N");
         note.CloudProfile.SystemPrompt.Should().Be(PromptDefaults.Note);
-        note.CloudProfile.ModelName.Should().Be("gpt-4o-mini");
+        note.CloudProfile.ModelName.Should().Be("gemini-2.5-flash");
     }
 
     [Fact]
@@ -117,7 +148,7 @@ public sealed class DictationModeDefaultsTests
         var chat = pipelines.Should().ContainSingle(p => p.PipelineType == "chat").Which;
         chat.Hotkey.Should().Be("Ctrl+Alt+C");
         chat.CloudProfile.SystemPrompt.Should().Be(PromptDefaults.Chat);
-        chat.CloudProfile.ModelName.Should().Be("gpt-4o");
+        chat.CloudProfile.ModelName.Should().Be("gemini-2.5-flash");
     }
 
     [Fact]

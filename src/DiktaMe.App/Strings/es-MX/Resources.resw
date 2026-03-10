@@ -418,33 +418,37 @@
   <!-- ══════════════════════════════════════════════════════════════════════
        Wizard
        ══════════════════════════════════════════════════════════════════════ -->
-  <data name="Wizard_SkipButton.Content" xml:space="preserve"><value>Omitir</value></data>
   <data name="Wizard_BackButton.Content" xml:space="preserve"><value>Atr&#225;s</value></data>
   <data name="Wizard_StepLabel" xml:space="preserve"><value>Paso {0} de {1}</value></data>
   <data name="Wizard_Next" xml:space="preserve"><value>Siguiente</value></data>
   <data name="Wizard_Finish" xml:space="preserve"><value>Finalizar</value></data>
   <data name="Wizard_GetStarted_Title.Text" xml:space="preserve"><value>&#191;C&#243;mo desea empezar?</value></data>
-  <data name="Wizard_GetStarted_Trial_Title.Text" xml:space="preserve"><value>Probar gratis</value></data>
-  <data name="Wizard_GetStarted_Trial_Description.Text" xml:space="preserve"><value>15,000 palabras gratis &#8212; sin clave API ni configuraci&#243;n necesaria.</value></data>
-  <data name="Wizard_GetStarted_ApiKeys_Title.Text" xml:space="preserve"><value>Tengo mis propias claves API</value></data>
-  <data name="Wizard_GetStarted_ApiKeys_Description.Text" xml:space="preserve"><value>Configure sus proveedores STT y LLM preferidos.</value></data>
+  <data name="Wizard_GetStarted_Wallet_Title.Text" xml:space="preserve"><value>Usar cr&#233;ditos de Wallet</value></data>
+  <data name="Wizard_GetStarted_Wallet_Description.Text" xml:space="preserve"><value>Comience con cr&#233;ditos gratuitos &#8212; sin claves API necesarias. Iniciar&#225; sesi&#243;n en su navegador.</value></data>
+  <data name="Wizard_GetStarted_ApiKeys_Title.Text" xml:space="preserve"><value>Traer mis propias claves (BYOK)</value></data>
+  <data name="Wizard_GetStarted_ApiKeys_Description.Text" xml:space="preserve"><value>Use sus propias claves API de Deepgram, Gemini u OpenAI.</value></data>
+  <data name="Wizard_GetStarted_Local_Title.Text" xml:space="preserve"><value>Ejecutar localmente</value></data>
+  <data name="Wizard_GetStarted_Local_Description.Text" xml:space="preserve"><value>Completamente sin conexi&#243;n con Whisper + Ollama &#8212; sin nube, sin claves.</value></data>
   <data name="Wizard_Welcome_Title.Text" xml:space="preserve"><value>Bienvenido a dIKta.me V2</value></data>
   <data name="Wizard_Welcome_Description.Text" xml:space="preserve"><value>Este asistente le ayudar&#225; a configurar sus proveedores de voz a texto e IA. Puede cambiar esta configuraci&#243;n en cualquier momento.</value></data>
   <data name="Wizard_Welcome_Hint.Text" xml:space="preserve"><value>Presione Siguiente para comenzar, u Omitir para usar valores predeterminados.</value></data>
-  <data name="Wizard_Stt_Title.Text" xml:space="preserve"><value>Voz a Texto</value></data>
+  <data name="Wizard_Stt_Title.Text" xml:space="preserve"><value>Voz a Texto (STT)</value></data>
   <data name="Wizard_Stt_Description.Text" xml:space="preserve"><value>Elija c&#243;mo desea convertir voz a texto. Los proveedores en la nube ofrecen mayor precisi&#243;n; local se ejecuta completamente en su equipo.</value></data>
   <data name="Wizard_Stt_Cloud_Title.Text" xml:space="preserve"><value>STT en la Nube</value></data>
   <data name="Wizard_Stt_Cloud_Description.Text" xml:space="preserve"><value>Alta precisi&#243;n, requiere clave API (Deepgram, OpenAI, etc.)</value></data>
   <data name="Wizard_Stt_Local_Title.Text" xml:space="preserve"><value>STT Local (Whisper)</value></data>
-  <data name="Wizard_Stt_Local_Description.Text" xml:space="preserve"><value>Funciona sin conexi&#243;n, no requiere clave API, requiere descarga de modelo</value></data>
+  <data name="Wizard_Stt_Local_Description.Text" xml:space="preserve"><value>Funciona sin conexi&#243;n, no requiere clave API. Requiere descarga de modelo (~400 MB).</value></data>
+  <data name="Wizard_Stt_Downloading" xml:space="preserve"><value>Descargando modelo Whisper... {0}%</value></data>
+  <data name="Wizard_Stt_DownloadComplete" xml:space="preserve"><value>Modelo Whisper listo</value></data>
+  <data name="Wizard_Stt_DownloadFailed" xml:space="preserve"><value>Error en la descarga: {0}. Puede reintentar o elegir STT en la nube.</value></data>
+  <data name="Wizard_Stt_ModelReady" xml:space="preserve"><value>Modelo Whisper ya descargado</value></data>
+  <data name="Wizard_Stt_DownloadPending" xml:space="preserve"><value>El modelo Whisper (~466 MB) se descargar&#225; al hacer clic en Siguiente.</value></data>
   <data name="Wizard_Llm_Title.Text" xml:space="preserve"><value>Procesamiento IA</value></data>
   <data name="Wizard_Llm_Description.Text" xml:space="preserve"><value>Elija c&#243;mo la IA debe procesar su texto dictado. Controla la correcci&#243;n gramatical, formato y edici&#243;n inteligente.</value></data>
   <data name="Wizard_Llm_Cloud_Title.Text" xml:space="preserve"><value>IA en la Nube</value></data>
   <data name="Wizard_Llm_Cloud_Description.Text" xml:space="preserve"><value>Mejor calidad, requiere clave API (Gemini, Claude, GPT, etc.)</value></data>
   <data name="Wizard_Llm_Local_Title.Text" xml:space="preserve"><value>IA Local (Ollama)</value></data>
-  <data name="Wizard_Llm_Local_Description.Text" xml:space="preserve"><value>Funciona sin conexi&#243;n, requiere Ollama instalado con un modelo</value></data>
-  <data name="Wizard_Llm_Skip_Title.Text" xml:space="preserve"><value>Ninguno (Dictado sin procesar)</value></data>
-  <data name="Wizard_Llm_Skip_Description.Text" xml:space="preserve"><value>Omitir procesamiento IA, salida de voz a texto sin procesar</value></data>
+  <data name="Wizard_Llm_Local_Description.Text" xml:space="preserve"><value>Funciona sin conexi&#243;n. Requiere Ollama instalado + descarga de modelo (~2–4 GB).</value></data>
   <data name="Wizard_ApiKeys_Title.Text" xml:space="preserve"><value>Claves API</value></data>
   <data name="Wizard_ApiKeys_Description.Text" xml:space="preserve"><value>Ingrese sus claves API para los servicios en la nube seleccionados. Las claves se almacenan de forma segura y cifrada.</value></data>
   <data name="Wizard_ApiKeys_SttTitle.Text" xml:space="preserve"><value>Clave API de Voz a Texto</value></data>
@@ -456,7 +460,6 @@
   <data name="Wizard_ApiKeys_LlmPlaceholder.PlaceholderText" xml:space="preserve"><value>Ingrese clave API de Gemini</value></data>
   <data name="Wizard_ApiKeys_LlmTestButton.Content" xml:space="preserve"><value>Probar</value></data>
   <data name="Wizard_ApiKeys_InfoBar.Message" xml:space="preserve"><value>Sus claves API se almacenan cifradas en el Administrador de Credenciales de Windows. Puede cambiarlas luego en Configuraci&#243;n &#8594; Claves API.</value></data>
-  <data name="Wizard_ApiKeys_SkipHint.Text" xml:space="preserve"><value>Puede omitir este paso y agregar claves API despu&#233;s desde Configuraci&#243;n. La Prueba R&#225;pida se omitir&#225;.</value></data>
   <data name="Wizard_ApiKeys_Testing" xml:space="preserve"><value>Probando conexi&#243;n...</value></data>
   <data name="Wizard_ApiKeys_Valid" xml:space="preserve"><value>&#x2713; La clave API es v&#225;lida</value></data>
   <data name="Wizard_ApiKeys_Invalid" xml:space="preserve"><value>&#x2717; Clave API inv&#225;lida</value></data>
@@ -466,7 +469,6 @@
   <data name="Wizard_Test_Description.Text" xml:space="preserve"><value>Pruebe su configuraci&#243;n grabando una frase corta. Esto verifica que su micr&#243;fono y los proveedores elegidos funcionan correctamente.</value></data>
   <data name="Wizard_Test_MicLabel.Text" xml:space="preserve"><value>Micr&#243;fono</value></data>
   <data name="Wizard_Test_RecordButton.Content" xml:space="preserve"><value>Grabar (3 segundos)</value></data>
-  <data name="Wizard_Test_SkipHint.Text" xml:space="preserve"><value>Este paso es opcional &#8212; puede omitirlo y probar despu&#233;s.</value></data>
   <data name="Wizard_Test_MicWarning" xml:space="preserve"><value>Advertencia: No se pudo cargar la lista de micr&#243;fonos</value></data>
   <data name="Wizard_Test_Recording" xml:space="preserve"><value>Grabando...</value></data>
   <data name="Wizard_Test_Success" xml:space="preserve"><value>&#x2713; Se capturaron {0} KB de audio. &#161;Su micr&#243;fono funciona!</value></data>
@@ -479,7 +481,6 @@
   <data name="Wizard_Ready_Stt_Whisper" xml:space="preserve"><value>Whisper (local)</value></data>
   <data name="Wizard_Ready_Stt_Deepgram" xml:space="preserve"><value>Deepgram (nube)</value></data>
   <data name="Wizard_Ready_Llm_Ollama" xml:space="preserve"><value>Ollama (local)</value></data>
-  <data name="Wizard_Ready_Llm_None" xml:space="preserve"><value>Ninguno (dictado sin procesar)</value></data>
   <data name="Wizard_Ready_Llm_Gemini" xml:space="preserve"><value>Gemini (nube)</value></data>
   <data name="Wizard_Ready_SttSummary" xml:space="preserve"><value>Voz a Texto: {0}</value></data>
   <data name="Wizard_Ready_LlmSummary" xml:space="preserve"><value>Procesamiento IA: {0}</value></data>
@@ -504,6 +505,8 @@
   <data name="Loading_Database" xml:space="preserve"><value>Inicializando base de datos...</value></data>
   <data name="Loading_Snippets" xml:space="preserve"><value>Cargando snippets...</value></data>
   <data name="Loading_DownloadingWhisper" xml:space="preserve"><value>Descargando modelo Whisper...</value></data>
+  <data name="Loading_WhisperFailed_Title" xml:space="preserve"><value>Error al descargar Whisper</value></data>
+  <data name="Loading_WhisperFailed_Message" xml:space="preserve"><value>No se pudo descargar el modelo Whisper. Verifique su conexión a internet y reinicie la aplicación para reintentar.</value></data>
   <data name="Loading_LocalServices" xml:space="preserve"><value>Verificando servicios locales...</value></data>
   <data name="Loading_WarmingOllama" xml:space="preserve"><value>Calentando modelo Ollama...</value></data>
   <data name="Loading_Account" xml:space="preserve"><value>Sincronizando cuenta...</value></data>

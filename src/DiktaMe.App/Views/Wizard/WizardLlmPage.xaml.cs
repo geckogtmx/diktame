@@ -19,7 +19,6 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
         switch (viewModel.LlmChoice)
         {
             case "local": LlmLocal.IsChecked = true; break;
-            case "skip": LlmSkip.IsChecked = true; break;
             default: LlmCloud.IsChecked = true; break;
         }
     }
@@ -34,10 +33,6 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
         if (LlmLocal.IsChecked == true)
         {
             _viewModel.LlmChoice = "local";
-        }
-        else if (LlmSkip.IsChecked == true)
-        {
-            _viewModel.LlmChoice = "skip";
         }
         else
         {

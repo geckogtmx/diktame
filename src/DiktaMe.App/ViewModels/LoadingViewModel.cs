@@ -126,8 +126,11 @@ public sealed partial class LoadingViewModel : ObservableObject
                 }
                 catch (Exception ex)
                 {
-                    // Non-fatal — user will get FileNotFoundException at dictation time
                     Log.Warning(ex, "Whisper model download failed during loading");
+                    _notifications.ShowToast(
+                        _loc.GetString("Loading_WhisperFailed_Title"),
+                        _loc.GetString("Loading_WhisperFailed_Message"),
+                        NotificationType.Error);
                 }
             }
 
@@ -209,6 +212,11 @@ public sealed partial class LoadingViewModel : ObservableObject
             // Start the background message pump
             _hotkeyManager.Start();
             Log.Information("HotkeyManager.Start() completed");
+
+            // Unsubscribe first to prevent double-subscription when LoadingWindow
+            // is re-created after wizard completion (singleton ViewModel, new Window).
+            _hotkeyManager.HotkeyPressed -= OnHotkeyPressed;
+            _hotkeyManager.RegistrationFailed -= OnHotkeyRegistrationFailed;
 
             // Subscribe to events
             _hotkeyManager.HotkeyPressed += OnHotkeyPressed;

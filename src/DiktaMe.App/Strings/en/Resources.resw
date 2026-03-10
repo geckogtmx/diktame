@@ -1095,9 +1095,6 @@
   <!-- ══════════════════════════════════════════════════════════════════════
        Wizard Window
        ══════════════════════════════════════════════════════════════════════ -->
-  <data name="Wizard_SkipButton.Content" xml:space="preserve">
-    <value>Skip</value>
-  </data>
   <data name="Wizard_BackButton.Content" xml:space="preserve">
     <value>Back</value>
   </data>
@@ -1119,17 +1116,23 @@
   <data name="Wizard_GetStarted_Title.Text" xml:space="preserve">
     <value>How do you want to get started?</value>
   </data>
-  <data name="Wizard_GetStarted_Trial_Title.Text" xml:space="preserve">
-    <value>Try for free</value>
+  <data name="Wizard_GetStarted_Wallet_Title.Text" xml:space="preserve">
+    <value>Use Wallet credits</value>
   </data>
-  <data name="Wizard_GetStarted_Trial_Description.Text" xml:space="preserve">
-    <value>15,000 words free &#8212; no API key or setup needed.</value>
+  <data name="Wizard_GetStarted_Wallet_Description.Text" xml:space="preserve">
+    <value>Get started with free credits &#8212; no API keys needed. You'll log in via your browser.</value>
   </data>
   <data name="Wizard_GetStarted_ApiKeys_Title.Text" xml:space="preserve">
-    <value>I have my own API keys</value>
+    <value>Bring Your Own Keys (BYOK)</value>
   </data>
   <data name="Wizard_GetStarted_ApiKeys_Description.Text" xml:space="preserve">
-    <value>Configure your preferred STT and LLM providers.</value>
+    <value>Use your own Deepgram, Gemini, or OpenAI API keys.</value>
+  </data>
+  <data name="Wizard_GetStarted_Local_Title.Text" xml:space="preserve">
+    <value>Run locally</value>
+  </data>
+  <data name="Wizard_GetStarted_Local_Description.Text" xml:space="preserve">
+    <value>Fully offline with Whisper + Ollama &#8212; no cloud, no keys.</value>
   </data>
 
   <!-- Welcome page -->
@@ -1145,7 +1148,7 @@
 
   <!-- STT page -->
   <data name="Wizard_Stt_Title.Text" xml:space="preserve">
-    <value>Speech-to-Text</value>
+    <value>Speech-to-Text (STT)</value>
   </data>
   <data name="Wizard_Stt_Description.Text" xml:space="preserve">
     <value>Choose how you want to convert speech to text. Cloud providers offer higher accuracy; local runs entirely on your machine.</value>
@@ -1160,7 +1163,22 @@
     <value>Local STT (Whisper)</value>
   </data>
   <data name="Wizard_Stt_Local_Description.Text" xml:space="preserve">
-    <value>Runs offline, no API key needed, requires model download</value>
+    <value>Runs offline, no API key needed. Requires ~400 MB model download.</value>
+  </data>
+  <data name="Wizard_Stt_Downloading" xml:space="preserve">
+    <value>Downloading Whisper model... {0}%</value>
+  </data>
+  <data name="Wizard_Stt_DownloadComplete" xml:space="preserve">
+    <value>Whisper model ready</value>
+  </data>
+  <data name="Wizard_Stt_DownloadFailed" xml:space="preserve">
+    <value>Download failed: {0}. You can retry or choose Cloud STT.</value>
+  </data>
+  <data name="Wizard_Stt_ModelReady" xml:space="preserve">
+    <value>Whisper model already downloaded</value>
+  </data>
+  <data name="Wizard_Stt_DownloadPending" xml:space="preserve">
+    <value>Whisper model (~466 MB) will be downloaded when you click Next.</value>
   </data>
 
   <!-- LLM page -->
@@ -1180,13 +1198,7 @@
     <value>Local AI (Ollama)</value>
   </data>
   <data name="Wizard_Llm_Local_Description.Text" xml:space="preserve">
-    <value>Runs offline, requires Ollama installed with a model</value>
-  </data>
-  <data name="Wizard_Llm_Skip_Title.Text" xml:space="preserve">
-    <value>None (Raw dictation)</value>
-  </data>
-  <data name="Wizard_Llm_Skip_Description.Text" xml:space="preserve">
-    <value>Skip AI processing, output raw speech-to-text</value>
+    <value>Runs offline. Requires Ollama installed + model download (~2–4 GB).</value>
   </data>
 
   <!-- API Keys page -->
@@ -1223,9 +1235,6 @@
   <data name="Wizard_ApiKeys_InfoBar.Message" xml:space="preserve">
     <value>Your API keys are stored encrypted in Windows Credential Manager. You can change them later in Settings &#8594; API Keys.</value>
   </data>
-  <data name="Wizard_ApiKeys_SkipHint.Text" xml:space="preserve">
-    <value>You can skip this step and add API keys later from Settings. The Quick Test will be skipped.</value>
-  </data>
   <!-- C# keys for API key testing -->
   <data name="Wizard_ApiKeys_Testing" xml:space="preserve">
     <value>Testing connection...</value>
@@ -1255,9 +1264,6 @@
   </data>
   <data name="Wizard_Test_RecordButton.Content" xml:space="preserve">
     <value>Record (3 seconds)</value>
-  </data>
-  <data name="Wizard_Test_SkipHint.Text" xml:space="preserve">
-    <value>This step is optional &#8212; you can skip it and test later.</value>
   </data>
   <!-- C# keys for test page -->
   <data name="Wizard_Test_MicWarning" xml:space="preserve">
@@ -1298,9 +1304,6 @@
   </data>
   <data name="Wizard_Ready_Llm_Ollama" xml:space="preserve">
     <value>Ollama (local)</value>
-  </data>
-  <data name="Wizard_Ready_Llm_None" xml:space="preserve">
-    <value>None (raw dictation)</value>
   </data>
   <data name="Wizard_Ready_Llm_Gemini" xml:space="preserve">
     <value>Gemini (cloud)</value>
@@ -1357,6 +1360,12 @@
   </data>
   <data name="Loading_DownloadingWhisper" xml:space="preserve">
     <value>Downloading Whisper model...</value>
+  </data>
+  <data name="Loading_WhisperFailed_Title" xml:space="preserve">
+    <value>Whisper Download Failed</value>
+  </data>
+  <data name="Loading_WhisperFailed_Message" xml:space="preserve">
+    <value>Could not download the Whisper speech-to-text model. Check your internet connection and restart the app to retry.</value>
   </data>
   <data name="Loading_LocalServices" xml:space="preserve">
     <value>Checking local services...</value>

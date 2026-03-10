@@ -7,31 +7,74 @@ namespace DiktaMe.Core.Config;
 public static class DictationModeDefaults
 {
     /// <summary>
-    /// Creates the single default "Standard" dictation preset for first-run.
-    /// Users create all additional presets manually via Settings.
+    /// Creates the default dictation presets for first-run: Standard, Prompt, Professional.
+    /// Ported from V1's python/config/prompts.py preset system.
     /// </summary>
-    public static DictationMode CreateDefaultPreset()
+    public static List<DictationMode> CreateDefaultPresets()
     {
-        return new DictationMode
-        {
-            Id = Guid.NewGuid().ToString("N", System.Globalization.CultureInfo.InvariantCulture),
-            Title = "Standard",
-            SortOrder = 0,
-            CloudProfile = new DictationProfile
+        return
+        [
+            new DictationMode
             {
-                SystemPrompt = PromptDefaults.Dictate,
-                UseLlm = true,
-                ModelName = "gpt-4o-mini",
-                Hotkey = "Ctrl+Alt+D",
+                Id = Guid.NewGuid().ToString("N", System.Globalization.CultureInfo.InvariantCulture),
+                Title = "Standard",
+                SortOrder = 0,
+                CloudProfile = new DictationProfile
+                {
+                    SystemPrompt = PromptDefaults.Dictate,
+                    UseLlm = true,
+                    ModelName = "gemini-2.5-flash",
+                    Hotkey = "Ctrl+Alt+D",
+                },
+                LocalProfile = new DictationProfile
+                {
+                    SystemPrompt = PromptDefaults.Dictate,
+                    UseLlm = true,
+                    ModelName = null,
+                    Hotkey = "Ctrl+Alt+D",
+                },
             },
-            LocalProfile = new DictationProfile
+            new DictationMode
             {
-                SystemPrompt = PromptDefaults.Dictate,
-                UseLlm = true,
-                ModelName = null,
-                Hotkey = "Ctrl+Alt+D",
+                Id = Guid.NewGuid().ToString("N", System.Globalization.CultureInfo.InvariantCulture),
+                Title = "Prompt",
+                SortOrder = 1,
+                CloudProfile = new DictationProfile
+                {
+                    SystemPrompt = PromptDefaults.DictatePrompt,
+                    UseLlm = true,
+                    ModelName = "gemini-2.5-flash",
+                    Hotkey = null,
+                },
+                LocalProfile = new DictationProfile
+                {
+                    SystemPrompt = PromptDefaults.DictatePrompt,
+                    UseLlm = true,
+                    ModelName = null,
+                    Hotkey = null,
+                },
             },
-        };
+            new DictationMode
+            {
+                Id = Guid.NewGuid().ToString("N", System.Globalization.CultureInfo.InvariantCulture),
+                Title = "Professional",
+                SortOrder = 2,
+                CloudProfile = new DictationProfile
+                {
+                    SystemPrompt = PromptDefaults.DictateProfessional,
+                    UseLlm = true,
+                    ModelName = "gemini-2.5-flash",
+                    Hotkey = null,
+                },
+                LocalProfile = new DictationProfile
+                {
+                    SystemPrompt = PromptDefaults.DictateProfessional,
+                    UseLlm = true,
+                    ModelName = null,
+                    Hotkey = null,
+                },
+            },
+        ];
     }
 
     /// <summary>
@@ -48,7 +91,7 @@ public static class DictationModeDefaults
                 CloudProfile = new UtilityProfile
                 {
                     SystemPrompt = PromptDefaults.Ask,
-                    ModelName = "gpt-4o-mini",
+                    ModelName = "gemini-2.5-flash",
                 },
                 LocalProfile = new UtilityProfile
                 {
@@ -65,7 +108,7 @@ public static class DictationModeDefaults
                 CloudProfile = new UtilityProfile
                 {
                     SystemPrompt = PromptDefaults.RefineAuto,
-                    ModelName = "gpt-4o-mini",
+                    ModelName = "gemini-2.5-flash",
                 },
                 LocalProfile = new UtilityProfile
                 {
@@ -82,7 +125,7 @@ public static class DictationModeDefaults
                 CloudProfile = new UtilityProfile
                 {
                     SystemPrompt = PromptDefaults.RefineInstruction,
-                    ModelName = "gpt-4o-mini",
+                    ModelName = "gemini-2.5-flash",
                 },
                 LocalProfile = new UtilityProfile
                 {
@@ -99,7 +142,7 @@ public static class DictationModeDefaults
                 CloudProfile = new UtilityProfile
                 {
                     SystemPrompt = PromptDefaults.RefineInstruction,
-                    ModelName = "gpt-4o-mini",
+                    ModelName = "gemini-2.5-flash",
                 },
                 LocalProfile = new UtilityProfile
                 {
@@ -115,7 +158,7 @@ public static class DictationModeDefaults
                 CloudProfile = new UtilityProfile
                 {
                     SystemPrompt = PromptDefaults.Translate,
-                    ModelName = "gpt-4o-mini",
+                    ModelName = "gemini-2.5-flash",
                 },
                 LocalProfile = new UtilityProfile
                 {
@@ -131,7 +174,7 @@ public static class DictationModeDefaults
                 CloudProfile = new UtilityProfile
                 {
                     SystemPrompt = PromptDefaults.Note,
-                    ModelName = "gpt-4o-mini",
+                    ModelName = "gemini-2.5-flash",
                 },
                 LocalProfile = new UtilityProfile
                 {
@@ -147,7 +190,7 @@ public static class DictationModeDefaults
                 CloudProfile = new UtilityProfile
                 {
                     SystemPrompt = PromptDefaults.Chat,
-                    ModelName = "gpt-4o", // more conversational
+                    ModelName = "gemini-2.5-flash",
                 },
                 LocalProfile = new UtilityProfile
                 {

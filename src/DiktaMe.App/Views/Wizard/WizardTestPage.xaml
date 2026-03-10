@@ -33,6 +33,5 @@
             </StackPanel>
         </Border>
 
-        <TextBlock l:Uids.Uid="Wizard_Test_SkipHint" TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Opacity="0.5"/>
     </StackPanel>
 </Page>

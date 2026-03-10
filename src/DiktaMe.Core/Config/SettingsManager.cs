@@ -51,12 +51,12 @@ public sealed class SettingsManager
     {
         if (!File.Exists(SettingsFilePath))
         {
-            Log.Information("SettingsManager: no settings file found — creating defaults with Standard preset");
-            var defaultPreset = DictationModeDefaults.CreateDefaultPreset();
+            Log.Information("SettingsManager: no settings file found — creating defaults with Standard/Prompt/Professional presets");
+            var defaultPresets = DictationModeDefaults.CreateDefaultPresets();
             Current = new AppSettings
             {
-                DictationModes = [defaultPreset],
-                ActiveDictationModeId = defaultPreset.Id,
+                DictationModes = defaultPresets,
+                ActiveDictationModeId = defaultPresets[0].Id,
                 UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
             };
             await SaveAsync(cancellationToken).ConfigureAwait(false);
@@ -165,8 +165,8 @@ public sealed class SettingsManager
                     MaxDurationSeconds = GetInt(root, "maxDuration", 60),
                 },
                 OllamaModel = GetString(root, "ollamaModel", "llama3.2"),
-                // Preload single Standard preset for V1 users
-                DictationModes = [DictationModeDefaults.CreateDefaultPreset()],
+                // Preload Standard/Prompt/Professional presets for V1 users
+                DictationModes = DictationModeDefaults.CreateDefaultPresets(),
                 UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
                 ActiveProfileName = "Cloud", // V1 default
             };
@@ -256,6 +256,28 @@ public sealed class SettingsManager
         {
             migrated = migrated with { Deepgram = new DeepgramSettings() };
             Log.Information("SettingsManager: initialized null Deepgram settings to defaults");
+        }
+
+        // Migration 7: Populate DictationModes if empty (pre-Stream-J or wizard-created files missing presets)
+        if (migrated.DictationModes.Count == 0)
+        {
+            var defaultPresets = DictationModeDefaults.CreateDefaultPresets();
+            migrated = migrated with
+            {
+                DictationModes = defaultPresets,
+                ActiveDictationModeId = defaultPresets[0].Id,
+            };
+            Log.Information("SettingsManager: populated {Count} default dictation presets", defaultPresets.Count);
+        }
+
+        // Migration 8: Auto-complete wizard for pre-wizard settings files (schema v1).
+        // Schema v1 files pre-date the wizard — those users already configured manually.
+        // Schema v2+ files were created with the wizard feature, so WizardCompleted=false
+        // means the user hasn't finished the wizard yet and it should still show.
+        if (loaded.SchemaVersion < 2 && !migrated.WizardCompleted)
+        {
+            migrated = migrated with { WizardCompleted = true, SchemaVersion = 2 };
+            Log.Information("SettingsManager: auto-completed wizard for pre-wizard settings file (schema v{V})", loaded.SchemaVersion);
         }
 
         return migrated;

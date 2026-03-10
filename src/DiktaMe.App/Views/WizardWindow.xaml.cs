@@ -13,6 +13,7 @@ public sealed partial class WizardWindow : Window
 
     private readonly Type[] _stepPages =
     {
+        typeof(WizardLanguagePage),
         typeof(WizardGetStartedPage),
         typeof(WizardSttPage),
         typeof(WizardLlmPage),
@@ -66,8 +67,11 @@ public sealed partial class WizardWindow : Window
 
     private void OnWizardCompleted()
     {
-        // Open main window and close wizard
-        App.Current.ShowMainWindow();
+        // Re-run the loading screen so it picks up the wizard's settings
+        // (downloads Whisper model, warms Ollama, registers hotkeys, etc.)
+        var loading = new LoadingWindow();
+        loading.Activate();
+        loading.StartLoading();
         this.Close();
     }
 }

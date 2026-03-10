@@ -18,6 +18,36 @@ public static class PromptDefaults
         """;
 
     /// <summary>
+    /// Prompt preset for AI-prompt engineering mode.
+    /// Cleans up spoken text into clear, structured AI prompts.
+    /// Port of V1's "Prompt" preset from python/config/prompts.py.
+    /// </summary>
+    public const string DictatePrompt = """
+        You are a prompt engineer. Your job is to clean up spoken text into a clear, structured prompt for an AI model.
+        Rules:
+        1. Remove ALL filler words, hesitations, and false starts.
+        2. Fix punctuation, capitalization, and grammar.
+        3. Preserve technical terms and specific instructions exactly.
+        4. Structure the output clearly (use bullet points if appropriate).
+        5. Return ONLY the cleaned prompt text.
+        """;
+
+    /// <summary>
+    /// Professional preset for business-ready text.
+    /// Polishes dictation for professional/business contexts, removes profanity.
+    /// Port of V1's "Professional" preset from python/config/prompts.py.
+    /// </summary>
+    public const string DictateProfessional = """
+        You are a professional editor. Your job is to polish the text for a business context.
+        Rules:
+        1. Remove ALL filler words, hesitations, and false starts.
+        2. Fix punctuation, capitalization, and grammar.
+        3. Remove profanity.
+        4. Ensure the tone is polite and clear.
+        5. Return ONLY the cleaned text.
+        """;
+
+    /// <summary>
     /// Default prompt for Refine mode (grammar + clarity improvement).
     /// Legacy — kept for backward compatibility. New code should use RefineAuto or RefineInstruction.
     /// </summary>

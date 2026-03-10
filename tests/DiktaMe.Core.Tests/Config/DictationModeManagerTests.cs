@@ -23,12 +23,12 @@ public sealed class DictationModeManagerTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        // Initialize with a single default preset (like first-run)
-        var defaultPreset = DictationModeDefaults.CreateDefaultPreset();
+        // Initialize with default presets (like first-run)
+        var defaultPresets = DictationModeDefaults.CreateDefaultPresets();
         var initial = _settings.Current with
         {
-            DictationModes = [defaultPreset],
-            ActiveDictationModeId = defaultPreset.Id,
+            DictationModes = defaultPresets,
+            ActiveDictationModeId = defaultPresets[0].Id,
         };
         await _settings.UpdateAsync(initial);
     }
@@ -45,12 +45,14 @@ public sealed class DictationModeManagerTests : IAsyncLifetime
     // ── GetAllModes ───────────────────────────────────────────────────────────
 
     [Fact]
-    public void GetAllModes_ReturnsDefaultPreset()
+    public void GetAllModes_ReturnsDefaultPresets()
     {
         var modes = _manager.GetAllModes();
 
-        modes.Should().HaveCount(1);
+        modes.Should().HaveCount(3);
         modes[0].Title.Should().Be("Standard");
+        modes[1].Title.Should().Be("Prompt");
+        modes[2].Title.Should().Be("Professional");
     }
 
     [Fact]
@@ -93,7 +95,7 @@ public sealed class DictationModeManagerTests : IAsyncLifetime
         var profile = _manager.GetActiveProfile(modes[0].Id);
 
         profile.Should().NotBeNull();
-        profile.ModelName.Should().Be("gpt-4o-mini");
+        profile.ModelName.Should().Be("gemini-2.5-flash");
     }
 
     [Fact]
@@ -155,8 +157,8 @@ public sealed class DictationModeManagerTests : IAsyncLifetime
 
         var newMode = await _manager.CreateModeAsync("Test Mode", cloudProfile, localProfile);
 
-        // Default preset has SortOrder 0, new one should be 1
-        newMode.SortOrder.Should().Be(1);
+        // Default presets have SortOrder 0-2, new one should be 3
+        newMode.SortOrder.Should().Be(3);
     }
 
     [Fact]
@@ -283,10 +285,10 @@ public sealed class DictationModeManagerTests : IAsyncLifetime
     [Fact]
     public async Task ReorderModesAsync_ValidOrder_UpdatesSortOrder()
     {
-        // Create a second preset
+        // Create a fourth preset (3 defaults + 1 new)
         var cloudProfile = new DictationProfile { SystemPrompt = "Test", UseLlm = true };
         var localProfile = new DictationProfile { SystemPrompt = "Test", UseLlm = true };
-        await _manager.CreateModeAsync("Second", cloudProfile, localProfile);
+        await _manager.CreateModeAsync("Fourth", cloudProfile, localProfile);
 
         var modes = _manager.GetAllModes();
         var currentIds = modes.Select(m => m.Id).ToList();
@@ -298,7 +300,7 @@ public sealed class DictationModeManagerTests : IAsyncLifetime
 
         var reordered = _manager.GetAllModes();
         reordered.Select(m => m.Id).Should().Equal(reversedIds);
-        reordered.Select(m => m.SortOrder).Should().Equal(0, 1);
+        reordered.Select(m => m.SortOrder).Should().Equal(0, 1, 2, 3);
     }
 
     [Fact]

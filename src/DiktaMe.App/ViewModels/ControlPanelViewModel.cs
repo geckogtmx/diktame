@@ -440,22 +440,25 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             StatusText = _loc.GetString("ControlPanel_State_Ready");
 
             // Refresh session stats
-            RefreshSessionStats();
+            RefreshSessionStats(result);
         });
     }
 
     /// <summary>
     /// Refreshes session stats from the metrics collector.
     /// </summary>
-    public void RefreshSessionStats()
+    public void RefreshSessionStats(PipelineResult? lastResult = null)
     {
         var stats = _metrics.GetSessionStats();
         RequestCount = stats.Sessions;
         CharCount = stats.Chars;
         WordCount = stats.Words;
-        WordsPerMinute = Math.Round(stats.MinutesSinceFirstRequest > 0
-            ? stats.Words / stats.MinutesSinceFirstRequest
-            : 0, 1);
+
+        // WPM = words dictated / total pipeline time in minutes (recording + STT + LLM + injection).
+        if (lastResult is not null && lastResult.TotalMs > 0 && lastResult.WordCount > 0)
+        {
+            WordsPerMinute = Math.Round(lastResult.WordCount / (lastResult.TotalMs / 60_000.0), 1);
+        }
     }
 
     // ── Private helpers ─────────────────────────────────────────────────────
