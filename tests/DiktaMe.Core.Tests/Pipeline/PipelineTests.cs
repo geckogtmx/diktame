@@ -449,6 +449,7 @@ public sealed class PipelineTests
     // ═══════════════════════════════════════════════════════════════════════
 
     [Fact]
+    [Trait("Category", "Hardware")] // Uses real Win32 clipboard via CaptureSelection()
     public async Task Refine_Autopilot_NoSelection_ReturnsFailure()
     {
         // NullInputSimulator returns empty string from Ctrl+C — so CaptureSelection returns null
