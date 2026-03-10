@@ -22,7 +22,7 @@
 | **K** | OAuth & Trial Credits — K.1-K.7 (open bugs below) |
 | **L** | Deepgram Streaming — L.1-L.5 committed. L.6-L.7 (Flux) deferred. |
 | **SPEC_007** | Chat Feature Upgrade — 14/14 tasks complete (committed) |
-| **SPEC_009** | Wizard Testing — Scenario 1 complete, Scenario 2 verified (Whisper download + hotkey fix), Scenarios 3-8 pending |
+| **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-F complete, Phase G in progress (GPU acceleration fix) |
 
 ## Open Bugs (Stream K)
 
@@ -65,16 +65,49 @@ All fixes verified via manual testing on 2026-03-09. See `plans/SPEC_009_FIXES.m
 
 **File**: `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs`
 
+## DONE: Whisper GPU Acceleration — CUDA → Vulkan Swap
+
+**Root cause**: `Whisper.net.Runtime.Cuda` did NOT bundle CUDA runtime libraries → fell back to CPU silently (~2800ms for 11s audio).
+
+**Fix applied**: NuGet swap in `src/DiktaMe.Core/DiktaMe.Core.csproj`:
+```xml
+<PackageReference Include="Whisper.net.Runtime.Vulkan" Version="1.9.0" />
+```
+
+**Why Vulkan**: Self-contained (28MB, all DLLs bundled), cross-vendor (NVIDIA + AMD + Intel Arc), no user setup needed. No code changes — runtime selection is automatic.
+
+**Verified (G.6)**: `runtime="Vulkan"`, ratio 0.05x–0.09x (GPU). ~6-7x speedup over CPU. First dictation has cold-start penalty (Vulkan shader compile).
+
+**G.7 fix**: `STTProviderFactory` was creating a new `WhisperProvider` per dictation, reloading the 466MB model each time (~800ms). Fixed by caching the instance. **Verified**: pipeline `transcription_ms` dropped from ~1250ms to ~440ms. Raw mode end-to-end: ~500ms.
+
+**Full investigation details**: `plans/SPEC_009_LOCALFLOW.md` §12.8–12.10
+
 ## Remaining Work
+
+### Tier 1 — STT/Whisper (complete before moving on)
 
 | Task | Effort |
 |------|--------|
-| **SPEC_009 Scenarios 3-8** | Continue manual wizard testing (Local-only, Wallet, Settings UI, etc.) |
+| ~~G.7: Manual verify model cache~~ | ✅ Verified — 0-1ms gap, `loaded runtime` once per session |
+| **SPEC_009 STT scenarios** | Wizard Local STT tests, Whisper model selection, hybrid STT (see `plans/SPEC_009_TESTING.md`) |
+| **FIX-10: Cloud/Local toggle ignores STT** | Toggle should switch STT provider too (see `plans/SPEC_009_FIXES.md`) |
+
+### Tier 2 — Ollama/Local LLM (only after Tier 1 passes)
+
+| Task | Effort |
+|------|--------|
+| **G.3: Verify Ollama warmup log** | Code complete (`LoadingViewModel.cs:152-179`) — needs manual verify with Ollama running |
+| **SPEC_009 LLM scenarios** | Full local E2E (Whisper + Ollama), hybrid Cloud STT + Local LLM |
+
+### Tier 3 — Post-local-mode
+
+| Task | Effort |
+|------|--------|
 | **FIX-1** | Wizard: Trial → Wallet terminology (deferred, depends on SPEC_008) |
-| **H.1** | 1 day — Installer (MSIX or Inno Setup) |
+| **H.1** | Installer (MSIX or Inno Setup) |
 | **LemonSqueezy** | License integration, device binding, trial abuse prevention |
 | Latency tuning | Cloud inference profiling |
-| Control Panel wiring | RAW toggle->pipeline, REFINE toggle->pipeline (see `plans/CONTROL_PANEL_REWORK.md`) |
+| Control Panel wiring | RAW toggle→pipeline, REFINE toggle→pipeline (see `plans/CONTROL_PANEL_REWORK.md`) |
 | ~~L.6-L.7~~ | Deferred — Flux (revisit when Chat gets voice input) |
 
 ## Reference Docs
@@ -82,5 +115,8 @@ All fixes verified via manual testing on 2026-03-09. See `plans/SPEC_009_FIXES.m
 - `DEVELOPMENT_ROADMAP.md` — Full task breakdown
 - `ARCHITECTURE.md` — Technical architecture
 - `SECURITY.md` — GitHub security policy
+- `plans/SPEC_009_LOCALFLOW.md` — Local mode E2E spec + GPU investigation (§12)
+- `plans/SPEC_009_FIXES.md` — Wizard fix tracker (9/12 complete)
+- `plans/SPEC_009_TESTING.md` — Manual test scenarios
 - `plans/SPEC_001_MEETINGS.md` / `SPEC_002_VISION.md` / `SPEC_003_TTS.md` — Post-launch feature specs
 - `plans/archive/` — Completed implementation plans (Stream F, K, OAuth Restructure, etc.)

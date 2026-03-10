@@ -459,15 +459,17 @@ These are intentionally **not** part of this spec:
 | **D** | Settings UI (Whisper picker + toggle sync) | ✅ |
 | **E** | Integration Verification | 🔶 (automated ✅, manual ⬜) |
 | **F** | Commit & Cleanup | ✅ (committed a95bad8) |
-| **G** | Local Inference Diagnostics (Whisper GPU + Ollama + DB) | ⬜ |
+| **G** | Local Inference Diagnostics (Whisper GPU + Ollama + DB) | 🔶 (G.1-G.7 ✅, G.3 Ollama verify deferred to Tier 2. Vulkan verified, model reload fix applied) |
 
 ---
 
 ## 12. Whisper Latency Investigation — GPU Acceleration
 
 > **Date**: 2026-03-09
-> **Status**: Investigation — diagnostic logging needed before fix
+> **Status**: Root cause identified — Vulkan swap pending (see §12.8)
 > **Reported symptom**: Whisper `small` model transcribes 3.5s audio in ~2800ms (should be <200ms with GPU)
+> **Root cause**: `Whisper.net.Runtime.Cuda` doesn't bundle CUDA runtime DLLs → falls back to CPU silently
+> **Fix**: Replace with `Whisper.net.Runtime.Vulkan` (28MB, cross-vendor, self-contained)
 
 ### 12.1. Evidence from Logs
 
@@ -685,17 +687,22 @@ public double? TokensPerSec { get; init; }
 
 Set by pipeline orchestrators from provider results.
 
-#### G.5: If CUDA not loading — add CUDA 12 fallback
+#### G.5: Switch from CUDA to Vulkan GPU runtime
 
-If G.2 log shows `runtime=Cpu`:
+G.2 log confirmed `runtime=Cpu`. Investigation (§12.8) revealed CUDA runtime package doesn't bundle the required CUDA Toolkit DLLs. Adding CUDA 12 fallback would have the same problem.
+
+**Solution**: Replace CUDA with Vulkan — self-contained, cross-vendor (NVIDIA + AMD + Intel Arc).
 
 **File**: `src/DiktaMe.Core/DiktaMe.Core.csproj`
 
 ```xml
-<PackageReference Include="Whisper.net.Runtime.Cuda12" Version="1.9.0" />
+<!-- Remove: -->
+<PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.9.0" />
+<!-- Add: -->
+<PackageReference Include="Whisper.net.Runtime.Vulkan" Version="1.9.0" />
 ```
 
-Whisper.net probes CUDA 13 → CUDA 12 → CPU automatically.
+No code changes needed — runtime selection is automatic. See §12.8 for full rationale.
 
 #### G.6: Build, test, manual verify
 
@@ -707,13 +714,130 @@ Whisper.net probes CUDA 13 → CUDA 12 → CPU automatically.
   - `Ollama warmup: N.N tok/s (GPU/CPU)`
 - Check `history.db` has new columns populated
 
-### 12.8. Phase G Task Log
+### 12.8. Investigation Results (2026-03-09)
+
+#### Evidence
+
+**Log file** (`%APPDATA%\DiktaMe\logs\diktame_20260309.log`):
+```
+[INF] WhisperProvider: loaded runtime="Cpu"
+[INF] WhisperProvider: runtimeInfo=WHISPER : COREML = 0 | OPENVINO = 0 | CPU : SSE3 = 1 | SSSE3 = 1 | AVX = 1 | AVX2 = 1 | F16C = 1 | FMA = 1 | BMI2 = 1 | OPENMP = 1 | REPACK = 1 |
+[INF] WhisperProvider (small): 2946ms for 11.0s audio (ratio=0.27x, likely CPU)
+```
+
+**History DB** (`%APPDATA%\DiktaMe\history.db`):
+```
+id=1, mode=dictate, stt_provider=Whisper (small), audio_duration_s=10.958125, tokens_per_sec=NULL, transcription_ms=3325
+```
+
+**System** (`nvidia-smi`):
+- GPU: NVIDIA GeForce RTX 4060 Ti (8GB VRAM)
+- Driver: 591.86
+- CUDA capability: 13.1 (driver only — no CUDA Toolkit installed)
+
+#### Root Cause
+
+`Whisper.net.Runtime.Cuda` does **NOT** bundle CUDA runtime libraries (`cudart`, `cublas`, `cublasLt`). It only contains `whisper.cpp` compiled with CUDA support. At runtime, it tries to load CUDA DLLs from the system PATH — which requires a separately installed **CUDA Toolkit** (~3GB). Without the toolkit, the CUDA probe fails silently and falls back to `Whisper.net.Runtime` (CPU).
+
+This is a **deployment blocker**: users cannot be expected to install a 3GB CUDA Toolkit separately. GPU acceleration must be bundled with the app.
+
+#### Options Evaluated
+
+| Option | Size Impact | GPU Support | User Setup | Verdict |
+|--------|------------|-------------|------------|---------|
+| **`Whisper.net.Runtime.Cuda`** (current) | +0MB (fails) | NVIDIA only (needs Toolkit) | Must install 3GB CUDA Toolkit | ❌ Broken |
+| **Bundle CUDA redistributable DLLs** | +150-200MB | NVIDIA only | None | ⚠️ NVIDIA-only, heavy |
+| **`Whisper.net.Runtime.Vulkan`** | +28MB | NVIDIA + AMD + Intel Arc | None (Vulkan ships with GPU drivers) | ✅ Chosen |
+
+#### Decision: Switch to Vulkan
+
+**Rationale**:
+1. **Self-contained**: Vulkan runtime ships as a single 28MB NuGet package with all native DLLs bundled. No external dependencies.
+2. **Cross-vendor**: Works on NVIDIA (via Vulkan API), AMD, and Intel Arc GPUs. All modern GPU drivers include Vulkan support.
+3. **Size**: 28MB vs 150-200MB for bundled CUDA. Total app publish grows by ~28MB.
+4. **Known issue resolved**: GitHub issue [#2965](https://github.com/ggerganov/whisper.cpp/issues/2965) (nvoglv64.dll crash on RTX 4060 Ti) was a build configuration bug, **fixed and closed** in March 2025 (PR #2966 merged). This was before Whisper.net 1.9.0 release, so 1.9.0 includes the fix.
+5. **Future-proof**: As the app targets "anyone with a GPU", not just NVIDIA users, Vulkan is the right abstraction layer.
+
+**Implementation**: One-line NuGet swap in `DiktaMe.Core.csproj`:
+```xml
+<!-- Remove: -->
+<PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.9.0" />
+<!-- Add: -->
+<PackageReference Include="Whisper.net.Runtime.Vulkan" Version="1.9.0" />
+```
+
+No code changes needed — Whisper.net runtime selection is automatic (probes Vulkan → CPU in priority order).
+
+**Verification**: After swap, launch app → dictate → check log for:
+- `WhisperProvider: loaded runtime="Vulkan"` (not `"Cpu"`)
+- Performance ratio < 0.1x (GPU) instead of 0.27x (CPU)
+
+**Fallback plan**: If Vulkan fails on this specific GPU, revert to CUDA and investigate bundling CUDA redistributable DLLs manually.
+
+### 12.9. Phase G Task Log
 
 | # | Subtask | File(s) | Status |
 |---|---------|---------|--------|
-| G.1 | Whisper runtime detection logging (`RuntimeOptions.LoadedLibrary` + `GetRuntimeInfo()`) | `WhisperProvider.cs` | ⬜ |
-| G.2 | Audio duration + perf ratio logging (ratio=Nx, likely GPU/CPU) | `WhisperProvider.cs` | ⬜ |
-| G.3 | Ollama warmup timing + GPU assessment log | `LoadingViewModel.cs` | ⬜ |
-| G.4 | Extend history DB: `recording_ms`, `audio_duration_s`, `tokens_per_sec`, `error_message` + `PipelineResult` props | `HistoryManager.cs`, `PipelineResult.cs` | ⬜ |
-| G.5 | If CPU: add `Whisper.net.Runtime.Cuda12` package | `DiktaMe.Core.csproj` | ⬜ (conditional) |
-| G.6 | Build + test + manual verify with log analysis | All | ⬜ |
+| G.1 | Whisper runtime detection logging (`RuntimeOptions.LoadedLibrary` + `GetRuntimeInfo()`) | `WhisperProvider.cs` | ✅ (committed a56d91a) |
+| G.2 | Audio duration + perf ratio logging (ratio=Nx, likely GPU/CPU) | `WhisperProvider.cs` | ✅ (committed a56d91a) |
+| G.3 | Ollama warmup timing + GPU assessment log | `LoadingViewModel.cs` | ✅ code complete — manual verify deferred to Tier 2 (after STT verified) |
+| G.4 | Extend history DB: `recording_ms`, `audio_duration_s`, `tokens_per_sec`, `error_message` + `PipelineResult` props | `HistoryManager.cs`, `PipelineResult.cs`, `DictationPipeline.cs` + all pipelines | ✅ (committed a56d91a) |
+| G.5 | ~~CUDA~~ → **`Whisper.net.Runtime.Vulkan`** NuGet swap | `DiktaMe.Core.csproj` | ✅ |
+| G.6 | Manual verify: `runtime="Vulkan"` + ratio < 0.1x | Logs | ✅ Verified — see §12.10 |
+| G.7 | Fix WhisperProvider ~800ms model reload per dictation | `STTProviderFactory.cs` | ✅ — see §12.10 |
+
+### 12.10. Vulkan Verification + Model Reload Fix (2026-03-09)
+
+#### G.6 Results — Vulkan Verified
+
+Post-swap log (`diktame_20260309.log`) confirms GPU acceleration:
+
+| # | Runtime | WhisperProvider ms | Pipeline ms (DB) | Audio | Ratio | Tag |
+|---|---------|-------------------|-------------------|-------|-------|-----|
+| 1 (pre-swap) | Cpu | 2946 | 3325 | 11.0s | 0.27x | CPU |
+| 2 | Vulkan | 4204 | 5099 | 4.0s | 1.04x | Cold start (Vulkan shader compile) |
+| 3 | Vulkan | 454 | 1254 | 4.9s | 0.09x | **GPU** |
+| 4 | Vulkan | 449 | 1250 | 5.1s | 0.09x | **GPU** |
+| 5 | Vulkan | 453 | 1253 | 7.4s | 0.06x | **GPU** |
+| 6 | Vulkan | 391 | 1169 | 8.0s | 0.05x | **GPU** |
+
+Vulkan delivers ~6-7x speedup over CPU (2946ms → ~450ms). First dictation pays a one-time Vulkan shader compilation cost.
+
+#### G.7 Root Cause — ~800ms Gap Between Log and DB
+
+**Symptom**: WhisperProvider internal stopwatch logs ~450ms, but DB `transcription_ms` shows ~1250ms — consistent ~800ms gap on every warm dictation.
+
+**Investigation**: Both stopwatches end at the same millisecond (verified from log timestamps). The gap is at the **start**: `DictationPipeline.sttSw` starts before `WhisperProvider.sw`.
+
+**Root cause**: `STTProviderFactory.CreateProvider("whisper")` (line 36) created a **new `WhisperProvider` instance** on every call. Each new instance:
+1. `_factory = null` → `WhisperFactory.FromPath(_modelPath)` reloads the 466MB GGML model (~800ms from OS file cache)
+2. `_runtimeLogged = false` → runtime info logged on every call (5 dictations = 5 "loaded runtime" log entries)
+
+The DI singleton `WhisperProvider` (registered in `App.xaml.cs:398`) was only used by `LoadingViewModel` for model download checks — never for transcription.
+
+**Fix**: Added `WhisperProvider` instance caching in `STTProviderFactory`:
+- `_cachedWhisper` / `_cachedWhisperModel` fields
+- `GetOrCreateWhisper(modelSize)` method returns cached instance if model matches, disposes + recreates if model changes
+- `IDisposable` implementation for cleanup
+- **Verified**: pipeline `transcription_ms` dropped from ~1250ms to ~440ms (0-1ms gap). Raw mode total: ~450-540ms end-to-end.
+
+#### G.7 Verification Results (Post-Cache Fix)
+
+| id | Whisper ms | Pipeline stt ms | Gap | Total ms | Audio | Mode |
+|----|-----------|----------------|-----|----------|-------|------|
+| 7 | 225 | 878 | 653ms | 3357 | 8.0s | LLM (first dictation, cold factory) |
+| 8 | 457 | 458 | 1ms | 2403 | 6.5s | LLM |
+| 9 | 538 | 538 | 0ms | 4644 | 12.6s | LLM |
+| 12 | 437 | 437 | 0ms | **519** | 4.0s | **Raw** |
+| 13 | 439 | 439 | 0ms | **522** | 5.5s | **Raw** |
+| 14 | 368 | 369 | 1ms | **453** | 3.1s | **Raw** |
+| 15 | 458 | 459 | 1ms | **541** | 3.3s | **Raw** |
+
+`loaded runtime="Vulkan"` logged once per session (not per dictation). Raw mode end-to-end: **~500ms** (STT ~430ms + injection ~82ms).
+
+#### Note: Check LLM Provider for Same Pattern
+
+`LLMProviderFactory` may have the same issue — creating a new provider instance per dictation. In V1, this caused each dictation to open a new HTTP connection instead of reusing a kept-alive connection, adding unnecessary latency. Investigate when we reach Tier 2 (Ollama/Local LLM) and also check cloud LLM providers (Gemini, OpenAI) for `HttpClient` reuse. Look at:
+- `src/DiktaMe.Core/Config/LLMProviderFactory.cs` — does it `new` a provider each call?
+- Cloud providers (`GeminiProvider`, `OpenAiProvider`) — do they create `HttpClient` per instance or share one?
+- `OllamaProvider` — same question

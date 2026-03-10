@@ -5,11 +5,15 @@ namespace DiktaMe.Core.Config;
 /// <summary>
 /// Creates STT providers by name, pulling API keys from <see cref="Security.SecureStorage"/>
 /// and Deepgram settings from <see cref="SettingsManager"/>.
+/// Caches <see cref="WhisperProvider"/> instances to avoid reloading the ~466MB GGML model
+/// on every dictation (~800ms overhead per call without caching).
 /// </summary>
-public sealed class STTProviderFactory : ISTTProviderFactory
+public sealed class STTProviderFactory : ISTTProviderFactory, IDisposable
 {
     private readonly Security.SecureStorage _secureStorage;
     private readonly SettingsManager _settings;
+    private WhisperProvider? _cachedWhisper;
+    private string? _cachedWhisperModel;
 
     public STTProviderFactory(Security.SecureStorage secureStorage, SettingsManager settings)
     {
@@ -33,12 +37,12 @@ public sealed class STTProviderFactory : ISTTProviderFactory
             "gemini-audio" => new GeminiAudioProvider(
                 key ?? throw new InvalidOperationException("Gemini API key not configured.")),
 
-            "whisper" => new WhisperProvider(_settings.Current.WhisperModel),
-            "whisper-turbo" => new WhisperProvider("turbo"),
-            "whisper-small" => new WhisperProvider("small"),
-            "whisper-base" => new WhisperProvider("base"),
-            "whisper-tiny" => new WhisperProvider("tiny"),
-            "whisper-large" => new WhisperProvider("large"),
+            "whisper" => GetOrCreateWhisper(_settings.Current.WhisperModel),
+            "whisper-turbo" => GetOrCreateWhisper("turbo"),
+            "whisper-small" => GetOrCreateWhisper("small"),
+            "whisper-base" => GetOrCreateWhisper("base"),
+            "whisper-tiny" => GetOrCreateWhisper("tiny"),
+            "whisper-large" => GetOrCreateWhisper("large"),
 
             _ => throw new NotSupportedException($"Unknown STT provider type: '{providerType}'."),
         };
@@ -62,5 +66,30 @@ public sealed class STTProviderFactory : ISTTProviderFactory
 
             _ => null, // Only Deepgram supports streaming
         };
+    }
+
+    /// <summary>
+    /// Returns the cached <see cref="WhisperProvider"/> if the model size matches,
+    /// otherwise disposes the old one and creates a new instance.
+    /// </summary>
+    private WhisperProvider GetOrCreateWhisper(string modelSize)
+    {
+        if (_cachedWhisper is not null
+            && string.Equals(_cachedWhisperModel, modelSize, StringComparison.Ordinal))
+        {
+            return _cachedWhisper;
+        }
+
+        _cachedWhisper?.Dispose();
+        _cachedWhisper = new WhisperProvider(modelSize);
+        _cachedWhisperModel = modelSize;
+        return _cachedWhisper;
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        _cachedWhisper?.Dispose();
+        _cachedWhisper = null;
     }
 }
