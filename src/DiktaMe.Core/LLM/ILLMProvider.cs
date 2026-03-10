@@ -69,6 +69,9 @@ public sealed record LlmResult
     /// <summary>Number of output tokens generated, if reported by the provider.</summary>
     public int? OutputTokens { get; init; }
 
+    /// <summary>Inference speed in tokens/sec, if reported by the provider (Ollama).</summary>
+    public double? TokensPerSec { get; init; }
+
     /// <summary>Whether the result contains non-empty output text.</summary>
     public bool IsSuccess => !string.IsNullOrWhiteSpace(Text);
 }

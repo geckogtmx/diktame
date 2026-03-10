@@ -80,6 +80,7 @@ public sealed class NotePipeline
             string noteText = rawText;
             long processingMs = 0;
             string? llmProvider = null;
+            double? tokensPerSec = null;
 
             bool useLlm = _llm is not null && !string.IsNullOrWhiteSpace(options.SystemPrompt);
             if (useLlm)
@@ -92,6 +93,7 @@ public sealed class NotePipeline
                 llmSw.Stop();
                 processingMs = llmSw.ElapsedMilliseconds;
                 llmProvider = llmResult.Provider;
+                tokensPerSec = llmResult.TokensPerSec;
 
                 if (llmResult.IsSuccess)
                 {
@@ -143,6 +145,8 @@ public sealed class NotePipeline
                 TotalMs = total.ElapsedMilliseconds,
                 SttProvider = sttResult.Provider,
                 LlmProvider = llmProvider,
+                AudioDurationSec = sttResult.AudioDurationSec,
+                TokensPerSec = tokensPerSec,
             };
             Completed?.Invoke(this, result);
             return result;

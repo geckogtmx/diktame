@@ -74,21 +74,7 @@ public sealed class DictationPipeline
 
             if (!sttResult.IsSuccess)
             {
-                Log.Information("DictationPipeline: empty transcription — aborting");
-                SetState(PipelineState.Idle);
-                var emptyResult = new PipelineResult
-                {
-                    Text = string.Empty,
-                    RawTranscript = string.Empty,
-                    Mode = Mode,
-                    IsSuccess = true,   // not an error — user just didn't speak
-                    RecordingMs = options.RecordingDurationMs,
-                    TranscriptionMs = sttSw.ElapsedMilliseconds,
-                    TotalMs = total.ElapsedMilliseconds,
-                    SttProvider = sttResult.Provider,
-                };
-                Completed?.Invoke(this, emptyResult);
-                return emptyResult;
+                return EmitEmpty(Mode, options, sttResult, sttSw.ElapsedMilliseconds, total.ElapsedMilliseconds);
             }
 
             string rawText = sttResult.Text;
@@ -102,6 +88,7 @@ public sealed class DictationPipeline
             long processingMs = 0;
             string? llmProvider = null;
             string? warningMessage = null;
+            double? tokensPerSec = null;
 
             bool useLlm = !options.RawMode
                 && _llm is not null
@@ -119,6 +106,7 @@ public sealed class DictationPipeline
                     llmSw.Stop();
                     processingMs = llmSw.ElapsedMilliseconds;
                     llmProvider = llmResult.Provider;
+                    tokensPerSec = llmResult.TokensPerSec;
 
                     if (llmResult.IsSuccess)
                     {
@@ -186,6 +174,8 @@ public sealed class DictationPipeline
                 TotalMs = total.ElapsedMilliseconds,
                 SttProvider = sttResult.Provider,
                 LlmProvider = llmProvider,
+                AudioDurationSec = sttResult.AudioDurationSec,
+                TokensPerSec = tokensPerSec,
             };
             Completed?.Invoke(this, result);
             return result;
@@ -206,6 +196,28 @@ public sealed class DictationPipeline
             Completed?.Invoke(this, r);
             return r;
         }
+    }
+
+    private PipelineResult EmitEmpty(
+        string mode, DictationOptions options, TranscriptionResult sttResult,
+        long transcriptionMs, long totalMs)
+    {
+        Log.Information("DictationPipeline: empty transcription — aborting");
+        SetState(PipelineState.Idle);
+        var result = new PipelineResult
+        {
+            Text = string.Empty,
+            RawTranscript = string.Empty,
+            Mode = mode,
+            IsSuccess = true,
+            RecordingMs = options.RecordingDurationMs,
+            TranscriptionMs = transcriptionMs,
+            TotalMs = totalMs,
+            SttProvider = sttResult.Provider,
+            AudioDurationSec = sttResult.AudioDurationSec,
+        };
+        Completed?.Invoke(this, result);
+        return result;
     }
 
     private void SetState(PipelineState state) => StateChanged?.Invoke(this, state);

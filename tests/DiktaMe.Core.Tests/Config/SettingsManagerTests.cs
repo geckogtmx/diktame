@@ -407,26 +407,26 @@ public sealed class SettingsManagerTests : IDisposable
         await manager.LoadAsync();
 
         Assert.True(manager.Current.WizardCompleted);
-        Assert.Equal(2, manager.Current.SchemaVersion);
     }
 
     [Fact, Trait("Category", "Unit")]
-    public async Task LoadAsync_DoesNotAutoCompleteWizard_ForSchemaV2Files()
+    public async Task LoadAsync_AutoCompletesWizard_ForExistingSchemaV2Files()
     {
-        // New install (schema v2): wizard not yet completed — should stay false
-        var newSettings = new AppSettings
+        // Existing settings file on disk with WizardCompleted=false means the flag
+        // wasn't persisted — auto-complete since the file's existence proves prior use.
+        var existingSettings = new AppSettings
         {
             SchemaVersion = 2,
             WizardCompleted = false,
             UtilityPipelines = DictationModeDefaults.CreateBuiltInUtilityPipelines(),
         };
-        string json = JsonSerializer.Serialize(newSettings, AppSettingsContext.Default.AppSettings);
+        string json = JsonSerializer.Serialize(existingSettings, AppSettingsContext.Default.AppSettings);
         await File.WriteAllTextAsync(_testFile, json);
 
         var manager = new SettingsManager(_testFile);
         await manager.LoadAsync();
 
-        Assert.False(manager.Current.WizardCompleted);
+        Assert.True(manager.Current.WizardCompleted);
     }
 
     // ── Wizard ActiveProfileName logic tests ──────────────────────────────────

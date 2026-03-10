@@ -270,14 +270,15 @@ public sealed class SettingsManager
             Log.Information("SettingsManager: populated {Count} default dictation presets", defaultPresets.Count);
         }
 
-        // Migration 8: Auto-complete wizard for pre-wizard settings files (schema v1).
-        // Schema v1 files pre-date the wizard — those users already configured manually.
-        // Schema v2+ files were created with the wizard feature, so WizardCompleted=false
-        // means the user hasn't finished the wizard yet and it should still show.
-        if (loaded.SchemaVersion < 2 && !migrated.WizardCompleted)
+        // Migration 8: Auto-complete wizard when a settings file already exists on disk.
+        // If MigrateIfNeeded is called, the file was loaded from disk — the user has been
+        // using the app. WizardCompleted=false in an existing file means the flag wasn't
+        // persisted (e.g. wizard completed but save failed, or file predates wizard feature).
+        // A truly first-run user has no file at all (handled by LoadAsync's !File.Exists branch).
+        if (!migrated.WizardCompleted)
         {
-            migrated = migrated with { WizardCompleted = true, SchemaVersion = 2 };
-            Log.Information("SettingsManager: auto-completed wizard for pre-wizard settings file (schema v{V})", loaded.SchemaVersion);
+            migrated = migrated with { WizardCompleted = true };
+            Log.Information("SettingsManager: auto-completed wizard for existing settings file");
         }
 
         return migrated;

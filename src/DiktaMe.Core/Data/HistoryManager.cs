@@ -108,10 +108,12 @@ public sealed class HistoryManager : IDisposable
         cmd.CommandText = """
             INSERT INTO history
                 (timestamp, mode, text, raw_transcript, stt_provider, llm_provider,
-                 word_count, transcription_ms, processing_ms, injection_ms, total_ms, is_success)
+                 word_count, transcription_ms, processing_ms, injection_ms, total_ms, is_success,
+                 recording_ms, audio_duration_s, tokens_per_sec, error_message)
             VALUES
                 ($ts, $mode, $text, $raw, $stt, $llm,
-                 $words, $trans_ms, $proc_ms, $inj_ms, $total_ms, $success)
+                 $words, $trans_ms, $proc_ms, $inj_ms, $total_ms, $success,
+                 $rec_ms, $audio_dur, $tok_sec, $err_msg)
             """;
 
         cmd.Parameters.AddWithValue("$ts", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
@@ -126,6 +128,10 @@ public sealed class HistoryManager : IDisposable
         cmd.Parameters.AddWithValue("$inj_ms", result.InjectionMs);
         cmd.Parameters.AddWithValue("$total_ms", result.TotalMs);
         cmd.Parameters.AddWithValue("$success", result.IsSuccess ? 1 : 0);
+        cmd.Parameters.AddWithValue("$rec_ms", result.RecordingMs);
+        cmd.Parameters.AddWithValue("$audio_dur", result.AudioDurationSec.HasValue ? result.AudioDurationSec.Value : (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("$tok_sec", result.TokensPerSec.HasValue ? result.TokensPerSec.Value : (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("$err_msg", result.ErrorMessage ?? (object)DBNull.Value);
 
         await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -193,6 +199,37 @@ public sealed class HistoryManager : IDisposable
             );
             """;
         await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+        // Migration: add diagnostic columns (V1 parity)
+        await MigrateSchemaAsync().ConfigureAwait(false);
+    }
+
+    private async Task MigrateSchemaAsync()
+    {
+        // SQLite ALTER TABLE ADD COLUMN is safe to call multiple times via
+        // checking column existence first. We use a simple try/catch approach —
+        // if the column already exists, the ALTER TABLE will throw, which we ignore.
+        string[] newColumns =
+        [
+            "ALTER TABLE history ADD COLUMN recording_ms INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE history ADD COLUMN audio_duration_s REAL",
+            "ALTER TABLE history ADD COLUMN tokens_per_sec REAL",
+            "ALTER TABLE history ADD COLUMN error_message TEXT",
+        ];
+
+        foreach (string ddl in newColumns)
+        {
+            try
+            {
+                using var cmd = _connection!.CreateCommand();
+                cmd.CommandText = ddl;
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+            }
+            catch (Microsoft.Data.Sqlite.SqliteException)
+            {
+                // Column already exists — expected on subsequent runs
+            }
+        }
     }
 
     private async Task PruneOldRecordsAsync(CancellationToken cancellationToken = default)

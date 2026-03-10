@@ -458,4 +458,262 @@ These are intentionally **not** part of this spec:
 | **C** | Startup Wiring (download + warmup) | ✅ |
 | **D** | Settings UI (Whisper picker + toggle sync) | ✅ |
 | **E** | Integration Verification | 🔶 (automated ✅, manual ⬜) |
-| **F** | Commit & Cleanup | 🔶 (build ✅, commit ⬜) |
+| **F** | Commit & Cleanup | ✅ (committed a95bad8) |
+| **G** | Local Inference Diagnostics (Whisper GPU + Ollama + DB) | ⬜ |
+
+---
+
+## 12. Whisper Latency Investigation — GPU Acceleration
+
+> **Date**: 2026-03-09
+> **Status**: Investigation — diagnostic logging needed before fix
+> **Reported symptom**: Whisper `small` model transcribes 3.5s audio in ~2800ms (should be <200ms with GPU)
+
+### 12.1. Evidence from Logs
+
+```
+[INF] WhisperProvider (small): transcribed in 2781ms — "this is a simple test"
+[INF] DictationPipeline: complete — total=4851ms stt=3184ms llm=1552ms inj=114ms words=5
+
+[INF] WhisperProvider (small): transcribed in 2816ms — "All right, that was a cold model..."
+[INF] DictationPipeline: complete — total=6246ms stt=3178ms llm=2977ms inj=90ms words=11
+```
+
+Both runs show ~2800ms for the `small` model. The second run was NOT a cold model load (factory already initialized from first run). This is consistent with **CPU inference** on the `small` model.
+
+V1 with `faster-whisper` on the same hardware achieved <200ms GPU transcription for similar audio.
+
+### 12.2. V1 vs V2 Comparison (Verified from Code)
+
+| Aspect | V1 (`E:\git\diktate\python\core\transcriber.py`) | V2 (`WhisperProvider.cs`) |
+|--------|--------------------------------------------------|---------------------------|
+| **Engine** | `faster-whisper` 1.2.1 → CTranslate2 | `Whisper.net` 1.9.0 → whisper.cpp (GGML) |
+| **GPU package** | `nvidia-cublas-cu12==12.1.3.1`, `nvidia-cudnn-cu12==8.9.2.26` | `Whisper.net.Runtime.Cuda` 1.9.0 |
+| **GPU detection** | Explicit: `ctranslate2.get_cuda_device_count()` → logs "CUDA detected" | Automatic: Whisper.net probes runtimes silently |
+| **Compute type** | `int8_float16` (GPU) / `int8` (CPU) — explicitly set | Internal to GGML — not configurable |
+| **Runtime logging** | Logs device, model name, device type on load | **None** — no log of which runtime was loaded |
+
+### 12.3. V2 Runtime Architecture (Verified from NuGet XML docs)
+
+Whisper.net 1.9.0 auto-selects runtime by priority order:
+
+1. `Whisper.net.Runtime.Cuda` (CUDA 13 drivers)
+2. `Whisper.net.Runtime.Cuda12` (CUDA 12 drivers) — **NOT referenced in V2**
+3. `Whisper.net.Runtime.Vulkan` (Windows + Vulkan)
+4. `Whisper.net.Runtime.CoreML` (Apple)
+5. `Whisper.net.Runtime.OpenVino` (Intel)
+6. `Whisper.net.Runtime` (CPU) — **referenced in V2**
+7. `Whisper.net.Runtime.NoAvx` (CPU without AVX)
+
+**Key risk**: V2 references `Whisper.net.Runtime.Cuda` (CUDA 13), but does NOT reference `Whisper.net.Runtime.Cuda12`. If the user's NVIDIA drivers support CUDA 12 but not CUDA 13, the CUDA probe fails silently and falls back to CPU.
+
+### 12.4. Build Output Verification
+
+Native DLLs present in build output (`bin/x64/Release/`):
+
+```
+runtimes/win-x64/           → ggml-base-whisper.dll, ggml-cpu-whisper.dll, ggml-whisper.dll, whisper.dll
+runtimes/cuda/win-x64/      → ggml-base-whisper.dll, ggml-cpu-whisper.dll, ggml-cuda-whisper.dll, ggml-whisper.dll, whisper.dll
+```
+
+The CUDA DLLs exist. The question is whether the runtime loader successfully loads them.
+
+### 12.5. Available Diagnostic APIs (Verified from NuGet XML docs)
+
+| API | Namespace | What it returns |
+|-----|-----------|-----------------|
+| `RuntimeOptions.LoadedLibrary` | `Whisper.net.LibraryLoader` | Which runtime was loaded (e.g. `Cuda`, `Cpu`) |
+| `RuntimeOptions.RuntimeLibraryOrder` | `Whisper.net.LibraryLoader` | Can be set to force specific priority order |
+| `WhisperFactory.GetRuntimeInfo()` | `Whisper.net` | Feature support: AVX, AVX2, AVX512, CUDA, etc. |
+
+None of these are currently called in V2 code.
+
+### 12.6. V2 Logging Gap Analysis (vs V1)
+
+V1 logged to both **Serilog files** and **SQLite history DB**. V2 has partial coverage.
+
+#### Whisper/STT Logging
+
+| V1 Log | V2 Status | Gap |
+|--------|-----------|-----|
+| `"CUDA detected: Using GPU (Count: N)"` / `"Using CPU"` | **Missing** | No runtime detection logging |
+| `"Loading Whisper model 'X' on {device}..."` | **Missing** | No log of which runtime (Cuda/Cpu) was loaded |
+| `"Model loaded successfully"` | Partial — logs on first transcription only | No explicit load-complete log |
+| `"Transcription complete: {text[:100]}..."` | ✅ `WhisperProvider.cs:140` | OK |
+| Performance ratio: `transcription_ms / audio_duration_s` | **Missing** | Audio duration not tracked anywhere |
+
+#### Ollama/LLM Logging
+
+| V1 Log | V2 Status | Gap |
+|--------|-----------|-----|
+| `"{tokens_per_sec:.1f} tok/s"` | ✅ `OllamaProvider.cs:167` | OK |
+| `"SLOW INFERENCE: N tok/s — GPU may not be active"` | ✅ `OllamaProvider.cs:162` (threshold 20 tok/s) | OK |
+| `"Model {model} ready (warmup complete)"` | Partial — `WarmUpAsync()` logs but doesn't report timing/tok/s | Need GPU assessment at warmup |
+| Startup GPU check via warmup speed analysis | **Missing** | V1 logged tok/s at startup, warned if <20 |
+| `'ollama ps'` processor check (`100% GPU` vs `CPU`) | **Missing** | `OllamaManager` doesn't parse `ollama ps` |
+
+#### History DB Schema (`history` table)
+
+| V1 Column | V2 Status | Gap |
+|-----------|-----------|-----|
+| `audio_duration_s` | **Missing** | Cannot compute performance ratio |
+| `tokens_per_sec` | **Missing** | In-memory only (`LastTokensPerSec`), not persisted |
+| `recording_ms` | **Missing** | `PipelineResult.RecordingMs` exists but not stored |
+| `error_message` | **Missing** | `PipelineResult.ErrorMessage` exists but not stored |
+| `transcriber_model` / `processor_model` | **Missing** | Provider names stored, model names not |
+| `system_metrics` table | Schema exists (line 188) but **never written to** | Empty table |
+
+#### Pipeline Timing
+
+| V1 Log | V2 Status |
+|--------|-----------|
+| `[PERF] Total: Nms, Words: N` | ✅ Pipeline logs `total=Nms stt=Nms llm=Nms inj=Nms words=N` |
+| `[AUDIO] Duration: Ns, Size: N bytes` | **Missing** — audio file size/duration not logged |
+
+### 12.7. Proposed Fix — Phase G: Local Inference Diagnostics
+
+All diagnostic logging for Whisper, Ollama, and pipeline performance — done in one pass.
+
+#### G.1: Whisper runtime detection logging
+
+**File**: `src/DiktaMe.Core/STT/WhisperProvider.cs`
+
+After `_factory ??= WhisperFactory.FromPath(_modelPath)` (line 108), log:
+- `RuntimeOptions.LoadedLibrary` → `Cuda` or `Cpu`
+- `WhisperFactory.GetRuntimeInfo()` → feature flags (AVX, CUDA, etc.)
+
+Add `private bool _runtimeLogged;` field. Both calls in try/catch (non-fatal).
+
+```csharp
+if (!_runtimeLogged)
+{
+    _runtimeLogged = true;
+    try
+    {
+        var loadedLib = Whisper.net.LibraryLoader.RuntimeOptions.LoadedLibrary;
+        Log.Information("WhisperProvider: loaded runtime={Runtime}", loadedLib);
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "WhisperProvider: failed to read loaded runtime");
+    }
+    try
+    {
+        var info = WhisperFactory.GetRuntimeInfo();
+        Log.Information("WhisperProvider: runtimeInfo={Info}", info);
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "WhisperProvider: failed to get runtime info");
+    }
+}
+```
+
+#### G.2: Audio duration + performance ratio logging
+
+**File**: `src/DiktaMe.Core/STT/WhisperProvider.cs`
+
+In `TranscribeAsync()`, after transcription, compute audio duration and log ratio:
+
+```csharp
+double audioDurationSec = GetAudioDurationSeconds(audioFilePath);
+double ratio = audioDurationSec > 0 ? sw.ElapsedMilliseconds / (audioDurationSec * 1000.0) : 0;
+string perfTag = ratio < 0.1 ? "GPU" : ratio < 0.5 ? "BORDERLINE" : "CPU";
+Log.Information("WhisperProvider ({Model}): {Ms}ms for {AudioSec:F1}s audio (ratio={Ratio:F2}x, likely {PerfTag})",
+    _modelSize, sw.ElapsedMilliseconds, audioDurationSec, ratio, perfTag);
+```
+
+Add `AudioDurationSec` to `TranscriptionResult` so pipelines can pass it through to DB.
+
+Helper to get WAV duration (16kHz, 16-bit mono = 32000 bytes/sec):
+
+```csharp
+private static double GetAudioDurationSeconds(string audioFilePath)
+{
+    try
+    {
+        long fileSize = new FileInfo(audioFilePath).Length;
+        return Math.Max(0, (fileSize - 44) / 32000.0);
+    }
+    catch { return 0; }
+}
+```
+
+V1 benchmarks: GPU < 0.1x ratio, Borderline 0.1–0.2x, CPU > 0.2x.
+
+#### G.3: Ollama warmup timing + GPU assessment
+
+**File**: `src/DiktaMe.App/ViewModels/LoadingViewModel.cs`
+
+After `WarmUpAsync()` call, log `LastTokensPerSec` with GPU assessment:
+
+```csharp
+await ollamaProvider.WarmUpAsync(cancellationToken);
+if (ollamaProvider.LastTokensPerSec.HasValue)
+{
+    var tps = ollamaProvider.LastTokensPerSec.Value;
+    string gpuTag = tps > 50 ? "GPU" : tps > 20 ? "BORDERLINE" : "CPU";
+    Log.Information("Ollama warmup: {Tps:F1} tok/s ({GpuTag})", tps, gpuTag);
+}
+```
+
+V1 thresholds: >50 tok/s = GPU, <20 = likely CPU, <10 = definitely CPU.
+
+#### G.4: Extend history DB + PipelineResult
+
+**File**: `src/DiktaMe.Core/Data/HistoryManager.cs`
+
+Add columns via ALTER TABLE migration:
+
+```sql
+ALTER TABLE history ADD COLUMN recording_ms INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE history ADD COLUMN audio_duration_s REAL;
+ALTER TABLE history ADD COLUMN tokens_per_sec REAL;
+ALTER TABLE history ADD COLUMN error_message TEXT;
+```
+
+Update `LogSessionAsync()` INSERT to include these 4 new columns.
+
+**File**: `src/DiktaMe.Core/Pipeline/PipelineResult.cs`
+
+Add optional properties:
+
+```csharp
+public double? AudioDurationSec { get; init; }
+public double? TokensPerSec { get; init; }
+```
+
+Set by pipeline orchestrators from provider results.
+
+#### G.5: If CUDA not loading — add CUDA 12 fallback
+
+If G.2 log shows `runtime=Cpu`:
+
+**File**: `src/DiktaMe.Core/DiktaMe.Core.csproj`
+
+```xml
+<PackageReference Include="Whisper.net.Runtime.Cuda12" Version="1.9.0" />
+```
+
+Whisper.net probes CUDA 13 → CUDA 12 → CPU automatically.
+
+#### G.6: Build, test, manual verify
+
+- `dotnet build DiktaMe.sln` → 0 errors
+- `dotnet test DiktaMe.sln` → 689+ tests pass
+- Launch → dictate → check log for:
+  - `WhisperProvider: loaded runtime=Cuda` (or `Cpu`)
+  - `WhisperProvider (small): Nms for N.Ns audio (ratio=N.NNx, likely GPU/CPU)`
+  - `Ollama warmup: N.N tok/s (GPU/CPU)`
+- Check `history.db` has new columns populated
+
+### 12.8. Phase G Task Log
+
+| # | Subtask | File(s) | Status |
+|---|---------|---------|--------|
+| G.1 | Whisper runtime detection logging (`RuntimeOptions.LoadedLibrary` + `GetRuntimeInfo()`) | `WhisperProvider.cs` | ⬜ |
+| G.2 | Audio duration + perf ratio logging (ratio=Nx, likely GPU/CPU) | `WhisperProvider.cs` | ⬜ |
+| G.3 | Ollama warmup timing + GPU assessment log | `LoadingViewModel.cs` | ⬜ |
+| G.4 | Extend history DB: `recording_ms`, `audio_duration_s`, `tokens_per_sec`, `error_message` + `PipelineResult` props | `HistoryManager.cs`, `PipelineResult.cs` | ⬜ |
+| G.5 | If CPU: add `Whisper.net.Runtime.Cuda12` package | `DiktaMe.Core.csproj` | ⬜ (conditional) |
+| G.6 | Build + test + manual verify with log analysis | All | ⬜ |

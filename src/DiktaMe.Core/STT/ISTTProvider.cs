@@ -42,6 +42,11 @@ public sealed record TranscriptionResult
     public string? DetectedLanguage { get; init; }
 
     /// <summary>
+    /// Duration of the source audio in seconds (computed from WAV file size).
+    /// </summary>
+    public double? AudioDurationSec { get; init; }
+
+    /// <summary>
     /// Transcription latency in milliseconds.
     /// </summary>
     public long LatencyMs { get; init; }

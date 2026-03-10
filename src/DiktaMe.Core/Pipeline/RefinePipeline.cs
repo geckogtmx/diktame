@@ -80,6 +80,7 @@ public sealed class RefinePipeline
             string? instruction = null;
             long transcriptionMs = 0;
             string? sttProvider = null;
+            double? audioDurationSec = null;
 
             // ── Stage 1 (instruction mode only): transcribe audio ─────────
             if (_stt is not null && !string.IsNullOrEmpty(audioFilePath))
@@ -95,6 +96,7 @@ public sealed class RefinePipeline
 
                 transcriptionMs = sttSw.ElapsedMilliseconds;
                 sttProvider = sttResult.Provider;
+                audioDurationSec = sttResult.AudioDurationSec;
 
                 if (!sttResult.IsSuccess)
                 {
@@ -196,6 +198,8 @@ public sealed class RefinePipeline
                 TotalMs = total.ElapsedMilliseconds,
                 SttProvider = sttProvider,
                 LlmProvider = llmResult.Provider,
+                AudioDurationSec = audioDurationSec,
+                TokensPerSec = llmResult.TokensPerSec,
             };
             Completed?.Invoke(this, result);
             return result;
@@ -256,6 +260,7 @@ public sealed class RefinePipeline
             TotalMs = total.ElapsedMilliseconds,
             SttProvider = sttProvider,
             LlmProvider = llmResult.Provider,
+            TokensPerSec = llmResult.TokensPerSec,
         };
         Completed?.Invoke(this, result);
         return result;

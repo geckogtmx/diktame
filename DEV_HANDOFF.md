@@ -57,6 +57,14 @@ All fixes verified via manual testing on 2026-03-09. See `plans/SPEC_009_FIXES.m
 | FIX-8 | Hotkey double-subscription fix (singleton LoadingViewModel unsubscribes before re-subscribing) |
 | FIX-9 | Download triggers on Next click, not radio selection (BeforeLeaveStep callback) |
 
+## RESOLVED: Wizard Won't Show on Fresh Install
+
+**Root cause**: `ControlPanelViewModel` constructor called `LoadFromSettings()` which triggered `OnIsRefineVoiceChanged` → `UpdateAsync()` → prematurely wrote `settings.json`. Then `LoadAsync()` found the file, Migration 8 set `WizardCompleted = true`, and the wizard was skipped.
+
+**Fix**: Added `_suppressSave` guard in `ControlPanelViewModel`. All `On*Changed` handlers skip `UpdateAsync()` when `_suppressSave` is true. Guard is set around both `LoadFromSettings()` call sites (constructor + `OnSettingsChanged`). Manually verified: wizard shows on fresh install, does not show on subsequent launches.
+
+**File**: `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs`
+
 ## Remaining Work
 
 | Task | Effort |

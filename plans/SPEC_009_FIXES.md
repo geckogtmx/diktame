@@ -2,7 +2,7 @@
 
 > **Source**: Manual testing of SPEC_009 Scenario 1 (Full Cloud, no Ollama)
 > **Date**: 2026-03-09
-> **Status**: 8/9 complete (FIX-1 deferred to SPEC_008)
+> **Status**: 9/12 complete (FIX-1 deferred to SPEC_008, FIX-10 open, FIX-11 done, FIX-12 done)
 
 ---
 
@@ -132,6 +132,44 @@ _hotkeyManager.RegistrationFailed += OnHotkeyRegistrationFailed;
 
 ---
 
+## FIX-10: Cloud/Local Toggle Does Not Affect STT Provider
+
+**Problem**: The Cloud/Local toggle switch in the Control Panel does not affect the STT provider. When toggled to "Cloud", Whisper (local) is still used for transcription instead of switching to Deepgram. The toggle currently only switches the LLM between Gemini (cloud) and Ollama (local).
+
+**Impact**: Users who select "Cloud" mode expect both STT and LLM to use cloud providers. Currently only LLM switches.
+
+**Potential Fix**: Consider separate Cloud/Local toggles for STT and LLM independently, or make the single toggle affect both subsystems. Needs design decision.
+
+**Status**: Open — noted for future fix.
+
+---
+
+## FIX-11: Whisper Download Auto-Advances Without Showing Completion
+
+**Problem**: When selecting Local (Whisper) STT and clicking Next, the download runs from 0% and then immediately auto-advances to the next step without showing the user that the download completed. User has no confirmation that the model is ready.
+
+**Root Cause**: `OnBeforeLeaveStepAsync()` returned `true` after download completed, which told `GoNextAsync()` to advance immediately. The "Download Complete" status text was set via `DispatcherQueue.TryEnqueue()` but the page was already navigating away.
+
+**Fix**: Changed `return true` → `return false` after successful download. The user now sees the "Download Complete" message and clicks Next again to proceed. The second click hits `whisper.IsModelDownloaded` → `return true` → advances normally.
+
+**File**: `src/DiktaMe.App/Views/Wizard/WizardSttPage.xaml.cs` — line 132
+
+---
+
+## FIX-12: Wizard Won't Show on Fresh Install
+
+**Problem**: Deleting `%APPDATA%\DiktaMe` and launching the app did not trigger the first-run wizard. Instead, the app went straight to the main window.
+
+**Root Cause**: `ControlPanelViewModel` constructor ran before `LoadingViewModel.InitializeAsync()`. Its `LoadFromSettings()` set `IsRefineVoice` from `true` (field initializer) to `false` (default), triggering `OnIsRefineVoiceChanged` → `UpdateAsync()` → wrote `settings.json` prematurely. When `LoadAsync()` ran, it found the file, entered the existing-file branch, and Migration 8 set `WizardCompleted = true`.
+
+**Fix**: Added `_suppressSave` field to `ControlPanelViewModel`. Set to `true` around both `LoadFromSettings()` call sites (constructor + `OnSettingsChanged`). All 5 `On*Changed` handlers guard their `UpdateAsync()` call with `if (!_suppressSave)`. UI updates (label text, RefineMode, etc.) still run during load.
+
+**File**: `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs`
+
+**Verified**: Wizard shows on fresh install (no folder), does not show on subsequent launches.
+
+---
+
 ## Task Log
 
 | # | Fix | Status | Notes |
@@ -145,3 +183,6 @@ _hotkeyManager.RegistrationFailed += OnHotkeyRegistrationFailed;
 | 7 | Whisper download in wizard STT step | Done | Download UI in `WizardSttPage`, blocks Next until complete |
 | 8 | Hotkey double-subscription | Done | Unsubscribe before re-subscribing in `InitializeHotkeys()` |
 | 9 | Download on Next click, not radio | Done | `BeforeLeaveStep` callback pattern in WizardViewModel |
+| 10 | Cloud/Local toggle ignores STT | Open | Toggle doesn't affect Whisper — always uses Whisper regardless of position. May need separate Cloud/Local toggles for STT and LLM independently. |
+| 11 | Whisper download auto-advances | Done | Changed `return true` → `return false` after download; user sees completion, clicks Next again |
+| 12 | Wizard won't show on fresh install | Done | `_suppressSave` guard in `ControlPanelViewModel` prevents premature `settings.json` creation |

@@ -129,7 +129,7 @@ public sealed partial class WizardSttPage : Page, IWizardStepPage
             });
 
             Log.Information("Wizard: Whisper model downloaded successfully");
-            return true; // Proceed to next step
+            return false; // Stay on step so user sees completion — next click advances via IsModelDownloaded check
         }
         catch (OperationCanceledException)
         {

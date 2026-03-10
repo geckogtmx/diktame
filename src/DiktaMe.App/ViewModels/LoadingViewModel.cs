@@ -156,7 +156,21 @@ public sealed partial class LoadingViewModel : ObservableObject
                 try
                 {
                     await _ollamaProvider.WarmUpAsync();
-                    Log.Information("Ollama warmup completed");
+
+                    // GPU assessment after warmup (V1 HOTFIX_002 pattern)
+                    double? toksPerSec = _ollamaProvider.LastTokensPerSec;
+                    if (toksPerSec.HasValue)
+                    {
+                        string assessment = toksPerSec.Value > 50 ? "GPU"
+                            : toksPerSec.Value < 20 ? "CPU"
+                            : "BORDERLINE";
+                        Log.Information("Ollama warmup: {TokSec:F1} tok/s ({Assessment})",
+                            toksPerSec.Value, assessment);
+                    }
+                    else
+                    {
+                        Log.Information("Ollama warmup completed (tok/s not reported)");
+                    }
                 }
                 catch (Exception ex)
                 {

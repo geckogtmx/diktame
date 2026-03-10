@@ -176,6 +176,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
                     Text = output,
                     Provider = ProviderName,
                     LatencyMs = sw.ElapsedMilliseconds,
+                    TokensPerSec = toksPerSec,
                 };
             }
             catch (HttpRequestException ex) when (attempt < MaxRetries - 1)

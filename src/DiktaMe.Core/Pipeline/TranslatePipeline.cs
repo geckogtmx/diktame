@@ -130,6 +130,8 @@ public sealed class TranslatePipeline
                 TotalMs = total.ElapsedMilliseconds,
                 SttProvider = sttResult.Provider,
                 LlmProvider = llmResult.Provider,
+                AudioDurationSec = sttResult.AudioDurationSec,
+                TokensPerSec = llmResult.TokensPerSec,
             };
             Completed?.Invoke(this, result);
             return result;

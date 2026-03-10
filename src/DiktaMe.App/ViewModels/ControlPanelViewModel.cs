@@ -143,6 +143,8 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [ObservableProperty]
     private string _authBadgeText = "API";
 
+    private bool _suppressSave;
+
     // ── Quick action toggles ────────────────────────────────────────────────
 
     [ObservableProperty]
@@ -222,8 +224,10 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         // Subscribe to settings changes
         _settings.SettingsChanged += OnSettingsChanged;
 
-        // Load initial state from settings
+        // Load initial state from settings (suppress saves to prevent premature settings.json creation)
+        _suppressSave = true;
         LoadFromSettings(_settings.Current);
+        _suppressSave = false;
 
         // Load available dictation modes (must happen synchronously in constructor)
         var modes = _dictationModes.GetAllModes();
@@ -303,22 +307,29 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     partial void OnIsSoundEnabledChanged(bool value)
     {
-        var updated = _settings.Current with
+        if (!_suppressSave)
         {
-            General = _settings.Current.General with { SoundFeedback = value }
-        };
-        _ = _settings.UpdateAsync(updated);
+            var updated = _settings.Current with
+            {
+                General = _settings.Current.General with { SoundFeedback = value }
+            };
+            _ = _settings.UpdateAsync(updated);
+        }
+
         OnPropertyChanged(nameof(SoundLabel));
     }
 
     partial void OnIsLocalModeChanged(bool value)
     {
         string profileName = value ? "Local" : "Cloud";
-        var updated = _settings.Current with
+        if (!_suppressSave)
         {
-            ActiveProfileName = profileName
-        };
-        _ = _settings.UpdateAsync(updated);
+            var updated = _settings.Current with
+            {
+                ActiveProfileName = profileName
+            };
+            _ = _settings.UpdateAsync(updated);
+        }
 
         AuthBadgeText = value ? "LOC" : "API";
         OnPropertyChanged(nameof(LocalLabel));
@@ -331,27 +342,35 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     partial void OnIsAdditionalKeyEnabledChanged(bool value)
     {
-        // Preserve the existing key choice — only toggle enable/disable
-        string currentKey = _settings.Current.General.AdditionalKey;
-        string key = value
-            ? (string.IsNullOrEmpty(currentKey) ? "Enter" : currentKey)
-            : "";
-
-        var updated = _settings.Current with
+        if (!_suppressSave)
         {
-            General = _settings.Current.General with { AdditionalKey = key }
-        };
-        _ = _settings.UpdateAsync(updated);
+            // Preserve the existing key choice — only toggle enable/disable
+            string currentKey = _settings.Current.General.AdditionalKey;
+            string key = value
+                ? (string.IsNullOrEmpty(currentKey) ? "Enter" : currentKey)
+                : "";
+
+            var updated = _settings.Current with
+            {
+                General = _settings.Current.General with { AdditionalKey = key }
+            };
+            _ = _settings.UpdateAsync(updated);
+        }
+
         OnPropertyChanged(nameof(KeyLabel));
     }
 
     partial void OnIsRawModeEnabledChanged(bool value)
     {
-        var updated = _settings.Current with
+        if (!_suppressSave)
         {
-            General = _settings.Current.General with { RawModeOverride = value }
-        };
-        _ = _settings.UpdateAsync(updated);
+            var updated = _settings.Current with
+            {
+                General = _settings.Current.General with { RawModeOverride = value }
+            };
+            _ = _settings.UpdateAsync(updated);
+        }
+
         OnPropertyChanged(nameof(RawLabel));
         Log.Information("ControlPanel: RAW mode set to {IsEnabled}", value);
     }
@@ -359,11 +378,15 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     partial void OnIsRefineVoiceChanged(bool value)
     {
         RefineMode = value ? RefineMode.Voice : RefineMode.Auto;
-        var updated = _settings.Current with
+        if (!_suppressSave)
         {
-            General = _settings.Current.General with { RefineVoiceMode = value }
-        };
-        _ = _settings.UpdateAsync(updated);
+            var updated = _settings.Current with
+            {
+                General = _settings.Current.General with { RefineVoiceMode = value }
+            };
+            _ = _settings.UpdateAsync(updated);
+        }
+
         OnPropertyChanged(nameof(RefineLabel));
         Log.Information("ControlPanel: Refine mode set to {Mode}", RefineMode);
     }
@@ -486,7 +509,12 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     private void OnSettingsChanged(object? sender, AppSettings settings)
     {
-        _dispatcher.TryEnqueue(() => LoadFromSettings(settings));
+        _dispatcher.TryEnqueue(() =>
+        {
+            _suppressSave = true;
+            LoadFromSettings(settings);
+            _suppressSave = false;
+        });
     }
 
     private void LoadFromSettings(AppSettings settings)

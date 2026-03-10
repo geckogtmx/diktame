@@ -63,6 +63,7 @@ public sealed class ChatPipeline
             string question;
             string? sttProvider = null;
             long sttMs = 0;
+            double? audioDurationSec = null;
 
             if (options.TextInput is not null)
             {
@@ -98,6 +99,7 @@ public sealed class ChatPipeline
                 sttSw.Stop();
                 sttMs = sttSw.ElapsedMilliseconds;
                 sttProvider = sttResult.Provider;
+                audioDurationSec = sttResult.AudioDurationSec;
 
                 if (!sttResult.IsSuccess)
                 {
@@ -154,6 +156,8 @@ public sealed class ChatPipeline
                 TotalMs = total.ElapsedMilliseconds,
                 SttProvider = sttProvider,
                 LlmProvider = llmResult.Provider,
+                AudioDurationSec = audioDurationSec,
+                TokensPerSec = llmResult.TokensPerSec,
             };
             Completed?.Invoke(this, result);
             return result;
@@ -245,6 +249,7 @@ public sealed class ChatPipeline
                 LlmProvider = llmResult.Provider,
                 InputTokens = llmResult.InputTokens,
                 OutputTokens = llmResult.OutputTokens,
+                TokensPerSec = llmResult.TokensPerSec,
             };
             Completed?.Invoke(this, result);
             return result;

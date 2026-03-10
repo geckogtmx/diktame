@@ -4,6 +4,7 @@ using System.Net.Http;
 using Serilog;
 using Whisper.net;
 using Whisper.net.Ggml;
+using Whisper.net.LibraryLoader;
 
 namespace DiktaMe.Core.STT;
 /// <summary>
@@ -35,6 +36,7 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
     private readonly string _modelSize;
     private readonly string _modelPath;
     private WhisperFactory? _factory;
+    private bool _runtimeLogged;
     private bool _disposed;
 
     /// <inheritdoc/>
@@ -107,6 +109,30 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
         // Lazy-load the factory (expensive — only once)
         _factory ??= WhisperFactory.FromPath(_modelPath);
 
+        // Log which runtime backend was selected (once)
+        if (!_runtimeLogged)
+        {
+            _runtimeLogged = true;
+            try
+            {
+                var loadedLib = RuntimeOptions.LoadedLibrary;
+                Log.Information("WhisperProvider: loaded runtime={Runtime}", loadedLib);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "WhisperProvider: failed to read loaded runtime");
+            }
+            try
+            {
+                var info = WhisperFactory.GetRuntimeInfo();
+                Log.Information("WhisperProvider: runtimeInfo={Info}", info);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "WhisperProvider: failed to get runtime info");
+            }
+        }
+
         var sw = Stopwatch.StartNew();
 
         bool autoDetect = language.Equals("auto", StringComparison.OrdinalIgnoreCase);
@@ -137,10 +163,39 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
 
         string? detectedLang = segments.Count > 0 ? segments[0].Language : null;
 
-        Log.Information("WhisperProvider ({Model}): transcribed in {Ms}ms — \"{Preview}\"",
-            _modelSize,
-            sw.ElapsedMilliseconds,
-            transcript.Length > 80 ? transcript[..80] + "…" : transcript);
+        // Compute audio duration from WAV file size (16kHz, 16-bit mono = 32000 bytes/sec)
+        const int WavHeaderSize = 44;
+        const int BytesPerSecond = 32000; // 16000 Hz * 2 bytes/sample * 1 channel
+        double? audioDurationSec = null;
+        try
+        {
+            long fileSize = new FileInfo(audioFilePath).Length;
+            if (fileSize > WavHeaderSize)
+            {
+                audioDurationSec = (double)(fileSize - WavHeaderSize) / BytesPerSecond;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "WhisperProvider: could not compute audio duration");
+        }
+
+        // Log with performance ratio and GPU/CPU assessment
+        if (audioDurationSec.HasValue && audioDurationSec.Value > 0)
+        {
+            double ratio = sw.ElapsedMilliseconds / (audioDurationSec.Value * 1000);
+            string tag = ratio < 0.1 ? "GPU" : ratio < 0.2 ? "BORDERLINE" : "CPU";
+            Log.Information(
+                "WhisperProvider ({Model}): {Ms}ms for {Dur:F1}s audio (ratio={Ratio:F2}x, likely {Tag}) — \"{Preview}\"",
+                _modelSize, sw.ElapsedMilliseconds, audioDurationSec.Value, ratio, tag,
+                transcript.Length > 80 ? transcript[..80] + "…" : transcript);
+        }
+        else
+        {
+            Log.Information("WhisperProvider ({Model}): transcribed in {Ms}ms — \"{Preview}\"",
+                _modelSize, sw.ElapsedMilliseconds,
+                transcript.Length > 80 ? transcript[..80] + "…" : transcript);
+        }
 
         return new TranscriptionResult
         {
@@ -148,6 +203,7 @@ public sealed class WhisperProvider : ISTTProvider, IDisposable
             DetectedLanguage = detectedLang,
             LatencyMs = sw.ElapsedMilliseconds,
             Provider = ProviderName,
+            AudioDurationSec = audioDurationSec,
         };
     }
 
