@@ -388,11 +388,17 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private void UpdateAuthBadge()
     {
         if (IsLocalStt && IsLocalLlm)
+        {
             AuthBadgeText = "LOC";
+        }
         else if (!IsLocalStt && !IsLocalLlm)
+        {
             AuthBadgeText = "API";
+        }
         else
+        {
             AuthBadgeText = "MIX";
+        }
     }
 
     partial void OnIsAdditionalKeyEnabledChanged(bool value)
