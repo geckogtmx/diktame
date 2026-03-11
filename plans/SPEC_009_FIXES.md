@@ -2,7 +2,7 @@
 
 > **Source**: Manual testing of SPEC_009 Scenario 1 (Full Cloud, no Ollama)
 > **Date**: 2026-03-09
-> **Status**: 10/12 complete (FIX-1 deferred to SPEC_008, FIX-11 done, FIX-12 done)
+> **Status**: 15/16 complete (FIX-1 deferred to SPEC_008, FIX-16 API Keys skip needs manual verification)
 
 ---
 
@@ -173,6 +173,120 @@ _hotkeyManager.RegistrationFailed += OnHotkeyRegistrationFailed;
 
 ---
 
+## FIX-13: Wizard LLM Step — Ollama Validation + Model Pull
+
+**Problem**: `WizardLlmPage` recorded the user's "Local (Ollama)" choice but did zero validation. No check if Ollama was installed, no model pull. Users finished the wizard thinking everything was configured, then got runtime failures when Ollama was offline or the model wasn't pulled.
+
+**Resolution**: Same pattern as FIX-7/FIX-9 (Whisper download). Added:
+1. **`OllamaManager.PullModelAsync()`** — streams `POST /api/pull` NDJSON response with `IProgress<OllamaPullProgress>` for real-time download progress
+2. **`WizardLlmPage` status panel** — ProgressBar + status text, shown when "Local" radio selected
+3. **`BeforeLeaveStep` callback** — on Next click:
+   - Calls `OllamaManager.CheckAsync()` to detect status
+   - **Offline**: Shows error, blocks Next
+   - **VersionTooOld**: Shows version warning, blocks Next
+   - **ModelNotPulled**: Starts `PullModelAsync()` with progress bar, blocks Next until complete
+   - **Ready**: Proceeds to next step
+4. **Cancellation**: Pull cancelled on page unload or radio switch to Cloud
+
+**Files modified**:
+- `src/DiktaMe.Core/System/OllamaManager.cs` — Added `PullModelAsync()` + `OllamaPullProgress` record
+- `src/DiktaMe.App/Views/Wizard/WizardLlmPage.xaml` — Added `OllamaPanel` with ProgressBar + status
+- `src/DiktaMe.App/Views/Wizard/WizardLlmPage.xaml.cs` — Full rewrite with BeforeLeaveStep pattern
+- `src/DiktaMe.App/Strings/en/Resources.resw` — 7 new keys (`Wizard_Llm_Ollama*`, `Wizard_Llm_Pull*`)
+- `src/DiktaMe.App/Strings/es-MX/Resources.resw` — Same 7 keys in Spanish
+- `tests/DiktaMe.Core.Tests/System/OllamaManagerTests.cs` — 6 new tests for PullModelAsync
+
+---
+
+## FIX-14: Wizard LLM Step — Ollama Auto-Install via winget + Default Model gemma3:4b
+
+**Problem**: FIX-13 added Ollama detection and model pull, but when Ollama is **not installed**, the wizard just shows "Ollama is not running" and blocks the user with no actionable path forward. User is stuck.
+
+**Also**: Default Ollama model was `gemma3` (latest, ~3.9GB). Changed to `gemma3:4b` (~3.3GB) for faster download and lower VRAM.
+
+**Resolution**: Added Ollama auto-install via `winget` and model default change:
+1. **`OllamaManager.InstallViaWingetAsync()`** — runs `winget install Ollama.Ollama --silent`, captures output, reports progress
+2. **`OllamaManager.IsWingetAvailableAsync()`** — checks `winget --version` availability
+3. **`OllamaManager.StartOllamaAsync()`** — starts `ollama serve` if installed but not running, waits for API readiness
+4. **Wizard "Install Ollama" button** — shown when Offline, triggers winget install with progress
+5. **Fallback**: If winget unavailable, opens browser to `ollama.com/download` + shows Retry button
+6. **Default model**: `AppSettings.OllamaModel` changed from `"gemma3"` to `"gemma3:4b"`, added to `models.json`
+
+**Complete wizard LLM flow**:
+- Ollama running + model ready → "Ready" → Next proceeds
+- Ollama running + model missing → Next → PullModelAsync with progress → complete
+- Ollama installed but not running → "Not running, start it and click Retry" → Retry re-checks
+- Ollama NOT installed → [Install Ollama] button → winget install → re-check → model pull
+- winget unavailable → opens browser + Retry button
+
+**Files modified**:
+- `src/DiktaMe.Core/System/OllamaManager.cs` — Added install/start helpers
+- `src/DiktaMe.Core/Config/AppSettings.cs` — Default `OllamaModel` → `"gemma3:4b"`
+- `src/DiktaMe.Core/System/models.json` — Added `gemma3:4b` entry
+- `src/DiktaMe.App/Views/Wizard/WizardLlmPage.xaml` — Install button + manual link UI
+- `src/DiktaMe.App/Views/Wizard/WizardLlmPage.xaml.cs` — Install flow + Retry logic
+- `src/DiktaMe.App/Strings/en/Resources.resw` — 7 new keys + 1 updated
+- `src/DiktaMe.App/Strings/es-MX/Resources.resw` — Same in Spanish
+
+---
+
+## FIX-15: Local Mode Polish — Auto-Start, Keep-Alive, GPU Log, Settings Downloads
+
+**Problem**: After FIX-14 (wizard auto-install), several friction points remained for local mode:
+1. **Ollama doesn't auto-start on app launch** — if user reboots or closes Ollama, next launch fails for local LLM
+2. **Keep-alive hardcoded to `"10m"`** — no user control over how long Ollama keeps models in VRAM
+3. **No GPU confirmation log** — first inference doesn't clearly log whether GPU or CPU is being used
+4. **Whisper model change in Settings doesn't download** — selecting a larger model without downloading it causes `FileNotFoundException`
+5. **No Ollama install from Settings page** — users who skip the wizard can't install Ollama later
+
+**Resolution**:
+1. **Auto-start**: `LoadingViewModel` Step 4b now calls `OllamaManager.StartOllamaAsync()` when LLM=ollama but Ollama is offline
+2. **Keep-alive setting**: Added `AppSettings.OllamaKeepAlive` property (default `"10m"`), parameterized in `OllamaProvider` constructor, ComboBox UI on `OllamaSettingsPage` (5m/10m/30m/1h/2h)
+3. **First-inference GPU log**: `OllamaProvider` logs tok/s + GPU/CPU/BORDERLINE assessment on first inference
+4. **Whisper download**: `AIEngineSettingsViewModel.OnWhisperModelIndexChanged()` now checks if model exists, triggers download with progress bar if missing
+5. **Ollama install**: `OllamaSettingsPage` shows Install button when Offline, reuses FIX-14 winget + browser fallback flow
+
+**Files modified**:
+- `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` — Auto-start Ollama if offline + LLM is local
+- `src/DiktaMe.Core/Config/AppSettings.cs` — Added `OllamaKeepAlive` property
+- `src/DiktaMe.Core/LLM/OllamaProvider.cs` — `keepAlive` param, first-inference GPU log
+- `src/DiktaMe.App/App.xaml.cs` — Keep-alive HttpClient for DI singleton
+- `src/DiktaMe.App/Views/Settings/OllamaSettingsPage.xaml` — Keep-alive ComboBox + Install button
+- `src/DiktaMe.App/ViewModels/Settings/OllamaSettingsViewModel.cs` — KeepAliveIndex + install flow
+- `src/DiktaMe.App/Views/Settings/AIEngineSettingsPage.xaml` — Whisper download progress UI
+- `src/DiktaMe.App/ViewModels/Settings/AIEngineSettingsViewModel.cs` — Download on model change
+- `src/DiktaMe.App/Strings/en/Resources.resw` — 10 new localization keys
+- `src/DiktaMe.App/Strings/es-MX/Resources.resw` — Same 10 keys in Spanish
+
+---
+
+## FIX-16: LLMProviderFactory Caching + Wizard Fixes (5x Ollama Latency Improvement)
+
+**Problem**: Three issues found during manual testing of the local wizard path:
+1. **Ollama latency ~3000ms per call** — `PipelineFactory.GetProviders()` called `_llmFactory.CreateProvider()` on every dictation, creating a new `OllamaProvider` + `HttpClient` each time. New TCP connection to localhost:11434 added ~2500ms overhead (connection setup + Ollama context reload). V1 used `requests.Session()` with persistent keep-alive connections.
+2. **Language step "Back" bug** — Going back after selecting a language and picking a different one didn't change — kept first selection. `ApplyLanguageAsync()` had an `if (!= "en")` guard.
+3. **API Keys step shown on local path** — Step 4 showed empty panels with no input fields when both STT + LLM were set to local.
+
+**Resolution**:
+1. **Provider caching**: Added `ConcurrentDictionary<string, ILLMProvider>` cache to `LLMProviderFactory`. `CreateProvider()` returns cached instances via `GetOrAdd()` keyed by `"{type}:{effectiveModel}"`. Ollama providers get `ConnectionClose = false` for HTTP keep-alive. **Result: LLM latency dropped from ~3000ms to ~550ms (5x improvement). Total pipeline: ~3500ms → ~1100ms warm.**
+2. **Language fix**: Removed `if (!= "en")` guard — `SetLanguage()` now always called, handles Back→re-select scenarios
+3. **API Keys skip**: Added `NeedsApiKeys()` helper. Both `GoNextAsync()` and `GoBack()` auto-skip step 4 when no cloud providers selected.
+4. **Phased install messages**: Changed `OllamaManager.InstallViaWingetAsync()` from buffered `ReadToEndAsync()` to line-by-line `ReadLineAsync()`. Parses winget output to report "Downloading..." → "Installing..." → "Starting..."
+
+**Files modified**:
+- `src/DiktaMe.Core/Config/LLMProviderFactory.cs` — ConcurrentDictionary cache, `ResolveModel()` extraction, `CreateOllamaProvider()` with keep-alive
+- `src/DiktaMe.App/App.xaml.cs` — Keep-alive HttpClient for DI singleton OllamaProvider
+- `src/DiktaMe.App/ViewModels/WizardViewModel.cs` — Language fix + `NeedsApiKeys()` + step skip logic
+- `src/DiktaMe.Core/System/OllamaManager.cs` — Phased install messages via stdout line parsing
+
+**Latency verification** (from logs):
+- Before: LLM ~3000ms, total pipeline ~3500ms
+- After: LLM ~550ms, total pipeline ~1100ms (warm calls)
+- First "cold" call: ~3900ms (Ollama model loading), all subsequent < 1.2s
+- Sub-1.2-second fully local dictation confirmed
+
+---
+
 ## Task Log
 
 | # | Fix | Status | Notes |
@@ -189,3 +303,7 @@ _hotkeyManager.RegistrationFailed += OnHotkeyRegistrationFailed;
 | 10 | Cloud/Local toggle ignores STT | Done | Split into 2 toggles (STT + LLM), each writes to ModeProfiles. 6-col layout, auth badge LOC/API/MIX. |
 | 11 | Whisper download auto-advances | Done | Changed `return true` → `return false` after download; user sees completion, clicks Next again |
 | 12 | Wizard won't show on fresh install | Done | `_suppressSave` guard in `ControlPanelViewModel` prevents premature `settings.json` creation |
+| 13 | Wizard: Ollama validation + model pull | Done | `OllamaManager.PullModelAsync()` + `WizardLlmPage` BeforeLeaveStep: check→pull→progress. Blocks Next when offline. |
+| 14 | Wizard: Ollama auto-install via winget | Done | winget install + fallback to browser. Default model → `gemma3:4b`. |
+| 15 | Local mode polish (auto-start, keep-alive, GPU log, Settings downloads) | Done | Ollama auto-start on launch, keep-alive setting, first-inference GPU log, Whisper download + Ollama install in Settings |
+| 16 | LLMProviderFactory caching + wizard fixes | Done | Provider caching (5x Ollama latency fix), language Back bug, API Keys skip, phased install messages |

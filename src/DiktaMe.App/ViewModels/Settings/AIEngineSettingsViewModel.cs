@@ -2,6 +2,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using DiktaMe.App.Services;
 using DiktaMe.Core.Config;
+using DiktaMe.Core.STT;
+using Microsoft.UI.Dispatching;
 using Serilog;
 
 namespace DiktaMe.App.ViewModels.Settings;
@@ -9,7 +11,9 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
     private readonly LocalizationService _loc;
+    private readonly DispatcherQueue _dispatcher;
     private bool _isLoading;
+    private CancellationTokenSource? _downloadCts;
 
     [ObservableProperty]
     private int _sttModeIndex; // 0 = Cloud, 1 = Local
@@ -27,6 +31,15 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isWhisperSectionVisible;
+
+    [ObservableProperty]
+    private bool _isWhisperDownloading;
+
+    [ObservableProperty]
+    private int _whisperDownloadPercent;
+
+    [ObservableProperty]
+    private string _whisperDownloadStatus = "";
 
     // ── Deepgram settings ────────────────────────────────────────────────────
 
@@ -62,6 +75,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     {
         _settings = settings;
         _loc = loc;
+        _dispatcher = DispatcherQueue.GetForCurrentThread();
         LoadFromSettings();
     }
 
@@ -261,6 +275,66 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
                 Log.Error(t.Exception, "Failed to save Whisper model setting");
             }
         }, TaskScheduler.Default);
+
+        // Check if model is downloaded — if not, trigger download
+        _ = EnsureWhisperModelDownloadedAsync(model);
+    }
+
+    private async Task EnsureWhisperModelDownloadedAsync(string modelCode)
+    {
+        // Cancel any in-flight download
+        _downloadCts?.Cancel();
+        _downloadCts?.Dispose();
+        _downloadCts = new CancellationTokenSource();
+        var ct = _downloadCts.Token;
+
+        // Create a temporary WhisperProvider for the target model to check + download
+        using var whisper = new WhisperProvider(modelCode);
+        if (whisper.IsModelDownloaded)
+        {
+            IsWhisperDownloading = false;
+            return;
+        }
+
+        IsWhisperDownloading = true;
+        WhisperDownloadPercent = 0;
+        WhisperDownloadStatus = _loc.GetFormatted("Settings_Whisper_Downloading", 0);
+
+        whisper.DownloadProgress += (_, e) =>
+        {
+            _dispatcher.TryEnqueue(() =>
+            {
+                WhisperDownloadPercent = e.Percent;
+                WhisperDownloadStatus = _loc.GetFormatted("Settings_Whisper_Downloading", e.Percent);
+            });
+        };
+
+        try
+        {
+            await whisper.DownloadModelAsync(ct);
+            _dispatcher.TryEnqueue(() =>
+            {
+                WhisperDownloadPercent = 100;
+                WhisperDownloadStatus = _loc.GetString("Settings_Whisper_DownloadComplete");
+            });
+            Log.Information("Settings: Whisper model '{Model}' downloaded", modelCode);
+        }
+        catch (OperationCanceledException)
+        {
+            Log.Information("Settings: Whisper model download cancelled");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Settings: Whisper model download failed");
+            _dispatcher.TryEnqueue(() =>
+            {
+                WhisperDownloadStatus = _loc.GetFormatted("Settings_Whisper_DownloadFailed", ex.Message);
+            });
+        }
+        finally
+        {
+            _dispatcher.TryEnqueue(() => IsWhisperDownloading = false);
+        }
     }
 
     // ── Deepgram change handlers ────────────────────────────────────────────

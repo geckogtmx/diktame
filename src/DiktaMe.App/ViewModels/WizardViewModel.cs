@@ -65,6 +65,13 @@ public sealed partial class WizardViewModel : ObservableObject
         {
             CurrentStep--;
             BeforeLeaveStep = null;
+
+            // Skip API Keys step (4) when going back if no cloud providers need keys
+            if (CurrentStep == 4 && !NeedsApiKeys())
+            {
+                CurrentStep--;
+            }
+
             UpdateNavState();
             StepChanged?.Invoke();
         }
@@ -107,6 +114,14 @@ public sealed partial class WizardViewModel : ObservableObject
         {
             CurrentStep++;
             BeforeLeaveStep = null; // Reset for next page
+
+            // Skip API Keys step (4) when no cloud providers need keys
+            if (CurrentStep == 4 && !NeedsApiKeys())
+            {
+                CurrentStep++;
+                Log.Information("Wizard: skipped API Keys step (no cloud providers selected)");
+            }
+
             UpdateNavState();
             StepChanged?.Invoke();
         }
@@ -121,12 +136,9 @@ public sealed partial class WizardViewModel : ObservableObject
     {
         try
         {
-            // Switch UI language for remaining wizard steps
-            if (!string.Equals(LanguageChoice, "en", StringComparison.OrdinalIgnoreCase))
-            {
-                await Localizer.Get().SetLanguage(LanguageChoice);
-                Log.Information("Wizard: switched UI language to {Lang}", LanguageChoice);
-            }
+            // Switch UI language for remaining wizard steps (always apply — handles Back→re-select)
+            await Localizer.Get().SetLanguage(LanguageChoice);
+            Log.Information("Wizard: switched UI language to {Lang}", LanguageChoice);
 
             // Persist language to settings
             var general = _settings.Current.General with
@@ -274,6 +286,10 @@ public sealed partial class WizardViewModel : ObservableObject
 
         WizardCompleted?.Invoke();
     }
+
+    private bool NeedsApiKeys()
+        => string.Equals(SttChoice, "cloud", StringComparison.Ordinal)
+        || string.Equals(LlmChoice, "cloud", StringComparison.Ordinal);
 
     private void UpdateNavState()
     {

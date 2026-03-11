@@ -148,6 +148,30 @@ public sealed partial class LoadingViewModel : ObservableObject
                 Log.Debug(ex, "Ollama check skipped during loading");
             }
 
+            // Auto-start Ollama if user's LLM is local but Ollama isn't running
+            if (string.Equals(llmProvider, "ollama", StringComparison.OrdinalIgnoreCase)
+                && (ollamaResult is null || ollamaResult.Status == OllamaStatus.Offline))
+            {
+                StatusText = _loc.GetString("Loading_StartingOllama");
+                Log.Information("Loading: Ollama offline, attempting auto-start");
+                bool started = await _ollama.StartOllamaAsync();
+                if (started)
+                {
+                    try
+                    {
+                        ollamaResult = await _ollama.CheckAsync(_settings.Current.OllamaModel);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Loading: Ollama re-check failed after auto-start");
+                    }
+                }
+                else
+                {
+                    Log.Warning("Loading: Ollama auto-start failed — local LLM will be unavailable");
+                }
+            }
+
             // Warmup Ollama if LLM is local and Ollama is ready
             if (string.Equals(llmProvider, "ollama", StringComparison.OrdinalIgnoreCase)
                 && ollamaResult?.Status == OllamaStatus.Ready)

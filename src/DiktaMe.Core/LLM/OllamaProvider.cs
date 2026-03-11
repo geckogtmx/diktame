@@ -24,7 +24,9 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
     private readonly string _chatUrl;
     private readonly string _tagsUrl;
     private readonly string _model;
+    private readonly string _keepAlive;
     private bool _disposed;
+    private bool _firstInference = true;
 
     /// <inheritdoc/>
     public string ProviderName => $"{_model} (Ollama)";
@@ -35,10 +37,12 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
     /// <param name="model">Ollama model tag, e.g. <c>llama3.2</c>, <c>mistral</c>, <c>phi4</c>.</param>
     /// <param name="baseUrl">Ollama base URL (default: http://localhost:11434).</param>
     /// <param name="httpClient">Optional shared client.</param>
+    /// <param name="keepAlive">Ollama keep-alive duration, e.g. <c>"10m"</c>, <c>"1h"</c>.</param>
     public OllamaProvider(
         string model,
         string baseUrl = DefaultBaseUrl,
-        HttpClient? httpClient = null)
+        HttpClient? httpClient = null,
+        string keepAlive = "10m")
     {
         if (string.IsNullOrWhiteSpace(model))
         {
@@ -46,6 +50,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
         }
 
         _model = model;
+        _keepAlive = keepAlive;
         string trimmed = baseUrl.TrimEnd('/');
         _generateUrl = trimmed + "/api/generate";
         _chatUrl = trimmed + "/api/chat";
@@ -89,6 +94,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
                 _model,
                 "You are a text formatter. Output only the result.",
                 "ping",
+                keepAlive: _keepAlive,
                 numPredict: 1);
 
             using var request = new HttpRequestMessage(HttpMethod.Post, _generateUrl);
@@ -120,7 +126,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         string safeText = SanitizeInput(text);
-        string body = BuildRequestJson(_model, systemPrompt, safeText);
+        string body = BuildRequestJson(_model, systemPrompt, safeText, keepAlive: _keepAlive);
 
         var sw = Stopwatch.StartNew();
 
@@ -157,7 +163,16 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
                 LastTokensPerSec = toksPerSec;
                 if (toksPerSec.HasValue)
                 {
-                    if (toksPerSec.Value < SlowInferenceThresholdToksPerSec)
+                    if (_firstInference)
+                    {
+                        _firstInference = false;
+                        string device = toksPerSec.Value > 50 ? "GPU"
+                            : toksPerSec.Value < SlowInferenceThresholdToksPerSec ? "CPU"
+                            : "BORDERLINE";
+                        Log.Information("OllamaProvider: first inference — {TokSec:F1} tok/s ({Device}), model '{Model}'",
+                            toksPerSec.Value, device, _model);
+                    }
+                    else if (toksPerSec.Value < SlowInferenceThresholdToksPerSec)
                     {
                         Log.Warning("OllamaProvider: SLOW inference {T:F1} tok/s — GPU may not be active",
                             toksPerSec.Value);
@@ -203,7 +218,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        string body = BuildConversationRequestJson(_model, systemPrompt, history);
+        string body = BuildConversationRequestJson(_model, systemPrompt, history, keepAlive: _keepAlive);
         var sw = Stopwatch.StartNew();
 
         const int MaxRetries = 3;
@@ -265,10 +280,12 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
         string model,
         string systemPrompt,
         string userText,
+        string keepAlive = "10m",
         int numPredict = 1024)
     {
         string escapedModel = EscapeJsonString(model);
         string escapedPrompt = EscapeJsonString($"{systemPrompt}\n\n{userText}");
+        string escapedKeepAlive = EscapeJsonString(keepAlive);
 
         return $$"""
             {
@@ -276,13 +293,14 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
               "prompt": "{{escapedPrompt}}",
               "stream": false,
               "options": { "temperature": 0.1, "num_ctx": 2048, "num_predict": {{numPredict}} },
-              "keep_alive": "10m"
+              "keep_alive": "{{escapedKeepAlive}}"
             }
             """;
     }
 
     private static string BuildConversationRequestJson(
-        string model, string systemPrompt, IReadOnlyList<ConversationTurn> history)
+        string model, string systemPrompt, IReadOnlyList<ConversationTurn> history,
+        string keepAlive = "10m")
     {
         // Ollama /api/chat uses the same messages format as OpenAI
         var sb = new StringBuilder();
@@ -298,7 +316,8 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
               .Append("\"}");
         }
 
-        sb.Append("],\"stream\":false,\"options\":{\"temperature\":0.1,\"num_ctx\":2048},\"keep_alive\":\"10m\"}");
+        sb.Append("],\"stream\":false,\"options\":{\"temperature\":0.1,\"num_ctx\":2048},\"keep_alive\":\"")
+          .Append(EscapeJsonString(keepAlive)).Append("\"}");
         return sb.ToString();
     }
 

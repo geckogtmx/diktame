@@ -21,5 +21,23 @@
                 </StackPanel>
             </RadioButton>
         </RadioButtons>
+
+        <!-- Ollama status panel (shown when Local is selected) -->
+        <StackPanel x:Name="OllamaPanel" Spacing="8" Visibility="Collapsed">
+            <ProgressBar x:Name="PullProgress" Minimum="0" Maximum="100" Value="0"
+                         IsIndeterminate="True"/>
+            <TextBlock x:Name="PullStatus" FontSize="12" Opacity="0.7" TextWrapping="Wrap"/>
+            <TextBlock x:Name="PullError" FontSize="12" Foreground="Red"
+                       TextWrapping="Wrap" Visibility="Collapsed"/>
+            <StackPanel x:Name="InstallPanel" Orientation="Horizontal" Spacing="8" Visibility="Collapsed">
+                <Button x:Name="InstallButton" Click="InstallOllama_Click">
+                    <TextBlock x:Name="InstallButtonText"/>
+                </Button>
+                <HyperlinkButton x:Name="ManualInstallLink" NavigateUri="https://ollama.com/download"
+                                 Visibility="Collapsed">
+                    <TextBlock x:Name="ManualInstallText"/>
+                </HyperlinkButton>
+            </StackPanel>
+        </StackPanel>
     </StackPanel>
 </Page>

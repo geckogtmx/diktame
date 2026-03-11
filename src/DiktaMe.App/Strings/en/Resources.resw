@@ -253,7 +253,16 @@
     <value>Larger models are more accurate but require more VRAM. Small is recommended for 8 GB GPUs.</value>
   </data>
   <data name="Settings_AIEngine_Whisper_AutoDownload_Note.Text" xml:space="preserve">
-    <value>Models are downloaded automatically on first use during app startup.</value>
+    <value>Models are downloaded automatically when selected.</value>
+  </data>
+  <data name="Settings_Whisper_Downloading" xml:space="preserve">
+    <value>Downloading Whisper model... {0}%</value>
+  </data>
+  <data name="Settings_Whisper_DownloadComplete" xml:space="preserve">
+    <value>Download complete!</value>
+  </data>
+  <data name="Settings_Whisper_DownloadFailed" xml:space="preserve">
+    <value>Download failed: {0}</value>
   </data>
   <data name="Settings_AIEngine_Deepgram_Section.Text" xml:space="preserve">
     <value>Deepgram Settings</value>
@@ -765,6 +774,24 @@
   <data name="Settings_Ollama_Rescue_Switched" xml:space="preserve">
     <value>Switched to fallback model: {0}</value>
   </data>
+  <data name="Settings_Ollama_KeepAlive_Label.Text" xml:space="preserve">
+    <value>Keep-Alive Duration</value>
+  </data>
+  <data name="Settings_Ollama_KeepAlive_Description.Text" xml:space="preserve">
+    <value>How long to keep the model loaded in GPU memory after inference</value>
+  </data>
+  <data name="Settings_Ollama_InstallButton" xml:space="preserve">
+    <value>Install Ollama</value>
+  </data>
+  <data name="Settings_Ollama_ManualInstall.Text" xml:space="preserve">
+    <value>Install manually from ollama.com</value>
+  </data>
+  <data name="Settings_Ollama_RetryCheck" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="Settings_Ollama_InstallFailed" xml:space="preserve">
+    <value>Installation failed: {0}</value>
+  </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Snippets
@@ -1207,6 +1234,48 @@
   <data name="Wizard_Llm_Local_Description.Text" xml:space="preserve">
     <value>Runs offline. Requires Ollama installed + model download (~2–4 GB).</value>
   </data>
+  <data name="Wizard_Llm_OllamaReady" xml:space="preserve">
+    <value>Ollama running — model ready</value>
+  </data>
+  <data name="Wizard_Llm_OllamaOffline" xml:space="preserve">
+    <value>Ollama is installed but not running. Please start it and click Retry.</value>
+  </data>
+  <data name="Wizard_Llm_OllamaVersionOld" xml:space="preserve">
+    <value>Ollama version {0} is too old. Please update to {1} or later.</value>
+  </data>
+  <data name="Wizard_Llm_ModelPending" xml:space="preserve">
+    <value>Model will be downloaded when you click Next</value>
+  </data>
+  <data name="Wizard_Llm_Pulling" xml:space="preserve">
+    <value>Downloading model… {0}%</value>
+  </data>
+  <data name="Wizard_Llm_PullComplete" xml:space="preserve">
+    <value>Model downloaded successfully</value>
+  </data>
+  <data name="Wizard_Llm_PullFailed" xml:space="preserve">
+    <value>Download failed: {0}</value>
+  </data>
+  <data name="Wizard_Llm_OllamaNotDetected" xml:space="preserve">
+    <value>Ollama is not installed.</value>
+  </data>
+  <data name="Wizard_Llm_InstallButton" xml:space="preserve">
+    <value>Install Ollama</value>
+  </data>
+  <data name="Wizard_Llm_Installing" xml:space="preserve">
+    <value>Installing Ollama...</value>
+  </data>
+  <data name="Wizard_Llm_InstallComplete" xml:space="preserve">
+    <value>Ollama installed successfully!</value>
+  </data>
+  <data name="Wizard_Llm_InstallFailed" xml:space="preserve">
+    <value>Installation failed: {0}</value>
+  </data>
+  <data name="Wizard_Llm_ManualInstall" xml:space="preserve">
+    <value>Install manually from ollama.com</value>
+  </data>
+  <data name="Wizard_Llm_RetryCheck" xml:space="preserve">
+    <value>Retry</value>
+  </data>
 
   <!-- API Keys page -->
   <data name="Wizard_ApiKeys_Title.Text" xml:space="preserve">
@@ -1376,6 +1445,9 @@
   </data>
   <data name="Loading_LocalServices" xml:space="preserve">
     <value>Checking local services...</value>
+  </data>
+  <data name="Loading_StartingOllama" xml:space="preserve">
+    <value>Starting Ollama...</value>
   </data>
   <data name="Loading_WarmingOllama" xml:space="preserve">
     <value>Warming up Ollama model...</value>

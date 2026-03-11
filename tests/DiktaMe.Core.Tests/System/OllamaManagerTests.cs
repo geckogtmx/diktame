@@ -226,6 +226,100 @@ public sealed class OllamaManagerTests
         act.Should().NotThrow();
     }
 
+    // ── PullModelAsync ────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task PullModelAsync_SuccessfulPull_ReportsProgressAndCompletes()
+    {
+        string ndjson = string.Join("\n",
+            """{"status":"pulling manifest"}""",
+            """{"status":"downloading","digest":"sha256:abc","total":1000,"completed":500}""",
+            """{"status":"downloading","digest":"sha256:abc","total":1000,"completed":1000}""",
+            """{"status":"verifying sha256 digest"}""",
+            """{"status":"writing manifest"}""",
+            """{"status":"success"}""");
+
+        using var manager = MakeManager(new FakeHttpHandler(pullResponse: ndjson));
+
+        var reports = new List<OllamaPullProgress>();
+        var progress = new Progress<OllamaPullProgress>(p => reports.Add(p));
+
+        await manager.PullModelAsync("gemma3", progress);
+
+        // Allow Progress<T> callbacks to complete (posted asynchronously via SynchronizationContext)
+        await Task.Delay(100);
+
+        reports.Should().NotBeEmpty();
+        reports.Last().Status.Should().Be("success");
+    }
+
+    [Fact]
+    public async Task PullModelAsync_OllamaOffline_ThrowsHttpRequestException()
+    {
+        using var manager = MakeManager(new FakeHttpHandler(throwException: true));
+
+        var act = () => manager.PullModelAsync("gemma3");
+
+        await act.Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [Fact]
+    public async Task PullModelAsync_ServerError_ThrowsHttpRequestException()
+    {
+        using var manager = MakeManager(new FakeHttpHandler(
+            pullStatus: HttpStatusCode.InternalServerError));
+
+        var act = () => manager.PullModelAsync("gemma3");
+
+        await act.Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [Fact]
+    public async Task PullModelAsync_StreamEndsWithoutSuccess_ThrowsInvalidOperation()
+    {
+        string ndjson = string.Join("\n",
+            """{"status":"pulling manifest"}""",
+            """{"status":"downloading","digest":"sha256:abc","total":1000,"completed":500}""");
+
+        using var manager = MakeManager(new FakeHttpHandler(pullResponse: ndjson));
+
+        var act = () => manager.PullModelAsync("gemma3");
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*without success*");
+    }
+
+    [Fact]
+    public async Task PullModelAsync_ErrorInStream_ThrowsInvalidOperation()
+    {
+        string ndjson = string.Join("\n",
+            """{"status":"pulling manifest"}""",
+            """{"error":"model not found"}""");
+
+        using var manager = MakeManager(new FakeHttpHandler(pullResponse: ndjson));
+
+        var act = () => manager.PullModelAsync("nonexistent");
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*model not found*");
+    }
+
+    [Fact]
+    public async Task PullModelAsync_Cancelled_ThrowsOperationCancelled()
+    {
+        string ndjson = string.Join("\n",
+            """{"status":"pulling manifest"}""",
+            """{"status":"downloading","digest":"sha256:abc","total":1000000000,"completed":500}""");
+
+        using var manager = MakeManager(new FakeHttpHandler(pullResponse: ndjson));
+        using var cts = new CancellationTokenSource();
+        cts.Cancel(); // Cancel immediately
+
+        var act = () => manager.PullModelAsync("gemma3", cancellationToken: cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static OllamaManager MakeManager(FakeHttpHandler handler)
@@ -247,17 +341,23 @@ internal sealed class FakeHttpHandler : HttpMessageHandler
     private readonly string[] _installedModels;
     private readonly HttpStatusCode _versionStatus;
     private readonly bool _throwException;
+    private readonly string? _pullResponse;
+    private readonly HttpStatusCode _pullStatus;
 
     public FakeHttpHandler(
         string version = "0.6.1",
         string[]? installedModels = null,
         HttpStatusCode versionStatus = HttpStatusCode.OK,
-        bool throwException = false)
+        bool throwException = false,
+        string? pullResponse = null,
+        HttpStatusCode pullStatus = HttpStatusCode.OK)
     {
         _version = version;
         _installedModels = installedModels ?? Array.Empty<string>();
         _versionStatus = versionStatus;
         _throwException = throwException;
+        _pullResponse = pullResponse;
+        _pullStatus = pullStatus;
     }
 
     protected override Task<HttpResponseMessage> SendAsync(
@@ -289,6 +389,17 @@ internal sealed class FakeHttpHandler : HttpMessageHandler
                 _installedModels.Select(m => $$$"""{"name":"{{{m}}}"}"""));
             string json = $$$"""{"models":[{{{modelsJson}}}]}""";
             return Task.FromResult(OkJson(json));
+        }
+
+        if (url.EndsWith("/api/pull"))
+        {
+            if (_pullStatus != HttpStatusCode.OK)
+            {
+                return Task.FromResult(new HttpResponseMessage(_pullStatus));
+            }
+
+            string body = _pullResponse ?? """{"status":"success"}""";
+            return Task.FromResult(OkJson(body));
         }
 
         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));

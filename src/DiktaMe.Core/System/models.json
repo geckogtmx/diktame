@@ -6,6 +6,7 @@
     { "tag": "llama3.1",      "minOllamaVersion": "0.2.0",  "family": "llama",   "recommended": false },
     { "tag": "llama3",        "minOllamaVersion": "0.1.30", "family": "llama",   "recommended": false },
     { "tag": "gemma3",        "minOllamaVersion": "0.6.0",  "family": "gemma",   "recommended": true  },
+    { "tag": "gemma3:4b",     "minOllamaVersion": "0.6.0",  "family": "gemma",   "recommended": true  },
     { "tag": "gemma2",        "minOllamaVersion": "0.3.0",  "family": "gemma",   "recommended": false },
     { "tag": "gemma",         "minOllamaVersion": "0.1.20", "family": "gemma",   "recommended": false },
     { "tag": "mistral",       "minOllamaVersion": "0.1.0",  "family": "mistral", "recommended": false },

@@ -418,7 +418,15 @@ public partial class App : Application
         services.AddSingleton<OllamaProvider>(sp =>
         {
             var settings = sp.GetRequiredService<SettingsManager>();
-            return new OllamaProvider(settings.Current.OllamaModel);
+            var http = new System.Net.Http.HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(60),
+            };
+            http.DefaultRequestHeaders.ConnectionClose = false; // HTTP keep-alive
+            return new OllamaProvider(
+                settings.Current.OllamaModel,
+                httpClient: http,
+                keepAlive: settings.Current.OllamaKeepAlive);
         });
 
         // Trial Gemini provider (managed proxy, Bearer JWT auth)

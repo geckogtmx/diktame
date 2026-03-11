@@ -27,12 +27,45 @@
                         Margin="0,4,0,0"/>
             </StackPanel>
 
+            <!-- Install Ollama (shown when Offline) -->
+            <StackPanel Spacing="8"
+                        Visibility="{x:Bind ViewModel.ShowInstall, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <ProgressBar IsIndeterminate="{x:Bind ViewModel.IsInstalling, Mode=OneWay}"
+                             Visibility="{x:Bind ViewModel.IsInstalling, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Command="{x:Bind ViewModel.InstallOllamaCommand}"
+                            IsEnabled="{x:Bind ViewModel.IsInstalling, Mode=OneWay, Converter={StaticResource BoolNeg}}">
+                        <TextBlock Text="{x:Bind ViewModel.InstallButtonText, Mode=OneWay}"/>
+                    </Button>
+                    <HyperlinkButton NavigateUri="https://ollama.com/download"
+                                     Visibility="{x:Bind ViewModel.ShowManualInstallLink, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <TextBlock l:Uids.Uid="Settings_Ollama_ManualInstall"/>
+                    </HyperlinkButton>
+                </StackPanel>
+                <TextBlock Text="{x:Bind ViewModel.InstallError, Mode=OneWay}" FontSize="12"
+                           Foreground="Red" TextWrapping="Wrap"
+                           Visibility="{x:Bind ViewModel.ShowInstallError, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+            </StackPanel>
+
             <!-- Model Selection -->
             <StackPanel Spacing="4">
                 <TextBlock l:Uids.Uid="Settings_Ollama_DefaultModel_Label" FontWeight="SemiBold"/>
                 <TextBlock l:Uids.Uid="Settings_Ollama_DefaultModel_Description" FontSize="12" Opacity="0.6"/>
                 <TextBox l:Uids.Uid="Settings_Ollama_DefaultModel_Placeholder" Text="{x:Bind ViewModel.SelectedModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <!-- Keep-Alive Duration -->
+            <StackPanel Spacing="4">
+                <TextBlock l:Uids.Uid="Settings_Ollama_KeepAlive_Label" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_Ollama_KeepAlive_Description" FontSize="12" Opacity="0.6"/>
+                <ComboBox SelectedIndex="{x:Bind ViewModel.KeepAliveIndex, Mode=TwoWay}" MinWidth="200">
+                    <ComboBoxItem Content="5 minutes" Tag="5m"/>
+                    <ComboBoxItem Content="10 minutes" Tag="10m"/>
+                    <ComboBoxItem Content="30 minutes" Tag="30m"/>
+                    <ComboBoxItem Content="1 hour" Tag="1h"/>
+                    <ComboBoxItem Content="2 hours" Tag="2h"/>
+                </ComboBox>
             </StackPanel>
 
             <!-- Installed Models -->

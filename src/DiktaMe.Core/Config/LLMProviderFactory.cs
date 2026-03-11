@@ -1,15 +1,19 @@
 
+using System.Collections.Concurrent;
+using System.Net.Http;
 using DiktaMe.Core.LLM;
 
 namespace DiktaMe.Core.Config;
 /// <summary>
 /// Creates LLM providers by name, pulling API keys from <see cref="Security.SecureStorage"/>
 /// and constructing the appropriate concrete type.
+/// Caches provider instances by type+model to reuse HTTP connections across pipeline calls.
 /// </summary>
 public sealed class LLMProviderFactory : ILLMProviderFactory
 {
     private readonly Security.SecureStorage _secureStorage;
     private readonly SettingsManager _settings;
+    private readonly ConcurrentDictionary<string, ILLMProvider> _cache = new(StringComparer.Ordinal);
 
     public LLMProviderFactory(Security.SecureStorage secureStorage, SettingsManager settings)
     {
@@ -22,6 +26,20 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
     {
         string type = providerType.ToLowerInvariant();
 
+        // Stateless — no caching needed
+        if (type is "none" or "skip")
+        {
+            return new NullLlmProvider();
+        }
+
+        string effectiveModel = ResolveModel(type, model);
+        string cacheKey = $"{type}:{effectiveModel}";
+
+        return _cache.GetOrAdd(cacheKey, _ => CreateProviderCore(type, apiKey, effectiveModel));
+    }
+
+    private ILLMProvider CreateProviderCore(string type, string? apiKey, string effectiveModel)
+    {
         // If no key passed, try secure storage
         string? key = apiKey ?? _secureStorage.RetrieveKey(type);
 
@@ -29,42 +47,76 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
         {
             "gemini" => new GeminiProvider(
                 key ?? throw new InvalidOperationException("Gemini API key not configured."),
-                model: string.IsNullOrWhiteSpace(model) ? "gemini-2.5-flash" : model),
+                model: effectiveModel),
 
             "anthropic" or "claude" => new AnthropicProvider(
                 key ?? throw new InvalidOperationException("Anthropic API key not configured."),
-                model: string.IsNullOrWhiteSpace(model) ? "claude-3-5-haiku-20241022" : model),
+                model: effectiveModel),
 
             "openai" => OpenAICompatibleProvider.ForOpenAI(
                 key ?? throw new InvalidOperationException("OpenAI API key not configured."),
-                model: string.IsNullOrWhiteSpace(model) ? "gpt-4o-mini" : model),
+                model: effectiveModel),
 
             "deepseek" => OpenAICompatibleProvider.ForDeepSeek(
                 key ?? throw new InvalidOperationException("DeepSeek API key not configured."),
-                model: string.IsNullOrWhiteSpace(model) ? "deepseek-chat" : model),
+                model: effectiveModel),
 
             "openrouter" => OpenAICompatibleProvider.ForOpenRouter(
                 key ?? throw new InvalidOperationException("OpenRouter API key not configured."),
-                model: string.IsNullOrWhiteSpace(model) ? "openai/gpt-4o-mini" : model),
+                model: effectiveModel),
 
             "groq" => OpenAICompatibleProvider.ForGroq(
                 key ?? throw new InvalidOperationException("Groq API key not configured."),
-                model: string.IsNullOrWhiteSpace(model) ? "llama-3.3-70b-versatile" : model),
+                model: effectiveModel),
 
             "together" => OpenAICompatibleProvider.ForTogether(
                 key ?? throw new InvalidOperationException("Together AI API key not configured."),
-                model: string.IsNullOrWhiteSpace(model) ? "meta-llama/Llama-3.3-70B-Instruct-Turbo" : model),
+                model: effectiveModel),
 
             "perplexity" => OpenAICompatibleProvider.ForPerplexity(
                 key ?? throw new InvalidOperationException("Perplexity API key not configured."),
-                model: string.IsNullOrWhiteSpace(model) ? "sonar-pro" : model),
+                model: effectiveModel),
 
-            "ollama" => new OllamaProvider(
-                model: string.IsNullOrWhiteSpace(model) ? _settings.Current.OllamaModel : model),
+            "ollama" => CreateOllamaProvider(effectiveModel),
 
-            "none" or "skip" => new NullLlmProvider(),
+            _ => throw new NotSupportedException($"Unknown LLM provider type: '{type}'."),
+        };
+    }
 
-            _ => throw new NotSupportedException($"Unknown LLM provider type: '{providerType}'."),
+    private OllamaProvider CreateOllamaProvider(string effectiveModel)
+    {
+        // Persistent HTTP client with keep-alive for connection reuse (matches V1 requests.Session())
+        var http = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(60),
+        };
+        http.DefaultRequestHeaders.ConnectionClose = false; // HTTP keep-alive
+
+        return new OllamaProvider(
+            model: effectiveModel,
+            httpClient: http,
+            keepAlive: _settings.Current.OllamaKeepAlive);
+    }
+
+    private string ResolveModel(string type, string? model)
+    {
+        if (!string.IsNullOrWhiteSpace(model))
+        {
+            return model;
+        }
+
+        return type switch
+        {
+            "gemini" => "gemini-2.5-flash",
+            "anthropic" or "claude" => "claude-3-5-haiku-20241022",
+            "openai" => "gpt-4o-mini",
+            "deepseek" => "deepseek-chat",
+            "openrouter" => "openai/gpt-4o-mini",
+            "groq" => "llama-3.3-70b-versatile",
+            "together" => "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+            "perplexity" => "sonar-pro",
+            "ollama" => _settings.Current.OllamaModel,
+            _ => model ?? string.Empty,
         };
     }
 }

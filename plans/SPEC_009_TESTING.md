@@ -168,35 +168,35 @@ Before starting:
 | 3.1 | Launch app → wizard | Wizard appears | [ ] |
 | 3.2 | Step 0: "I have API Keys" → Next | | [ ] |
 | 3.3 | Step 1: Select **"Local (Whisper)"** → Next | | [ ] |
-| 3.4 | Step 2: Select **"Local (Ollama)"** → Next | Wizard proceeds (no blocking yet) | [ ] |
-| 3.5 | Step 3: API Keys page | Both sections **hidden** (both local) | [ ] |
-| 3.6 | Steps 4-5: Audio test → Finish | Wizard completes | [ ] |
+| 3.4 | Step 2: Select **"Local (Ollama)"** | Status panel appears: "Ollama is not running…" | [ ] |
+| 3.5 | Click Next on LLM step | Stays on step — error shown (Ollama offline), Next re-enabled | [ ] |
+| 3.6 | Switch back to Cloud → Next | Wizard proceeds to API Keys page | [ ] |
+| 3.7 | Steps 3-5: API Keys → Audio test → Finish | Wizard completes | [ ] |
 
 #### Loading Screen
 
 | # | Expected | Pass? |
 |---|----------|-------|
-| 3.7 | Whisper model downloads with progress | [ ] |
-| 3.8 | "Checking local services..." appears | [ ] |
-| 3.9 | **NO** "Warming up Ollama..." (Ollama check returns Offline) | [ ] |
-| 3.10 | **NO crash** — loading continues gracefully | [ ] |
-| 3.11 | Loading completes, main window opens | [ ] |
+| 3.8 | Whisper model downloads with progress (if not cached) | [ ] |
+| 3.9 | "Checking local services..." appears | [ ] |
+| 3.10 | **NO** "Warming up Ollama..." (LLM = Cloud, Ollama check skipped) | [ ] |
+| 3.11 | **NO crash** — loading continues gracefully | [ ] |
+| 3.12 | Loading completes, main window opens | [ ] |
 
 #### Settings Verification
 
 | # | Check | Expected | Pass? |
 |---|-------|----------|-------|
-| 3.12 | `ActiveProfileName` | `"Local"` | [ ] |
-| 3.13 | `ModeProfiles.dictate_0.SttProvider` | `"whisper"` | [ ] |
-| 3.14 | `ModeProfiles.dictate_0.LlmProvider` | `"ollama"` | [ ] |
+| 3.13 | `ActiveProfileName` | `"Cloud"` (switched back from Local in 3.6) | [ ] |
+| 3.14 | `ModeProfiles.dictate_0.SttProvider` | `"whisper"` | [ ] |
+| 3.15 | `ModeProfiles.dictate_0.LlmProvider` | `"gemini"` (switched back in 3.6) | [ ] |
 
-#### Dictation Test (Degraded Mode)
+#### Dictation Test (Hybrid: Local STT + Cloud LLM)
 
 | # | Action | Expected | Pass? |
 |---|--------|----------|-------|
-| 3.15 | Ctrl+Alt+D → speak → wait | Whisper STT works (transcription happens) | [ ] |
-| 3.16 | LLM processing step | Fails gracefully — error toast, **no crash** | [ ] |
-| 3.17 | Check logs | Ollama connection error logged, no unhandled exceptions | [ ] |
+| 3.16 | Ctrl+Alt+D → speak → wait | Whisper STT works (transcription happens) | [ ] |
+| 3.17 | LLM processing step | Cloud LLM processes (requires Gemini API key) | [ ] |
 
 #### Control Panel Toggle Verification (Phase H / FIX-10)
 
@@ -204,19 +204,18 @@ Before starting:
 |---|--------|----------|-------|
 | 3.18 | Observe toggle row | 6 columns visible: SOUND / STT / LLM / +KEY / RAW / REFINE (label above toggle, state below) | [ ] |
 | 3.19 | STT toggle state | ON (local), state label shows "LOCAL" | [ ] |
-| 3.20 | LLM toggle state | ON (local), state label shows "LOCAL" | [ ] |
-| 3.21 | Auth badge | "LOC" (both local) | [ ] |
+| 3.20 | LLM toggle state | OFF (cloud — switched in 3.6), state label shows "CLOUD" | [ ] |
+| 3.21 | Auth badge | "MIX" (local STT + cloud LLM) | [ ] |
 | 3.22 | Toggle STT OFF | State label changes to "CLOUD" | [ ] |
-| 3.23 | Auth badge after STT off | "MIX" | [ ] |
+| 3.23 | Auth badge after STT off | "API" | [ ] |
 | 3.24 | `settings.json` ModeProfiles | `dictate_0.SttProvider` = `"deepgram"` | [ ] |
-| 3.25 | Toggle LLM OFF | State label changes to "CLOUD" | [ ] |
-| 3.26 | Auth badge after both off | "API" | [ ] |
-| 3.27 | `settings.json` after LLM off | `ActiveProfileName` = `"Cloud"`, `dictate_0.LlmProvider` = `"gemini"` | [ ] |
-| 3.28 | Toggle STT back ON | "LOCAL", badge "MIX" | [ ] |
-| 3.29 | Toggle LLM back ON | "LOCAL", badge "LOC" | [ ] |
+| 3.25 | Toggle LLM ON | State label changes to "LOCAL" | [ ] |
+| 3.26 | Auth badge after LLM on + STT off | "MIX" | [ ] |
+| 3.27 | Toggle STT back ON | "LOCAL", badge "LOC" | [ ] |
+| 3.28 | Toggle LLM OFF | "CLOUD", badge "MIX" | [ ] |
 
-> **Note**: This scenario documents current behavior (graceful failure).
-> Future work (wizard-time Ollama validation) will add inline guidance before the user gets here.
+> **Note**: Wizard now blocks "Local (Ollama)" selection when Ollama is offline.
+> User must either install Ollama first or switch to Cloud.
 
 ---
 

@@ -1,4 +1,5 @@
 
+using System.Diagnostics;
 using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
@@ -22,6 +23,22 @@ public enum OllamaStatus
 
     /// <summary>Ollama is running but the selected model is not pulled yet.</summary>
     ModelNotPulled,
+}
+
+/// <summary>Progress data from an Ollama model pull operation.</summary>
+public sealed record OllamaPullProgress(string Status, long Completed, long Total);
+
+/// <summary>Result of an Ollama installation attempt.</summary>
+public enum OllamaInstallResult
+{
+    /// <summary>Ollama was installed successfully.</summary>
+    Success,
+
+    /// <summary>winget is not available on this system.</summary>
+    WingetNotFound,
+
+    /// <summary>Installation failed (see error message).</summary>
+    Failed,
 }
 
 /// <summary>Result returned by <see cref="OllamaManager.CheckAsync"/>.</summary>
@@ -105,6 +122,7 @@ public sealed class OllamaManager : IDisposable
     private const string DefaultBaseUrl = "http://localhost:11434";
     private const string VersionEndpoint = "/api/version";
     private const string TagsEndpoint = "/api/tags";
+    private const string PullEndpoint = "/api/pull";
 
     private static readonly string LastVersionFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -244,6 +262,318 @@ public sealed class OllamaManager : IDisposable
             Log.Warning(ex, "OllamaManager: failed to list installed models");
             return Array.Empty<string>();
         }
+    }
+
+    /// <summary>
+    /// Pulls (downloads) a model from the Ollama registry with streaming progress.
+    /// </summary>
+    /// <param name="modelTag">Model tag to pull (e.g. "gemma3").</param>
+    /// <param name="progress">Optional progress reporter for download updates.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="HttpRequestException">Thrown if Ollama is unreachable or returns an error.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if pull stream ends without success.</exception>
+    public async Task PullModelAsync(
+        string modelTag,
+        IProgress<OllamaPullProgress>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string requestJson = $$"""{"name":"{{modelTag}}","stream":true}""";
+        using var content = new StringContent(requestJson, System.Text.Encoding.UTF8, "application/json");
+        using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl + PullEndpoint) { Content = content };
+
+        // ResponseHeadersRead: timeout applies only until headers arrive,
+        // then streaming reads proceed without timeout pressure.
+        using var response = await _http.SendAsync(
+            request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .ConfigureAwait(false);
+
+        response.EnsureSuccessStatusCode();
+
+        using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        using var reader = new StreamReader(stream);
+
+        bool gotSuccess = false;
+
+        while (await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false) is { } line)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                continue;
+            }
+
+            try
+            {
+                using var doc = JsonDocument.Parse(line);
+                var root = doc.RootElement;
+
+                string status = root.TryGetProperty("status", out var s) ? s.GetString() ?? "" : "";
+                long completed = root.TryGetProperty("completed", out var c) ? c.GetInt64() : 0;
+                long total = root.TryGetProperty("total", out var t) ? t.GetInt64() : 0;
+
+                if (string.Equals(status, "success", StringComparison.Ordinal))
+                {
+                    gotSuccess = true;
+                    progress?.Report(new OllamaPullProgress(status, total, total));
+                    break;
+                }
+
+                // Check for error field (Ollama returns {"error":"..."} on failures)
+                if (root.TryGetProperty("error", out var err))
+                {
+                    string errorMsg = err.GetString() ?? "Unknown pull error";
+                    throw new InvalidOperationException($"Ollama pull failed: {errorMsg}");
+                }
+
+                progress?.Report(new OllamaPullProgress(status, completed, total));
+            }
+            catch (JsonException ex)
+            {
+                Log.Warning(ex, "OllamaManager: failed to parse pull progress line: {Line}", line);
+            }
+        }
+
+        if (!gotSuccess)
+        {
+            throw new InvalidOperationException($"Ollama pull stream ended without success for model '{modelTag}'");
+        }
+
+        Log.Information("OllamaManager: successfully pulled model '{Model}'", modelTag);
+    }
+
+    // ── Install helpers ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// Checks whether winget (Windows Package Manager) is available.
+    /// </summary>
+    public static async Task<bool> IsWingetAvailableAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var proc = Process.Start(new ProcessStartInfo
+            {
+                FileName = "winget",
+                Arguments = "--version",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            });
+
+            if (proc is null)
+            {
+                return false;
+            }
+
+            await proc.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+            return proc.ExitCode == 0;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Installs Ollama via winget with silent flags.
+    /// </summary>
+    /// <param name="progress">Optional progress reporter for status messages.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Install result and optional error message.</returns>
+    public static async Task<(OllamaInstallResult Result, string? Error)> InstallViaWingetAsync(
+        IProgress<string>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        // 1. Check winget availability
+        progress?.Report("Checking winget...");
+        if (!await IsWingetAvailableAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return (OllamaInstallResult.WingetNotFound, "winget is not available on this system");
+        }
+
+        // 2. Run winget install
+        progress?.Report("Downloading Ollama...");
+        Log.Information("OllamaManager: starting winget install Ollama.Ollama");
+
+        try
+        {
+            using var proc = Process.Start(new ProcessStartInfo
+            {
+                FileName = "winget",
+                Arguments = "install Ollama.Ollama --silent --accept-package-agreements --accept-source-agreements",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            });
+
+            if (proc is null)
+            {
+                return (OllamaInstallResult.Failed, "Failed to start winget process");
+            }
+
+            // Read stdout lines for phased progress (winget outputs: Found, Downloading, Installing, Successfully installed)
+            var stderrTask = proc.StandardError.ReadToEndAsync(cancellationToken);
+            var stdoutLines = new System.Text.StringBuilder();
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    while (await proc.StandardOutput.ReadLineAsync(cancellationToken).ConfigureAwait(false) is { } line)
+                    {
+                        stdoutLines.AppendLine(line);
+                        string lower = line.ToLowerInvariant();
+                        if (lower.Contains("downloading", StringComparison.Ordinal))
+                        {
+                            progress?.Report("Downloading Ollama...");
+                        }
+                        else if (lower.Contains("installing", StringComparison.Ordinal))
+                        {
+                            progress?.Report("Installing Ollama...");
+                        }
+                        else if (lower.Contains("successfully", StringComparison.Ordinal))
+                        {
+                            progress?.Report("Starting Ollama...");
+                        }
+                    }
+                }
+                catch (OperationCanceledException) { }
+            }, cancellationToken);
+
+            // Wait with timeout (5 minutes for download + install)
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(TimeSpan.FromMinutes(5));
+
+            await proc.WaitForExitAsync(timeoutCts.Token).ConfigureAwait(false);
+
+            string stderr = await stderrTask.ConfigureAwait(false);
+
+            if (proc.ExitCode == 0)
+            {
+                Log.Information("OllamaManager: winget install succeeded");
+                progress?.Report("Ollama installed!");
+                return (OllamaInstallResult.Success, null);
+            }
+
+            string stdout = stdoutLines.ToString();
+            string errorDetail = !string.IsNullOrWhiteSpace(stderr) ? stderr.Trim() : stdout.Trim();
+            Log.Warning("OllamaManager: winget install failed (exit {Code}): {Error}", proc.ExitCode, errorDetail);
+            return (OllamaInstallResult.Failed, $"winget exited with code {proc.ExitCode}: {errorDetail}");
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "OllamaManager: winget install threw");
+            return (OllamaInstallResult.Failed, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Starts the Ollama service and waits for it to become ready.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns><c>true</c> if Ollama started and is responding; <c>false</c> otherwise.</returns>
+    public async Task<bool> StartOllamaAsync(CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        // Find ollama.exe — check default install path, then PATH
+        string? ollamaPath = FindOllamaExe();
+        if (ollamaPath is null)
+        {
+            Log.Warning("OllamaManager: cannot find ollama.exe to start");
+            return false;
+        }
+
+        Log.Information("OllamaManager: starting ollama serve from '{Path}'", ollamaPath);
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = ollamaPath,
+                Arguments = "serve",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "OllamaManager: failed to start ollama serve");
+            return false;
+        }
+
+        // Wait for API to respond (up to 15 seconds)
+        for (int i = 0; i < 15; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
+
+            string? version = await GetVersionAsync(cancellationToken).ConfigureAwait(false);
+            if (version is not null)
+            {
+                Log.Information("OllamaManager: ollama serve is ready (v{Version})", version);
+                return true;
+            }
+        }
+
+        Log.Warning("OllamaManager: ollama serve did not become ready within 15 seconds");
+        return false;
+    }
+
+    /// <summary>
+    /// Finds the ollama.exe path. Checks default install location, then PATH.
+    /// </summary>
+    private static string? FindOllamaExe()
+    {
+        // Default winget/installer location
+        string defaultPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Programs", "Ollama", "ollama.exe");
+
+        if (File.Exists(defaultPath))
+        {
+            return defaultPath;
+        }
+
+        // Check PATH via 'where'
+        try
+        {
+            using var proc = Process.Start(new ProcessStartInfo
+            {
+                FileName = "where",
+                Arguments = "ollama",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            });
+
+            if (proc is not null)
+            {
+                string output = proc.StandardOutput.ReadToEnd().Trim();
+                proc.WaitForExit();
+                if (proc.ExitCode == 0 && !string.IsNullOrEmpty(output))
+                {
+                    // 'where' may return multiple lines; take the first
+                    string firstLine = output.Split('\n', StringSplitOptions.RemoveEmptyEntries)[0].Trim();
+                    if (File.Exists(firstLine))
+                    {
+                        return firstLine;
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Ignore — where not available or failed
+        }
+
+        return null;
     }
 
     // ── Internal ──────────────────────────────────────────────────────────

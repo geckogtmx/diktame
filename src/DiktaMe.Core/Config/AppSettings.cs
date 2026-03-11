@@ -334,7 +334,10 @@ public sealed record AppSettings
         "diktame-notes.md");
 
     /// <summary>Ollama model to use as the default local LLM.</summary>
-    public string OllamaModel { get; init; } = "gemma3";
+    public string OllamaModel { get; init; } = "gemma3:4b";
+
+    /// <summary>Ollama keep-alive duration (how long to keep model in VRAM after inference).</summary>
+    public string OllamaKeepAlive { get; init; } = "10m";
 
     /// <summary>Whisper model size for local STT (tiny, base, small, medium, large, turbo).</summary>
     public string WhisperModel { get; init; } = "small";

@@ -105,7 +105,10 @@
   <data name="Settings_AIEngine_Whisper_Section.Text" xml:space="preserve"><value>Whisper (STT Local)</value></data>
   <data name="Settings_AIEngine_Whisper_Model_Label.Text" xml:space="preserve"><value>Tama&#241;o del modelo</value></data>
   <data name="Settings_AIEngine_Whisper_Model_Description.Text" xml:space="preserve"><value>Modelos m&#225;s grandes son m&#225;s precisos pero requieren m&#225;s VRAM. Small es recomendado para GPUs de 8 GB.</value></data>
-  <data name="Settings_AIEngine_Whisper_AutoDownload_Note.Text" xml:space="preserve"><value>Los modelos se descargan autom&#225;ticamente en el primer uso durante el inicio de la aplicaci&#243;n.</value></data>
+  <data name="Settings_AIEngine_Whisper_AutoDownload_Note.Text" xml:space="preserve"><value>Los modelos se descargan automáticamente al seleccionarlos.</value></data>
+  <data name="Settings_Whisper_Downloading" xml:space="preserve"><value>Descargando modelo Whisper... {0}%</value></data>
+  <data name="Settings_Whisper_DownloadComplete" xml:space="preserve"><value>Descarga completa!</value></data>
+  <data name="Settings_Whisper_DownloadFailed" xml:space="preserve"><value>Error en la descarga: {0}</value></data>
   <data name="Settings_AIEngine_Deepgram_Section.Text" xml:space="preserve"><value>Configuraci&#243;n de Deepgram</value></data>
   <data name="Settings_AIEngine_Deepgram_Model_Label.Text" xml:space="preserve"><value>Modelo</value></data>
   <data name="Settings_AIEngine_Deepgram_Model_Description.Text" xml:space="preserve"><value>Nova-3 tiene 47% menos tasa de error que Nova-2</value></data>
@@ -292,6 +295,12 @@
   <data name="Settings_Ollama_Status_CheckFailed" xml:space="preserve"><value>Verificaci&#243;n fallida</value></data>
   <data name="Settings_Ollama_Rescue_Message" xml:space="preserve"><value>El modelo '{0}' requiere Ollama {1}+, usted tiene {2}.</value></data>
   <data name="Settings_Ollama_Rescue_Switched" xml:space="preserve"><value>Cambiado al modelo alternativo: {0}</value></data>
+  <data name="Settings_Ollama_KeepAlive_Label.Text" xml:space="preserve"><value>Duración de Keep-Alive</value></data>
+  <data name="Settings_Ollama_KeepAlive_Description.Text" xml:space="preserve"><value>Cuánto tiempo mantener el modelo en memoria GPU después de la inferencia</value></data>
+  <data name="Settings_Ollama_InstallButton" xml:space="preserve"><value>Instalar Ollama</value></data>
+  <data name="Settings_Ollama_ManualInstall.Text" xml:space="preserve"><value>Instalar manualmente desde ollama.com</value></data>
+  <data name="Settings_Ollama_RetryCheck" xml:space="preserve"><value>Reintentar</value></data>
+  <data name="Settings_Ollama_InstallFailed" xml:space="preserve"><value>Error en la instalación: {0}</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Snippets
@@ -453,6 +462,20 @@
   <data name="Wizard_Llm_Cloud_Description.Text" xml:space="preserve"><value>Mejor calidad, requiere clave API (Gemini, Claude, GPT, etc.)</value></data>
   <data name="Wizard_Llm_Local_Title.Text" xml:space="preserve"><value>IA Local (Ollama)</value></data>
   <data name="Wizard_Llm_Local_Description.Text" xml:space="preserve"><value>Funciona sin conexi&#243;n. Requiere Ollama instalado + descarga de modelo (~2–4 GB).</value></data>
+  <data name="Wizard_Llm_OllamaReady" xml:space="preserve"><value>Ollama activo &#x2014; modelo listo</value></data>
+  <data name="Wizard_Llm_OllamaOffline" xml:space="preserve"><value>Ollama est&#225; instalado pero no se est&#225; ejecutando. Por favor in&#237;cialo y haz clic en Reintentar.</value></data>
+  <data name="Wizard_Llm_OllamaVersionOld" xml:space="preserve"><value>La versi&#243;n de Ollama {0} es muy antigua. Actualiza a {1} o posterior.</value></data>
+  <data name="Wizard_Llm_ModelPending" xml:space="preserve"><value>El modelo se descargar&#225; al hacer clic en Siguiente</value></data>
+  <data name="Wizard_Llm_Pulling" xml:space="preserve"><value>Descargando modelo&#x2026; {0}%</value></data>
+  <data name="Wizard_Llm_PullComplete" xml:space="preserve"><value>Modelo descargado exitosamente</value></data>
+  <data name="Wizard_Llm_PullFailed" xml:space="preserve"><value>Descarga fallida: {0}</value></data>
+  <data name="Wizard_Llm_OllamaNotDetected" xml:space="preserve"><value>Ollama no est&#225; instalado.</value></data>
+  <data name="Wizard_Llm_InstallButton" xml:space="preserve"><value>Instalar Ollama</value></data>
+  <data name="Wizard_Llm_Installing" xml:space="preserve"><value>Instalando Ollama...</value></data>
+  <data name="Wizard_Llm_InstallComplete" xml:space="preserve"><value>&#161;Ollama instalado exitosamente!</value></data>
+  <data name="Wizard_Llm_InstallFailed" xml:space="preserve"><value>Instalaci&#243;n fallida: {0}</value></data>
+  <data name="Wizard_Llm_ManualInstall" xml:space="preserve"><value>Instalar manualmente desde ollama.com</value></data>
+  <data name="Wizard_Llm_RetryCheck" xml:space="preserve"><value>Reintentar</value></data>
   <data name="Wizard_ApiKeys_Title.Text" xml:space="preserve"><value>Claves API</value></data>
   <data name="Wizard_ApiKeys_Description.Text" xml:space="preserve"><value>Ingrese sus claves API para los servicios en la nube seleccionados. Las claves se almacenan de forma segura y cifrada.</value></data>
   <data name="Wizard_ApiKeys_SttTitle.Text" xml:space="preserve"><value>Clave API de Voz a Texto</value></data>
@@ -512,6 +535,7 @@
   <data name="Loading_WhisperFailed_Title" xml:space="preserve"><value>Error al descargar Whisper</value></data>
   <data name="Loading_WhisperFailed_Message" xml:space="preserve"><value>No se pudo descargar el modelo Whisper. Verifique su conexión a internet y reinicie la aplicación para reintentar.</value></data>
   <data name="Loading_LocalServices" xml:space="preserve"><value>Verificando servicios locales...</value></data>
+  <data name="Loading_StartingOllama" xml:space="preserve"><value>Iniciando Ollama...</value></data>
   <data name="Loading_WarmingOllama" xml:space="preserve"><value>Calentando modelo Ollama...</value></data>
   <data name="Loading_Account" xml:space="preserve"><value>Sincronizando cuenta...</value></data>
   <data name="Loading_Hotkeys" xml:space="preserve"><value>Registrando atajos...</value></data>
