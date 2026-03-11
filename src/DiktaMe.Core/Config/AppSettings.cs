@@ -334,7 +334,7 @@ public sealed record AppSettings
         "diktame-notes.md");
 
     /// <summary>Ollama model to use as the default local LLM.</summary>
-    public string OllamaModel { get; init; } = "gemma3:4b";
+    public string OllamaModel { get; init; } = "gemma3:1b";
 
     /// <summary>Ollama keep-alive duration (how long to keep model in VRAM after inference).</summary>
     public string OllamaKeepAlive { get; init; } = "10m";

@@ -512,13 +512,70 @@ Add to `AppSettings`:
 
 ---
 
-## 11. Future Considerations (Out of Scope)
+## 11. Production Pipeline Warmup (E2E Cold-Start Elimination)
+
+### 11.1 Problem
+
+The first dictation after app launch has significantly higher latency than subsequent ones:
+
+| Component | Cold (1st) | Warm (2nd+) | Penalty |
+|-----------|-----------|-------------|---------|
+| Whisper STT | ~1337ms | ~370ms | ~1000ms (model load + Vulkan shader compile) |
+| Ollama LLM | ~2573ms | ~385ms | ~2200ms (model context load into factory provider) |
+| **Total pipeline** | **~4000ms** | **~770ms** | **~3200ms** |
+
+**Root cause:** Two separate cold-start penalties:
+
+1. **Whisper**: The `WhisperProvider` is cached (G.7 fix), but the first `TranscribeAsync()` call loads the 466MB model into GPU memory and compiles Vulkan shaders. No warmup exists for Whisper.
+
+2. **Ollama**: The existing `OllamaProvider.WarmUpAsync()` runs during `LoadingViewModel` Step 4b, but it warms up the **DI singleton** `OllamaProvider` instance. Dictation calls go through `PipelineFactory` → `LLMProviderFactory.CreateProvider()`, which returns a **different cached instance** (FIX-16). The production HTTP connection + Ollama model context are cold on first use.
+
+V1 solved this with `_quick_warmup()` (see `ipc_server.py:517-576`): it sent `"Hi"` through the **exact same pipeline** used by real dictations — same processor routing, same cached session — ensuring the first real dictation hit a fully primed connection.
+
+### 11.2 Proposed Solution
+
+Add a **silent E2E warmup** that runs after `LoadingViewModel` completes initialization (or as a background task after the control panel loads). The warmup:
+
+1. **Whisper warmup**: Transcribe a tiny silent WAV (~0.5s) through the cached `WhisperProvider` to force model load + Vulkan shader compilation. Discard the result.
+
+2. **LLM warmup via factory**: Call `LLMProviderFactory.CreateProvider("ollama", model: settings.OllamaModel)` to get-or-create the cached factory provider, then call `ProcessAsync("Hi", systemPrompt, "warmup")` with `numPredict: 1`. This primes the production HTTP connection + loads the model in Ollama's context. Discard the result.
+
+3. **No injection, no telemetry**: The warmup produces no text injection and writes no `history` DB record. It's invisible to the user.
+
+4. **Cloud skip**: Only warm up local providers (Whisper + Ollama). Skip if STT/LLM is cloud to avoid API charges.
+
+5. **Non-blocking**: Run as a fire-and-forget background task after hotkeys are registered. The user can start dictating immediately — if they beat the warmup, they just get the cold-start penalty once.
+
+### 11.3 Expected Impact
+
+| Metric | Before | After Warmup |
+|--------|--------|--------------|
+| 1st dictation STT | ~1337ms | ~370ms |
+| 1st dictation LLM | ~2573ms | ~385ms |
+| 1st dictation total | ~4000ms | ~770ms |
+| User-perceived startup | Loading screen only | Loading screen + ~3s background warmup (invisible) |
+
+First dictation would be indistinguishable from subsequent ones.
+
+### 11.4 Implementation Notes
+
+- The `OllamaAutoWarmup` setting (§7) controls whether this runs. Default: `true` for local users, skipped for cloud-only.
+- Replace the existing `_ollamaProvider.WarmUpAsync()` call in `LoadingViewModel` with the full E2E warmup to avoid warming up the wrong provider instance.
+- Whisper warmup needs a tiny embedded WAV resource (~1KB of silence). Alternatively, generate silence bytes in memory via `NAudio`.
+- Log warmup timing: `"E2E warmup: Whisper {stt_ms}ms, LLM {llm_ms}ms, total {total_ms}ms"`
+
+### 11.5 Task Additions
+
+| Task ID | Description | Files |
+|---------|-------------|-------|
+| E.6 | E2E production warmup — Whisper silent transcription + LLM factory provider warmup | `LoadingViewModel.cs`, `LLMProviderFactory.cs` |
+| E.7 | Wire `OllamaAutoWarmup` setting to control E2E warmup (default: true for local) | `AppSettings.cs`, `LoadingViewModel.cs` |
+
+---
+
+## 12. Future Considerations (Out of Scope)
 
 - **Official Ollama Search API** — If Ollama ships an official JSON search endpoint, swap `OllamaSearchService` from HTML parsing to JSON. The service abstraction makes this trivial.
 - **ollamadb.dev Community API** — Third-party JSON API exists (`ollamadb.dev/api/v1/models`) but is unreliable. Could be a fallback alongside ollama.com scraping.
 - **Bundled Ollama (Sidecar)** — Shipping Ollama inside dIKta.me's installer (V1's SPEC_017 concept).
 - **Ollama model creation** (`POST /api/create`) — Custom Modelfile support. Power-user feature.
-
----
-
-**Ship early, iterate quickly, preserve your vision. Coding is cheap, ideas are paramount.** 🎯

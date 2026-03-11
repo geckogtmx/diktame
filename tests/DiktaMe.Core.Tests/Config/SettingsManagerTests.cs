@@ -40,7 +40,7 @@ public sealed class SettingsManagerTests : IDisposable
         Assert.Equal(PrivacyLevel.Balanced, s.Privacy.Level);
         Assert.Equal(90, s.Privacy.HistoryRetentionDays);
         Assert.Equal("Ctrl+Alt+D", s.Hotkeys.Dictate);
-        Assert.Equal("gemma3:4b", s.OllamaModel);
+        Assert.Equal("gemma3:1b", s.OllamaModel);
         Assert.Equal("small", s.WhisperModel);
         Assert.Equal(16, s.CustomPrompts.Length);
         Assert.Equal(0, s.ActiveProfile);
