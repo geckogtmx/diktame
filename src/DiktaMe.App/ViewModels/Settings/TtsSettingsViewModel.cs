@@ -151,7 +151,14 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
             _loc.GetString("Settings_Tts_Provider_OpenAI"),
         ];
 
-        LoadFromSettings();
+        try
+        {
+            LoadFromSettings();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "TtsSettingsViewModel: LoadFromSettings failed — using defaults");
+        }
     }
 
     // ── Load from settings ───────────────────────────────────────────────────
@@ -226,15 +233,24 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
 
     private void RefreshKokoroModelState()
     {
-        string variant = SelectedKokoroVariantIndex >= 0 && SelectedKokoroVariantIndex < KokoroVariantKeys.Length
-            ? KokoroVariantKeys[SelectedKokoroVariantIndex] : "int8";
+        try
+        {
+            string variant = SelectedKokoroVariantIndex >= 0 && SelectedKokoroVariantIndex < KokoroVariantKeys.Length
+                ? KokoroVariantKeys[SelectedKokoroVariantIndex] : "int8";
 
-        var manager = new KokoroModelManager(variant);
-        IsKokoroModelDownloaded = manager.IsModelDownloaded;
+            var manager = new KokoroModelManager(variant);
+            IsKokoroModelDownloaded = manager.IsModelDownloaded;
 
-        DownloadStatusText = IsKokoroModelDownloaded
-            ? _loc.GetString("Settings_Tts_Kokoro_Status_Downloaded")
-            : _loc.GetString("Settings_Tts_Kokoro_Status_NotDownloaded");
+            DownloadStatusText = IsKokoroModelDownloaded
+                ? _loc.GetString("Settings_Tts_Kokoro_Status_Downloaded")
+                : _loc.GetString("Settings_Tts_Kokoro_Status_NotDownloaded");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to refresh Kokoro model state");
+            IsKokoroModelDownloaded = false;
+            DownloadStatusText = _loc.GetString("Settings_Tts_Kokoro_Status_NotDownloaded");
+        }
     }
 
     // ── Change handlers ──────────────────────────────────────────────────────

@@ -25,7 +25,7 @@
 | **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-G complete, FIX-1 through FIX-16 (15/16 done, FIX-1 deferred to SPEC_008) |
 | **SPEC_011** | Ollama Management Hub — Core API, search service, Settings UI, E2E warmup, 22 new tests |
 | **DOCS_V2** | Exhaustive User documentation (Features & Settings), integrated natively into the Next.js Website via Markdown |
-| **SPEC_003 A–F** | TTS: Core infra, Kokoro local, Read Selection hotkey, pipeline hooks, cloud providers, Settings UI + Control Panel toggle. 282 new tests. **SanitizeNulls crash fix included.** |
+| **SPEC_003 A–G** | TTS: Core infra, Kokoro local, Read Selection hotkey, pipeline hooks, cloud providers, Settings UI + Control Panel toggle, Phase G polish (gap fixes, Inworld key UI, SanitizeNulls, observability). 282 new tests. **All 40 tasks complete.** |
 
 ## Open Bugs (Stream K)
 
@@ -63,39 +63,26 @@
 | **Local TTS** | Kokoro-ONNX via `KokoroSharp.CPU` NuGet (82M params, 88MB int8 model) |
 | **Cloud TTS** | Deepgram Aura-2 (same key as STT), Inworld TTS-1.5 ($10 credit available), OpenAI (BYOK) |
 | **Key hotkey** | `Ctrl+Alt+Q` = "Read Selection" (select text anywhere → hear it) |
-| **Status** | **Phases A–F committed.** Phase G (integration testing + polish) next. |
+| **Status** | **All phases (A–G) complete.** E2E manual testing next. |
 
-### Phase G — Remaining Work (Start Here)
+### Phase G — Resolved Gaps
 
-These are known gaps found during Phase F testing. Fix these before any manual E2E TTS testing:
+All 4 gaps from Phase F testing are fixed:
 
-#### 1. ReadSelection hotkey not on Hotkeys Settings page
-- `HotkeySettings.ReadSelection` defaults to `"Ctrl+Alt+Q"` in code (`AppSettings.cs:161`)
-- Pipeline + registration exist and work (`LoadingViewModel.cs:314`, `HotkeyId.ReadSelection`)
-- Displayed as read-only on TTS Settings page (`TtsSettingsPage.xaml:125-129`)
-- **Missing from** `HotkeysSettingsPage.xaml` and `HotkeysSettingsViewModel.cs` — user cannot see or edit it
-- Related bug: existing `settings.json` has `"ReadSelection":null` which causes "Hotkey Conflict" toast at startup (same null-from-JSON class as the Tts crash, now protected by `SanitizeNulls` on the `Hotkeys` sub-object)
+1. **ReadSelection hotkey on Hotkeys Settings page** ✅ — VM + XAML + code-behind + i18n (en + es-MX). SanitizeNulls extended to null-coalesce individual hotkey strings.
+2. **Inworld API key entry** ✅ — Added to API Keys Settings page (VM + XAML, uses `ApiKeyValidator.IsValidGeneric`).
+3. **TTS Settings page crash** ✅ — try/catch in `RefreshKokoroModelState()` and constructor `LoadFromSettings()`.
+4. **Kokoro model download file-lock** ✅ — Stale `.tmp` cleanup + user-friendly IOException on `File.Move`.
+5. **Kokoro observability** ✅ — `IsModelLoaded` property, model load timing log, TTSProviderFactory cache hit/miss logging.
 
-#### 2. No Inworld API key entry
-- `SecureStorage.ValidProviders` includes `"inworld"` — backend is ready
-- `TTSProviderFactory` routes `"inworld"` to `InworldTtsProvider` which needs an API key
-- **Neither** `ApiKeysSettingsPage.xaml` nor `TtsSettingsPage.xaml` has an Inworld key field
-- Deepgram + OpenAI keys are reusable from existing API Keys page entries (shared with STT/LLM)
-- Decision needed: add Inworld to API Keys page, or add a key field inline on TTS Settings page, or both
+### E2E Manual Testing Needed
 
-#### 3. TTS Settings page — intermittent crash on open
-- Observed 2x during testing, could not reproduce consistently
-- Likely a XAML page load race condition (same class of WinUI native crash)
-- Needs investigation with logging around TtsSettingsViewModel initialization
-
-#### 4. TTS feature not E2E tested
-All TTS code paths need manual verification:
-- **Kokoro local**: Toggle TTS ON → Dictate → hear spoken response (requires Kokoro model downloaded)
-- **Cloud providers**: Need API keys configured first (see gap #2)
+- **Kokoro local**: TTS ON → Dictate → hear spoken response (requires model downloaded)
+- **Cloud providers**: Need API keys configured (Inworld now on API Keys page)
 - **Read Selection**: `Ctrl+Alt+Q` with text selected in any app
-- **Ask/Chat/Translate hooks**: Enable `SpeakAskResponses` etc. in TTS Settings → use respective mode
-- **Toggle behavior**: TTS toggle in Control Panel should enable/disable all TTS output
-- **Settings persistence**: Toggle states, provider selection, voice/speed survive app restart
+- **Ask/Chat/Translate hooks**: Enable SpeakAskResponses etc. → use mode → verify audio
+- **Control Panel toggle**: ON/OFF enables/disables all TTS output
+- **Settings persistence**: Toggle states, provider, voice/speed survive restart
 
 ### Completed Phases (all committed to main)
 

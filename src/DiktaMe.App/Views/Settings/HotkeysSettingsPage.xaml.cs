@@ -32,6 +32,7 @@ public sealed partial class HotkeysSettingsPage : Page
     private void RecordOops_Click(object sender, RoutedEventArgs e) => StartRecording(OopsBox, "Oops");
     private void RecordNote_Click(object sender, RoutedEventArgs e) => StartRecording(NoteBox, "Note");
     private void RecordChat_Click(object sender, RoutedEventArgs e) => StartRecording(ChatBox, "Chat");
+    private void RecordReadSelection_Click(object sender, RoutedEventArgs e) => StartRecording(ReadSelectionBox, "ReadSelection");
 
     private void StartRecording(TextBox textBox, string target)
     {

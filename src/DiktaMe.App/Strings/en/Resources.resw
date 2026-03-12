@@ -209,6 +209,12 @@
   <data name="Settings_Hotkeys_Chat_Description.Text" xml:space="preserve">
     <value>Open Quick Chat overlay window</value>
   </data>
+  <data name="Settings_Hotkeys_ReadSelection_Label.Text" xml:space="preserve">
+    <value>Read Selection</value>
+  </data>
+  <data name="Settings_Hotkeys_ReadSelection_Description.Text" xml:space="preserve">
+    <value>Read selected text aloud using TTS</value>
+  </data>
   <data name="Settings_Hotkeys_Placeholder.PlaceholderText" xml:space="preserve">
     <value>Click Record to set hotkey</value>
   </data>

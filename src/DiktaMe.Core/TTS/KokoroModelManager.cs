@@ -65,6 +65,11 @@ public sealed class KokoroModelManager
         Directory.CreateDirectory(ModelsDirectory);
 
         var tempPath = _modelPath + ".tmp";
+
+        // Clean up stale .tmp from a previous cancelled download
+        try { if (File.Exists(tempPath)) File.Delete(tempPath); }
+        catch (IOException ex) { Log.Debug(ex, "KokoroModelManager: could not delete stale .tmp file"); }
+
         try
         {
             using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
@@ -91,8 +96,17 @@ public sealed class KokoroModelManager
                 }
             }
 
-            // Atomic rename
-            File.Move(tempPath, _modelPath, overwrite: true);
+            // Atomic rename — may fail if model is loaded by KokoroTtsProvider (ONNX runtime holds file open)
+            try
+            {
+                File.Move(tempPath, _modelPath, overwrite: true);
+            }
+            catch (IOException)
+            {
+                throw new IOException(
+                    "Model file is in use — restart the app and try again.");
+            }
+
             Log.Information("KokoroModelManager: model downloaded to {Path} ({Bytes} bytes)", _modelPath, bytesRead);
             return _modelPath;
         }

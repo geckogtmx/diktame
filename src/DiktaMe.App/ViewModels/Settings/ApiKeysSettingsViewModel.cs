@@ -35,6 +35,12 @@ public sealed partial class ApiKeysSettingsViewModel : ObservableObject
     [ObservableProperty] private string _deepgramStatus = "";
     [ObservableProperty] private bool _deepgramHasKey;
 
+    // ── Inworld ───────────────────────────────────────────────────────────
+
+    [ObservableProperty] private string _inworldKey = "";
+    [ObservableProperty] private string _inworldStatus = "";
+    [ObservableProperty] private bool _inworldHasKey;
+
     public ApiKeysSettingsViewModel(SecureStorage storage, LocalizationService loc)
     {
         _storage = storage;
@@ -56,6 +62,9 @@ public sealed partial class ApiKeysSettingsViewModel : ObservableObject
     [RelayCommand] private void SaveDeepgramKey() => SaveKey("deepgram", DeepgramKey, ApiKeyValidator.IsValidDeepgram, v => { DeepgramStatus = v; DeepgramHasKey = string.Equals(v, _loc.GetString("Settings_ApiKeys_Status_Saved"), StringComparison.Ordinal); });
     [RelayCommand] private void DeleteDeepgramKey() => DeleteKey("deepgram", v => { DeepgramStatus = v; DeepgramHasKey = false; DeepgramKey = ""; });
 
+    [RelayCommand] private void SaveInworldKey() => SaveKey("inworld", InworldKey, ApiKeyValidator.IsValidGeneric, v => { InworldStatus = v; InworldHasKey = string.Equals(v, _loc.GetString("Settings_ApiKeys_Status_Saved"), StringComparison.Ordinal); });
+    [RelayCommand] private void DeleteInworldKey() => DeleteKey("inworld", v => { InworldStatus = v; InworldHasKey = false; InworldKey = ""; });
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private void RefreshKeyStatus()
@@ -71,6 +80,9 @@ public sealed partial class ApiKeysSettingsViewModel : ObservableObject
 
         DeepgramHasKey = _storage.RetrieveKey("deepgram") is not null;
         DeepgramStatus = DeepgramHasKey ? _loc.GetString("Settings_ApiKeys_Status_Saved") : _loc.GetString("Settings_ApiKeys_Status_NotSet");
+
+        InworldHasKey = _storage.RetrieveKey("inworld") is not null;
+        InworldStatus = InworldHasKey ? _loc.GetString("Settings_ApiKeys_Status_Saved") : _loc.GetString("Settings_ApiKeys_Status_NotSet");
     }
 
     private void SaveKey(string provider, string key, Func<string?, bool> validator, Action<string> setStatus)

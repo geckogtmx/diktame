@@ -188,20 +188,45 @@ public sealed class SettingsManager
     /// JSON "Tts":null (or any other null sub-object) overrides the <c>= new()</c> initializer,
     /// causing NullReferenceException at runtime.
     /// </summary>
-    private static AppSettings SanitizeNulls(AppSettings s) => s with
+    private static AppSettings SanitizeNulls(AppSettings s)
     {
-        General = s.General ?? new(),
-        Audio = s.Audio ?? new(),
-        AudioDucking = s.AudioDucking ?? new(),
-        Privacy = s.Privacy ?? new(),
-        Hotkeys = s.Hotkeys ?? new(),
-        ControlPanel = s.ControlPanel ?? new(),
-        Note = s.Note ?? new(),
-        Chat = s.Chat ?? new(),
-        Sound = s.Sound ?? new(),
-        Deepgram = s.Deepgram ?? new(),
-        Tts = s.Tts ?? new(),
-    };
+        s = s with
+        {
+            General = s.General ?? new(),
+            Audio = s.Audio ?? new(),
+            AudioDucking = s.AudioDucking ?? new(),
+            Privacy = s.Privacy ?? new(),
+            Hotkeys = s.Hotkeys ?? new(),
+            ControlPanel = s.ControlPanel ?? new(),
+            Note = s.Note ?? new(),
+            Chat = s.Chat ?? new(),
+            Sound = s.Sound ?? new(),
+            Deepgram = s.Deepgram ?? new(),
+            Tts = s.Tts ?? new(),
+        };
+
+        // Protect individual hotkey strings from JSON null override.
+        // JSON "ReadSelection":null overwrites the = "Ctrl+Alt+Q" init default with null,
+        // causing HotkeyParser.TryParse(null) → "Hotkey Conflict" toast at startup.
+        var h = s.Hotkeys;
+        var defaults = new HotkeySettings();
+        s = s with
+        {
+            Hotkeys = h with
+            {
+                Dictate = h.Dictate ?? defaults.Dictate,
+                Refine = h.Refine ?? defaults.Refine,
+                Ask = h.Ask ?? defaults.Ask,
+                Translate = h.Translate ?? defaults.Translate,
+                Oops = h.Oops ?? defaults.Oops,
+                Note = h.Note ?? defaults.Note,
+                Chat = h.Chat ?? defaults.Chat,
+                ReadSelection = h.ReadSelection ?? defaults.ReadSelection,
+            },
+        };
+
+        return s;
+    }
 
     private static AppSettings MigrateIfNeeded(AppSettings loaded)
     {

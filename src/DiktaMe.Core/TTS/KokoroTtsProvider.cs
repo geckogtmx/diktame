@@ -30,6 +30,9 @@ public sealed class KokoroTtsProvider : ITTSProvider
     public string ProviderName => "Kokoro-ONNX (Local)";
     public bool SupportsStreaming => false;
 
+    /// <summary>Whether the ONNX model is loaded in memory and ready for inference.</summary>
+    public bool IsModelLoaded => _model is not null;
+
     /// <summary>
     /// Creates a new Kokoro TTS provider.
     /// </summary>
@@ -149,15 +152,17 @@ public sealed class KokoroTtsProvider : ITTSProvider
             lock (_lock)
             {
                 if (_model is not null) return;
+                var loadSw = Stopwatch.StartNew();
                 _model = new KokoroModel(_modelManager.ModelPath);
-                Log.Information("KokoroTtsProvider: model loaded from {Path}", _modelManager.ModelPath);
 
                 if (!_voicesLoaded)
                 {
                     KokoroVoiceManager.LoadVoicesFromPath();
                     _voicesLoaded = true;
-                    Log.Debug("KokoroTtsProvider: voices loaded");
                 }
+
+                Log.Information("KokoroTtsProvider: model loaded in {Ms}ms from {Path}",
+                    loadSw.ElapsedMilliseconds, _modelManager.ModelPath);
             }
         }, cancellationToken);
     }

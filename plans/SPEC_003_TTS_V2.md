@@ -30,8 +30,8 @@
 | **C: Read Selection Hotkey** | ✅ Done | Ctrl+Alt+Q pipeline, hotkey wiring, toggle-stop |
 | **D: Pipeline Integration** | ✅ Done | TtsSpeaker service, Ask/Chat/Translate hooks, NotificationService.SpeakAsync |
 | **E: Cloud Providers** | ✅ Done | Deepgram, Inworld, OpenAI — 66 new tests, TtsFakeHandler |
-| **F: UI** | ⬜ Not started | Settings page, Control Panel toggle |
-| **G: Polish** | ⬜ Not started | Interrupt, concurrency, edge cases |
+| **F: UI** | ✅ Done | Settings page, Control Panel toggle, SanitizeNulls crash fix |
+| **G: Polish** | ✅ Done | Interrupt, concurrency, edge cases, gap fixes, observability logging |
 
 ### Key Files to Read First (When Starting a Phase)
 - **Phase A:** `Core/Pipeline/PipelineState.cs`, `Core/Config/AppSettings.cs`, `App/Services/NotificationService.cs`
@@ -726,7 +726,7 @@ If `TtsSettings.SpeakAskResponses = true`, auto-plays without button press.
 
 ## 15. Task Log (Implementation Status)
 
-> **Status**: Phase A–D complete
+> **Status**: All phases complete (A–G)
 
 ### Phase A: Core TTS Infrastructure
 | Task | Status | Notes |
@@ -785,24 +785,24 @@ If `TtsSettings.SpeakAskResponses = true`, auto-plays without button press.
 ### Phase F: UI
 | Task | Status | Notes |
 |------|--------|-------|
-| F.1 | ⬜ Pending | |
-| F.2 | ⬜ Pending | |
-| F.3 | ⬜ Pending | |
-| F.4 | ⬜ Pending | |
-| F.5 | ⬜ Pending | |
-| F.6 | ⬜ Pending | |
-| F.7 | ⬜ Pending | |
+| F.1 | ✅ Done | TtsSettingsViewModel — provider, voice, speed, volume, toggles |
+| F.2 | ✅ Done | TtsSettingsPage.xaml — full settings UI |
+| F.3 | ✅ Done | SettingsWindow nav + DI registration |
+| F.4 | ✅ Done | Control Panel TTS toggle (7th column) |
+| F.5 | ✅ Done | "Test Voice" button |
+| F.6 | ✅ Done | Kokoro model download progress UI |
+| F.7 | ✅ Done | Localization (en + es-MX) |
 
 ### Phase G: Polish
 | Task | Status | Notes |
 |------|--------|-------|
-| G.1 | ⬜ Pending | |
-| G.2 | ⬜ Pending | |
-| G.3 | ⬜ Pending | |
-| G.4 | ⬜ Pending | |
-| G.5 | ⬜ Pending | |
-| G.6 | ⬜ Pending | |
-| G.7 | ⬜ Pending | |
+| G.1 | ✅ Done | Any hotkey stops active TTS (LoadingViewModel:344) |
+| G.2 | ✅ Done | Lock-based state machine in TtsPlayerService |
+| G.3 | ✅ Done | TTSRouter try/catch + fallback, returns empty result |
+| G.4 | ✅ Done | Download UI + progress for Kokoro model |
+| G.5 | ✅ Done | WasapiOut exception caught, logged, returns gracefully |
+| G.6 | ✅ Done | TextCleaner truncation (500 words default) |
+| G.7 | ✅ Done | Ghost mode skips all text logging |
 
 **Total tasks:** 40 across 7 phases (A–G)
 

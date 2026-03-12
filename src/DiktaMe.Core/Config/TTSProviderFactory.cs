@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Net.Http;
 using DiktaMe.Core.TTS;
+using Serilog;
 
 namespace DiktaMe.Core.Config;
 
@@ -33,7 +34,19 @@ public sealed class TTSProviderFactory : ITTSProviderFactory, IDisposable
         string variant = modelVariant ?? ResolveVariant(type);
         string cacheKey = $"{type}:{variant}";
 
-        return _cache.GetOrAdd(cacheKey, _ => CreateProviderCore(type, variant));
+        bool isNew = false;
+        var provider = _cache.GetOrAdd(cacheKey, _ =>
+        {
+            isNew = true;
+            return CreateProviderCore(type, variant);
+        });
+
+        if (isNew)
+            Log.Information("TTSProviderFactory: created {CacheKey}", cacheKey);
+        else
+            Log.Debug("TTSProviderFactory: cache hit {CacheKey}", cacheKey);
+
+        return provider;
     }
 
     private string ResolveVariant(string type)
