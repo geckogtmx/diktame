@@ -673,6 +673,9 @@
   <data name="Settings_Tts_TestVoice_Error" xml:space="preserve">
     <value>Test failed. Check provider and API key settings.</value>
   </data>
+  <data name="Settings_Tts_TestVoice_ModelNotDownloaded" xml:space="preserve">
+    <value>Kokoro model not downloaded. Click the download button below first.</value>
+  </data>
   <!-- When to Speak Section -->
   <data name="Settings_Tts_WhenToSpeak_Section.Text" xml:space="preserve">
     <value>When to Speak</value>

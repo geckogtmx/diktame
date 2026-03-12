@@ -345,6 +345,14 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
                 ? KokoroVariantKeys[SelectedKokoroVariantIndex] : "int8";
             string voiceId = GetSelectedVoiceId();
 
+            // Pre-flight: Kokoro needs a downloaded model
+            if (string.Equals(provider, "kokoro", StringComparison.Ordinal) && !IsKokoroModelDownloaded)
+            {
+                TestStatusText = _loc.GetString("Settings_Tts_TestVoice_ModelNotDownloaded");
+                return;
+            }
+
+            Log.Information("TTS test: provider={Provider}, variant={Variant}, voice={Voice}", provider, variant, voiceId);
             ITTSProvider ttsProvider = _ttsFactory.CreateProvider(provider, variant);
             string sampleText = _loc.GetString("Settings_Tts_TestVoice_SampleText");
 
@@ -426,7 +434,7 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Kokoro model download failed");
+            Log.Error(ex, "Kokoro model download failed ({ExType}: {ExMsg})", ex.GetType().Name, ex.Message);
             _dispatcher?.TryEnqueue(() =>
             {
                 DownloadStatusText = string.Format(

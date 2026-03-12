@@ -145,7 +145,7 @@ public sealed class KokoroTtsProvider : ITTSProvider
 
         if (!_modelManager.IsModelDownloaded)
             throw new FileNotFoundException(
-                $"Kokoro TTS model not found. Call ModelManager.DownloadModelAsync() first. Expected: {_modelManager.ModelPath}");
+                "Kokoro TTS model not downloaded. Open Settings > Text-to-Speech to download it.");
 
         await Task.Run(() =>
         {

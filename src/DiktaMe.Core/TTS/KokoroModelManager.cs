@@ -64,11 +64,9 @@ public sealed class KokoroModelManager
         Log.Information("KokoroModelManager: downloading {Variant} model from {Url}", _variant, url);
         Directory.CreateDirectory(ModelsDirectory);
 
-        var tempPath = _modelPath + ".tmp";
-
-        // Clean up stale .tmp from a previous cancelled download
-        try { if (File.Exists(tempPath)) File.Delete(tempPath); }
-        catch (IOException ex) { Log.Debug(ex, "KokoroModelManager: could not delete stale .tmp file"); }
+        // Use GUID-based temp file to avoid stale lock conflicts from previous downloads
+        var tempPath = Path.Combine(ModelsDirectory, $"{fileName}.{Guid.NewGuid():N}.tmp");
+        Log.Debug("KokoroModelManager: temp file = {TempPath}", tempPath);
 
         try
         {
@@ -79,6 +77,7 @@ public sealed class KokoroModelManager
             long? totalBytes = response.Content.Headers.ContentLength;
             long bytesRead = 0;
             var buffer = new byte[81_920];
+            Log.Information("KokoroModelManager: server responded, content-length={Bytes}", totalBytes);
 
             using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
             using var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 81_920, true);
@@ -96,27 +95,57 @@ public sealed class KokoroModelManager
                 }
             }
 
-            // Atomic rename — may fail if model is loaded by KokoroTtsProvider (ONNX runtime holds file open)
+            // Close the file stream before moving (required for File.Move to succeed)
+            fileStream.Close();
+
+            // Atomic rename — may fail if destination is held open by ONNX runtime
             try
             {
                 File.Move(tempPath, _modelPath, overwrite: true);
             }
-            catch (IOException)
+            catch (IOException ex)
             {
+                Log.Error(ex, "KokoroModelManager: File.Move failed from {Temp} to {Dest}", tempPath, _modelPath);
                 throw new IOException(
                     "Model file is in use — restart the app and try again.");
             }
 
             Log.Information("KokoroModelManager: model downloaded to {Path} ({Bytes} bytes)", _modelPath, bytesRead);
+
+            // Clean up any leftover .tmp files from previous failed downloads
+            CleanupStaleTempFiles(fileName);
+
             return _modelPath;
         }
-        catch
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            Log.Error(ex, "KokoroModelManager: download failed ({ExType})", ex.GetType().Name);
             // Clean up partial download
             try { if (File.Exists(tempPath)) File.Delete(tempPath); }
             catch { /* best effort */ }
             throw;
         }
+        catch
+        {
+            // Clean up on cancellation
+            try { if (File.Exists(tempPath)) File.Delete(tempPath); }
+            catch { /* best effort */ }
+            throw;
+        }
+    }
+
+    /// <summary>Removes leftover .tmp files from previous failed downloads.</summary>
+    private static void CleanupStaleTempFiles(string baseFileName)
+    {
+        try
+        {
+            foreach (var tmp in Directory.EnumerateFiles(ModelsDirectory, $"{baseFileName}.*.tmp"))
+            {
+                try { File.Delete(tmp); }
+                catch { /* best effort */ }
+            }
+        }
+        catch { /* best effort */ }
     }
 
     /// <summary>

@@ -257,6 +257,7 @@
   <data name="Settings_Tts_TestVoice_SampleText" xml:space="preserve"><value>Hola, esta es una prueba del sistema de texto a voz de dIKta.me.</value></data>
   <data name="Settings_Tts_TestVoice_Playing" xml:space="preserve"><value>Reproduciendo...</value></data>
   <data name="Settings_Tts_TestVoice_Error" xml:space="preserve"><value>Error al probar la voz</value></data>
+  <data name="Settings_Tts_TestVoice_ModelNotDownloaded" xml:space="preserve"><value>Modelo Kokoro no descargado. Haz clic en descargar primero.</value></data>
 
   <data name="Settings_Tts_WhenToSpeak_Section.Text" xml:space="preserve"><value>Cu&#225;ndo Hablar</value></data>
   <data name="Settings_Tts_SpeakAsk_Label.Text" xml:space="preserve"><value>Respuestas de Preguntar</value></data>
