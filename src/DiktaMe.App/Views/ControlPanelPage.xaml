@@ -157,6 +157,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- SOUND -->
@@ -244,6 +245,21 @@
                                   MinWidth="0" Padding="0" Margin="12,0,0,0"
                                   OffContent="" OnContent=""/>
                     <TextBlock Text="{x:Bind ViewModel.RefineStateLabel, Mode=OneWay}"
+                               FontSize="9" FontWeight="SemiBold"
+                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               HorizontalAlignment="Center" Margin="0,-2,0,0"/>
+                </StackPanel>
+
+                <!-- TTS -->
+                <StackPanel Grid.Column="6" HorizontalAlignment="Center" Spacing="0">
+                    <TextBlock l:Uids.Uid="ControlPanel_Toggle_Tts"
+                               FontSize="9" FontWeight="SemiBold"
+                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               HorizontalAlignment="Center"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.IsTtsEnabled, Mode=TwoWay}"
+                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
+                                  OffContent="" OnContent=""/>
+                    <TextBlock Text="{x:Bind ViewModel.TtsStateLabel, Mode=OneWay}"
                                FontSize="9" FontWeight="SemiBold"
                                Foreground="{StaticResource V1TextSecondaryBrush}"
                                HorizontalAlignment="Center" Margin="0,-2,0,0"/>

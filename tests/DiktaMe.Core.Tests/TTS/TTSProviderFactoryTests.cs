@@ -1,4 +1,5 @@
 using DiktaMe.Core.Config;
+using DiktaMe.Core.Security;
 using DiktaMe.Core.TTS;
 using FluentAssertions;
 
@@ -8,13 +9,16 @@ namespace DiktaMe.Core.Tests.TTS;
 public sealed class TTSProviderFactoryTests : IDisposable
 {
     private readonly string _tempPath;
+    private readonly string _keysPath;
     private readonly TTSProviderFactory _factory;
 
     public TTSProviderFactoryTests()
     {
         _tempPath = Path.Combine(Path.GetTempPath(), $"diktame-ttsfactory-{Guid.NewGuid()}.json");
+        _keysPath = Path.Combine(Path.GetTempPath(), $"diktame-ttsfactory-keys-{Guid.NewGuid()}.dat");
         var settings = new SettingsManager(_tempPath);
-        _factory = new TTSProviderFactory(settings);
+        var secureStorage = new SecureStorage(_keysPath);
+        _factory = new TTSProviderFactory(secureStorage, settings);
     }
 
     // ── None / Skip ──────────────────────────────────────────────────────────
@@ -91,6 +95,84 @@ public sealed class TTSProviderFactoryTests : IDisposable
         first.Should().NotBeSameAs(second);
     }
 
+    // ── Cloud providers — key present ────────────────────────────────────────
+
+    [Fact]
+    public void CreateProvider_Deepgram_WithKey_ReturnsDeepgramTtsProvider()
+    {
+        var storage = new SecureStorage(_keysPath);
+        storage.StoreKey("deepgram", "dg_test_key");
+
+        var factory = new TTSProviderFactory(storage, new SettingsManager(_tempPath));
+        var provider = factory.CreateProvider("deepgram");
+
+        provider.Should().BeOfType<DeepgramTtsProvider>();
+        provider.ProviderName.Should().Contain("Deepgram");
+        factory.Dispose();
+    }
+
+    [Fact]
+    public void CreateProvider_OpenAI_WithKey_ReturnsOpenAITtsProvider()
+    {
+        var storage = new SecureStorage(_keysPath);
+        storage.StoreKey("openai", "sk_test_key");
+
+        var factory = new TTSProviderFactory(storage, new SettingsManager(_tempPath));
+        var provider = factory.CreateProvider("openai");
+
+        provider.Should().BeOfType<OpenAITtsProvider>();
+        provider.ProviderName.Should().Contain("OpenAI");
+        factory.Dispose();
+    }
+
+    [Fact]
+    public void CreateProvider_Inworld_WithKey_ReturnsInworldTtsProvider()
+    {
+        var storage = new SecureStorage(_keysPath);
+        storage.StoreKey("inworld", "iw_test_key");
+
+        var factory = new TTSProviderFactory(storage, new SettingsManager(_tempPath));
+        var provider = factory.CreateProvider("inworld");
+
+        provider.Should().BeOfType<InworldTtsProvider>();
+        provider.ProviderName.Should().Contain("Inworld");
+        factory.Dispose();
+    }
+
+    // ── Cloud providers — key missing ─────────────────────────────────────────
+
+    [Theory]
+    [InlineData("deepgram")]
+    [InlineData("openai")]
+    [InlineData("inworld")]
+    public void CreateProvider_CloudProvider_NoKey_Throws(string type)
+    {
+        // Factory with empty secure storage — no keys stored
+        var storage = new SecureStorage(_keysPath);
+        var factory = new TTSProviderFactory(storage, new SettingsManager(_tempPath));
+
+        var act = () => factory.CreateProvider(type);
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage($"*{type}*key*");
+        factory.Dispose();
+    }
+
+    // ── Cloud caching ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public void CreateProvider_CloudSameType_ReturnsCachedInstance()
+    {
+        var storage = new SecureStorage(_keysPath);
+        storage.StoreKey("deepgram", "dg_key");
+
+        var factory = new TTSProviderFactory(storage, new SettingsManager(_tempPath));
+        var first = factory.CreateProvider("deepgram");
+        var second = factory.CreateProvider("deepgram");
+
+        first.Should().BeSameAs(second);
+        factory.Dispose();
+    }
+
     // ── Dispose ──────────────────────────────────────────────────────────────
 
     [Fact]
@@ -105,7 +187,7 @@ public sealed class TTSProviderFactoryTests : IDisposable
     public void Dispose()
     {
         _factory.Dispose();
-        try { if (File.Exists(_tempPath)) File.Delete(_tempPath); }
-        catch { /* best effort */ }
+        try { if (File.Exists(_tempPath)) File.Delete(_tempPath); } catch { /* best effort */ }
+        try { if (File.Exists(_keysPath)) File.Delete(_keysPath); } catch { /* best effort */ }
     }
 }

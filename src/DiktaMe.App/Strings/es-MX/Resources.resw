@@ -35,6 +35,7 @@
   <data name="Nav_DictationPresets.Content" xml:space="preserve"><value>Ajustes de Dictado</value></data>
   <data name="Nav_Modes.Content" xml:space="preserve"><value>Modos</value></data>
   <data name="Nav_Audio.Content" xml:space="preserve"><value>Audio</value></data>
+  <data name="Nav_Tts.Content" xml:space="preserve"><value>Texto a Voz</value></data>
   <data name="Nav_Privacy.Content" xml:space="preserve"><value>Privacidad</value></data>
   <data name="Nav_ApiKeys.Content" xml:space="preserve"><value>Claves API</value></data>
   <data name="Nav_Ollama.Content" xml:space="preserve"><value>Ollama</value></data>
@@ -224,6 +225,61 @@
   <data name="Settings_Audio_Duration_120s" xml:space="preserve"><value>120 segundos</value></data>
   <data name="Settings_Audio_Duration_Unlimited" xml:space="preserve"><value>Sin l&#237;mite</value></data>
   <data name="Settings_Audio_DefaultDevice" xml:space="preserve"><value>(Dispositivo predeterminado)</value></data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Text-to-Speech
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_Tts_Title.Text" xml:space="preserve"><value>Texto a Voz</value></data>
+  <data name="Settings_Tts_Provider_Label.Text" xml:space="preserve"><value>Proveedor</value></data>
+  <data name="Settings_Tts_Provider_Description.Text" xml:space="preserve"><value>Motor de s&#237;ntesis de voz</value></data>
+  <data name="Settings_Tts_Provider_Kokoro" xml:space="preserve"><value>Kokoro (Local)</value></data>
+  <data name="Settings_Tts_Provider_Deepgram" xml:space="preserve"><value>Deepgram (Nube)</value></data>
+  <data name="Settings_Tts_Provider_Inworld" xml:space="preserve"><value>Inworld (Nube)</value></data>
+  <data name="Settings_Tts_Provider_OpenAI" xml:space="preserve"><value>OpenAI (Nube)</value></data>
+
+  <data name="Settings_Tts_Voice_Label.Text" xml:space="preserve"><value>Voz</value></data>
+  <data name="Settings_Tts_Voice_Description.Text" xml:space="preserve"><value>Seleccionar voz para la s&#237;ntesis</value></data>
+
+  <data name="Settings_Tts_Speed_Label.Text" xml:space="preserve"><value>Velocidad</value></data>
+  <data name="Settings_Tts_Speed_Prefix.Text" xml:space="preserve"><value>Velocidad: </value></data>
+  <data name="Settings_Tts_Speed_Suffix.Text" xml:space="preserve"><value>x</value></data>
+
+  <data name="Settings_Tts_Volume_Label.Text" xml:space="preserve"><value>Volumen</value></data>
+  <data name="Settings_Tts_Volume_Prefix.Text" xml:space="preserve"><value>Volumen: </value></data>
+  <data name="Settings_Tts_Volume_Suffix.Text" xml:space="preserve"><value>%</value></data>
+
+  <data name="Settings_Tts_MaxWords_Label.Text" xml:space="preserve"><value>M&#225;ximo de Palabras</value></data>
+  <data name="Settings_Tts_MaxWords_Description.Text" xml:space="preserve"><value>L&#237;mite de palabras para la s&#237;ntesis (0 = sin l&#237;mite)</value></data>
+
+  <data name="Settings_Tts_TestVoice.Content" xml:space="preserve"><value>Probar Voz</value></data>
+  <data name="Settings_Tts_TestVoice_SampleText" xml:space="preserve"><value>Hola, esta es una prueba del sistema de texto a voz de dIKta.me.</value></data>
+  <data name="Settings_Tts_TestVoice_Playing" xml:space="preserve"><value>Reproduciendo...</value></data>
+  <data name="Settings_Tts_TestVoice_Error" xml:space="preserve"><value>Error al probar la voz</value></data>
+
+  <data name="Settings_Tts_WhenToSpeak_Section.Text" xml:space="preserve"><value>Cu&#225;ndo Hablar</value></data>
+  <data name="Settings_Tts_SpeakAsk_Label.Text" xml:space="preserve"><value>Respuestas de Preguntar</value></data>
+  <data name="Settings_Tts_SpeakAsk_Description.Text" xml:space="preserve"><value>Leer en voz alta las respuestas del modo Preguntar</value></data>
+  <data name="Settings_Tts_SpeakChat_Label.Text" xml:space="preserve"><value>Respuestas de Chat</value></data>
+  <data name="Settings_Tts_SpeakChat_Description.Text" xml:space="preserve"><value>Leer en voz alta las respuestas del modo Chat</value></data>
+  <data name="Settings_Tts_SpeakTranslate_Label.Text" xml:space="preserve"><value>Traducciones</value></data>
+  <data name="Settings_Tts_SpeakTranslate_Description.Text" xml:space="preserve"><value>Leer en voz alta el texto traducido</value></data>
+  <data name="Settings_Tts_SpeakNotifications_Label.Text" xml:space="preserve"><value>Notificaciones</value></data>
+  <data name="Settings_Tts_SpeakNotifications_Description.Text" xml:space="preserve"><value>Leer en voz alta las notificaciones del sistema</value></data>
+  <data name="Settings_Tts_DuckOtherApps_Label.Text" xml:space="preserve"><value>Reducir Otras Apps</value></data>
+  <data name="Settings_Tts_DuckOtherApps_Description.Text" xml:space="preserve"><value>Bajar volumen de otras aplicaciones durante la reproducci&#243;n de TTS</value></data>
+
+  <data name="Settings_Tts_ReadSelection_Label.Text" xml:space="preserve"><value>Leer Selecci&#243;n</value></data>
+  <data name="Settings_Tts_ReadSelection_Description.Text" xml:space="preserve"><value>Atajo de teclado para leer el texto seleccionado en voz alta</value></data>
+
+  <data name="Settings_Tts_Kokoro_Section.Text" xml:space="preserve"><value>Modelo Kokoro</value></data>
+  <data name="Settings_Tts_Kokoro_Variant_Label.Text" xml:space="preserve"><value>Variante del Modelo</value></data>
+  <data name="Settings_Tts_Kokoro_Variant_Description.Text" xml:space="preserve"><value>Precisi&#243;n del modelo (int8 = m&#225;s r&#225;pido, fp32 = m&#225;s preciso)</value></data>
+  <data name="Settings_Tts_Kokoro_Status_Downloaded" xml:space="preserve"><value>Modelo descargado &#x2714;</value></data>
+  <data name="Settings_Tts_Kokoro_Status_NotDownloaded" xml:space="preserve"><value>Modelo no descargado</value></data>
+  <data name="Settings_Tts_Kokoro_Download.Content" xml:space="preserve"><value>Descargar Modelo</value></data>
+  <data name="Settings_Tts_Kokoro_Downloading" xml:space="preserve"><value>Descargando...</value></data>
+  <data name="Settings_Tts_Kokoro_DownloadComplete" xml:space="preserve"><value>&#xA1;Descarga completada!</value></data>
+  <data name="Settings_Tts_Kokoro_DownloadFailed" xml:space="preserve"><value>Error en la descarga: {0}</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Privacy
@@ -437,6 +493,7 @@
   <data name="ControlPanel_Toggle_Key.Text" xml:space="preserve"><value>+TECLA</value></data>
   <data name="ControlPanel_Toggle_Raw.Text" xml:space="preserve"><value>RAW</value></data>
   <data name="ControlPanel_Toggle_Refine.Text" xml:space="preserve"><value>REFINAR</value></data>
+  <data name="ControlPanel_Toggle_Tts.Text" xml:space="preserve"><value>TTS</value></data>
   <!-- C# dynamic state values (ControlPanelViewModel) -->
   <data name="ControlPanel_State_On" xml:space="preserve"><value>ON</value></data>
   <data name="ControlPanel_State_Off" xml:space="preserve"><value>OFF</value></data>

@@ -49,6 +49,7 @@ public sealed partial class SettingsWindow : Window
             "modes" => typeof(Settings.ModesSettingsPage),
             "dictationmodes" => typeof(Settings.DictationModesSettingsPage),
             "audio" => typeof(Settings.AudioSettingsPage),
+            "tts" => typeof(Settings.TtsSettingsPage),
             "hotkeys" => typeof(Settings.HotkeysSettingsPage),
             "privacy" => typeof(Settings.PrivacySettingsPage),
             "apikeys" => typeof(Settings.ApiKeysSettingsPage),

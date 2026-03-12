@@ -4,7 +4,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 836 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
+| **Tests** | 944 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | 0 errors, 0 warnings |
 | **CI** | Passing on main |
 | **Branch** | main |
@@ -25,6 +25,7 @@
 | **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-G complete, FIX-1 through FIX-16 (15/16 done, FIX-1 deferred to SPEC_008) |
 | **SPEC_011** | Ollama Management Hub — Core API, search service, Settings UI, E2E warmup, 22 new tests |
 | **DOCS_V2** | Exhaustive User documentation (Features & Settings), integrated natively into the Next.js Website via Markdown |
+| **SPEC_003 A–F** | TTS: Core infra, Kokoro local, Read Selection hotkey, pipeline hooks, cloud providers, Settings UI + Control Panel toggle. 282 new tests. **SanitizeNulls crash fix included.** |
 
 ## Open Bugs (Stream K)
 
@@ -39,14 +40,81 @@
 6. ~~**Model Library Install button too risky**~~ ✅ Fixed — replaced Install button with "View" link opening `ollama.com/library/{model}` in browser.
 7. ~~**Ollama Settings page empty on open**~~ ✅ Fixed — auto-check health on `Page.Loaded` to populate model list and status.
 
+## Resolved: Startup Crash (SPEC_003 Phase F)
+
+**Root cause**: `settings.json` had `"Tts":null` — the JSON deserializer overwrites the `= new()` default initializer with `null`. Then `ControlPanelViewModel.LoadFromSettings()` accessed `settings.Tts.Enabled`, throwing a `NullReferenceException` during a WinUI UI-thread property change notification. WinUI's native XAML binding system intercepts such exceptions and crashes the process (exit code 127), bypassing ALL managed exception handlers including `UnhandledException`.
+
+**Fix**: Added `SanitizeNulls()` in `SettingsManager.LoadAsync()` — null-coalesces all 11 settings sub-objects with `?? new()` after deserialization. Also added `UnhandledException` handler in `App.xaml.cs` as defensive measure.
+
+**Key lesson**: Any new `AppSettings` sub-object property is vulnerable to this if a user's existing `settings.json` has the property set to `null` (or doesn't have it at all and a migration writes `null`). The `SanitizeNulls` method now covers all sub-objects.
+
 ## Known Issues (SPEC_011)
 
 - **Settings corruption from TextBox bug may persist** — users who typed in the old TextBox may have `OllamaModel` set to a partial/invalid string in `settings.json`. Fix: open Ollama Settings → select correct model from dropdown.
 
+## Current Work
+
+**Active: SPEC_003_V2 — Text-to-Speech ("dIKta.me Speaks Back")**
+
+| Detail | Value |
+|--------|-------|
+| **Spec** | `plans/SPEC_003_TTS_V2.md` (supersedes `plans/SPEC_003_TTS.md`) |
+| **Phases** | A–G (40 tasks total) |
+| **Local TTS** | Kokoro-ONNX via `KokoroSharp.CPU` NuGet (82M params, 88MB int8 model) |
+| **Cloud TTS** | Deepgram Aura-2 (same key as STT), Inworld TTS-1.5 ($10 credit available), OpenAI (BYOK) |
+| **Key hotkey** | `Ctrl+Alt+Q` = "Read Selection" (select text anywhere → hear it) |
+| **Status** | **Phases A–F committed.** Phase G (integration testing + polish) next. |
+
+### Phase G — Remaining Work (Start Here)
+
+These are known gaps found during Phase F testing. Fix these before any manual E2E TTS testing:
+
+#### 1. ReadSelection hotkey not on Hotkeys Settings page
+- `HotkeySettings.ReadSelection` defaults to `"Ctrl+Alt+Q"` in code (`AppSettings.cs:161`)
+- Pipeline + registration exist and work (`LoadingViewModel.cs:314`, `HotkeyId.ReadSelection`)
+- Displayed as read-only on TTS Settings page (`TtsSettingsPage.xaml:125-129`)
+- **Missing from** `HotkeysSettingsPage.xaml` and `HotkeysSettingsViewModel.cs` — user cannot see or edit it
+- Related bug: existing `settings.json` has `"ReadSelection":null` which causes "Hotkey Conflict" toast at startup (same null-from-JSON class as the Tts crash, now protected by `SanitizeNulls` on the `Hotkeys` sub-object)
+
+#### 2. No Inworld API key entry
+- `SecureStorage.ValidProviders` includes `"inworld"` — backend is ready
+- `TTSProviderFactory` routes `"inworld"` to `InworldTtsProvider` which needs an API key
+- **Neither** `ApiKeysSettingsPage.xaml` nor `TtsSettingsPage.xaml` has an Inworld key field
+- Deepgram + OpenAI keys are reusable from existing API Keys page entries (shared with STT/LLM)
+- Decision needed: add Inworld to API Keys page, or add a key field inline on TTS Settings page, or both
+
+#### 3. TTS Settings page — intermittent crash on open
+- Observed 2x during testing, could not reproduce consistently
+- Likely a XAML page load race condition (same class of WinUI native crash)
+- Needs investigation with logging around TtsSettingsViewModel initialization
+
+#### 4. TTS feature not E2E tested
+All TTS code paths need manual verification:
+- **Kokoro local**: Toggle TTS ON → Dictate → hear spoken response (requires Kokoro model downloaded)
+- **Cloud providers**: Need API keys configured first (see gap #2)
+- **Read Selection**: `Ctrl+Alt+Q` with text selected in any app
+- **Ask/Chat/Translate hooks**: Enable `SpeakAskResponses` etc. in TTS Settings → use respective mode
+- **Toggle behavior**: TTS toggle in Control Panel should enable/disable all TTS output
+- **Settings persistence**: Toggle states, provider selection, voice/speed survive app restart
+
+### Completed Phases (all committed to main)
+
+**Phase A (`adfcee3`):** ITTSProvider interface, TtsResult record, TtsPlayerService (NAudio WasapiOut playback with play/pause/resume/stop), TextCleaner (18 GeneratedRegex rules for markdown→speech), TtsSettings + ReadSelection hotkey in AppSettings, PipelineState.Speaking enum value. 52 new tests.
+
+**Phase B (`adfcee3`):** KokoroSharp.CPU 0.6.5 NuGet, KokoroTtsProvider (KokoroModel.Infer + Tokenizer.Tokenize, 510-token segmentation, float→PCM16 conversion), KokoroModelManager (model download with progress), ITTSProviderFactory + TTSProviderFactory (ConcurrentDictionary caching), TTSRouter (primary+fallback), NullTtsProvider. eSpeak-NG GPL reviewed (process-invoked = mere aggregation, need THIRD_PARTY_NOTICES.md before release). 67 new tests.
+
+**Phase C (`adfcee3`):** ReadSelectionPipeline (capture selected text → TextCleaner → synthesize → play with ducking). HotkeyId.ReadSelection wired in LoadingViewModel. Toggle-stop (press hotkey again → stops playback). 15 new tests.
+
+**Phase D (`85c77cc`):** TtsSpeaker service (reusable clean→synth→play with ducking, `SpeakAsync` + `SpeakIfEnabledAsync`). Post-pipeline TTS hooks in Ask, Chat, Translate handlers. NotificationService.SpeakAsync. PipelineResult.TtsPlayedMs telemetry field. 16 new tests.
+
+**Phase E (this commit):** 3 cloud TTS providers (DeepgramTtsProvider, InworldTtsProvider, OpenAITtsProvider), all behind `ITTSProvider` interface. `TTSProviderFactory` updated with `SecureStorage` dependency for API key retrieval + cloud provider caching. `"inworld"` added to `SecureStorage.ValidProviders`. `TtsFakeHandler` test utility for binary HTTP responses. 66 new tests.
+
+**Phase F (this commit):** TtsSettingsPage + ViewModel, SettingsWindow nav registration, Control Panel TTS toggle (7th column), localization (en + es-MX). Build fix: `KokoroVariantLabels` changed from `static readonly` to instance property. **SanitizeNulls fix** for startup crash caused by `"Tts":null` in settings.json. `UnhandledException` handler added to `App.xaml.cs`. 944 tests passing.
+
 ## CI/CD Notes
 
 - **Gitleaks:** `.gitleaks.toml` allowlists `website/QUICKSTART.md` (historical fake JWTs in git history)
-- **Test threshold:** `ci/test-threshold.json` set to 470 (local runs 836, CI runs ~479 due to skipped tests)
+- **Test threshold:** `ci/test-threshold.json` set to 470 (local runs 944, CI runs ~479 due to skipped tests)
 - **Vercel:** Connected to `geckogtmx/diktame`, Root Directory = `website`
 
 ## i18n Notes (SPEC_004)
@@ -102,37 +170,13 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 
 **Full investigation details**: `plans/SPEC_009_LOCALFLOW.md` §12.8–12.10
 
-## Current Work
-
-**Active: SPEC_003_V2 — Text-to-Speech ("dIKta.me Speaks Back")**
-
-Pivoted from next-planned work (manual testing / SPEC_008 Wallet / H.1 Installer) to TTS. Rationale: research sprint showed Kokoro-ONNX is production-ready for C# with minimal integration cost, and the "Read This" + Jarvis-style voice output is a strong differentiator.
-
-| Detail | Value |
-|--------|-------|
-| **Spec** | `plans/SPEC_003_TTS_V2.md` (supersedes `plans/SPEC_003_TTS.md`) |
-| **Phases** | A–G (40 tasks total) |
-| **Local TTS** | Kokoro-ONNX via `KokoroSharp.CPU` NuGet (82M params, 88MB int8 model) |
-| **Cloud TTS** | Deepgram Aura-2 (same key as STT), Inworld TTS-1.5 ($10 credit available), OpenAI (BYOK) |
-| **Key hotkey** | `Ctrl+Alt+Q` = "Read Selection" (select text anywhere → hear it) |
-| **Status** | **Phase A + B complete** — Phase C (Read Selection Hotkey) is next |
-
-**Phase A (committed):** ITTSProvider interface, TtsResult record, TtsPlayerService (NAudio WasapiOut playback with play/pause/resume/stop), TextCleaner (18 GeneratedRegex rules for markdown→speech), TtsSettings + ReadSelection hotkey in AppSettings, PipelineState.Speaking enum value. 52 new tests.
-
-**Phase B (committed):** KokoroSharp.CPU 0.6.5 NuGet, KokoroTtsProvider (KokoroModel.Infer + Tokenizer.Tokenize, 510-token segmentation, float→PCM16 conversion), KokoroModelManager (model download with progress), ITTSProviderFactory + TTSProviderFactory (ConcurrentDictionary caching), TTSRouter (primary+fallback), NullTtsProvider. eSpeak-NG GPL reviewed (process-invoked = mere aggregation, need THIRD_PARTY_NOTICES.md before release). 67 new tests.
-
-**Phase C next:** Read Selection hotkey (Ctrl+Alt+Q) — capture selected text, synthesize via TTS pipeline, play back. See `plans/SPEC_003_TTS_V2.md` §8.
-
-**Previously planned (deferred, not blocked):**
-- Manual testing scenarios (SPEC_009 scenarios 3-8) — still needed, do before release
-- SPEC_008 (Wallet) / H.1 (Installer) — post-TTS or parallel
-
 ## Remaining Work
 
 ### Manual Testing Needed
 
 | Item | Notes |
 |------|-------|
+| **TTS Phase G gaps** | See "Phase G — Remaining Work" section above — fix gaps first, then E2E test |
 | **API Keys step skip** | FIX-16 auto-skips step 4 when both providers are local — needs manual verification |
 | **SPEC_009 scenarios 3-8** | Scenarios 1-2 passed. Remaining: full local E2E, hybrid combos (see `plans/SPEC_009_TESTING.md`) |
 | **Ollama auto-start** | FIX-15 — verify app launch with Ollama not running |
@@ -141,16 +185,6 @@ Pivoted from next-planned work (manual testing / SPEC_008 Wallet / H.1 Installer
 | **Ollama install from Settings** | FIX-15 — verify Install button appears when Ollama is offline |
 | **SPEC_011 Ollama Settings page** | Model list ✅, search/view ✅, pull ✅, delete (needs test), service restart (needs retest after fixes), VRAM display (needs test), warmup ✅ |
 | **Refine on Antigravity** | `CaptureSelection` times out — app-specific accessibility issue, separate investigation |
-
-### Tier 1 — Verification
-
-| Task | Effort |
-|------|--------|
-| ~~G.7: Manual verify model cache~~ | ✅ Verified — 0-1ms gap, `loaded runtime` once per session |
-| ~~G.8: Vulkan CPU-fallback warning~~ | ✅ Logs warning if Vulkan deployed but CPU fallback used |
-| ~~FIX-10: Cloud/Local toggle ignores STT~~ | ✅ Split into independent STT + LLM toggles |
-| ~~FIX-13: Wizard LLM step has no Ollama validation~~ | ✅ BeforeLeaveStep: check + pull + progress bar |
-| ~~FIX-16: Ollama latency~~ | ✅ Provider caching — 3000ms → 550ms (5x improvement) |
 
 ### Tier 2 — Post-local-mode
 

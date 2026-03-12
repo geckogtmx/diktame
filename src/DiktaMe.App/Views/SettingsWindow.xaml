@@ -47,6 +47,11 @@
                     <FontIcon Glyph="&#xE720;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Tts" Tag="tts">
+                <muxc:NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE767;"/>
+                </muxc:NavigationViewItem.Icon>
+            </muxc:NavigationViewItem>
             <muxc:NavigationViewItem l:Uids.Uid="Nav_Privacy" Tag="privacy">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE72E;"/>

@@ -1,19 +1,23 @@
 using System.Collections.Concurrent;
+using System.Net.Http;
 using DiktaMe.Core.TTS;
 
 namespace DiktaMe.Core.Config;
 
 /// <summary>
-/// Creates TTS providers by name, caching instances to reuse loaded models and HTTP connections.
+/// Creates TTS providers by name, pulling API keys from <see cref="Security.SecureStorage"/>
+/// and caching instances to reuse loaded models and HTTP connections.
 /// Follows the <see cref="LLMProviderFactory"/> caching pattern with <see cref="ConcurrentDictionary{TKey,TValue}"/>.
 /// </summary>
 public sealed class TTSProviderFactory : ITTSProviderFactory, IDisposable
 {
+    private readonly Security.SecureStorage _secureStorage;
     private readonly SettingsManager _settings;
     private readonly ConcurrentDictionary<string, ITTSProvider> _cache = new(StringComparer.Ordinal);
 
-    public TTSProviderFactory(SettingsManager settings)
+    public TTSProviderFactory(Security.SecureStorage secureStorage, SettingsManager settings)
     {
+        _secureStorage = secureStorage;
         _settings = settings;
     }
 
@@ -26,10 +30,22 @@ public sealed class TTSProviderFactory : ITTSProviderFactory, IDisposable
         if (type is "none" or "skip")
             return new NullTtsProvider();
 
-        string variant = modelVariant ?? _settings.Current.Tts.KokoroModelVariant;
+        string variant = modelVariant ?? ResolveVariant(type);
         string cacheKey = $"{type}:{variant}";
 
         return _cache.GetOrAdd(cacheKey, _ => CreateProviderCore(type, variant));
+    }
+
+    private string ResolveVariant(string type)
+    {
+        return type switch
+        {
+            "kokoro" => _settings.Current.Tts.KokoroModelVariant,
+            "deepgram" => "aura-asteria-en",
+            "inworld" => "inworld-tts-1.5-max",
+            "openai" => "tts-1",
+            _ => string.Empty,
+        };
     }
 
     private ITTSProvider CreateProviderCore(string type, string variant)
@@ -40,13 +56,29 @@ public sealed class TTSProviderFactory : ITTSProviderFactory, IDisposable
                 modelVariant: variant,
                 speed: (float)_settings.Current.Tts.Speed),
 
-            // Cloud providers will be added in Phase E:
-            // "deepgram" => new DeepgramTtsProvider(...),
-            // "inworld" => new InworldTtsProvider(...),
-            // "openai" => new OpenAITtsProvider(...),
+            "deepgram" => CreateCloudProvider(
+                "deepgram",
+                key => new DeepgramTtsProvider(key, model: variant)),
+
+            "inworld" => CreateCloudProvider(
+                "inworld",
+                key => new InworldTtsProvider(key, model: variant)),
+
+            "openai" => CreateCloudProvider(
+                "openai",
+                key => new OpenAITtsProvider(key, model: variant, speed: _settings.Current.Tts.Speed)),
 
             _ => throw new NotSupportedException($"Unknown TTS provider type: '{type}'."),
         };
+    }
+
+    private ITTSProvider CreateCloudProvider(string providerName, Func<string, ITTSProvider> factory)
+    {
+        string? key = _secureStorage.RetrieveKey(providerName);
+        if (string.IsNullOrWhiteSpace(key))
+            throw new InvalidOperationException($"{providerName} API key not configured.");
+
+        return factory(key);
     }
 
     public void Dispose()

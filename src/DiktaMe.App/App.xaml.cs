@@ -91,6 +91,14 @@ public partial class App : Application
             .WriteTo.Console()
             .CreateLogger();
 
+        // Catch unhandled exceptions early — WinUI native crashes often bypass managed try/catch
+        this.UnhandledException += (s, e) =>
+        {
+            Log.Fatal(e.Exception, "UNHANDLED EXCEPTION: {Message}", e.Message);
+            Log.CloseAndFlush();
+            e.Handled = false;
+        };
+
         Log.Information("dIKta.me V2 starting up...");
 
         // ── Single-instance + deeplink forwarding ────────────────────────────
@@ -515,6 +523,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.Settings.GeneralSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.AIEngineSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.AudioSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.TtsSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.HotkeysSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.ModesSettingsViewModel>(); // Unified modes page (Ask, Refine x2, Translate, Notes, Chat)
         services.AddTransient<ViewModels.Settings.DictationModesSettingsViewModel>(); // J.6: CRUD dictation modes page

@@ -44,6 +44,8 @@ public sealed class SecureStorage
     {
         // API key providers (stored via Settings > API Keys or Wizard)
         "openai", "deepgram", "gemini", "anthropic", "openrouter",
+        // TTS cloud providers (Phase E)
+        "inworld",
         // Internal (trial auth JWT)
         "trial_token",
     };

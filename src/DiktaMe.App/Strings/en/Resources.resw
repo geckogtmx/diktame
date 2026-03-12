@@ -591,6 +591,157 @@
   </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Text-to-Speech
+       ══════════════════════════════════════════════════════════════════════ -->
+  <!-- Navigation -->
+  <data name="Nav_Tts.Content" xml:space="preserve">
+    <value>Text-to-Speech</value>
+  </data>
+  <!-- Page Title -->
+  <data name="Settings_Tts_Title.Text" xml:space="preserve">
+    <value>Text-to-Speech</value>
+  </data>
+  <!-- Provider Section -->
+  <data name="Settings_Tts_Provider_Label.Text" xml:space="preserve">
+    <value>Provider</value>
+  </data>
+  <data name="Settings_Tts_Provider_Description.Text" xml:space="preserve">
+    <value>Choose the TTS engine. Kokoro runs locally; cloud options require an API key.</value>
+  </data>
+  <data name="Settings_Tts_Provider_Kokoro" xml:space="preserve">
+    <value>Kokoro (Local)</value>
+  </data>
+  <data name="Settings_Tts_Provider_Deepgram" xml:space="preserve">
+    <value>Deepgram Aura</value>
+  </data>
+  <data name="Settings_Tts_Provider_Inworld" xml:space="preserve">
+    <value>Inworld AI</value>
+  </data>
+  <data name="Settings_Tts_Provider_OpenAI" xml:space="preserve">
+    <value>OpenAI TTS</value>
+  </data>
+  <!-- Voice -->
+  <data name="Settings_Tts_Voice_Label.Text" xml:space="preserve">
+    <value>Voice</value>
+  </data>
+  <data name="Settings_Tts_Voice_Description.Text" xml:space="preserve">
+    <value>Select a voice for the chosen provider.</value>
+  </data>
+  <!-- Speed -->
+  <data name="Settings_Tts_Speed_Label.Text" xml:space="preserve">
+    <value>Speed</value>
+  </data>
+  <data name="Settings_Tts_Speed_Prefix.Text" xml:space="preserve">
+    <value>Speed: </value>
+  </data>
+  <data name="Settings_Tts_Speed_Suffix.Text" xml:space="preserve">
+    <value>x</value>
+  </data>
+  <!-- Volume -->
+  <data name="Settings_Tts_Volume_Label.Text" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="Settings_Tts_Volume_Prefix.Text" xml:space="preserve">
+    <value>Volume: </value>
+  </data>
+  <data name="Settings_Tts_Volume_Suffix.Text" xml:space="preserve">
+    <value>%</value>
+  </data>
+  <!-- Max Words -->
+  <data name="Settings_Tts_MaxWords_Label.Text" xml:space="preserve">
+    <value>Max Words</value>
+  </data>
+  <data name="Settings_Tts_MaxWords_Description.Text" xml:space="preserve">
+    <value>Maximum number of words to speak before truncating. 0 = unlimited.</value>
+  </data>
+  <!-- Test Voice -->
+  <data name="Settings_Tts_TestVoice.Content" xml:space="preserve">
+    <value>Test Voice</value>
+  </data>
+  <data name="Settings_Tts_TestVoice_SampleText" xml:space="preserve">
+    <value>This is a test of the text-to-speech system. If you can hear this, everything is working correctly.</value>
+  </data>
+  <data name="Settings_Tts_TestVoice_Playing" xml:space="preserve">
+    <value>Playing...</value>
+  </data>
+  <data name="Settings_Tts_TestVoice_Error" xml:space="preserve">
+    <value>Test failed. Check provider and API key settings.</value>
+  </data>
+  <!-- When to Speak Section -->
+  <data name="Settings_Tts_WhenToSpeak_Section.Text" xml:space="preserve">
+    <value>When to Speak</value>
+  </data>
+  <data name="Settings_Tts_SpeakAsk_Label.Text" xml:space="preserve">
+    <value>Speak Ask Responses</value>
+  </data>
+  <data name="Settings_Tts_SpeakAsk_Description.Text" xml:space="preserve">
+    <value>Read aloud responses from the Ask feature.</value>
+  </data>
+  <data name="Settings_Tts_SpeakChat_Label.Text" xml:space="preserve">
+    <value>Speak Chat Responses</value>
+  </data>
+  <data name="Settings_Tts_SpeakChat_Description.Text" xml:space="preserve">
+    <value>Read aloud responses from Quick Chat.</value>
+  </data>
+  <data name="Settings_Tts_SpeakTranslate_Label.Text" xml:space="preserve">
+    <value>Speak Translations</value>
+  </data>
+  <data name="Settings_Tts_SpeakTranslate_Description.Text" xml:space="preserve">
+    <value>Read aloud translated text.</value>
+  </data>
+  <data name="Settings_Tts_SpeakNotifications_Label.Text" xml:space="preserve">
+    <value>Speak Notifications</value>
+  </data>
+  <data name="Settings_Tts_SpeakNotifications_Description.Text" xml:space="preserve">
+    <value>Read aloud app notifications.</value>
+  </data>
+  <data name="Settings_Tts_DuckOtherApps_Label.Text" xml:space="preserve">
+    <value>Duck Other Apps</value>
+  </data>
+  <data name="Settings_Tts_DuckOtherApps_Description.Text" xml:space="preserve">
+    <value>Lower volume of other applications during TTS playback.</value>
+  </data>
+  <!-- Read Selection Hotkey -->
+  <data name="Settings_Tts_ReadSelection_Label.Text" xml:space="preserve">
+    <value>Read Selection Hotkey</value>
+  </data>
+  <data name="Settings_Tts_ReadSelection_Description.Text" xml:space="preserve">
+    <value>Press this hotkey to read the currently selected text aloud.</value>
+  </data>
+  <!-- Kokoro Model Section -->
+  <data name="Settings_Tts_Kokoro_Section.Text" xml:space="preserve">
+    <value>Kokoro Model</value>
+  </data>
+  <data name="Settings_Tts_Kokoro_Variant_Label.Text" xml:space="preserve">
+    <value>Model Variant</value>
+  </data>
+  <data name="Settings_Tts_Kokoro_Variant_Description.Text" xml:space="preserve">
+    <value>Choose model precision. int8 is smallest; fp32 is highest quality.</value>
+  </data>
+  <data name="Settings_Tts_Kokoro_Status_Downloaded" xml:space="preserve">
+    <value>Model downloaded and ready.</value>
+  </data>
+  <data name="Settings_Tts_Kokoro_Status_NotDownloaded" xml:space="preserve">
+    <value>Model not downloaded.</value>
+  </data>
+  <data name="Settings_Tts_Kokoro_Download.Content" xml:space="preserve">
+    <value>Download Model</value>
+  </data>
+  <data name="Settings_Tts_Kokoro_Downloading" xml:space="preserve">
+    <value>Downloading...</value>
+  </data>
+  <data name="Settings_Tts_Kokoro_DownloadComplete" xml:space="preserve">
+    <value>Download complete!</value>
+  </data>
+  <data name="Settings_Tts_Kokoro_DownloadFailed" xml:space="preserve">
+    <value>Download failed: {0}</value>
+  </data>
+  <!-- Control Panel TTS Toggle -->
+  <data name="ControlPanel_Toggle_Tts.Text" xml:space="preserve">
+    <value>TTS</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Privacy
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_Privacy_Title.Text" xml:space="preserve">

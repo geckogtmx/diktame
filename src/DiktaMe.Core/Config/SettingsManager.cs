@@ -76,7 +76,7 @@ public sealed class SettingsManager
                 return;
             }
 
-            Current = MigrateIfNeeded(loaded);
+            Current = SanitizeNulls(MigrateIfNeeded(loaded));
             Log.Information("SettingsManager: loaded settings (schema v{V})", Current.SchemaVersion);
         }
         catch (JsonException ex)
@@ -182,6 +182,26 @@ public sealed class SettingsManager
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Replaces null sub-objects with defaults after deserialization.
+    /// JSON "Tts":null (or any other null sub-object) overrides the <c>= new()</c> initializer,
+    /// causing NullReferenceException at runtime.
+    /// </summary>
+    private static AppSettings SanitizeNulls(AppSettings s) => s with
+    {
+        General = s.General ?? new(),
+        Audio = s.Audio ?? new(),
+        AudioDucking = s.AudioDucking ?? new(),
+        Privacy = s.Privacy ?? new(),
+        Hotkeys = s.Hotkeys ?? new(),
+        ControlPanel = s.ControlPanel ?? new(),
+        Note = s.Note ?? new(),
+        Chat = s.Chat ?? new(),
+        Sound = s.Sound ?? new(),
+        Deepgram = s.Deepgram ?? new(),
+        Tts = s.Tts ?? new(),
+    };
 
     private static AppSettings MigrateIfNeeded(AppSettings loaded)
     {

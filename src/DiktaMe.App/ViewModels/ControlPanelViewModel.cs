@@ -166,6 +166,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [ObservableProperty]
     private bool _isRefineVoice = true;
 
+    [ObservableProperty]
+    private bool _isTtsEnabled;
+
     // ── Toggle state labels ──────────────────────────────────────────────
 
     public string SoundStateLabel => IsSoundEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
@@ -174,6 +177,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     public string KeyStateLabel => IsAdditionalKeyEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
     public string RawStateLabel => IsRawModeEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
     public string RefineStateLabel => RefineMode == RefineMode.Voice ? _loc.GetString("ControlPanel_Refine_Voice_Short") : _loc.GetString("ControlPanel_Refine_Auto_Short");
+    public string TtsStateLabel => IsTtsEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
 
     // ── Hotkey display ────────────────────────────────────────────────────
 
@@ -452,6 +456,21 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         Log.Information("ControlPanel: Refine mode set to {Mode}", RefineMode);
     }
 
+    partial void OnIsTtsEnabledChanged(bool value)
+    {
+        if (!_suppressSave)
+        {
+            var updated = _settings.Current with
+            {
+                Tts = _settings.Current.Tts with { Enabled = value }
+            };
+            _ = _settings.UpdateAsync(updated);
+        }
+
+        OnPropertyChanged(nameof(TtsStateLabel));
+        Log.Information("ControlPanel: TTS toggled to {IsEnabled}", value);
+    }
+
     partial void OnWordsPerMinuteChanged(double value)
     {
         OnPropertyChanged(nameof(WordsPerMinuteFormatted));
@@ -589,6 +608,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         IsAdditionalKeyEnabled = !string.IsNullOrEmpty(settings.General.AdditionalKey);
         IsRawModeEnabled = settings.General.RawModeOverride;
         IsRefineVoice = settings.General.RefineVoiceMode;
+        IsTtsEnabled = settings.Tts.Enabled;
         // Read STT/LLM provider from ModeProfiles (dictate_0 is the reference slot)
         var refSlot = settings.ModeProfiles.GetValueOrDefault("dictate_0", new ModeSettings());
         IsLocalStt = string.Equals(refSlot.SttProvider, "whisper", StringComparison.OrdinalIgnoreCase);
