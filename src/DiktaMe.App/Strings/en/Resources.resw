@@ -1578,4 +1578,18 @@
     <value>Appended to {0}</value>
   </data>
 
+  <!-- ── Read Selection (SPEC_003 Phase C) ────────────────────────────────── -->
+  <data name="ReadSelection_Disabled_Title" xml:space="preserve">
+    <value>TTS Disabled</value>
+  </data>
+  <data name="ReadSelection_Disabled_Message" xml:space="preserve">
+    <value>Enable Text-to-Speech in Settings to use Read Selection.</value>
+  </data>
+  <data name="ReadSelection_NoSelection_Title" xml:space="preserve">
+    <value>No Selection</value>
+  </data>
+  <data name="ReadSelection_NoSelection_Message" xml:space="preserve">
+    <value>Select text in any application, then press the hotkey.</value>
+  </data>
+
 </root>

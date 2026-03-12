@@ -10,6 +10,7 @@ using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
 using DiktaMe.Core.STT;
 using DiktaMe.Core.SystemManagement;
+using DiktaMe.Core.TTS;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using Serilog;
@@ -36,6 +37,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly WhisperProvider _whisper;
     private readonly OllamaProvider _ollamaProvider;
     private readonly ILLMProviderFactory _llmFactory;
+    private readonly ITtsPlayerService _ttsPlayer;
 
     [ObservableProperty] private string _statusText = "";
     [ObservableProperty] private double _progress;
@@ -66,7 +68,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         LocalizationService loc,
         WhisperProvider whisper,
         OllamaProvider ollamaProvider,
-        ILLMProviderFactory llmFactory)
+        ILLMProviderFactory llmFactory,
+        ITtsPlayerService ttsPlayer)
     {
         _settings = settings;
         _history = history;
@@ -87,6 +90,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _whisper = whisper;
         _ollamaProvider = ollamaProvider;
         _llmFactory = llmFactory;
+        _ttsPlayer = ttsPlayer;
         _statusText = _loc.GetString("Loading_Initializing");
     }
 
@@ -303,6 +307,9 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         success = _hotkeyManager.Register(HotkeyId.Chat, hotkeys.Chat);
         Log.Debug("Register Chat ({Hotkey}): {Success}", hotkeys.Chat, success);
+
+        success = _hotkeyManager.Register(HotkeyId.ReadSelection, hotkeys.ReadSelection);
+        Log.Debug("Register ReadSelection ({Hotkey}): {Success}", hotkeys.ReadSelection, success);
     }
 
     private void OnHotkeyPressed(object? sender, HotkeyPressedEventArgs e)
@@ -329,6 +336,16 @@ public sealed partial class LoadingViewModel : ObservableObject
                     Log.Information("Hotkey {Id}: stopping active recording", e.Id);
                     _ = _currentRecorder.StopRecordingAsync();
                     return;
+                }
+
+                // Stop active TTS playback if any hotkey is pressed while speaking
+                if (_ttsPlayer.IsPlaying)
+                {
+                    Log.Information("Hotkey {Id}: stopping active TTS playback", e.Id);
+                    _ttsPlayer.Stop();
+                    // ReadSelection toggle-stop: just stop, don't restart
+                    if (e.Id == HotkeyId.ReadSelection)
+                        return;
                 }
 
                 switch (e.Id)
@@ -365,6 +382,10 @@ public sealed partial class LoadingViewModel : ObservableObject
                             var sound = _settings.Current.Sound ?? new();
                             _notifications.PlayCustomSound(sound.StopSound);
                         });
+                        break;
+
+                    case HotkeyId.ReadSelection:
+                        _ = RunReadSelectionPipelineAsync();
                         break;
                 }
             }
@@ -1145,6 +1166,86 @@ public sealed partial class LoadingViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Note pipeline failed");
+            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+        }
+        finally
+        {
+            _audioDucker.Restore();
+            _recordingCts?.Dispose();
+            _recordingCts = null;
+        }
+    }
+
+    // ── Read Selection (SPEC_003 Phase C) ─────────────────────────────────────
+
+    private async Task RunReadSelectionPipelineAsync()
+    {
+        try
+        {
+            Log.Information("Starting ReadSelection pipeline...");
+
+            // Check if TTS is enabled
+            var ttsSettings = _settings.Current.Tts;
+            if (!ttsSettings.Enabled)
+            {
+                Log.Information("ReadSelection: TTS is disabled");
+                _notifications.ShowToast(
+                    _loc.GetString("ReadSelection_Disabled_Title"),
+                    _loc.GetString("ReadSelection_Disabled_Message"),
+                    NotificationType.Warning);
+                return;
+            }
+
+            // Play utility sound to acknowledge hotkey
+            var soundSettings = _settings.Current.Sound ?? new();
+            _notifications.PlayCustomSound(soundSettings.UtilitySound);
+
+            // Capture selection (runs on background thread to avoid blocking UI)
+            string? selectedText = await Task.Run(() => _textInjector.CaptureSelection());
+
+            if (string.IsNullOrWhiteSpace(selectedText))
+            {
+                Log.Warning("ReadSelection: no text selected");
+                _notifications.ShowToast(
+                    _loc.GetString("ReadSelection_NoSelection_Title"),
+                    _loc.GetString("ReadSelection_NoSelection_Message"),
+                    NotificationType.Warning);
+                return;
+            }
+
+            Log.Information("ReadSelection: captured {Chars} chars", selectedText.Length);
+
+            // Start audio ducking if enabled
+            if (ttsSettings.DuckDuringPlayback && _settings.Current.AudioDucking.Enabled)
+            {
+                _audioDucker.IsEnabled = true;
+                _audioDucker.DuckLevel = _settings.Current.AudioDucking.DuckLevelPercent / 100f;
+                _audioDucker.Duck();
+            }
+
+            // Create and run pipeline
+            var pipeline = _pipelineFactory.CreateReadSelectionPipeline();
+            pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
+
+            _recordingCts = new CancellationTokenSource();
+            var result = await pipeline.RunAsync(selectedText, _recordingCts.Token);
+
+            // Notify ControlPanel of pipeline completion (for telemetry)
+            _controlPanel.OnPipelineCompleted(this, result);
+
+            if (result.IsSuccess)
+            {
+                Log.Information("ReadSelection: complete ({TotalMs}ms)", result.TotalMs);
+            }
+            else
+            {
+                Log.Warning("ReadSelection: failed - {Error}", result.ErrorMessage);
+                _notifications.ShowToast("Error", result.ErrorMessage ?? "TTS failed", NotificationType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "ReadSelection pipeline failed");
             _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
         }
         finally

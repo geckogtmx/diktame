@@ -32,25 +32,25 @@ These are the models we should evaluate for local inference. All are small enoug
 
 | Model | Params | VRAM | Voice Cloning | Latency | Quality | Languages | License | Notes |
 |-------|--------|------|:------------:|---------|---------|-----------|---------|-------|
-| **Orpheus 3B** | 3B | ~6-8GB (FP16), <4GB (GGUF q4) | Yes (5s, zero-shot) | ~100-200ms streaming | Excellent — rivals ElevenLabs | EN (expanding) | Apache 2.0 | **Top pick.** Llama-3B backbone, 100k+ hrs training, guided emotion tags (`<laugh>`, `<sigh>`), 4 size variants. [FastAPI server available](https://github.com/Lex-au/Orpheus-FastAPI). |
+| **Orpheus 3B** | 3B | ~6-8GB (FP16), <4GB (GGUF q4) | Yes (5s, zero-shot) | ~100-200ms streaming | Excellent — rivals ElevenLabs | EN (expanding) | Apache 2.0 | **Premium pick.** Llama-3B backbone, 100k+ hrs training, guided emotion tags (`<laugh>`, `<sigh>`), 4 size variants. [FastAPI server available](https://github.com/Lex-au/Orpheus-FastAPI). |
+| **OuteTTS 1B** | 1B | ~2-3GB (CPU/GPU) | Yes (10s reference) | Very Fast | High | EN, ZH, JA, KO, FR, DE | Apache 2.0 | **Top competitor to Orpheus.** LLaMA-based, pure language model approach. GGUF compatible. Strong voice cloning. |
 | **Orpheus 1B** | 1B | ~2-3GB | Yes (5s) | Fast | Very Good | EN | Apache 2.0 | Sweet spot for 8GB GPUs. Same architecture, slightly less expressive. |
-| **Orpheus 400M** | 400M | ~1.5GB | Yes (5s) | Very Fast | Good | EN | Apache 2.0 | Ultra-light. Could run concurrently with Whisper + LLM on 8GB. |
-| **Orpheus 150M** | 150M | <1GB | Yes (5s) | Fastest | Decent | EN | Apache 2.0 | Smallest variant. CPU-viable for basic TTS. |
-| **Kani-TTS-2** | 400M | **3GB** | Yes (speaker embeddings) | RTF 0.2 (10s speech in 2s) | Good | EN, AR, ZH, FR, DE, JA, KO, ES | Apache 2.0 | New contender (Feb 2026). Best multilingual option at this size. No fine-tuning needed for cloning. |
+| **Kani-TTS-2** | 400M | **3GB** | Yes (speaker embeddings) | RTF 0.2 (10s speech in 2s) | Good | EN, AR, ZH, FR, DE, JA, KO, ES | Apache 2.0 | Best multilingual option at this size. No fine-tuning needed for cloning. |
 | **Qwen3-TTS** | 0.6B / 1.7B | ~2-4GB | Yes (3s sample) | TBD | High | 10 | Apache 2.0 | V1 spec target. Emotion/prosody control, streaming. Alibaba. |
 | **Fish Speech V1.5** | ~500M | ~3-4GB | Yes (10-30s) | TBD | Very High (ELO 1339) | EN, ZH, JA | Apache 2.0 | DualAR architecture, 300k+ hrs training. WER 3.5%. |
 | **OpenAudio S1-mini** | 0.5B | TBD | Yes (10-30s) | TBD | Very High | Multi | Open | Distilled from 4B S1. RLHF-trained. CER 0.4%, WER 0.8%. |
 | **CosyVoice2** | 0.5B | ~2-3GB | Yes | 150ms streaming | High (MOS 5.53) | ZH, EN, JA, KO | Apache 2.0 | Alibaba. Best for CJK languages. 30-50% fewer pronunciation errors vs v1. |
 | **Dia2** | 1B / 2B | ~4GB (1B), ~12GB (2B) | Yes (5-15s conditioning) | Real-time streaming | High | EN | Apache 2.0 | Nari Labs. Streaming architecture — starts generating before full text input. Dialogue specialist. |
-| **Kokoro** | 82M | <1GB, CPU-viable | No | <100ms | Good | EN/multi | Apache 2.0 | Tiny and fast, but no voice cloning — use as CPU fallback only. |
-| **Piper** | ~30MB | CPU only | No | <50ms | Decent | 40+ | MIT | Baseline comparison. Notification-quality, not conversational. |
+| **Kokoro-ONNX** | 82M | CPU Only / ONNX | No (Curated voices only) | <100ms | Excellent | EN/multi | Apache 2.0 | **Native C# Top Choice.** Weighs <100MB, runs faster than real-time on CPU via `Microsoft.ML.OnnxRuntime`. ZERO Python sidecar required. |
+| **KittenTTS** | 15M | CPU Only | No | Very Fast | Decent | EN | Apache 2.0 | **Absolute lowest end fallback.** Under 25MB total size. Replaces Piper. Ideal for Zero-GPU / Raspberry Pi tier. |
 
 #### Recommended Evaluation Order (Research Sprint)
 
-1. **Orpheus 1B/3B** — Best overall: voice cloning, emotion control, multiple sizes, GGUF quantization for low VRAM, OpenAI-compatible FastAPI server exists. Start here.
-2. **Kani-TTS-2 (400M)** — Best bang-for-buck: 3GB VRAM, 8 languages, Apache 2.0, voice cloning via speaker embeddings. Strong for multilingual users on modest hardware.
-3. **Qwen3-TTS (0.6B)** — Original V1 target: streaming, emotion control. Evaluate against Orpheus to see if it justifies the switch.
-4. **Fish Speech V1.5 / OpenAudio S1-mini** — Highest benchmark scores but less documented for local self-hosting. Evaluate if top 3 disappoint.
+1. **Kokoro-ONNX (82M)** — **Architectural Top Priority.** Proves the "Native C# / Zero Python" hypothesis via `Microsoft.ML.OnnxRuntime`. Does not support voice cloning, but provides exceptional stability and CPU performance.
+2. **Orpheus 1B/3B vs OuteTTS 1B** — Head-to-head for the "Premium Local" layer that requires voice cloning. Compare Orpheus's emotion tags against OuteTTS's multilingual support and GGUF compatibility.
+3. **Kani-TTS-2 (400M)** — Best bang-for-buck: 3GB VRAM, 8 languages, Apache 2.0, voice cloning via speaker embeddings. Strong for multilingual users on modest hardware.
+4. **Qwen3-TTS (0.6B)** — Original V1 target: streaming, emotion control. Evaluate against Orpheus/OuteTTS to see if it justifies the switch.
+5. **KittenTTS (15M)** — Evaluate for the absolute lowest-end hardware tier (<25MB, CPU-only fallback).
 
 #### VRAM Budget Scenarios
 
@@ -59,7 +59,7 @@ These are the models we should evaluate for local inference. All are small enoug
 | RTX 4060 (8GB) | ~6GB free | Orpheus 400M (1.5GB) or Kani-TTS-2 (3GB) | Yes, with small LLM (1-4B) |
 | RTX 4060 Ti (16GB) | ~14GB free | Orpheus 3B GGUF (4GB) | Yes, comfortably |
 | RTX 4070+ (12GB+) | ~10GB+ free | Orpheus 3B FP16 (6-8GB) | Yes |
-| CPU-only (no GPU) | N/A | Kokoro 82M or Piper | N/A (no local LLM) — use cloud TTS |
+| CPU-only (no GPU) | N/A | Kokoro-ONNX or KittenTTS | N/A (no local LLM) — use cloud TTS |
 
 *Sources: [Orpheus TTS GitHub](https://github.com/canopyai/Orpheus-TTS), [Orpheus FastAPI](https://github.com/Lex-au/Orpheus-FastAPI), [Kani-TTS-2 (MarkTechPost)](https://www.marktechpost.com/2026/02/15/meet-kani-tts-2-a-400m-param-open-source-text-to-speech-model-that-runs-in-3gb-vram-with-voice-cloning-support/), [LocalClaw TTS Guide 2026](https://localclaw.io/blog/local-tts-guide-2026), [SiliconFlow Small TTS Guide](https://www.siliconflow.com/articles/en/best-small-text-to-speech-models-2025), [Dia2 GitHub](https://github.com/nari-labs/dia2)*
 
@@ -99,11 +99,11 @@ V1 was Python — TTS models run natively via `transformers` + PyTorch. V2 is C#
 | Approach | Pros | Cons | Recommendation |
 |----------|------|------|----------------|
 | **Ollama TTS** | Already integrated, model management built-in | Limited TTS model support, API may not cover all features | Monitor — ideal if Ollama adds first-class TTS |
-| **Python sidecar** | Full PyTorch ecosystem, direct model access | Extra process, 200MB+ dependency, complex lifecycle | Fallback if Ollama insufficient |
-| **ONNX Runtime** | Native C#, no Python dependency, fast inference | Model conversion required, may lose features | Best long-term option if models export cleanly |
+| **Python sidecar** | Full PyTorch ecosystem, direct model access (required for voice cloning) | Extra process, 200MB+ dependency, complex lifecycle | Use for Orpheus/OuteTTS (cloning) |
+| **ONNX Runtime** | Native C#, no Python dependency, zero lifecycle management | Model conversion required, no native voice cloning yet | **Primary goal** — use Kokoro-ONNX via `Microsoft.ML.OnnxRuntime` |
 | **HTTP API to local server** | Model-agnostic, clean separation | Extra process, port management | Good middle ground |
 
-**Recommended approach:** Start with **HTTP API to a local TTS server** (e.g., the model's built-in server or a thin FastAPI wrapper). This is model-agnostic and cleanly separates concerns. If Ollama adds robust TTS support, migrate to that. ONNX Runtime is the long-term goal for zero-dependency native C#.
+**Recommended approach:** Implement **Kokoro-ONNX** directly in C# using `Microsoft.ML.OnnxRuntime` as the default local TTS engine for instant zero-dependency usage. If the user requires Voice Cloning, fall back to the **HTTP API to a local Python TTS server** (e.g. Orpheus or OuteTTS) and manage that sidecar lifecycle.
 
 ### 3.2 Component Architecture
 
@@ -112,7 +112,8 @@ DiktaMe.Core/
 ├── TTS/
 │   ├── ITTSProvider.cs             // Interface: GenerateSpeechAsync(text, voice?) → AudioData
 │   ├── TTSResult.cs                // Result model (audio bytes, duration, provider info)
-│   ├── LocalTTSProvider.cs         // HTTP client to local TTS server (Qwen3/Orpheus/Fish)
+│   ├── LocalTTSProvider.cs         // HTTP client to local python TTS server (voice cloning: Orpheus/OuteTTS)
+│   ├── OnnxTTSProvider.cs          // Native C# ONNX Runtime (Kokoro-ONNX default)
 │   ├── InworldTTSProvider.cs       // Inworld TTS API (recommended cloud — best price/quality)
 │   ├── OpenAITTSProvider.cs        // OpenAI TTS API (cloud BYOK option)
 │   ├── ElevenLabsTTSProvider.cs    // ElevenLabs TTS API (cloud — widest language support)
@@ -369,20 +370,17 @@ Headers: xi-api-key: {api_key}
 | **Cost / 1M chars** | $5-10 | $15-30 | $120-206 |
 | **Quality ranking** | #1 | #4 | #3 |
 | **Voice cloning** | Free instant | No | Paid |
-| **Languages** | 15 | 57+ | 29+ |
-| **Streaming** | WebSocket + HTTP | HTTP | WebSocket |
-| **Latency** | <130-250ms | ~200ms | ~75ms |
-| **Best for** | Default cloud, budget-conscious | BYOK users, max languages | Premium cloning, existing subscribers |
-
----
-
-## 6. Research Sprint (Pre-Implementation)
+| **Langua## 6. Research Sprint (Pre-Implementation)
 
 The V1 spec's 5-day research sprint remains relevant but needs adaptation for C#:
 
 ### Day 1-2: Model Evaluation
 
-Test the **top 3 candidates** in order (see §2.0 Recommended Evaluation Order): Orpheus 1B/3B, Kani-TTS-2 (400M), Qwen3-TTS (0.6B). Fish Speech V1.5 as backup:
+Test the **top candidates** in order (see §2.0 Recommended Evaluation Order):
+1. **Kokoro-ONNX** (Architectural proof-of-concept for Zero-Python)
+2. **Orpheus 1B vs OuteTTS 1B** (Premium voice cloning competition)
+3. **Kani-TTS-2 (400M)** (VRAM-constrained multilingual)
+4. **KittenTTS** (Zero-GPU fallback)
 
 | Metric | Target | Method |
 |--------|--------|--------|
@@ -396,28 +394,30 @@ Test the **top 3 candidates** in order (see §2.0 Recommended Evaluation Order):
 
 ### Day 3: Integration Testing
 
-- Stand up each model's HTTP server
-- Test C# `HttpClient` calls from a minimal console app
+- Stand up `Microsoft.ML.OnnxRuntime` for Kokoro-ONNX
+- Stand up HTTP servers for Python-based candidates (OuteTTS/Orpheus)
+- Test C# `HttpClient` and `OnnxRuntime` calls from a minimal console app
 - Verify audio format (WAV PCM, sample rate) compatibility with NAudio
 - Test voice cloning API (upload sample, generate with clone)
 - Measure end-to-end latency: text in → audio playing
 
 ### Day 4: C# Integration POC
 
-- Implement `LocalTTSProvider` against winning model's API
+- Implement `OnnxTTSProvider` for Kokoro-ONNX
+- Implement `LocalTTSProvider` against winning clone model's API
 - Implement `AudioPlayer` with NAudio `WasapiOut`
-- Test full flow: text → HTTP → audio bytes → NAudio playback
+- Test full flow: text → HTTP/ONNX → audio bytes → NAudio playback
 - Verify concurrent playback doesn't conflict with `AudioRecorder`
 
 ### Day 5: GO/NO-GO Decision
 
 **Must-have criteria (ALL must pass):**
 - [ ] Warm start TTFAC <500ms
-- [ ] Voice cloning works with 5-10s sample (similarity 7+/10)
-- [ ] Quality 8+/10 (better than Piper, competitive with cloud)
-- [ ] VRAM <3GB for smallest model
+- [ ] ONNX approach successfully generates speech without a Python sidecar
+- [ ] Voice cloning works with 5-10s sample (similarity 7+/10) on premium model
+- [ ] Quality 8+/10 (better than Piper/KittenTTS, competitive with cloud)
+- [ ] VRAM <3GB for smallest model (if not ONNX)
 - [ ] No crashes when Ollama is also running
-- [ ] Clean HTTP API for C# integration
 
 **If ANY must-have fails → NO-GO.** TTS deferred indefinitely.
 
@@ -428,14 +428,15 @@ Test the **top 3 candidates** in order (see §2.0 Recommended Evaluation Order):
 ### Phase 1: Core TTS Engine (3-4 days)
 1. `ITTSProvider` interface + `TTSResult` model
 2. `InworldTTSProvider` — REST + WebSocket client (recommended cloud default)
-3. `OpenAITTSProvider` — REST client (BYOK users)
-4. `ElevenLabsTTSProvider` — REST client (existing subscribers)
-5. `LocalTTSProvider` — HTTP client to local TTS server
-6. `TTSRouter` — local/cloud selection + provider routing based on profile
-7. `AudioPlayer` — NAudio playback with volume, pause/resume/stop
-8. `TextCleaner` — Markdown stripping, symbol expansion, truncation
-9. Wire into Ask pipeline: `AskPipeline.RunAsync()` → TTS on completion
-10. Basic `TTSSettings` in AppSettings (cloud provider selector, API key storage)
+3. `OnnxTTSProvider` — Native C# client for Kokoro-ONNX (recommended baseline local default)
+4. `OpenAITTSProvider` — REST client (BYOK users)
+5. `ElevenLabsTTSProvider` — REST client (existing subscribers)
+6. `LocalTTSProvider` — HTTP client to local Python TTS server (for voice cloning)
+7. `TTSRouter` — local/cloud selection + provider routing based on profile
+8. `AudioPlayer` — NAudio playback with volume, pause/resume/stop
+9. `TextCleaner` — Markdown stripping, symbol expansion, truncation
+10. Wire into Ask pipeline: `AskPipeline.RunAsync()` → TTS on completion
+11. Basic `TTSSettings` in AppSettings (cloud provider selector, API key storage)
 
 ### Phase 2: Voice Cloning + UI (2-3 days)
 1. `VoiceCloneManager` — record, store, manage voice samples
@@ -453,12 +454,11 @@ Test the **top 3 candidates** in order (see §2.0 Recommended Evaluation Order):
 6. Keyboard shortcut: toggle TTS on/off (quick mute)
 
 ### Phase 4: Advanced (Future)
-1. ONNX Runtime provider (native C#, no external server)
-2. Ollama TTS provider (when Ollama adds TTS support)
-3. Voice import/export
-4. Per-mode voice selection (different voice for translations vs. answers)
-5. Scribe session integration (SPEC_001): speak meeting summary
-6. Accessibility: screen reader integration, voice banking documentation
+1. Ollama TTS provider (when Ollama adds TTS support)
+2. Voice import/export
+3. Per-mode voice selection (different voice for translations vs. answers)
+4. Scribe session integration (SPEC_001): speak meeting summary
+5. Accessibility: screen reader integration, voice banking documentation
 
 ---
 
@@ -501,6 +501,7 @@ The V1 spec's strongest argument carries forward. Voice banking lets users with 
 | Scenario | Response |
 |----------|----------|
 | Local TTS server not running | Toast: "TTS server not available. Start [model name] or disable TTS in Settings." |
+| ONNX Runtime failure | Toast: "Native TTS failed to initialize. Try restarting dIKta.me." |
 | VRAM exhaustion | Log warning, skip TTS for this response, continue with text-only |
 | Voice sample too short (<3s) | Wizard: "Recording too short. Please record at least 5 seconds." |
 | Voice sample too noisy | Wizard: "Background noise detected. Try recording in a quieter environment." |
@@ -518,6 +519,7 @@ The V1 spec's strongest argument carries forward. Voice banking lets users with 
 - [ ] Quick Chat speaks responses with <1s delay after LLM completion
 - [ ] Voice cloning produces recognizable voice from 5-10s sample
 - [ ] Local TTS works fully offline (no internet required)
+- [ ] Native ONNX C# generation working with Kokoro-ONNX
 - [ ] Cloud TTS works with Inworld (recommended), OpenAI, or ElevenLabs API keys
 - [ ] Cloud voice cloning works via Inworld (5-15s sample → instant voice ID)
 - [ ] Volume control, pause/resume/stop all function correctly
@@ -531,13 +533,12 @@ The V1 spec's strongest argument carries forward. Voice banking lets users with 
 
 ## 12. Open Questions
 
-1. **Which local TTS model wins?** — Research sprint (Day 1-2) will determine. Orpheus (1B or 3B) is the front-runner due to multiple size variants, GGUF quantization, emotion tags, and existing FastAPI server. Kani-TTS-2 (400M) is the dark horse for multilingual on modest hardware.
+1. **Which voice cloning local TTS model wins?** — Research sprint (Day 1-2) will determine. Orpheus-1B and OuteTTS-1B are the front-runners. Kani-TTS-2 (400M) is the dark horse.
 2. **Inworld vs. OpenAI as cloud default?** — Inworld wins on price/quality (#1 ranked, 1/3 OpenAI's cost), but OpenAI has broader language coverage and users may already have keys. Current recommendation: Inworld as default, OpenAI as BYOK alternative.
-3. **Ollama TTS support?** — Monitor Ollama releases. If they add first-class TTS, it simplifies local integration (no separate server needed).
-4. **ONNX export feasibility?** — If the winning local model can export to ONNX, we can run inference natively in C# via `Microsoft.ML.OnnxRuntime` with zero Python dependency. Research Day 4 should evaluate this.
+3. **Kokoro-ONNX Limitations?** — Need to verify exact hardware compatabilities to ensure `Microsoft.ML.OnnxRuntime` doesn't balloon the AppPackage size too drastically.
+4. **Sidecar lifecycle management?** — If the user switches ON their "Voice Cloned" TTS Profile, how does `DiktaMe.Core` automatically spin up the Python TTS server in the background and gracefully shut it down on exit?
 5. **Streaming playback?** — Starting audio before full generation completes is ideal for long responses. Inworld supports WebSocket streaming; local models may vary.
-6. **Sidecar lifecycle management?** — If we need a Python TTS server for local models, how does it start/stop with the app? Options: launch as child process, Windows service, or bundled executable. (Not relevant for cloud providers.)
-7. **Voice cloning portability?** — Inworld voice clones are tied to their platform. Should we also store raw audio samples locally so users can re-clone on a different provider?
+6. **Voice cloning portability?** — Inworld voice clones are tied to their platform. Should we also store raw audio samples locally so users can re-clone on a different provider?
 
 ---
 

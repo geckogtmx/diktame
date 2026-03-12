@@ -4,7 +4,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 717+ passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
+| **Tests** | 836 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | 0 errors, 0 warnings |
 | **CI** | Passing on main |
 | **Branch** | main |
@@ -45,7 +45,7 @@
 ## CI/CD Notes
 
 - **Gitleaks:** `.gitleaks.toml` allowlists `website/QUICKSTART.md` (historical fake JWTs in git history)
-- **Test threshold:** `ci/test-threshold.json` set to 470 (local runs 689, CI runs ~479 due to skipped tests)
+- **Test threshold:** `ci/test-threshold.json` set to 470 (local runs 836, CI runs ~479 due to skipped tests)
 - **Vercel:** Connected to `geckogtmx/diktame`, Root Directory = `website`
 
 ## i18n Notes (SPEC_004)
@@ -103,7 +103,28 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 
 ## Current Work
 
-No active spec in progress. Next candidates: manual testing (see below), SPEC_008 (Wallet), H.1 (Installer).
+**Active: SPEC_003_V2 — Text-to-Speech ("dIKta.me Speaks Back")**
+
+Pivoted from next-planned work (manual testing / SPEC_008 Wallet / H.1 Installer) to TTS. Rationale: research sprint showed Kokoro-ONNX is production-ready for C# with minimal integration cost, and the "Read This" + Jarvis-style voice output is a strong differentiator.
+
+| Detail | Value |
+|--------|-------|
+| **Spec** | `plans/SPEC_003_TTS_V2.md` (supersedes `plans/SPEC_003_TTS.md`) |
+| **Phases** | A–G (40 tasks total) |
+| **Local TTS** | Kokoro-ONNX via `KokoroSharp.CPU` NuGet (82M params, 88MB int8 model) |
+| **Cloud TTS** | Deepgram Aura-2 (same key as STT), Inworld TTS-1.5 ($10 credit available), OpenAI (BYOK) |
+| **Key hotkey** | `Ctrl+Alt+Q` = "Read Selection" (select text anywhere → hear it) |
+| **Status** | **Phase A + B complete** — Phase C (Read Selection Hotkey) is next |
+
+**Phase A (committed):** ITTSProvider interface, TtsResult record, TtsPlayerService (NAudio WasapiOut playback with play/pause/resume/stop), TextCleaner (18 GeneratedRegex rules for markdown→speech), TtsSettings + ReadSelection hotkey in AppSettings, PipelineState.Speaking enum value. 52 new tests.
+
+**Phase B (committed):** KokoroSharp.CPU 0.6.5 NuGet, KokoroTtsProvider (KokoroModel.Infer + Tokenizer.Tokenize, 510-token segmentation, float→PCM16 conversion), KokoroModelManager (model download with progress), ITTSProviderFactory + TTSProviderFactory (ConcurrentDictionary caching), TTSRouter (primary+fallback), NullTtsProvider. eSpeak-NG GPL reviewed (process-invoked = mere aggregation, need THIRD_PARTY_NOTICES.md before release). 67 new tests.
+
+**Phase C next:** Read Selection hotkey (Ctrl+Alt+Q) — capture selected text, synthesize via TTS pipeline, play back. See `plans/SPEC_003_TTS_V2.md` §8.
+
+**Previously planned (deferred, not blocked):**
+- Manual testing scenarios (SPEC_009 scenarios 3-8) — still needed, do before release
+- SPEC_008 (Wallet) / H.1 (Installer) — post-TTS or parallel
 
 ## Remaining Work
 
@@ -149,6 +170,8 @@ No active spec in progress. Next candidates: manual testing (see below), SPEC_00
 - `plans/SPEC_009_LOCALFLOW.md` — Local mode E2E spec + GPU investigation (§12)
 - `plans/SPEC_009_FIXES.md` — Wizard + local mode fix tracker (15/16 complete, FIX-1 deferred to SPEC_008)
 - `plans/SPEC_009_TESTING.md` — Manual test scenarios
-- `plans/SPEC_001_MEETINGS.md` / `SPEC_002_VISION.md` / `SPEC_003_TTS.md` — Post-launch feature specs
+- `plans/SPEC_003_TTS_V2.md` — **Active spec**: TTS implementation plan (40 tasks, 7 phases)
+- `plans/SPEC_003_TTS.md` — TTS research reference (V1 draft, superseded by V2)
+- `plans/SPEC_001_MEETINGS.md` / `SPEC_002_VISION.md` — Post-launch feature specs
 - `plans/SPEC_011_OLLAMA.md` — Ollama Management Hub spec (implemented)
 - `plans/archive/` — Completed implementation plans (Stream F, K, OAuth Restructure, etc.)

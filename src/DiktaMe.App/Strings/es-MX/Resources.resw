@@ -581,4 +581,10 @@
   <data name="Loading_NoteSaved_Title" xml:space="preserve"><value>Nota Guardada</value></data>
   <data name="Loading_NoteSaved_Message" xml:space="preserve"><value>Agregada a {0}</value></data>
 
+  <!-- ── Read Selection (SPEC_003 Phase C) ────────────────────────────────── -->
+  <data name="ReadSelection_Disabled_Title" xml:space="preserve"><value>TTS Desactivado</value></data>
+  <data name="ReadSelection_Disabled_Message" xml:space="preserve"><value>Activa Texto a Voz en Configuraci&#243;n para usar Leer Selecci&#243;n.</value></data>
+  <data name="ReadSelection_NoSelection_Title" xml:space="preserve"><value>Sin Selecci&#243;n</value></data>
+  <data name="ReadSelection_NoSelection_Message" xml:space="preserve"><value>Selecciona texto en cualquier aplicaci&#243;n y presiona el atajo.</value></data>
+
 </root>

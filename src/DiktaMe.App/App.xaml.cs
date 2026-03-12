@@ -13,6 +13,7 @@ using DiktaMe.Core.Pipeline;
 using DiktaMe.Core.Security;
 using DiktaMe.Core.STT;
 using DiktaMe.Core.SystemManagement;
+using DiktaMe.Core.TTS;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -476,6 +477,8 @@ public partial class App : Application
         services.AddSingleton<SnippetManager>();
         services.AddSingleton<ISTTProviderFactory, STTProviderFactory>();
         services.AddSingleton<ILLMProviderFactory, LLMProviderFactory>();
+        services.AddSingleton<ITTSProviderFactory, TTSProviderFactory>();
+        services.AddSingleton<ITtsPlayerService, TtsPlayerService>();
         services.AddSingleton(sp => new ModelListService( // J.5: Multi-provider model discovery
             sp.GetRequiredService<SecureStorage>(),
             sp.GetRequiredService<SettingsManager>()));

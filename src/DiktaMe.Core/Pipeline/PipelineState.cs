@@ -12,5 +12,6 @@ public enum PipelineState
     Streaming,
     Processing,
     Injecting,
+    Speaking,
     Error,
 }

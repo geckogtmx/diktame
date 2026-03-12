@@ -3,6 +3,7 @@ using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
 using DiktaMe.Core.STT;
+using DiktaMe.Core.TTS;
 
 namespace DiktaMe.Core.Config;
 /// <summary>
@@ -15,6 +16,8 @@ public sealed class PipelineFactory
     private readonly ProfileManager _profiles;
     private readonly ISTTProviderFactory _sttFactory;
     private readonly ILLMProviderFactory _llmFactory;
+    private readonly ITTSProviderFactory _ttsFactory;
+    private readonly ITtsPlayerService _ttsPlayer;
     private readonly TextInjector _injector;
     private readonly SettingsManager _settings;
 
@@ -22,12 +25,16 @@ public sealed class PipelineFactory
         ProfileManager profiles,
         ISTTProviderFactory sttFactory,
         ILLMProviderFactory llmFactory,
+        ITTSProviderFactory ttsFactory,
+        ITtsPlayerService ttsPlayer,
         TextInjector injector,
         SettingsManager settings)
     {
         _profiles = profiles;
         _sttFactory = sttFactory;
         _llmFactory = llmFactory;
+        _ttsFactory = ttsFactory;
+        _ttsPlayer = ttsPlayer;
         _injector = injector;
         _settings = settings;
     }
@@ -78,6 +85,17 @@ public sealed class PipelineFactory
     {
         var (stt, llm) = GetProviders("chat", modeOverride);
         return new ChatPipeline(llm!, _settings, stt);
+    }
+
+    /// <summary>
+    /// Creates a ReadSelectionPipeline using the configured TTS provider.
+    /// Does not require STT or LLM — operates on pre-captured text only.
+    /// </summary>
+    public ReadSelectionPipeline CreateReadSelectionPipeline()
+    {
+        var tts = _settings.Current.Tts;
+        ITTSProvider provider = _ttsFactory.CreateProvider(tts.Provider, tts.KokoroModelVariant);
+        return new ReadSelectionPipeline(provider, _ttsPlayer, _settings);
     }
 
     /// <summary>

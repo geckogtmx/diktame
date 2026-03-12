@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="KokoroSharp.CPU" Version="0.6.5" />
     <PackageReference Include="NAudio" Version="2.*" />
     <PackageReference Include="NAudio.Wasapi" Version="2.*" />
     <PackageReference Include="InputSimulatorStandard" Version="1.*" />
@@ -49,6 +50,7 @@
   <!-- Whisper.net native runtimes must not be trimmed (P/Invoke, no trim annotations) -->
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <TrimmerRootAssembly Include="Whisper.net" />
+    <TrimmerRootAssembly Include="KokoroSharp" />
   </ItemGroup>
 
 </Project>

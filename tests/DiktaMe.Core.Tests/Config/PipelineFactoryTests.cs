@@ -5,6 +5,7 @@ using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
 using DiktaMe.Core.STT;
 using DiktaMe.Core.Tests;
+using DiktaMe.Core.TTS;
 using Moq;
 using Xunit;
 
@@ -29,6 +30,13 @@ public sealed class PipelineFactoryTests
         return m;
     }
 
+    private static Mock<ITTSProvider> MakeTts()
+    {
+        var m = new Mock<ITTSProvider>();
+        m.Setup(t => t.ProviderName).Returns("MockTTS");
+        return m;
+    }
+
     private static (PipelineFactory Factory, Mock<ISTTProviderFactory> SttFactory, Mock<ILLMProviderFactory> LlmFactory)
         MakeFactory(AppSettings? settings = null)
     {
@@ -41,14 +49,19 @@ public sealed class PipelineFactoryTests
         var profiles = new ProfileManager(sm);
         var sttFactory = new Mock<ISTTProviderFactory>();
         var llmFactory = new Mock<ILLMProviderFactory>();
+        var ttsFactory = new Mock<ITTSProviderFactory>();
+        var ttsPlayer = new Mock<ITtsPlayerService>();
         var injector = new TextInjector();
 
         sttFactory.Setup(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string>()))
                   .Returns(MakeStt().Object);
         llmFactory.Setup(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                   .Returns(MakeLlm().Object);
+        ttsFactory.Setup(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string?>()))
+                  .Returns(MakeTts().Object);
 
-        var factory = new PipelineFactory(profiles, sttFactory.Object, llmFactory.Object, injector, sm);
+        var factory = new PipelineFactory(profiles, sttFactory.Object, llmFactory.Object,
+            ttsFactory.Object, ttsPlayer.Object, injector, sm);
         return (factory, sttFactory, llmFactory);
     }
 
@@ -99,6 +112,14 @@ public sealed class PipelineFactoryTests
     {
         var (factory, _, _) = MakeFactory();
         var pipeline = factory.CreateChatPipeline();
+        Assert.NotNull(pipeline);
+    }
+
+    [Fact]
+    public void CreateReadSelectionPipeline_ReturnsNonNull()
+    {
+        var (factory, _, _) = MakeFactory();
+        var pipeline = factory.CreateReadSelectionPipeline();
         Assert.NotNull(pipeline);
     }
 

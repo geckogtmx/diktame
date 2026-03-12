@@ -1155,12 +1155,14 @@ publish/
 |----------|---------|-----|
 | 🥇 1 | **Streaming LLM responses** | Biggest single UX improvement — token-by-token injection dramatically reduces perceived latency for Ask/Translate modes. Requires `IAsyncEnumerable<string>` streaming interface on `ILLMProvider` and WinUI 3 live-update injection. |
 | 🥈 2 | **Voice Activity Detection (VAD)** | Hands-free mode — auto-detect speech start/end (WebRTC VAD or Silero). Major differentiator vs Windows Voice Typing. |
-| 🥉 3 | **Conversation memory for Ask mode** | Optional rolling context window (last N exchanges) so follow-up questions feel natural. |
-| 4 | **Command mode** | Voice commands to control the app: "switch to Spanish", "use local model", "open settings". |
-| 5 | **Auto-language detection per-phrase** | Leverage existing `TranscriptionResult.DetectedLanguage` to auto-switch LLM prompts for bilingual users (EN/ES code-switching). Low effort — consider pulling into V2.0 late. |
-| 6 | **Recording mode: Toggle vs Hold-to-Record** | Add a setting to choose between "press to start / press to stop" (current) and "hold to record / release to stop". Requires detecting key-up events in HotkeyManager (Win32 `WM_KEYUP` or `RegisterRawInputDevices`). |
-| 7 | **Voice Snippets Phase 2** | Dynamic variables (`{{date}}`, `{{clipboard}}`) and cursor placement. |
-| 8 | **Plugin/extension system** | Third-party integrations (Notion, Obsidian, VS Code). V3 territory. |
+| 🥉 3 | **Text-to-Speech — "dIKta.me Speaks Back"** | Voice output channel: "Read This" hotkey (select text → hear it), Ask/Chat voice responses, app notifications spoken aloud. Local-first via Kokoro-ONNX (82M, ~1.5GB VRAM, 48 voices), cloud via Deepgram Aura-2/Inworld. Spec: `plans/SPEC_003_TTS_V2.md`. 40 tasks across 7 phases. |
+| 4 | **Conversation memory for Ask mode** | Optional rolling context window (last N exchanges) so follow-up questions feel natural. |
+| 5 | **Command mode** | Voice commands to control the app: "switch to Spanish", "use local model", "open settings". |
+| 6 | **Auto-language detection per-phrase** | Leverage existing `TranscriptionResult.DetectedLanguage` to auto-switch LLM prompts for bilingual users (EN/ES code-switching). Low effort — consider pulling into V2.0 late. |
+| 7 | **Recording mode: Toggle vs Hold-to-Record** | Add a setting to choose between "press to start / press to stop" (current) and "hold to record / release to stop". Requires detecting key-up events in HotkeyManager (Win32 `WM_KEYUP` or `RegisterRawInputDevices`). |
+| 8 | **Voice Snippets Phase 2** | Dynamic variables (`{{date}}`, `{{clipboard}}`) and cursor placement. |
+| 9 | **Plugin/extension system** | Third-party integrations (Notion, Obsidian, VS Code). V3 territory. |
+| 10 | **ONNX Runtime GenAI as local LLM provider** | In-process alternative to Ollama via `Microsoft.ML.OnnxRuntimeGenAI` + DirectML. Eliminates daemon dependency, better AMD/Intel GPU support. Currently preview (v0.12.1, DirectML lags at v0.9.0). Add as second `ILLMProvider` behind existing abstraction when mature. Research: `plans/SPEC_003_TTS.md`. |
 
 ---
 

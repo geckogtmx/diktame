@@ -158,6 +158,7 @@ public sealed record HotkeySettings
     public string Oops { get; init; } = "Ctrl+Alt+V";
     public string Note { get; init; } = "Ctrl+Alt+N";
     public string Chat { get; init; } = "Ctrl+Alt+C";
+    public string ReadSelection { get; init; } = "Ctrl+Alt+Q";
 }
 
 /// <summary>
@@ -284,6 +285,48 @@ public sealed record ChatSettings
 }
 
 /// <summary>
+/// Text-to-Speech configuration. TTS is off by default (opt-in feature).
+/// </summary>
+public sealed record TtsSettings
+{
+    /// <summary>Master TTS toggle (off by default — opt-in feature).</summary>
+    public bool Enabled { get; init; } = false;
+
+    /// <summary>TTS provider: "kokoro", "deepgram", "inworld", "openai", "none".</summary>
+    public string Provider { get; init; } = "kokoro";
+
+    /// <summary>Voice ID (provider-specific). Empty = provider default.</summary>
+    public string VoiceId { get; init; } = string.Empty;
+
+    /// <summary>Speaking rate multiplier (0.5–2.0). 1.0 = normal speed.</summary>
+    public double Speed { get; init; } = 1.0;
+
+    /// <summary>Playback volume (0–100). Independent of system volume.</summary>
+    public int VolumePercent { get; init; } = 80;
+
+    /// <summary>Max words to speak before truncating. 0 = unlimited.</summary>
+    public int MaxSpeechWords { get; init; } = 500;
+
+    /// <summary>Duck other apps during TTS playback.</summary>
+    public bool DuckDuringPlayback { get; init; } = true;
+
+    /// <summary>Speak Ask mode responses aloud.</summary>
+    public bool SpeakAskResponses { get; init; } = false;
+
+    /// <summary>Speak Quick Chat responses aloud.</summary>
+    public bool SpeakChatResponses { get; init; } = false;
+
+    /// <summary>Speak translated text aloud.</summary>
+    public bool SpeakTranslations { get; init; } = false;
+
+    /// <summary>Speak app notifications aloud (errors, warnings, status).</summary>
+    public bool SpeakNotifications { get; init; } = false;
+
+    /// <summary>Kokoro model variant: "int8", "fp16", "fp32".</summary>
+    public string KokoroModelVariant { get; init; } = "int8";
+}
+
+/// <summary>
 /// Root settings model for dIKta.me V2.
 /// Strongly-typed (not a dictionary) for trim-safety and compile-time correctness.
 /// </summary>
@@ -305,6 +348,7 @@ public sealed record AppSettings
     public ChatSettings Chat { get; init; } = new();
     public SoundSettings Sound { get; init; } = new();
     public DeepgramSettings Deepgram { get; init; } = new();
+    public TtsSettings Tts { get; init; } = new();
 
     /// <summary>
     /// Per-mode settings for 2 profiles.
@@ -423,4 +467,5 @@ public sealed record AppSettings
 [JsonSerializable(typeof(TrialSettings))]
 [JsonSerializable(typeof(AccountSettings))]
 [JsonSerializable(typeof(Account.TrialStatus))]
+[JsonSerializable(typeof(TtsSettings))]
 public partial class AppSettingsContext : JsonSerializerContext { }
