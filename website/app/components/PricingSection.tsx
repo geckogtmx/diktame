@@ -16,31 +16,39 @@ export function PricingSection() {
           </p>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto w-full mb-12">
-            {/* Barebones Local ($10) */}
+            {/* Free Trial Version ($0) */}
             <div className="card !overflow-visible p-8 border-2 border-white/10 relative text-left flex flex-col  delay-200">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#020617] border border-white/20 px-4 py-1 rounded-full text-xs font-medium uppercase tracking-widest text-white">
                 Free Trial
               </div>
-              <h3 className="text-xl font-bold mb-2 mt-2 text-white">Barebones Cloud</h3>
+              <h3 className="text-xl font-bold mb-2 mt-2 text-white">Full App Trial</h3>
               <div className="text-5xl font-bold mb-6 text-white">$0.00</div>
-              <p className="text-sm text-[#94a3b8] mb-8">Test the engine.</p>
+              <p className="text-sm text-[#94a3b8] mb-8">Test the cloud engine with Wallet credits.</p>
               <ul className="space-y-3 text-sm text-[#94a3b8] mb-8">
                 <li className="flex gap-2">
-                  <span className="text-[#2563eb]">✓</span> <strong>No CC</strong> Required
+                  <span className="text-[#2563eb]">✓</span> Minimum friction, high control
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-[#2563eb]">✓</span> 15,000 words or 15 days
+                  <span className="text-[#2563eb]">✓</span> <strong>Deepgram</strong> STT & <strong>Gemini Flash</strong> LLM
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-[#2563eb]">⚡</span> Instant Access
+                  <span className="text-[#2563eb]">✓</span> <strong>Instant Access</strong> to Core Modes
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-[#2563eb]">✓</span> <strong>Unlimited</strong> Custom Presets
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-[#2563eb]">✓</span> <strong>Quick Chat</strong> Access included
+                </li>
+                <li className="flex gap-2 opacity-60">
+                  <span className="text-[#ef4444]">✕</span> No Offline AI (Cloud Only)
                 </li>
               </ul>
               <button className="w-full py-3 rounded-lg bg-white/10 text-white font-bold hover:scale-105 transition-transform mt-auto hover:bg-white/20 border border-white/20">
                 Start Free Trial
               </button>
-              <p className="text-xs text-[#94a3b8] mt-4 text-center">No commitment.</p>
+              <p className="text-xs text-[#94a3b8] mt-4 text-center">Pre-loaded wallet included.</p>
             </div>
-
             {/* Power Version ($25) */}
             <div className="card !overflow-visible p-8 border-2 border-[#2563eb] relative text-left flex flex-col  delay-300 shadow-glow">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#2563eb] text-white border border-[#2563eb] px-4 py-1 rounded-full text-xs font-medium uppercase tracking-widest">
@@ -51,7 +59,7 @@ export function PricingSection() {
               <p className="text-sm text-[#94a3b8] mb-8">The complete arsenal.</p>
               <ul className="space-y-3 text-sm text-[#94a3b8] mb-8">
                 <li className="flex gap-2">
-                  <span className="text-[#2563eb]">✓</span> <strong>Everything</strong> in Barebones
+                  <span className="text-[#2563eb]">✓</span> <strong>Unrestricted</strong> Full App access
                 </li>
                 <li className="flex gap-2">
                   <span className="text-[#2563eb]">✓</span> <strong>Ask Mode</strong> UI
@@ -92,9 +100,6 @@ export function PricingSection() {
               <ul className="flex flex-wrap gap-4 text-sm text-gray-300">
                 <li className="flex gap-2 items-center">
                   <span className="text-xl">📚</span> <strong>Full Source Code</strong>
-                </li>
-                <li className="flex gap-2 items-center">
-                  <span className="text-xl">🎓</span> Learn Electron + Python
                 </li>
                 <li className="flex gap-2 items-center">
                   <span className="text-xl">📖</span> In-Depth Build Guide

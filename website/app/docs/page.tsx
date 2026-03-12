@@ -9,47 +9,46 @@ export const metadata: Metadata = {
   description: 'Getting started with dIKta.me. Installation, configuration, and troubleshooting guides.',
 };
 
+import Link from 'next/link';
+
 const docs = [
   {
-    title: 'Getting Started',
-    description: 'Learn how to download, install, and activate dIKta.me',
-    sections: [
-      'System Requirements',
-      'Download & Installation',
-      'First Run Setup',
-      'Activation & Trial Credits',
-    ],
+    title: 'Overview',
+    description: 'Learn how to download, install, and troubleshoot dIKta.me',
+    links: [
+      { href: '/docs/getting-started', label: 'Getting Started Guide' },
+      { href: '/docs/troubleshooting', label: 'Troubleshooting' },
+    ]
   },
   {
     title: 'Core Features',
-    description: 'Master the four core modes of dIKta.me',
-    sections: [
-      'Dictate Mode',
-      'Ask Mode (LLM)',
-      'Refine Mode (Editing)',
-      'Structured Notes',
-    ],
+    description: 'Master the core modes of the application',
+    links: [
+      { href: '/docs/features/dictation', label: 'Dictation' },
+      { href: '/docs/features/refine', label: 'Refine (Editing)' },
+      { href: '/docs/features/quick-chat', label: 'Quick Chat Overlay' },
+    ]
+  },
+  {
+    title: 'Utility Pipelines',
+    description: 'Quick voice-driven tools for everyday tasks',
+    links: [
+      { href: '/docs/features/ask', label: 'Ask (Q&A)' },
+      { href: '/docs/features/translate', label: 'Translate' },
+      { href: '/docs/features/note', label: 'Note Taking' },
+      { href: '/docs/features/oops', label: 'Oops (Undo/Fix)' },
+    ]
   },
   {
     title: 'Configuration',
-    description: 'Customize dIKta.me to match your workflow',
-    sections: [
-      'Hotkey Configuration',
-      'Model Selection',
-      'API Keys Setup',
-      'Language Settings',
-    ],
-  },
-  {
-    title: 'Advanced',
-    description: 'Power features for advanced users',
-    sections: [
-      'Voice Macros (Python)',
-      'Custom Models',
-      'Offline Setup',
-      'Data Encryption',
-    ],
-  },
+    description: 'Customize every deeply integrated setting',
+    links: [
+      { href: '/docs/settings/general', label: 'General & Audio' },
+      { href: '/docs/settings/ai-engine', label: 'AI Engine & Models' },
+      { href: '/docs/settings/hotkeys', label: 'Hotkeys' },
+      { href: '/docs/settings/modes', label: 'Modes & Profiles' },
+    ]
+  }
 ];
 
 export default function DocsPage() {
@@ -84,12 +83,12 @@ export default function DocsPage() {
                 <h2 className="text-2xl font-bold text-white mb-3">{doc.title}</h2>
                 <p className="text-gray-400 mb-6">{doc.description}</p>
                 <ul className="space-y-2">
-                  {doc.sections.map((section) => (
-                    <li key={section} className="flex items-center gap-2 text-gray-300">
+                  {doc.links.map((link) => (
+                    <li key={link.href} className="flex items-center gap-2 text-gray-300">
                       <span className="text-blue-400">→</span>
-                      <a href="#" className="hover:text-blue-400 transition">
-                        {section}
-                      </a>
+                      <Link href={link.href} className="hover:text-blue-400 transition">
+                        {link.label}
+                      </Link>
                     </li>
                   ))}
                 </ul>

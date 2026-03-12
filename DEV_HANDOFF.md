@@ -24,6 +24,7 @@
 | **SPEC_007** | Chat Feature Upgrade — 14/14 tasks complete (committed) |
 | **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-G complete, FIX-1 through FIX-16 (15/16 done, FIX-1 deferred to SPEC_008) |
 | **SPEC_011** | Ollama Management Hub — Core API, search service, Settings UI, E2E warmup, 22 new tests |
+| **DOCS_V2** | Exhaustive User documentation (Features & Settings), integrated natively into the Next.js Website via Markdown |
 
 ## Open Bugs (Stream K)
 
