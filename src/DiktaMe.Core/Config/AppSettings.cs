@@ -339,6 +339,15 @@ public sealed record AppSettings
     /// <summary>Ollama keep-alive duration (how long to keep model in VRAM after inference).</summary>
     public string OllamaKeepAlive { get; init; } = "10m";
 
+    /// <summary>Custom Ollama endpoint URL (for remote instances or non-default ports).</summary>
+    public string OllamaBaseUrl { get; init; } = "http://localhost:11434";
+
+    /// <summary>Pre-load default model into VRAM on startup.</summary>
+    public bool OllamaAutoWarmup { get; init; } = false;
+
+    /// <summary>Context window size for Ollama inference (num_ctx parameter).</summary>
+    public int OllamaNumCtx { get; init; } = 2048;
+
     /// <summary>Whisper model size for local STT (tiny, base, small, medium, large, turbo).</summary>
     public string WhisperModel { get; init; } = "small";
 

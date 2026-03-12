@@ -94,8 +94,10 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
 
         return new OllamaProvider(
             model: effectiveModel,
+            baseUrl: _settings.Current.OllamaBaseUrl ?? "http://localhost:11434",
             httpClient: http,
-            keepAlive: _settings.Current.OllamaKeepAlive);
+            keepAlive: _settings.Current.OllamaKeepAlive ?? "10m",
+            numCtx: _settings.Current.OllamaNumCtx > 0 ? _settings.Current.OllamaNumCtx : 2048);
     }
 
     private string ResolveModel(string type, string? model)

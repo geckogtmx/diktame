@@ -25,6 +25,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
     private readonly string _tagsUrl;
     private readonly string _model;
     private readonly string _keepAlive;
+    private readonly int _numCtx;
     private bool _disposed;
     private bool _firstInference = true;
 
@@ -38,11 +39,13 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
     /// <param name="baseUrl">Ollama base URL (default: http://localhost:11434).</param>
     /// <param name="httpClient">Optional shared client.</param>
     /// <param name="keepAlive">Ollama keep-alive duration, e.g. <c>"10m"</c>, <c>"1h"</c>.</param>
+    /// <param name="numCtx">Context window size (num_ctx parameter).</param>
     public OllamaProvider(
         string model,
         string baseUrl = DefaultBaseUrl,
         HttpClient? httpClient = null,
-        string keepAlive = "10m")
+        string keepAlive = "10m",
+        int numCtx = 2048)
     {
         if (string.IsNullOrWhiteSpace(model))
         {
@@ -51,6 +54,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
 
         _model = model;
         _keepAlive = keepAlive;
+        _numCtx = numCtx > 0 ? numCtx : 2048;
         string trimmed = baseUrl.TrimEnd('/');
         _generateUrl = trimmed + "/api/generate";
         _chatUrl = trimmed + "/api/chat";
@@ -95,7 +99,8 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
                 "You are a text formatter. Output only the result.",
                 "ping",
                 keepAlive: _keepAlive,
-                numPredict: 1);
+                numPredict: 1,
+                numCtx: _numCtx);
 
             using var request = new HttpRequestMessage(HttpMethod.Post, _generateUrl);
             request.Content = new StringContent(body, Encoding.UTF8, "application/json");
@@ -126,7 +131,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         string safeText = SanitizeInput(text);
-        string body = BuildRequestJson(_model, systemPrompt, safeText, keepAlive: _keepAlive);
+        string body = BuildRequestJson(_model, systemPrompt, safeText, keepAlive: _keepAlive, numCtx: _numCtx);
 
         var sw = Stopwatch.StartNew();
 
@@ -218,7 +223,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        string body = BuildConversationRequestJson(_model, systemPrompt, history, keepAlive: _keepAlive);
+        string body = BuildConversationRequestJson(_model, systemPrompt, history, keepAlive: _keepAlive, numCtx: _numCtx);
         var sw = Stopwatch.StartNew();
 
         const int MaxRetries = 3;
@@ -281,7 +286,8 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
         string systemPrompt,
         string userText,
         string keepAlive = "10m",
-        int numPredict = 1024)
+        int numPredict = 1024,
+        int numCtx = 2048)
     {
         string escapedModel = EscapeJsonString(model);
         string escapedPrompt = EscapeJsonString($"{systemPrompt}\n\n{userText}");
@@ -292,7 +298,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
               "model": "{{escapedModel}}",
               "prompt": "{{escapedPrompt}}",
               "stream": false,
-              "options": { "temperature": 0.1, "num_ctx": 2048, "num_predict": {{numPredict}} },
+              "options": { "temperature": 0.1, "num_ctx": {{numCtx}}, "num_predict": {{numPredict}} },
               "keep_alive": "{{escapedKeepAlive}}"
             }
             """;
@@ -300,7 +306,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
 
     private static string BuildConversationRequestJson(
         string model, string systemPrompt, IReadOnlyList<ConversationTurn> history,
-        string keepAlive = "10m")
+        string keepAlive = "10m", int numCtx = 2048)
     {
         // Ollama /api/chat uses the same messages format as OpenAI
         var sb = new StringBuilder();
@@ -316,7 +322,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
               .Append("\"}");
         }
 
-        sb.Append("],\"stream\":false,\"options\":{\"temperature\":0.1,\"num_ctx\":2048},\"keep_alive\":\"")
+        sb.Append("],\"stream\":false,\"options\":{\"temperature\":0.1,\"num_ctx\":").Append(numCtx).Append("},\"keep_alive\":\"")
           .Append(EscapeJsonString(keepAlive)).Append("\"}");
         return sb.ToString();
     }

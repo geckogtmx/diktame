@@ -41,6 +41,33 @@ public enum OllamaInstallResult
     Failed,
 }
 
+/// <summary>Rich model info parsed from Ollama <c>/api/tags</c> response.</summary>
+public sealed record OllamaModelDetail(
+    string Name,
+    long Size,
+    DateTime ModifiedAt,
+    string Family,
+    string ParameterSize,
+    string QuantizationLevel);
+
+/// <summary>Running model info from Ollama <c>/api/ps</c> response.</summary>
+public sealed record OllamaRunningModel(
+    string Name,
+    long SizeVram,
+    DateTime ExpiresAt,
+    string ParameterSize,
+    string QuantizationLevel);
+
+/// <summary>Detailed model info from Ollama <c>POST /api/show</c>.</summary>
+public sealed record OllamaModelInfo(
+    string Family,
+    string ParameterSize,
+    string QuantizationLevel,
+    int ContextLength,
+    string[] Capabilities,
+    string Template,
+    string License);
+
 /// <summary>Result returned by <see cref="OllamaManager.CheckAsync"/>.</summary>
 public sealed record OllamaCheckResult
 {
@@ -123,6 +150,9 @@ public sealed class OllamaManager : IDisposable
     private const string VersionEndpoint = "/api/version";
     private const string TagsEndpoint = "/api/tags";
     private const string PullEndpoint = "/api/pull";
+    private const string ShowEndpoint = "/api/show";
+    private const string PsEndpoint = "/api/ps";
+    private const string DeleteEndpoint = "/api/delete";
 
     private static readonly string LastVersionFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -261,6 +291,195 @@ public sealed class OllamaManager : IDisposable
         {
             Log.Warning(ex, "OllamaManager: failed to list installed models");
             return Array.Empty<string>();
+        }
+    }
+
+    /// <summary>
+    /// Returns rich details for all installed models from <c>/api/tags</c>.
+    /// Parses name, size, family, parameter count, quantization, and modified date.
+    /// </summary>
+    public async Task<IReadOnlyList<OllamaModelDetail>> GetInstalledModelsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        try
+        {
+            string json = await _http
+                .GetStringAsync(_baseUrl + TagsEndpoint, cancellationToken)
+                .ConfigureAwait(false);
+
+            return ParseModelDetails(json);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "OllamaManager: failed to list installed models (rich)");
+            return Array.Empty<OllamaModelDetail>();
+        }
+    }
+
+    /// <summary>
+    /// Returns detailed information about a specific model via <c>POST /api/show</c>.
+    /// </summary>
+    public async Task<OllamaModelInfo?> GetModelInfoAsync(
+        string modelTag,
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        try
+        {
+            string requestJson = $$"""{"name":"{{modelTag}}"}""";
+            using var content = new StringContent(requestJson, System.Text.Encoding.UTF8, "application/json");
+            using var response = await _http.PostAsync(
+                _baseUrl + ShowEndpoint, content, cancellationToken).ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Log.Warning("OllamaManager: /api/show returned {Status} for '{Model}'",
+                    (int)response.StatusCode, modelTag);
+                return null;
+            }
+
+            string json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            return ParseModelInfo(json);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "OllamaManager: failed to get model info for '{Model}'", modelTag);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Returns models currently loaded in VRAM via <c>GET /api/ps</c>.
+    /// </summary>
+    public async Task<IReadOnlyList<OllamaRunningModel>> GetRunningModelsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        try
+        {
+            string json = await _http
+                .GetStringAsync(_baseUrl + PsEndpoint, cancellationToken)
+                .ConfigureAwait(false);
+
+            return ParseRunningModels(json);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "OllamaManager: failed to get running models");
+            return Array.Empty<OllamaRunningModel>();
+        }
+    }
+
+    /// <summary>
+    /// Deletes a model from disk via <c>DELETE /api/delete</c>.
+    /// </summary>
+    /// <returns><c>true</c> if deletion succeeded; <c>false</c> otherwise.</returns>
+    public async Task<bool> DeleteModelAsync(
+        string modelTag,
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        try
+        {
+            string requestJson = $$"""{"name":"{{modelTag}}"}""";
+            using var request = new HttpRequestMessage(HttpMethod.Delete, _baseUrl + DeleteEndpoint)
+            {
+                Content = new StringContent(requestJson, System.Text.Encoding.UTF8, "application/json"),
+            };
+
+            using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Log.Information("OllamaManager: deleted model '{Model}'", modelTag);
+                return true;
+            }
+
+            string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            Log.Warning("OllamaManager: delete returned {Status} for '{Model}': {Body}",
+                (int)response.StatusCode, modelTag, body);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "OllamaManager: failed to delete model '{Model}'", modelTag);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Restarts the Ollama service by killing existing processes and re-launching.
+    /// </summary>
+    /// <returns><c>true</c> if Ollama was successfully restarted.</returns>
+    public async Task<bool> RestartServiceAsync(CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        try
+        {
+            // Kill existing ollama processes
+            foreach (var proc in Process.GetProcessesByName("ollama"))
+            {
+                try
+                {
+                    proc.Kill();
+                    await proc.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug(ex, "OllamaManager: failed to kill ollama process {Pid}", proc.Id);
+                }
+                finally
+                {
+                    proc.Dispose();
+                }
+            }
+
+            // Also kill ollama_llama_server (the GPU inference process)
+            foreach (var proc in Process.GetProcessesByName("ollama_llama_server"))
+            {
+                try
+                {
+                    proc.Kill();
+                    await proc.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug(ex, "OllamaManager: failed to kill ollama_llama_server process {Pid}", proc.Id);
+                }
+                finally
+                {
+                    proc.Dispose();
+                }
+            }
+
+            // Brief pause to let ports free up
+            await Task.Delay(500, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "OllamaManager: error killing ollama processes during restart");
+        }
+
+        return await StartOllamaAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Gets the Ollama version string, or null if offline.
+    /// </summary>
+    public async Task<string?> GetVersionAsync(string? baseUrlOverride, CancellationToken cancellationToken = default)
+    {
+        string url = (baseUrlOverride?.TrimEnd('/') ?? _baseUrl) + VersionEndpoint;
+        try
+        {
+            string json = await _http.GetStringAsync(url, cancellationToken).ConfigureAwait(false);
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty("version", out var v) ? v.GetString() : null;
+        }
+        catch
+        {
+            return null;
         }
     }
 
@@ -759,6 +978,150 @@ public sealed class OllamaManager : IDisposable
         {
             Log.Warning(ex, "OllamaManager: failed to parse /api/tags response");
             return Array.Empty<string>();
+        }
+    }
+
+    // ── Parsers for new endpoints ──────────────────────────────────────────
+
+    /// <summary>Parses /api/tags response into rich model details.</summary>
+    private static IReadOnlyList<OllamaModelDetail> ParseModelDetails(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("models", out var models))
+            {
+                return Array.Empty<OllamaModelDetail>();
+            }
+
+            var result = new List<OllamaModelDetail>();
+            foreach (var model in models.EnumerateArray())
+            {
+                string name = model.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
+                long size = model.TryGetProperty("size", out var s) ? s.GetInt64() : 0;
+                DateTime modified = model.TryGetProperty("modified_at", out var m)
+                    ? (DateTime.TryParse(m.GetString(), System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.RoundtripKind, out var dt) ? dt : DateTime.MinValue)
+                    : DateTime.MinValue;
+
+                // details sub-object has family, parameter_size, quantization_level
+                string family = "", paramSize = "", quantLevel = "";
+                if (model.TryGetProperty("details", out var details))
+                {
+                    family = details.TryGetProperty("family", out var f) ? f.GetString() ?? "" : "";
+                    paramSize = details.TryGetProperty("parameter_size", out var ps) ? ps.GetString() ?? "" : "";
+                    quantLevel = details.TryGetProperty("quantization_level", out var ql) ? ql.GetString() ?? "" : "";
+                }
+
+                result.Add(new OllamaModelDetail(name, size, modified, family, paramSize, quantLevel));
+            }
+            return result;
+        }
+        catch (JsonException ex)
+        {
+            Log.Warning(ex, "OllamaManager: failed to parse /api/tags rich response");
+            return Array.Empty<OllamaModelDetail>();
+        }
+    }
+
+    /// <summary>Parses /api/show response into model info.</summary>
+    private static OllamaModelInfo? ParseModelInfo(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            string family = "", paramSize = "", quantLevel = "";
+            int ctxLength = 0;
+            if (root.TryGetProperty("details", out var details))
+            {
+                family = details.TryGetProperty("family", out var f) ? f.GetString() ?? "" : "";
+                paramSize = details.TryGetProperty("parameter_size", out var ps) ? ps.GetString() ?? "" : "";
+                quantLevel = details.TryGetProperty("quantization_level", out var ql) ? ql.GetString() ?? "" : "";
+            }
+
+            // model_info has context_length and capabilities
+            var capabilities = new List<string>();
+            if (root.TryGetProperty("model_info", out var modelInfo))
+            {
+                // Context length is in various keys depending on architecture
+                foreach (var prop in modelInfo.EnumerateObject())
+                {
+                    if (prop.Name.EndsWith(".context_length", StringComparison.Ordinal) &&
+                        prop.Value.ValueKind == JsonValueKind.Number)
+                    {
+                        ctxLength = prop.Value.GetInt32();
+                        break;
+                    }
+                }
+            }
+
+            // capabilities from details.families array if present
+            if (root.TryGetProperty("details", out var det2) &&
+                det2.TryGetProperty("families", out var families) &&
+                families.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var cap in families.EnumerateArray())
+                {
+                    string? c = cap.GetString();
+                    if (c is not null)
+                    {
+                        capabilities.Add(c);
+                    }
+                }
+            }
+
+            string template = root.TryGetProperty("template", out var t) ? t.GetString() ?? "" : "";
+            string license = root.TryGetProperty("license", out var l) ? l.GetString() ?? "" : "";
+
+            return new OllamaModelInfo(
+                family, paramSize, quantLevel, ctxLength,
+                capabilities.ToArray(), template, license);
+        }
+        catch (JsonException ex)
+        {
+            Log.Warning(ex, "OllamaManager: failed to parse /api/show response");
+            return null;
+        }
+    }
+
+    /// <summary>Parses /api/ps response into running model list.</summary>
+    private static IReadOnlyList<OllamaRunningModel> ParseRunningModels(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("models", out var models))
+            {
+                return Array.Empty<OllamaRunningModel>();
+            }
+
+            var result = new List<OllamaRunningModel>();
+            foreach (var model in models.EnumerateArray())
+            {
+                string name = model.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
+                long sizeVram = model.TryGetProperty("size_vram", out var sv) ? sv.GetInt64() : 0;
+                DateTime expires = model.TryGetProperty("expires_at", out var e)
+                    ? (DateTime.TryParse(e.GetString(), System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.RoundtripKind, out var dt) ? dt : DateTime.MinValue)
+                    : DateTime.MinValue;
+
+                string paramSize = "", quantLevel = "";
+                if (model.TryGetProperty("details", out var details))
+                {
+                    paramSize = details.TryGetProperty("parameter_size", out var ps) ? ps.GetString() ?? "" : "";
+                    quantLevel = details.TryGetProperty("quantization_level", out var ql) ? ql.GetString() ?? "" : "";
+                }
+
+                result.Add(new OllamaRunningModel(name, sizeVram, expires, paramSize, quantLevel));
+            }
+            return result;
+        }
+        catch (JsonException ex)
+        {
+            Log.Warning(ex, "OllamaManager: failed to parse /api/ps response");
+            return Array.Empty<OllamaRunningModel>();
         }
     }
 

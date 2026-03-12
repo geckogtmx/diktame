@@ -4,7 +4,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 695+ passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
+| **Tests** | 717+ passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | 0 errors, 0 warnings |
 | **CI** | Passing on main |
 | **Branch** | main |
@@ -23,12 +23,24 @@
 | **L** | Deepgram Streaming — L.1-L.5 committed. L.6-L.7 (Flux) deferred. |
 | **SPEC_007** | Chat Feature Upgrade — 14/14 tasks complete (committed) |
 | **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-G complete, FIX-1 through FIX-16 (15/16 done, FIX-1 deferred to SPEC_008) |
+| **SPEC_011** | Ollama Management Hub — Core API, search service, Settings UI, E2E warmup, 22 new tests |
 
 ## Open Bugs (Stream K)
 
 1. **App UI doesn't update after sign-in** — `StatusChanged` may not fire if `/api/trial/status` fails for new users.
 2. **Website "Sign Up" shows Coming Soon** — Vercel env var `NEXT_PUBLIC_COMING_SOON=true` still set. Delete it in Vercel dashboard.
 3. **Trial counter page blank** — depends on Bug 1 + Supabase Edge Function returning proper trial records.
+
+## Resolved Bugs (SPEC_011)
+
+4. ~~**NullReferenceException on dictation — `LLMProviderFactory.CreateOllamaProvider`**~~ ✅ Fixed — null-coalesce defaults on `baseUrl`, `keepAlive`, `numCtx` in `LLMProviderFactory.CreateOllamaProvider`.
+5. ~~**Free-text TextBox corrupted OllamaModel setting**~~ ✅ Fixed — removed "Or type model name" TextBox; model selection now exclusively via ComboBox dropdown of installed models. Added `OnSelectedModelIndexChanged` to sync ComboBox → SelectedModel → settings.
+6. ~~**Model Library Install button too risky**~~ ✅ Fixed — replaced Install button with "View" link opening `ollama.com/library/{model}` in browser.
+7. ~~**Ollama Settings page empty on open**~~ ✅ Fixed — auto-check health on `Page.Loaded` to populate model list and status.
+
+## Known Issues (SPEC_011)
+
+- **Settings corruption from TextBox bug may persist** — users who typed in the old TextBox may have `OllamaModel` set to a partial/invalid string in `settings.json`. Fix: open Ollama Settings → select correct model from dropdown.
 
 ## CI/CD Notes
 
@@ -89,6 +101,10 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 
 **Full investigation details**: `plans/SPEC_009_LOCALFLOW.md` §12.8–12.10
 
+## Current Work
+
+No active spec in progress. Next candidates: manual testing (see below), SPEC_008 (Wallet), H.1 (Installer).
+
 ## Remaining Work
 
 ### Manual Testing Needed
@@ -101,6 +117,7 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 | **Keep-alive dropdown** | FIX-15 — change in Settings, restart app, verify in Ollama request logs |
 | **Whisper model change download** | FIX-15 — switch model in Settings, verify download with progress |
 | **Ollama install from Settings** | FIX-15 — verify Install button appears when Ollama is offline |
+| **SPEC_011 Ollama Settings page** | Model list ✅, search/view ✅, pull ✅, delete (needs test), service restart (needs retest after fixes), VRAM display (needs test), warmup ✅ |
 | **Refine on Antigravity** | `CaptureSelection` times out — app-specific accessibility issue, separate investigation |
 
 ### Tier 1 — Verification
@@ -133,4 +150,5 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 - `plans/SPEC_009_FIXES.md` — Wizard + local mode fix tracker (15/16 complete, FIX-1 deferred to SPEC_008)
 - `plans/SPEC_009_TESTING.md` — Manual test scenarios
 - `plans/SPEC_001_MEETINGS.md` / `SPEC_002_VISION.md` / `SPEC_003_TTS.md` — Post-launch feature specs
+- `plans/SPEC_011_OLLAMA.md` — Ollama Management Hub spec (implemented)
 - `plans/archive/` — Completed implementation plans (Stream F, K, OAuth Restructure, etc.)

@@ -379,15 +379,7 @@ public partial class App : Application
     private static void ConfigureServices(IServiceCollection services)
     {
         // ── Core engine ──────────────────────────────────────────────────────
-        // NOTE: AudioDeviceManager and ClipboardManager are static utility classes;
-        // they do not need DI registration.
-
-        // AudioRecorder is Transient because it implements IDisposable and cannot be reused
-        // after disposal. Each usage (wizard test, pipeline run) needs a fresh instance.
-        services.AddTransient<AudioRecorder>();
-
-        // AudioDucker is Singleton but no longer auto-attached to AudioRecorder.
-        // Pipelines will attach it manually when recording starts.
+        services.AddTransient<AudioRecorder>(); // Transient: IDisposable, cannot reuse after disposal
         services.AddSingleton<AudioDucker>();
         services.AddSingleton<MuteDetector>();
         services.AddSingleton<TextInjector>();
@@ -425,8 +417,10 @@ public partial class App : Application
             http.DefaultRequestHeaders.ConnectionClose = false; // HTTP keep-alive
             return new OllamaProvider(
                 settings.Current.OllamaModel,
+                baseUrl: settings.Current.OllamaBaseUrl,
                 httpClient: http,
-                keepAlive: settings.Current.OllamaKeepAlive);
+                keepAlive: settings.Current.OllamaKeepAlive,
+                numCtx: settings.Current.OllamaNumCtx);
         });
 
         // Trial Gemini provider (managed proxy, Bearer JWT auth)
@@ -502,7 +496,10 @@ public partial class App : Application
         services.AddSingleton<ConversationManager>();
 
         // ── System (I.5) ──────────────────────────────────────────────────────
-        services.AddSingleton<OllamaManager>();
+        services.AddSingleton<OllamaManager>(sp =>
+            new OllamaManager(baseUrl: sp.GetRequiredService<SettingsManager>().Current.OllamaBaseUrl));
+        services.AddSingleton<OllamaSearchService>();
+        services.AddSingleton<HardwareInfoService>();
 
         // ── UI Services (F.5) ──────────────────────────────────────────────────
         services.AddSingleton<Services.LocalizationService>();

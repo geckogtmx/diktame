@@ -35,6 +35,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly LocalizationService _loc;
     private readonly WhisperProvider _whisper;
     private readonly OllamaProvider _ollamaProvider;
+    private readonly ILLMProviderFactory _llmFactory;
 
     [ObservableProperty] private string _statusText = "";
     [ObservableProperty] private double _progress;
@@ -64,7 +65,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         ITrialService trialService,
         LocalizationService loc,
         WhisperProvider whisper,
-        OllamaProvider ollamaProvider)
+        OllamaProvider ollamaProvider,
+        ILLMProviderFactory llmFactory)
     {
         _settings = settings;
         _history = history;
@@ -84,6 +86,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _loc = loc;
         _whisper = whisper;
         _ollamaProvider = ollamaProvider;
+        _llmFactory = llmFactory;
         _statusText = _loc.GetString("Loading_Initializing");
     }
 
@@ -172,29 +175,23 @@ public sealed partial class LoadingViewModel : ObservableObject
                 }
             }
 
-            // Warmup Ollama if LLM is local and Ollama is ready
-            if (string.Equals(llmProvider, "ollama", StringComparison.OrdinalIgnoreCase)
-                && ollamaResult?.Status == OllamaStatus.Ready)
+            // E2E warmup: warm both Whisper and the factory-cached Ollama provider
+            // to eliminate cold-start penalty on first dictation (SPEC_011 §11).
+            // Controlled by OllamaAutoWarmup setting. Only warms local providers.
+            if (_settings.Current.OllamaAutoWarmup)
             {
+                await RunE2EWarmupAsync(sttProvider, llmProvider, ollamaResult);
+            }
+            else if (string.Equals(llmProvider, "ollama", StringComparison.OrdinalIgnoreCase)
+                     && ollamaResult?.Status == OllamaStatus.Ready)
+            {
+                // Lightweight fallback: at minimum warm the DI singleton so the model
+                // is loaded in Ollama's context (even if factory instance is cold).
                 StatusText = _loc.GetString("Loading_WarmingOllama");
                 try
                 {
                     await _ollamaProvider.WarmUpAsync();
-
-                    // GPU assessment after warmup (V1 HOTFIX_002 pattern)
-                    double? toksPerSec = _ollamaProvider.LastTokensPerSec;
-                    if (toksPerSec.HasValue)
-                    {
-                        string assessment = toksPerSec.Value > 50 ? "GPU"
-                            : toksPerSec.Value < 20 ? "CPU"
-                            : "BORDERLINE";
-                        Log.Information("Ollama warmup: {TokSec:F1} tok/s ({Assessment})",
-                            toksPerSec.Value, assessment);
-                    }
-                    else
-                    {
-                        Log.Information("Ollama warmup completed (tok/s not reported)");
-                    }
+                    LogOllamaGpuAssessment(_ollamaProvider);
                 }
                 catch (Exception ex)
                 {
@@ -390,6 +387,128 @@ public sealed partial class LoadingViewModel : ObservableObject
     }
 
     // ── Helper Methods ────────────────────────────────────────────────────────
+
+    // ── E2E Warmup (SPEC_011 §11) ──────────────────────────────────────────
+
+    /// <summary>
+    /// Full production-path warmup: warms both Whisper (model load + Vulkan shaders)
+    /// and the factory-cached Ollama provider (HTTP connection + model context).
+    /// Eliminates cold-start penalty on first dictation.
+    /// </summary>
+    private async Task RunE2EWarmupAsync(
+        string sttProvider, string llmProvider, OllamaCheckResult? ollamaResult)
+    {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        long whisperMs = 0, llmMs = 0;
+
+        StatusText = _loc.GetString("Loading_E2EWarmup");
+
+        // 1. Whisper warmup: transcribe a tiny silent WAV to force model load + shader compile
+        if (string.Equals(sttProvider, "whisper", StringComparison.OrdinalIgnoreCase)
+            && _whisper.IsModelDownloaded)
+        {
+            try
+            {
+                var whisperSw = System.Diagnostics.Stopwatch.StartNew();
+                string silentWav = GenerateSilentWav();
+                try
+                {
+                    await _whisper.TranscribeAsync(silentWav, "en");
+                }
+                finally
+                {
+                    try { File.Delete(silentWav); } catch { /* best-effort cleanup */ }
+                }
+                whisperMs = whisperSw.ElapsedMilliseconds;
+                Log.Information("E2E warmup: Whisper primed in {Ms}ms", whisperMs);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "E2E warmup: Whisper warmup failed (non-fatal)");
+            }
+        }
+
+        // 2. LLM warmup via factory: get-or-create the production-path cached provider
+        //    and send a minimal prompt to prime the HTTP connection + Ollama model context.
+        if (string.Equals(llmProvider, "ollama", StringComparison.OrdinalIgnoreCase)
+            && ollamaResult?.Status == OllamaStatus.Ready)
+        {
+            try
+            {
+                var llmSw = System.Diagnostics.Stopwatch.StartNew();
+                var factoryProvider = _llmFactory.CreateProvider("ollama",
+                    model: _settings.Current.OllamaModel);
+
+                await factoryProvider.ProcessAsync("Hi", "You are a text formatter. Output only the result.", "warmup");
+                llmMs = llmSw.ElapsedMilliseconds;
+
+                // GPU assessment from the factory provider
+                if (factoryProvider is OllamaProvider ollamaFP)
+                {
+                    LogOllamaGpuAssessment(ollamaFP);
+                }
+
+                Log.Information("E2E warmup: LLM (factory) primed in {Ms}ms", llmMs);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "E2E warmup: LLM warmup failed (non-fatal)");
+            }
+        }
+
+        sw.Stop();
+        Log.Information("E2E warmup complete: Whisper {WhisperMs}ms, LLM {LlmMs}ms, total {TotalMs}ms",
+            whisperMs, llmMs, sw.ElapsedMilliseconds);
+    }
+
+    /// <summary>Generates a 0.5-second silent WAV file in temp for Whisper warmup.</summary>
+    private static string GenerateSilentWav()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"diktame_warmup_{Guid.NewGuid():N}.wav");
+        int sampleRate = 16000;
+        int channels = 1;
+        int bitsPerSample = 16;
+        int durationSamples = sampleRate / 2; // 0.5 seconds
+        int dataSize = durationSamples * channels * (bitsPerSample / 8);
+
+        using var fs = new FileStream(path, FileMode.Create, FileAccess.Write);
+        using var bw = new BinaryWriter(fs);
+
+        // WAV header
+        bw.Write("RIFF"u8);
+        bw.Write(36 + dataSize);
+        bw.Write("WAVE"u8);
+        bw.Write("fmt "u8);
+        bw.Write(16); // chunk size
+        bw.Write((short)1); // PCM
+        bw.Write((short)channels);
+        bw.Write(sampleRate);
+        bw.Write(sampleRate * channels * (bitsPerSample / 8)); // byte rate
+        bw.Write((short)(channels * (bitsPerSample / 8))); // block align
+        bw.Write((short)bitsPerSample);
+        bw.Write("data"u8);
+        bw.Write(dataSize);
+        bw.Write(new byte[dataSize]); // silence = all zeros
+
+        return path;
+    }
+
+    private static void LogOllamaGpuAssessment(OllamaProvider provider)
+    {
+        double? toksPerSec = provider.LastTokensPerSec;
+        if (toksPerSec.HasValue)
+        {
+            string assessment = toksPerSec.Value > 50 ? "GPU"
+                : toksPerSec.Value < 20 ? "CPU"
+                : "BORDERLINE";
+            Log.Information("Ollama warmup: {TokSec:F1} tok/s ({Assessment})",
+                toksPerSec.Value, assessment);
+        }
+        else
+        {
+            Log.Information("Ollama warmup completed (tok/s not reported)");
+        }
+    }
 
     /// <summary>
     /// Reads the active provider name (STT or LLM) from ModeProfiles for the dictate mode.

@@ -1,6 +1,6 @@
 # SPEC_011: Ollama Management Hub
 
-**Status:** PROPOSAL  
+**Status:** IMPLEMENTED  
 **Created:** 2026-03-11  
 **Priority:** High  
 **V1 Reference:** `src/settings/ollama.ts`, `src/ipc/ollamaHandlers.ts`, `python/check_vram_models.py`, `SPEC_031`

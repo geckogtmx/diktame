@@ -302,6 +302,39 @@
   <data name="Settings_Ollama_RetryCheck" xml:space="preserve"><value>Reintentar</value></data>
   <data name="Settings_Ollama_InstallFailed" xml:space="preserve"><value>Error en la instalación: {0}</value></data>
 
+  <!-- SPEC_011: Ollama Management Hub -->
+  <data name="Settings_Ollama_RestartService.Content" xml:space="preserve"><value>Reiniciar Servicio</value></data>
+  <data name="Settings_Ollama_DefaultModel_Header.Text" xml:space="preserve"><value>Modelo Predeterminado</value></data>
+  <data name="Settings_Ollama_DefaultModel_Hint.Text" xml:space="preserve"><value>Modelo utilizado para todos los modos de procesamiento local.</value></data>
+  <data name="Settings_Ollama_DefaultModel_SelectPlaceholder" xml:space="preserve"><value>Seleccionar modelo...</value></data>
+  <data name="Settings_Ollama_DefaultModel_TypePlaceholder" xml:space="preserve"><value>O escribir nombre del modelo...</value></data>
+  <data name="Settings_Ollama_Warmup.Content" xml:space="preserve"><value>Precalentar</value></data>
+  <data name="Settings_Ollama_InstalledModels_Header.Text" xml:space="preserve"><value>Modelos Instalados</value></data>
+  <data name="Settings_Ollama_PullNew.Text" xml:space="preserve"><value>Descargar Nuevo Modelo</value></data>
+  <data name="Settings_Ollama_PullNew_Placeholder" xml:space="preserve"><value>ej. gemma3:4b</value></data>
+  <data name="Settings_Ollama_Pull.Content" xml:space="preserve"><value>Descargar</value></data>
+  <data name="Settings_Ollama_Info.Content" xml:space="preserve"><value>Info</value></data>
+  <data name="Settings_Ollama_DeleteModel.Content" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="Settings_Ollama_LiveVram_Header.Text" xml:space="preserve"><value>VRAM en Vivo</value></data>
+  <data name="Settings_Ollama_LoadedModels.Text" xml:space="preserve"><value>Modelos Cargados:</value></data>
+  <data name="Settings_Ollama_ModelLibrary_Header.Text" xml:space="preserve"><value>Biblioteca de Modelos</value></data>
+  <data name="Settings_Ollama_ModelLibrary_Hint.Text" xml:space="preserve"><value>Buscar en el registro de modelos de Ollama</value></data>
+  <data name="Settings_Ollama_Search_Placeholder" xml:space="preserve"><value>Buscar modelos...</value></data>
+  <data name="Settings_Ollama_Search.Content" xml:space="preserve"><value>Buscar</value></data>
+  <data name="Settings_Ollama_SearchInstall.Content" xml:space="preserve"><value>Instalar</value></data>
+  <data name="Settings_Ollama_Advanced_Header.Text" xml:space="preserve"><value>Avanzado</value></data>
+  <data name="Settings_Ollama_BaseUrl_Label.Text" xml:space="preserve"><value>URL Base de Ollama</value></data>
+  <data name="Settings_Ollama_BaseUrl_Hint.Text" xml:space="preserve"><value>Para instancias remotas de Ollama o puertos no estándar.</value></data>
+  <data name="Settings_Ollama_AutoWarmup.Content" xml:space="preserve"><value>Precalentar modelo predeterminado al iniciar</value></data>
+  <data name="Settings_Ollama_NumCtx_Label.Text" xml:space="preserve"><value>Ventana de Contexto (num_ctx)</value></data>
+  <data name="Settings_Ollama_OpenWebsite.Content" xml:space="preserve"><value>Abrir Sitio Web de Ollama</value></data>
+  <data name="Settings_Ollama_ModelInfo_Family.Text" xml:space="preserve"><value>Familia</value></data>
+  <data name="Settings_Ollama_ModelInfo_Parameters.Text" xml:space="preserve"><value>Parámetros</value></data>
+  <data name="Settings_Ollama_ModelInfo_Quantization.Text" xml:space="preserve"><value>Cuantización</value></data>
+  <data name="Settings_Ollama_ModelInfo_ContextLength.Text" xml:space="preserve"><value>Longitud de Contexto</value></data>
+  <data name="Loading_WarmingWhisper" xml:space="preserve"><value>Precalentando modelo Whisper...</value></data>
+  <data name="Loading_E2EWarmup" xml:space="preserve"><value>Precalentando IA local...</value></data>
+
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Snippets
        ══════════════════════════════════════════════════════════════════════ -->

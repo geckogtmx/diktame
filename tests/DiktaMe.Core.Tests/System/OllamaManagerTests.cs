@@ -320,6 +320,241 @@ public sealed class OllamaManagerTests
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
+    // ── GetInstalledModelsAsync (rich) ────────────────────────────────────────
+
+    [Fact]
+    public async Task GetInstalledModelsAsync_ParsesRichModelDetails()
+    {
+        string tagsJson = """
+            {
+              "models": [
+                {
+                  "name": "gemma3:1b",
+                  "size": 815973888,
+                  "modified_at": "2025-03-01T12:00:00Z",
+                  "details": {
+                    "family": "gemma3",
+                    "parameter_size": "1B",
+                    "quantization_level": "Q4_K_M"
+                  }
+                },
+                {
+                  "name": "llama3.2:latest",
+                  "size": 2019393536,
+                  "modified_at": "2025-02-15T08:30:00Z",
+                  "details": {
+                    "family": "llama",
+                    "parameter_size": "3B",
+                    "quantization_level": "Q4_0"
+                  }
+                }
+              ]
+            }
+            """;
+
+        using var manager = MakeManager(new FakeHttpHandler(tagsRichResponse: tagsJson));
+
+        var models = await manager.GetInstalledModelsAsync();
+
+        models.Should().HaveCount(2);
+        models[0].Name.Should().Be("gemma3:1b");
+        models[0].Size.Should().Be(815973888);
+        models[0].Family.Should().Be("gemma3");
+        models[0].ParameterSize.Should().Be("1B");
+        models[0].QuantizationLevel.Should().Be("Q4_K_M");
+        models[1].Name.Should().Be("llama3.2:latest");
+        models[1].Family.Should().Be("llama");
+    }
+
+    [Fact]
+    public async Task GetInstalledModelsAsync_WhenOffline_ReturnsEmpty()
+    {
+        using var manager = MakeManager(new FakeHttpHandler(throwException: true));
+
+        var models = await manager.GetInstalledModelsAsync();
+
+        models.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetInstalledModelsAsync_MissingDetails_DefaultsToEmpty()
+    {
+        string tagsJson = """{"models":[{"name":"basic-model","size":100}]}""";
+
+        using var manager = MakeManager(new FakeHttpHandler(tagsRichResponse: tagsJson));
+
+        var models = await manager.GetInstalledModelsAsync();
+
+        models.Should().HaveCount(1);
+        models[0].Name.Should().Be("basic-model");
+        models[0].Family.Should().BeEmpty();
+        models[0].ParameterSize.Should().BeEmpty();
+        models[0].QuantizationLevel.Should().BeEmpty();
+    }
+
+    // ── GetModelInfoAsync ──────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetModelInfoAsync_ParsesShowResponse()
+    {
+        string showJson = """
+            {
+              "details": {
+                "family": "gemma3",
+                "parameter_size": "4B",
+                "quantization_level": "Q4_K_M",
+                "families": ["gemma3"]
+              },
+              "model_info": {
+                "gemma3.context_length": 8192
+              },
+              "template": "{{ .System }}\n{{ .Prompt }}",
+              "license": "Apache 2.0"
+            }
+            """;
+
+        using var manager = MakeManager(new FakeHttpHandler(showResponse: showJson));
+
+        var info = await manager.GetModelInfoAsync("gemma3:4b");
+
+        info.Should().NotBeNull();
+        info!.Family.Should().Be("gemma3");
+        info.ParameterSize.Should().Be("4B");
+        info.QuantizationLevel.Should().Be("Q4_K_M");
+        info.ContextLength.Should().Be(8192);
+        info.Capabilities.Should().Contain("gemma3");
+        info.Template.Should().NotBeEmpty();
+        info.License.Should().Be("Apache 2.0");
+    }
+
+    [Fact]
+    public async Task GetModelInfoAsync_WhenNotFound_ReturnsNull()
+    {
+        using var manager = MakeManager(new FakeHttpHandler(
+            showStatus: HttpStatusCode.NotFound));
+
+        var info = await manager.GetModelInfoAsync("nonexistent");
+
+        info.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetModelInfoAsync_WhenOffline_ReturnsNull()
+    {
+        using var manager = MakeManager(new FakeHttpHandler(throwException: true));
+
+        var info = await manager.GetModelInfoAsync("gemma3");
+
+        info.Should().BeNull();
+    }
+
+    // ── GetRunningModelsAsync ──────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetRunningModelsAsync_ParsesPsResponse()
+    {
+        string psJson = """
+            {
+              "models": [
+                {
+                  "name": "gemma3:1b",
+                  "size_vram": 815973888,
+                  "expires_at": "2025-03-01T12:10:00Z",
+                  "details": {
+                    "parameter_size": "1B",
+                    "quantization_level": "Q4_K_M"
+                  }
+                }
+              ]
+            }
+            """;
+
+        using var manager = MakeManager(new FakeHttpHandler(psResponse: psJson));
+
+        var running = await manager.GetRunningModelsAsync();
+
+        running.Should().HaveCount(1);
+        running[0].Name.Should().Be("gemma3:1b");
+        running[0].SizeVram.Should().Be(815973888);
+        running[0].ParameterSize.Should().Be("1B");
+        running[0].QuantizationLevel.Should().Be("Q4_K_M");
+    }
+
+    [Fact]
+    public async Task GetRunningModelsAsync_EmptyModels_ReturnsEmpty()
+    {
+        using var manager = MakeManager(new FakeHttpHandler()); // default: empty models
+
+        var running = await manager.GetRunningModelsAsync();
+
+        running.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetRunningModelsAsync_WhenOffline_ReturnsEmpty()
+    {
+        using var manager = MakeManager(new FakeHttpHandler(throwException: true));
+
+        var running = await manager.GetRunningModelsAsync();
+
+        running.Should().BeEmpty();
+    }
+
+    // ── DeleteModelAsync ───────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task DeleteModelAsync_WhenSuccessful_ReturnsTrue()
+    {
+        using var manager = MakeManager(new FakeHttpHandler(deleteStatus: HttpStatusCode.OK));
+
+        var result = await manager.DeleteModelAsync("gemma3:1b");
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteModelAsync_WhenNotFound_ReturnsFalse()
+    {
+        using var manager = MakeManager(new FakeHttpHandler(deleteStatus: HttpStatusCode.NotFound));
+
+        var result = await manager.DeleteModelAsync("nonexistent");
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task DeleteModelAsync_WhenOffline_ReturnsFalse()
+    {
+        using var manager = MakeManager(new FakeHttpHandler(throwException: true));
+
+        var result = await manager.DeleteModelAsync("gemma3");
+
+        result.Should().BeFalse();
+    }
+
+    // ── GetVersionAsync (public overload) ──────────────────────────────────────
+
+    [Fact]
+    public async Task GetVersionAsync_WithBaseUrlOverride_ReturnsVersion()
+    {
+        using var manager = MakeManager(new FakeHttpHandler(version: "0.8.0"));
+
+        // null override → uses default base URL
+        var version = await manager.GetVersionAsync(null);
+
+        version.Should().Be("0.8.0");
+    }
+
+    [Fact]
+    public async Task GetVersionAsync_WhenOffline_ReturnsNull()
+    {
+        using var manager = MakeManager(new FakeHttpHandler(throwException: true));
+
+        var version = await manager.GetVersionAsync(null);
+
+        version.Should().BeNull();
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static OllamaManager MakeManager(FakeHttpHandler handler)
@@ -333,7 +568,7 @@ public sealed class OllamaManagerTests
 
 /// <summary>
 /// Minimal fake <see cref="HttpMessageHandler"/> that returns canned responses for
-/// Ollama's /api/version and /api/tags endpoints.
+/// Ollama's API endpoints (/api/version, /api/tags, /api/pull, /api/show, /api/ps, /api/delete).
 /// </summary>
 internal sealed class FakeHttpHandler : HttpMessageHandler
 {
@@ -343,6 +578,11 @@ internal sealed class FakeHttpHandler : HttpMessageHandler
     private readonly bool _throwException;
     private readonly string? _pullResponse;
     private readonly HttpStatusCode _pullStatus;
+    private readonly string? _tagsRichResponse;
+    private readonly string? _showResponse;
+    private readonly HttpStatusCode _showStatus;
+    private readonly string? _psResponse;
+    private readonly HttpStatusCode _deleteStatus;
 
     public FakeHttpHandler(
         string version = "0.6.1",
@@ -350,7 +590,12 @@ internal sealed class FakeHttpHandler : HttpMessageHandler
         HttpStatusCode versionStatus = HttpStatusCode.OK,
         bool throwException = false,
         string? pullResponse = null,
-        HttpStatusCode pullStatus = HttpStatusCode.OK)
+        HttpStatusCode pullStatus = HttpStatusCode.OK,
+        string? tagsRichResponse = null,
+        string? showResponse = null,
+        HttpStatusCode showStatus = HttpStatusCode.OK,
+        string? psResponse = null,
+        HttpStatusCode deleteStatus = HttpStatusCode.OK)
     {
         _version = version;
         _installedModels = installedModels ?? Array.Empty<string>();
@@ -358,6 +603,11 @@ internal sealed class FakeHttpHandler : HttpMessageHandler
         _throwException = throwException;
         _pullResponse = pullResponse;
         _pullStatus = pullStatus;
+        _tagsRichResponse = tagsRichResponse;
+        _showResponse = showResponse;
+        _showStatus = showStatus;
+        _psResponse = psResponse;
+        _deleteStatus = deleteStatus;
     }
 
     protected override Task<HttpResponseMessage> SendAsync(
@@ -384,6 +634,12 @@ internal sealed class FakeHttpHandler : HttpMessageHandler
 
         if (url.EndsWith("/api/tags"))
         {
+            // If a rich response is provided, use it directly
+            if (_tagsRichResponse is not null)
+            {
+                return Task.FromResult(OkJson(_tagsRichResponse));
+            }
+
             // Build {"models":[{"name":"llama3.2"},{"name":"gemma"},...]}
             string modelsJson = string.Join(",",
                 _installedModels.Select(m => $$$"""{"name":"{{{m}}}"}"""));
@@ -400,6 +656,28 @@ internal sealed class FakeHttpHandler : HttpMessageHandler
 
             string body = _pullResponse ?? """{"status":"success"}""";
             return Task.FromResult(OkJson(body));
+        }
+
+        if (url.EndsWith("/api/show"))
+        {
+            if (_showStatus != HttpStatusCode.OK)
+            {
+                return Task.FromResult(new HttpResponseMessage(_showStatus));
+            }
+
+            string body = _showResponse ?? """{"details":{},"model_info":{}}""";
+            return Task.FromResult(OkJson(body));
+        }
+
+        if (url.EndsWith("/api/ps"))
+        {
+            string body = _psResponse ?? """{"models":[]}""";
+            return Task.FromResult(OkJson(body));
+        }
+
+        if (url.EndsWith("/api/delete"))
+        {
+            return Task.FromResult(new HttpResponseMessage(_deleteStatus));
         }
 
         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
