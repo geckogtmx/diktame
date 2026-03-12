@@ -44,6 +44,18 @@ const navigation = [
       { href: '/docs/settings/privacy', label: 'Privacy' },
       { href: '/docs/settings/snippets', label: 'Snippets' },
     ]
+  },
+  {
+    title: 'Developer Guide',
+    links: [
+      { href: '/docs/dev/setup', label: 'Environment Setup' },
+      { href: '/docs/dev/migration/v1-to-v2-guide', label: 'V1 to V2 Migration' },
+      { href: '/docs/dev/architecture/audio-pipeline', label: 'Audio Pipeline' },
+      { href: '/docs/dev/architecture/ui-mvvm', label: 'UI MVVM' },
+      { href: '/docs/dev/architecture/threat-model', label: 'Threat Model' },
+      { href: '/docs/dev/api/stt-providers', label: 'STT Providers API' },
+      { href: '/docs/dev/api/llm-providers', label: 'LLM Providers API' },
+    ]
   }
 ];
 

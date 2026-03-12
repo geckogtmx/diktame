@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 import Link from 'next/link';
 
-const docs = [
+const userDocs = [
   {
     title: 'Overview',
     description: 'Learn how to download, install, and troubleshoot dIKta.me',
@@ -51,6 +51,19 @@ const docs = [
   }
 ];
 
+const devDocs = [
+  {
+    title: 'Developer Guide',
+    description: 'Architecture, APIs, and contribution guidelines',
+    links: [
+      { href: '/docs/dev/setup', label: 'Environment Setup' },
+      { href: '/docs/dev/architecture/ui-mvvm', label: 'Architecture Patterns' },
+      { href: '/docs/dev/api/stt-providers', label: 'API & Extensibility' },
+      { href: '/docs/dev/migration/v1-to-v2-guide', label: 'V1 to V2 Migration' },
+    ]
+  }
+];
+
 export default function DocsPage() {
   return (
     <main className="min-h-screen bg-black text-white">
@@ -77,8 +90,37 @@ export default function DocsPage() {
       {/* Documentation Grid */}
       <section className="py-20 sm:py-32">
         <Container>
+          {/* User Documentation Section */}
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold text-white mb-4">User Documentation</h2>
+            <p className="text-gray-400">Guides for setting up, configuring, and using the dIKta.me application.</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-            {docs.map((doc) => (
+            {userDocs.map((doc) => (
+              <GlassCard key={doc.title}>
+                <h2 className="text-2xl font-bold text-white mb-3">{doc.title}</h2>
+                <p className="text-gray-400 mb-6">{doc.description}</p>
+                <ul className="space-y-2">
+                  {doc.links.map((link) => (
+                    <li key={link.href} className="flex items-center gap-2 text-gray-300">
+                      <span className="text-blue-400">→</span>
+                      <Link href={link.href} className="hover:text-blue-400 transition">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </GlassCard>
+            ))}
+          </div>
+
+          {/* Developer Documentation Section */}
+          <div className="mb-12 mt-24 border-t border-white/10 pt-16">
+            <h2 className="text-3xl font-bold text-white mb-4">Developer Documentation</h2>
+            <p className="text-gray-400">Architecture deep dives, plugin APIs, and setup guides for contributors.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            {devDocs.map((doc) => (
               <GlassCard key={doc.title}>
                 <h2 className="text-2xl font-bold text-white mb-3">{doc.title}</h2>
                 <p className="text-gray-400 mb-6">{doc.description}</p>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCoreArsenalScroll } from '@/lib/animations/useCoreArsenalScroll';
+import Image from 'next/image';
 
 export function CoreArsenalSection() {
   const { activePair } = useCoreArsenalScroll();
@@ -28,15 +29,8 @@ export function CoreArsenalSection() {
             >
               {/* Card 1: Dictate */}
               <div id="core-card-1" className="card flex-1 p-8 border-primary/20 backdrop-blur-2xl">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6 text-primary">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                    />
-                  </svg>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 overflow-hidden">
+                  <Image src="/images/app-icon.png" alt="Dictate Mode Icon" width={48} height={48} className="object-cover" />
                 </div>
                 <div className="text-primary mb-2 font-mono text-[10px] uppercase tracking-widest flex justify-between">
                   <span>Mode 01</span>

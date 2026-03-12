@@ -7,10 +7,9 @@ The application is written strictly in C# relying on the .NET 8 SDK and the WinU
 ## 💻 Fundamentals
 
 Start here if you want to compile the project locally or contribute to the Windows interface.
-*   [Environment Setup](setup.md)
+*   [Development Environment Setup](setup.md)
 *   [UI MVVM Architecture & DI](architecture/ui-mvvm.md)
 *   [Audio Pipeline Architecture](architecture/audio-pipeline.md)
-*   [Threat Model & Security](architecture/threat-model.md)
 
 ## 🔌 API & Extensibility
 
