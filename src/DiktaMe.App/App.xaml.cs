@@ -479,6 +479,7 @@ public partial class App : Application
         services.AddSingleton<ILLMProviderFactory, LLMProviderFactory>();
         services.AddSingleton<ITTSProviderFactory, TTSProviderFactory>();
         services.AddSingleton<ITtsPlayerService, TtsPlayerService>();
+        services.AddSingleton<TtsSpeaker>();
         services.AddSingleton(sp => new ModelListService( // J.5: Multi-provider model discovery
             sp.GetRequiredService<SecureStorage>(),
             sp.GetRequiredService<SettingsManager>()));

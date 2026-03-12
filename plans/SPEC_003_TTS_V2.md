@@ -25,10 +25,10 @@
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| **A: Core Infrastructure** | ⬜ Not started | ITTSProvider, TtsPlayerService, TextCleaner, settings |
-| **B: KokoroSharp Local** | ⬜ Not started | Local TTS provider, factory, router |
-| **C: Read Selection Hotkey** | ⬜ Not started | Ctrl+Alt+Q pipeline |
-| **D: Pipeline Integration** | ⬜ Not started | Ask/Chat/Translate TTS hooks |
+| **A: Core Infrastructure** | ✅ Done | ITTSProvider, TtsPlayerService, TextCleaner, settings |
+| **B: KokoroSharp Local** | ✅ Done | Local TTS provider, factory, router |
+| **C: Read Selection Hotkey** | ✅ Done | Ctrl+Alt+Q pipeline, hotkey wiring, toggle-stop |
+| **D: Pipeline Integration** | ✅ Done | TtsSpeaker service, Ask/Chat/Translate hooks, NotificationService.SpeakAsync |
 | **E: Cloud Providers** | ⬜ Not started | Deepgram, Inworld ($10 credit available), OpenAI |
 | **F: UI** | ⬜ Not started | Settings page, Control Panel toggle |
 | **G: Polish** | ⬜ Not started | Interrupt, concurrency, edge cases |
@@ -726,7 +726,7 @@ If `TtsSettings.SpeakAskResponses = true`, auto-plays without button press.
 
 ## 15. Task Log (Implementation Status)
 
-> **Status**: Phase A + B complete
+> **Status**: Phase A–D complete
 
 ### Phase A: Core TTS Infrastructure
 | Task | Status | Notes |
@@ -754,24 +754,24 @@ If `TtsSettings.SpeakAskResponses = true`, auto-plays without button press.
 ### Phase C: Read Selection Hotkey
 | Task | Status | Notes |
 |------|--------|-------|
-| C.1 | ⬜ Pending | |
-| C.2 | ⬜ Pending | |
-| C.3 | ⬜ Pending | |
-| C.4 | ⬜ Pending | |
-| C.5 | ⬜ Pending | |
-| C.6 | ⬜ Pending | |
-| C.7 | ⬜ Pending | |
-| C.8 | ⬜ Pending | |
+| C.1 | ✅ Done | HotkeyId.ReadSelection = 8 |
+| C.2 | ✅ Done | HotkeySettings.ReadSelection (Phase A) |
+| C.3 | ✅ Done | Hotkey registration in LoadingViewModel |
+| C.4 | ✅ Done | ReadSelectionPipeline — clean → synth → play |
+| C.5 | ✅ Done | OnHotkeyPressed → RunReadSelectionPipelineAsync |
+| C.6 | ✅ Done | Audio ducking in handler |
+| C.7 | ✅ Done | Toggle-stop: any hotkey stops TTS, ReadSelection toggles |
+| C.8 | ✅ Done | 20 ReadSelectionPipelineTests |
 
 ### Phase D: Pipeline TTS Integration
 | Task | Status | Notes |
 |------|--------|-------|
-| D.1 | ⬜ Pending | |
-| D.2 | ⬜ Pending | |
-| D.3 | ⬜ Pending | |
-| D.4 | ⬜ Pending | |
-| D.5 | ⬜ Pending | |
-| D.6 | ⬜ Pending | |
+| D.1 | ✅ Done | Ask → TtsSpeaker.SpeakIfEnabledAsync after output routing |
+| D.2 | ✅ Done | Chat → TtsSpeaker.SpeakIfEnabledAsync after UI update |
+| D.3 | ✅ Done | Translate → TtsSpeaker.SpeakIfEnabledAsync after injection |
+| D.4 | ✅ Done | PipelineResult.TtsPlayedMs field added |
+| D.5 | ✅ Done | NotificationService.SpeakAsync delegates to TtsSpeaker |
+| D.6 | ✅ Done | 16 TtsSpeakerTests (toggle, mode, synth, play, duck, cancel) |
 
 ### Phase E: Cloud Providers
 | Task | Status | Notes |
@@ -832,3 +832,33 @@ If `TtsSettings.SpeakAskResponses = true`, auto-plays without button press.
 - `Core/LLM/LLMProviderFactory.cs` — Caching pattern to follow for TTS
 - `App/Services/NotificationService.cs` — `MediaPlayer` playback pattern
 - `Core/Pipeline/PipelineResult.cs` — Result model to extend with TTS telemetry
+
+---
+
+## 17. Debug & Fine-Tuning Logging
+
+TTS spans multiple subsystems (synthesis, playback, ducking, settings toggles). For debugging and performance tuning, the following structured logging is in place via Serilog:
+
+### Current Log Points
+
+| Component | Log Level | What's Logged |
+|-----------|-----------|---------------|
+| `TtsSpeaker` | Information | `"TtsSpeaker: played {Chars} chars in {Ms}ms via {Provider}"` — synthesis + playback timing |
+| `TtsSpeaker` | Warning | `"TtsSpeaker: synthesis returned empty audio"` — provider returned no data |
+| `TtsSpeaker` | Warning | `"TtsSpeaker: synthesis/playback failed"` — exception details with stack trace |
+| `ReadSelectionPipeline` | Information | `"synthesized {Chars} chars in {Ms}ms via {Provider}"` — per-stage timing |
+| `ReadSelectionPipeline` | Warning | `"synthesis returned empty audio"` |
+| `LoadingViewModel (Ask)` | Information | `"Ask: TTS played in {TtsMs}ms"` — end-to-end TTS for Ask responses |
+| `LoadingViewModel (Translate)` | Information | `"Translate: TTS played in {TtsMs}ms"` — end-to-end TTS for translations |
+| `QuickChatViewModel` | Information | `"Chat: TTS played in {TtsMs}ms"` — end-to-end TTS for chat responses |
+| `TtsPlayerService` | Warning | `"no audio output device available"` — WasapiOut init failure |
+| `TtsPlayerService` | Warning | `"error during Stop"` — cleanup errors |
+
+### Future Logging Needs (Phase G Polish)
+
+- **Settings state dump on first TTS call** — log `TtsSettings` snapshot (Enabled, Provider, VoiceId, mode toggles) at startup or first invocation. Helps diagnose "TTS not working" reports without reproducing.
+- **Provider factory cache hit/miss** — log when `TTSProviderFactory` creates a new provider vs returns cached instance. Key for diagnosing latency spikes on first invocation.
+- **Ducking state transitions** — log when `AudioDucker.Duck()`/`Restore()` is called by TtsSpeaker, to debug volume glitches.
+- **Synthesis latency vs playback latency split** — currently `TtsSpeaker` logs combined time. Split into `SynthesisMs` and `PlaybackMs` for latency profiling. `PipelineResult.TtsPlayedMs` is available for this.
+- **Audio buffer stats** — log sample rate, byte count, and estimated duration before playback. Helps catch format mismatches.
+- **TextCleaner before/after diff** — at Debug level, log original text length vs cleaned length to verify truncation and stripping rules.

@@ -38,6 +38,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly OllamaProvider _ollamaProvider;
     private readonly ILLMProviderFactory _llmFactory;
     private readonly ITtsPlayerService _ttsPlayer;
+    private readonly TtsSpeaker _ttsSpeaker;
 
     [ObservableProperty] private string _statusText = "";
     [ObservableProperty] private double _progress;
@@ -69,7 +70,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         WhisperProvider whisper,
         OllamaProvider ollamaProvider,
         ILLMProviderFactory llmFactory,
-        ITtsPlayerService ttsPlayer)
+        ITtsPlayerService ttsPlayer,
+        TtsSpeaker ttsSpeaker)
     {
         _settings = settings;
         _history = history;
@@ -91,6 +93,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _ollamaProvider = ollamaProvider;
         _llmFactory = llmFactory;
         _ttsPlayer = ttsPlayer;
+        _ttsSpeaker = ttsSpeaker;
         _statusText = _loc.GetString("Loading_Initializing");
     }
 
@@ -1019,6 +1022,12 @@ public sealed partial class LoadingViewModel : ObservableObject
                         _notifications.ShowToast("Answer", result.Text, NotificationType.Success);
                         break;
                 }
+
+                // TTS: speak the answer aloud if enabled (SPEC_003 Phase D)
+                long ttsMs = await _ttsSpeaker.SpeakIfEnabledAsync(
+                    result.Text, "ask", _recordingCts?.Token ?? CancellationToken.None);
+                if (ttsMs > 0)
+                    Log.Information("Ask: TTS played in {TtsMs}ms", ttsMs);
             }
             else
             {
@@ -1089,6 +1098,12 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (result.IsSuccess)
             {
                 Log.Information("Translate: Success, {Chars} chars", result.Text.Length);
+
+                // TTS: speak the translation aloud if enabled (SPEC_003 Phase D)
+                long ttsMs = await _ttsSpeaker.SpeakIfEnabledAsync(
+                    result.Text, "translate", _recordingCts?.Token ?? CancellationToken.None);
+                if (ttsMs > 0)
+                    Log.Information("Translate: TTS played in {TtsMs}ms", ttsMs);
             }
             else
             {

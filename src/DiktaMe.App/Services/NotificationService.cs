@@ -1,6 +1,7 @@
 
 using System.Text.RegularExpressions;
 using DiktaMe.Core.Config;
+using DiktaMe.Core.TTS;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Serilog;
 
@@ -23,14 +24,16 @@ public enum NotificationType
 public sealed partial class NotificationService
 {
     private readonly SettingsManager _settings;
+    private readonly TtsSpeaker _ttsSpeaker;
     private static readonly string SoundsDirectory = Path.Combine(AppContext.BaseDirectory, "Assets", "Sounds");
 
     [GeneratedRegex(@"^[a-zA-Z0-9_-]+$")]
     private static partial Regex SafeStemPattern();
 
-    public NotificationService(SettingsManager settings)
+    public NotificationService(SettingsManager settings, TtsSpeaker ttsSpeaker)
     {
         _settings = settings;
+        _ttsSpeaker = ttsSpeaker;
     }
 
     /// <summary>
@@ -139,6 +142,15 @@ public sealed partial class NotificationService
         {
             Log.Warning(ex, "Failed to play custom sound '{Stem}'", soundStem);
         }
+    }
+
+    /// <summary>
+    /// Speaks text aloud via TTS if the master toggle and notification toggle are enabled.
+    /// Fire-and-forget safe — exceptions are caught and logged internally by TtsSpeaker.
+    /// </summary>
+    public async Task SpeakAsync(string text, CancellationToken ct = default)
+    {
+        await _ttsSpeaker.SpeakIfEnabledAsync(text, "notification", ct).ConfigureAwait(false);
     }
 
     /// <summary>

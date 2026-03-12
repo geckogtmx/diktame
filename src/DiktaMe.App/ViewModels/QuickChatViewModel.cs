@@ -7,6 +7,7 @@ using DiktaMe.Core.Data;
 using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
+using DiktaMe.Core.TTS;
 using Microsoft.UI.Dispatching;
 using Serilog;
 
@@ -19,6 +20,7 @@ public sealed partial class QuickChatViewModel : ObservableObject
     private readonly ConversationManager _conversationManager;
     private readonly ModelListService _modelListService;
     private readonly SettingsManager _settings;
+    private readonly TtsSpeaker _ttsSpeaker;
     private readonly DispatcherQueue _dispatcher;
 
     private string? _currentConversationId;
@@ -64,12 +66,14 @@ public sealed partial class QuickChatViewModel : ObservableObject
         PipelineFactory pipelineFactory,
         ConversationManager conversationManager,
         ModelListService modelListService,
-        SettingsManager settings)
+        SettingsManager settings,
+        TtsSpeaker ttsSpeaker)
     {
         _pipelineFactory = pipelineFactory;
         _conversationManager = conversationManager;
         _modelListService = modelListService;
         _settings = settings;
+        _ttsSpeaker = ttsSpeaker;
         _dispatcher = DispatcherQueue.GetForCurrentThread();
 
         // Apply default from settings
@@ -222,6 +226,14 @@ public sealed partial class QuickChatViewModel : ObservableObject
                         $"Error: {result.ErrorMessage}", isUser: false));
                 }
             });
+
+            // TTS: speak assistant response if enabled (SPEC_003 Phase D)
+            if (result.IsSuccess)
+            {
+                long ttsMs = await _ttsSpeaker.SpeakIfEnabledAsync(result.Text, "chat");
+                if (ttsMs > 0)
+                    Log.Information("Chat: TTS played in {TtsMs}ms", ttsMs);
+            }
         }
         catch (Exception ex)
         {

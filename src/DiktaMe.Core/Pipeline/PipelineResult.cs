@@ -47,6 +47,9 @@ public sealed record PipelineResult
     /// <summary>Total wall-clock milliseconds for the entire pipeline.</summary>
     public long TotalMs { get; init; }
 
+    /// <summary>Milliseconds spent on TTS playback (0 if TTS was not triggered).</summary>
+    public long TtsPlayedMs { get; init; }
+
     /// <summary>Name of the STT provider that performed the transcription.</summary>
     public string? SttProvider { get; init; }
 
