@@ -29,7 +29,7 @@
 | **B: KokoroSharp Local** | ✅ Done | Local TTS provider, factory, router |
 | **C: Read Selection Hotkey** | ✅ Done | Ctrl+Alt+Q pipeline, hotkey wiring, toggle-stop |
 | **D: Pipeline Integration** | ✅ Done | TtsSpeaker service, Ask/Chat/Translate hooks, NotificationService.SpeakAsync |
-| **E: Cloud Providers** | ⬜ Not started | Deepgram, Inworld ($10 credit available), OpenAI |
+| **E: Cloud Providers** | ✅ Done | Deepgram, Inworld, OpenAI — 66 new tests, TtsFakeHandler |
 | **F: UI** | ⬜ Not started | Settings page, Control Panel toggle |
 | **G: Polish** | ⬜ Not started | Interrupt, concurrency, edge cases |
 
@@ -776,11 +776,11 @@ If `TtsSettings.SpeakAskResponses = true`, auto-plays without button press.
 ### Phase E: Cloud Providers
 | Task | Status | Notes |
 |------|--------|-------|
-| E.1 | ⬜ Pending | |
-| E.2 | ⬜ Pending | |
-| E.3 | ⬜ Pending | |
-| E.4 | ⬜ Pending | |
-| E.5 | ⬜ Pending | |
+| E.1 | ✅ Done | DeepgramTtsProvider — POST /v1/speak, Token auth, linear16 PCM 24kHz |
+| E.2 | ✅ Done | InworldTtsProvider — POST /tts/v1/voice, Basic auth, base64 JSON → PCM |
+| E.3 | ✅ Done | OpenAITtsProvider — POST /v1/audio/speech, Bearer auth, PCM 24kHz |
+| E.4 | ✅ Done | SecureStorage + "inworld", TTSProviderFactory wired with SecureStorage |
+| E.5 | ✅ Done | 66 new tests (TtsFakeHandler, 3 provider test files, factory tests) |
 
 ### Phase F: UI
 | Task | Status | Notes |
