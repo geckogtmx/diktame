@@ -18,7 +18,6 @@
         <SolidColorBrush x:Key="V1TextPrimaryBrush" Color="#e0e0e0"/>
         <SolidColorBrush x:Key="V1TextSecondaryBrush" Color="#888888"/>
         <SolidColorBrush x:Key="V1PerfGreenBrush" Color="#7aff9e"/>
-        <SolidColorBrush x:Key="V1AuthBadgeBrush" Color="#ff8c00"/>
     </Page.Resources>
 
     <Grid Background="{StaticResource V1BackgroundBrush}" Padding="0" RowSpacing="0">
@@ -51,28 +50,47 @@
 
             <StackPanel x:Name="HeaderButtons" Orientation="Horizontal" Spacing="5"
                         HorizontalAlignment="Right" VerticalAlignment="Center">
-                <!-- STT badge -->
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2"
-                        ToolTipService.ToolTip="{x:Bind ViewModel.SttProviderName, Mode=OneWay}">
-                    <TextBlock Text="{x:Bind ViewModel.SttProviderName, Mode=OneWay}"
-                               FontSize="10" FontWeight="Medium"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"
-                               MaxWidth="90" TextTrimming="CharacterEllipsis"/>
+                <!-- STT indicator badge -->
+                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2" Width="36">
+                    <ToolTipService.ToolTip>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Speech-to-Text" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{x:Bind ViewModel.SttBadgeBrush, Mode=OneWay}"/>
+                            <TextBlock Text="{x:Bind ViewModel.SttProviderName, Mode=OneWay}" FontSize="10"
+                                       Foreground="{x:Bind ViewModel.SttBadgeBrush, Mode=OneWay}"/>
+                        </StackPanel>
+                    </ToolTipService.ToolTip>
+                    <TextBlock Text="STT" FontSize="10" FontWeight="SemiBold"
+                               Foreground="{x:Bind ViewModel.SttBadgeBrush, Mode=OneWay}"
+                               HorizontalAlignment="Center"/>
                 </Border>
-                <!-- LLM badge -->
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2"
-                        ToolTipService.ToolTip="{x:Bind ViewModel.LlmProviderName, Mode=OneWay}">
-                    <TextBlock Text="{x:Bind ViewModel.LlmProviderName, Mode=OneWay}"
-                               FontSize="10" FontWeight="Medium"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"
-                               MaxWidth="90" TextTrimming="CharacterEllipsis"/>
+                <!-- LLM indicator badge -->
+                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2" Width="36">
+                    <ToolTipService.ToolTip>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Language Model" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{x:Bind ViewModel.LlmBadgeBrush, Mode=OneWay}"/>
+                            <TextBlock Text="{x:Bind ViewModel.LlmProviderName, Mode=OneWay}" FontSize="10"
+                                       Foreground="{x:Bind ViewModel.LlmBadgeBrush, Mode=OneWay}"/>
+                        </StackPanel>
+                    </ToolTipService.ToolTip>
+                    <TextBlock Text="LLM" FontSize="10" FontWeight="SemiBold"
+                               Foreground="{x:Bind ViewModel.LlmBadgeBrush, Mode=OneWay}"
+                               HorizontalAlignment="Center"/>
                 </Border>
-                <!-- Auth badge -->
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2"
-                        ToolTipService.ToolTip="Authentication mode">
-                    <TextBlock Text="{x:Bind ViewModel.AuthBadgeText, Mode=OneWay}"
-                               FontSize="10" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1AuthBadgeBrush}"/>
+                <!-- TTS indicator badge -->
+                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2" Width="36">
+                    <ToolTipService.ToolTip>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Text-to-Speech" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{x:Bind ViewModel.TtsBadgeBrush, Mode=OneWay}"/>
+                            <TextBlock Text="{x:Bind ViewModel.TtsProviderName, Mode=OneWay}" FontSize="10"
+                                       Foreground="{x:Bind ViewModel.TtsBadgeBrush, Mode=OneWay}"/>
+                        </StackPanel>
+                    </ToolTipService.ToolTip>
+                    <TextBlock Text="TTS" FontSize="10" FontWeight="SemiBold"
+                               Foreground="{x:Bind ViewModel.TtsBadgeBrush, Mode=OneWay}"
+                               HorizontalAlignment="Center"/>
                 </Border>
                 <!-- Settings gear -->
                 <Button Content="&#xE713;" FontFamily="Segoe MDL2 Assets"

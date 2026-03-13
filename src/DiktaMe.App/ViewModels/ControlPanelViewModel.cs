@@ -8,7 +8,9 @@ using DiktaMe.Core.Audio;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Data;
 using DiktaMe.Core.Pipeline;
+using Microsoft.UI;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Media;
 using Serilog;
 
 namespace DiktaMe.App.ViewModels;
@@ -46,6 +48,11 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private readonly MetricsCollector _metrics;
     private readonly LocalizationService _loc;
     private readonly DispatcherQueue _dispatcher;
+
+    // Badge indicator brushes (local/cloud/off)
+    private static readonly SolidColorBrush BadgeLocalBrush = new(ColorHelper.FromArgb(255, 122, 255, 158)); // #7AFF9E green
+    private static readonly SolidColorBrush BadgeCloudBrush = new(ColorHelper.FromArgb(255, 78, 168, 222));  // #4EA8DE blue
+    private static readonly SolidColorBrush BadgeOffBrush   = new(ColorHelper.FromArgb(255, 255, 68, 68));   // #FF4444 red
 
     // Active-state colors (V1 palette)
     private const string ActiveBgHex = "#00607a";   // --dark-teal-3
@@ -132,7 +139,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     /// <summary>Formatted injection time (seconds).</summary>
     public string LastInjectionFormatted => _hasPerfData ? FormatMs(LastInjectionMs) : "--";
 
-    // ── Provider badges ─────────────────────────────────────────────────────
+    // ── Provider indicator badges ─────────────────────────────────────────
 
     [ObservableProperty]
     private string _sttProviderName = "--";
@@ -141,7 +148,16 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private string _llmProviderName = "--";
 
     [ObservableProperty]
-    private string _authBadgeText = "API";
+    private string _ttsProviderName = "--";
+
+    [ObservableProperty]
+    private SolidColorBrush _sttBadgeBrush = BadgeCloudBrush;
+
+    [ObservableProperty]
+    private SolidColorBrush _llmBadgeBrush = BadgeCloudBrush;
+
+    [ObservableProperty]
+    private SolidColorBrush _ttsBadgeBrush = BadgeOffBrush;
 
     private bool _suppressSave;
 
@@ -348,7 +364,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             _ = _settings.UpdateAsync(updated);
         }
 
-        UpdateAuthBadge();
+        UpdateBadgeBrushes();
         OnPropertyChanged(nameof(SttStateLabel));
         Log.Information("ControlPanel: STT toggled to {Provider}", value ? "whisper" : "deepgram");
     }
@@ -379,7 +395,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             _ = _settings.UpdateAsync(updated);
         }
 
-        UpdateAuthBadge();
+        UpdateBadgeBrushes();
         OnPropertyChanged(nameof(LlmStateLabel));
 
         // Refresh mode items (subtitle may change between Cloud/Local profile)
@@ -389,19 +405,41 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             value ? "ollama" : "gemini", profileName);
     }
 
-    private void UpdateAuthBadge()
+    private void UpdateBadgeBrushes()
     {
-        if (IsLocalStt && IsLocalLlm)
+        // STT: green = local (Whisper), blue = cloud (Deepgram). Never red.
+        SttBadgeBrush = IsLocalStt ? BadgeLocalBrush : BadgeCloudBrush;
+
+        // LLM: red = off (RAW mode), green = local (Ollama), blue = cloud
+        if (IsRawModeEnabled)
         {
-            AuthBadgeText = "LOC";
-        }
-        else if (!IsLocalStt && !IsLocalLlm)
-        {
-            AuthBadgeText = "API";
+            LlmBadgeBrush = BadgeOffBrush;
+            LlmProviderName = "Disabled (RAW)";
         }
         else
         {
-            AuthBadgeText = "MIX";
+            LlmBadgeBrush = IsLocalLlm ? BadgeLocalBrush : BadgeCloudBrush;
+        }
+
+        // TTS: red = disabled, green = local (kokoro), blue = cloud
+        if (!IsTtsEnabled)
+        {
+            TtsBadgeBrush = BadgeOffBrush;
+            TtsProviderName = "Disabled";
+        }
+        else
+        {
+            string provider = _settings.Current.Tts.Provider;
+            bool isLocal = string.Equals(provider, "kokoro", StringComparison.OrdinalIgnoreCase);
+            TtsBadgeBrush = isLocal ? BadgeLocalBrush : BadgeCloudBrush;
+            TtsProviderName = provider.ToLowerInvariant() switch
+            {
+                "kokoro" => "Kokoro (local)",
+                "deepgram" => "Deepgram Aura",
+                "inworld" => "Inworld TTS",
+                "openai" => "OpenAI TTS",
+                _ => provider,
+            };
         }
     }
 
@@ -437,6 +475,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(RawStateLabel));
+        UpdateBadgeBrushes();
         Log.Information("ControlPanel: RAW mode set to {IsEnabled}", value);
     }
 
@@ -468,6 +507,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(TtsStateLabel));
+        UpdateBadgeBrushes();
         Log.Information("ControlPanel: TTS toggled to {IsEnabled}", value);
     }
 
@@ -613,7 +653,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         var refSlot = settings.ModeProfiles.GetValueOrDefault("dictate_0", new ModeSettings());
         IsLocalStt = string.Equals(refSlot.SttProvider, "whisper", StringComparison.OrdinalIgnoreCase);
         IsLocalLlm = string.Equals(refSlot.LlmProvider, "ollama", StringComparison.OrdinalIgnoreCase);
-        UpdateAuthBadge();
+        UpdateBadgeBrushes();
 
         ShowModesRow = settings.ControlPanel.ShowModesRow;
         ShowActionsRow = settings.ControlPanel.ShowActionsRow;
