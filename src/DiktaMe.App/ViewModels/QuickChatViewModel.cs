@@ -232,7 +232,9 @@ public sealed partial class QuickChatViewModel : ObservableObject
             {
                 long ttsMs = await _ttsSpeaker.SpeakIfEnabledAsync(result.Text, "chat");
                 if (ttsMs > 0)
+                {
                     Log.Information("Chat: TTS played in {TtsMs}ms", ttsMs);
+                }
             }
         }
         catch (Exception ex)

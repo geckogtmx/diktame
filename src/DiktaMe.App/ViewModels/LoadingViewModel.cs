@@ -348,7 +348,9 @@ public sealed partial class LoadingViewModel : ObservableObject
                     _ttsPlayer.Stop();
                     // ReadSelection toggle-stop: just stop, don't restart
                     if (e.Id == HotkeyId.ReadSelection)
+                    {
                         return;
+                    }
                 }
 
                 switch (e.Id)
@@ -992,7 +994,9 @@ public sealed partial class LoadingViewModel : ObservableObject
                 ttsMs = await _ttsSpeaker.SpeakIfEnabledAsync(
                     result.Text, "ask", _recordingCts?.Token ?? CancellationToken.None);
                 if (ttsMs > 0)
+                {
                     Log.Information("Ask: TTS played in {TtsMs}ms", ttsMs);
+                }
             }
 
             // Notify ControlPanel of pipeline completion (for telemetry)
@@ -1106,7 +1110,9 @@ public sealed partial class LoadingViewModel : ObservableObject
                 ttsMs = await _ttsSpeaker.SpeakIfEnabledAsync(
                     result.Text, "translate", _recordingCts?.Token ?? CancellationToken.None);
                 if (ttsMs > 0)
+                {
                     Log.Information("Translate: TTS played in {TtsMs}ms", ttsMs);
+                }
             }
 
             // Notify ControlPanel of pipeline completion (for telemetry)

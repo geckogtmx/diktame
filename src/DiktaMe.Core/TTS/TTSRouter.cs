@@ -94,10 +94,14 @@ public sealed class TTSRouter : ITTSProvider
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
         if (await _primary.IsAvailableAsync(cancellationToken))
+        {
             return true;
+        }
 
         if (_fallback is not null)
+        {
             return await _fallback.IsAvailableAsync(cancellationToken);
+        }
 
         return false;
     }

@@ -39,7 +39,9 @@ public sealed class TtsSpeaker
         var tts = _settings.Current.Tts;
         string cleaned = TextCleaner.CleanForSpeech(text, tts.MaxSpeechWords);
         if (string.IsNullOrWhiteSpace(cleaned))
+        {
             return 0;
+        }
 
         bool shouldDuck = tts.DuckDuringPlayback && _settings.Current.AudioDucking.Enabled;
         if (shouldDuck)
@@ -91,7 +93,9 @@ public sealed class TtsSpeaker
         finally
         {
             if (shouldDuck)
+            {
                 _ducker.Restore();
+            }
         }
     }
 
@@ -106,7 +110,9 @@ public sealed class TtsSpeaker
     {
         var tts = _settings.Current.Tts;
         if (!tts.Enabled)
+        {
             return 0;
+        }
 
         bool modeEnabled = mode switch
         {
@@ -118,7 +124,9 @@ public sealed class TtsSpeaker
         };
 
         if (!modeEnabled)
+        {
             return 0;
+        }
 
         return await SpeakAsync(text, ct).ConfigureAwait(false);
     }
