@@ -25,7 +25,7 @@
 | **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-G complete, FIX-1 through FIX-16 (15/16 done, FIX-1 deferred to SPEC_008) |
 | **SPEC_011** | Ollama Management Hub — Core API, search service, Settings UI, E2E warmup, 22 new tests |
 | **DOCS_V2** | Exhaustive User documentation (Features & Settings), integrated natively into the Next.js Website via Markdown |
-| **SPEC_003 A–G** | TTS: Core infra, Kokoro local, Read Selection hotkey, pipeline hooks, cloud providers, Settings UI + Control Panel toggle, Phase G polish (gap fixes, Inworld key UI, SanitizeNulls, observability). 282 new tests. **All 40 tasks complete.** |
+| **SPEC_003 A–G** | TTS: Core infra, Kokoro local, Read Selection hotkey, pipeline hooks, cloud providers, Settings UI + Control Panel toggle, Phase G polish + E2E bugfixes. 282 new tests. **All 40 tasks complete. E2E verified.** |
 
 ## Open Bugs (Stream K)
 
@@ -75,11 +75,28 @@ All 4 gaps from Phase F testing are fixed:
 4. **Kokoro model download file-lock** ✅ — Stale `.tmp` cleanup + user-friendly IOException on `File.Move`.
 5. **Kokoro observability** ✅ — `IsModelLoaded` property, model load timing log, TTSProviderFactory cache hit/miss logging.
 
-### E2E Manual Testing Needed
+### E2E Manual Testing — Completed (2026-03-12)
 
-- **Kokoro local**: TTS ON → Dictate → hear spoken response (requires model downloaded)
-- **Cloud providers**: Need API keys configured (Inworld now on API Keys page)
-- **Read Selection**: `Ctrl+Alt+Q` with text selected in any app
+| Test | Result |
+|------|--------|
+| **Kokoro local — Settings "Test Voice"** | ✅ Model downloaded, voice played successfully |
+| **Kokoro local — Read Selection (Ctrl+Alt+Q)** | ✅ Selected text read aloud |
+| **Audio ducking** | ✅ YouTube video volume lowered during TTS playback |
+| **Voice selection** | ✅ Multiple Kokoro voices available and working |
+| **Latency** | 3–5s first inference (cold start), expected to improve on subsequent calls |
+
+### E2E Bugs Found & Fixed
+
+| Bug | Root Cause | Fix |
+|-----|-----------|-----|
+| **Kokoro download file-lock** | Fixed `.tmp` filename caused stale lock conflicts | GUID-based temp files + cleanup (`d548e66`) |
+| **Misleading "Call ModelManager" error** | Developer-facing error shown to users | User-friendly message + pre-flight check (`d548e66`) |
+| **Inworld API 400 error** | `"encoding"` field should be `"audioEncoding"` in audioConfig JSON | Fixed field name in `InworldTtsProvider.cs` |
+| **Cloud providers receive wrong model ("int8")** | All 3 callers of `CreateProvider()` passed `KokoroModelVariant` to ALL providers, bypassing `ResolveVariant()` | Conditional variant: only pass for Kokoro, `null` for cloud (fixed in `TtsSpeaker.cs`, `PipelineFactory.cs`, `TtsSettingsViewModel.cs`) |
+
+### E2E Testing Still Needed
+
+- **Cloud providers**: Retest Deepgram, OpenAI, Inworld after variant routing fix
 - **Ask/Chat/Translate hooks**: Enable SpeakAskResponses etc. → use mode → verify audio
 - **Control Panel toggle**: ON/OFF enables/disables all TTS output
 - **Settings persistence**: Toggle states, provider, voice/speed survive restart
@@ -163,7 +180,7 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 
 | Item | Notes |
 |------|-------|
-| **TTS Phase G gaps** | See "Phase G — Remaining Work" section above — fix gaps first, then E2E test |
+| ~~**TTS Phase G gaps**~~ | ✅ All gaps fixed, E2E verified (see above) |
 | **API Keys step skip** | FIX-16 auto-skips step 4 when both providers are local — needs manual verification |
 | **SPEC_009 scenarios 3-8** | Scenarios 1-2 passed. Remaining: full local E2E, hybrid combos (see `plans/SPEC_009_TESTING.md`) |
 | **Ollama auto-start** | FIX-15 — verify app launch with Ollama not running |
@@ -172,6 +189,10 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 | **Ollama install from Settings** | FIX-15 — verify Install button appears when Ollama is offline |
 | **SPEC_011 Ollama Settings page** | Model list ✅, search/view ✅, pull ✅, delete (needs test), service restart (needs retest after fixes), VRAM display (needs test), warmup ✅ |
 | **Refine on Antigravity** | `CaptureSelection` times out — app-specific accessibility issue, separate investigation |
+
+### Known Gap: TTS Not Persisted to DB
+
+`PipelineResult.TtsPlayedMs` field exists but is never written to the SQLite history table (`DictationHistory`). TTS latency is logged to Serilog files only (`%APPDATA%\DiktaMe\logs\diktame_YYYY-MM-DD.log`). Adding a `TtsPlayedMs` column to the history schema is a future task.
 
 ### Tier 2 — Post-local-mode
 

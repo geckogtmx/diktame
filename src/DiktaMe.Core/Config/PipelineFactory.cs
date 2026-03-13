@@ -94,7 +94,9 @@ public sealed class PipelineFactory
     public ReadSelectionPipeline CreateReadSelectionPipeline()
     {
         var tts = _settings.Current.Tts;
-        ITTSProvider provider = _ttsFactory.CreateProvider(tts.Provider, tts.KokoroModelVariant);
+        string? variant = string.Equals(tts.Provider, "kokoro", StringComparison.OrdinalIgnoreCase)
+            ? tts.KokoroModelVariant : null;
+        ITTSProvider provider = _ttsFactory.CreateProvider(tts.Provider, variant);
         return new ReadSelectionPipeline(provider, _ttsPlayer, _settings);
     }
 

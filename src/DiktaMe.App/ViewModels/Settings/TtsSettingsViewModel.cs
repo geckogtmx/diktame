@@ -352,8 +352,10 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
                 return;
             }
 
-            Log.Information("TTS test: provider={Provider}, variant={Variant}, voice={Voice}", provider, variant, voiceId);
-            ITTSProvider ttsProvider = _ttsFactory.CreateProvider(provider, variant);
+            // Only pass variant for kokoro — cloud providers resolve their own model
+            string? effectiveVariant = string.Equals(provider, "kokoro", StringComparison.Ordinal) ? variant : null;
+            Log.Information("TTS test: provider={Provider}, variant={Variant}, voice={Voice}", provider, effectiveVariant ?? "(auto)", voiceId);
+            ITTSProvider ttsProvider = _ttsFactory.CreateProvider(provider, effectiveVariant);
             string sampleText = _loc.GetString("Settings_Tts_TestVoice_SampleText");
 
             TtsResult result = await ttsProvider.SynthesizeAsync(sampleText, voiceId);

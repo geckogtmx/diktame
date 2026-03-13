@@ -64,8 +64,8 @@ public sealed class KokoroModelManagerTests
     [Fact]
     public void IsModelDownloaded_WhenNotPresent_ReturnsFalse()
     {
-        var mgr = new KokoroModelManager("int8");
-        // Model won't be downloaded in test environment
+        // Use fp32 variant (310MB) — virtually never downloaded in dev/CI environments
+        var mgr = new KokoroModelManager("fp32");
         mgr.IsModelDownloaded.Should().BeFalse();
     }
 

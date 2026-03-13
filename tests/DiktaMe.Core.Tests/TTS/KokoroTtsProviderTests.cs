@@ -83,9 +83,9 @@ public sealed class KokoroTtsProviderTests
     [Fact]
     public async Task Synthesize_ModelNotDownloaded_ThrowsFileNotFound()
     {
-        using var provider = new KokoroTtsProvider("int8");
+        // Use fp32 variant (310MB) — virtually never downloaded in dev/CI environments
+        using var provider = new KokoroTtsProvider("fp32");
 
-        // Model won't be present in test environment
         var act = () => provider.SynthesizeAsync("hello world");
         await act.Should().ThrowAsync<FileNotFoundException>();
     }
@@ -95,9 +95,9 @@ public sealed class KokoroTtsProviderTests
     [Fact]
     public async Task IsAvailable_ModelNotDownloaded_ReturnsFalse()
     {
-        using var provider = new KokoroTtsProvider("int8");
+        // Use fp32 variant (310MB) — virtually never downloaded in dev/CI environments
+        using var provider = new KokoroTtsProvider("fp32");
 
-        // Model won't be downloaded in test environment
         (await provider.IsAvailableAsync()).Should().BeFalse();
     }
 

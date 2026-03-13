@@ -52,7 +52,10 @@ public sealed class TtsSpeaker
         try
         {
             string? voiceId = string.IsNullOrEmpty(tts.VoiceId) ? null : tts.VoiceId;
-            ITTSProvider provider = _factory.CreateProvider(tts.Provider, tts.KokoroModelVariant);
+            // Only pass KokoroModelVariant for kokoro — cloud providers resolve their own model via ResolveVariant
+            string? variant = string.Equals(tts.Provider, "kokoro", StringComparison.OrdinalIgnoreCase)
+                ? tts.KokoroModelVariant : null;
+            ITTSProvider provider = _factory.CreateProvider(tts.Provider, variant);
 
             var sw = Stopwatch.StartNew();
             TtsResult result = await provider

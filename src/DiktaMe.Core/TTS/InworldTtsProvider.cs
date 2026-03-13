@@ -72,7 +72,7 @@ public sealed class InworldTtsProvider : ITTSProvider
             string json = $"{{\"text\":{EscapeJsonString(text)},"
                 + $"\"voiceId\":{EscapeJsonString(effectiveVoice)},"
                 + $"\"modelId\":{EscapeJsonString(_model)},"
-                + $"\"audioConfig\":{{\"encoding\":\"LINEAR16\",\"sampleRateHertz\":{SampleRate}}}}}";
+                + $"\"audioConfig\":{{\"audioEncoding\":\"LINEAR16\",\"sampleRateHertz\":{SampleRate}}}}}";
 
             using var request = new HttpRequestMessage(HttpMethod.Post, BaseUrl);
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", _apiKey);

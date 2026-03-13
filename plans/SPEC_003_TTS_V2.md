@@ -806,6 +806,15 @@ If `TtsSettings.SpeakAskResponses = true`, auto-plays without button press.
 
 **Total tasks:** 40 across 7 phases (A–G)
 
+### Post-Phase G: E2E Bug Fixes (2026-03-12)
+| Bug | Fix | Commit |
+|-----|-----|--------|
+| Kokoro download file-lock (stale `.tmp`) | GUID-based temp files + `CleanupStaleTempFiles()` | `d548e66` |
+| Misleading developer-facing error messages | User-friendly text + pre-flight model check in TestVoice | `d548e66` |
+| Inworld API `encoding` field name wrong | Changed to `audioEncoding` per Inworld API docs | pending |
+| Cloud providers receiving `"int8"` as model | Conditional variant routing: only Kokoro gets `KokoroModelVariant`, cloud gets `null` → `ResolveVariant()` | pending |
+| KokoroTtsProvider tests fail after model download | Changed tests from `int8` to `fp32` variant (310MB, not downloaded) | pending |
+
 ---
 
 ## 16. References
