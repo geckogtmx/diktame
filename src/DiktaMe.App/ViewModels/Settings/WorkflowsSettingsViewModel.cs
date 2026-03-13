@@ -9,12 +9,11 @@ namespace DiktaMe.App.ViewModels.Settings;
 
 /// <summary>
 /// Host ViewModel for the Workflows &amp; Modes settings page.
-/// Aggregates DictationModesSettingsViewModel (CRUD presets) and ModesSettingsViewModel (utility pipelines).
+/// Aggregates ModesSettingsViewModel (utility pipelines).
 /// Owns the "Dictation Behaviors" fields (AdditionalKey, TrailingSpace, RawModeOverride, RefineVoiceMode).
 /// </summary>
 public sealed partial class WorkflowsSettingsViewModel : ObservableObject
 {
-    public DictationModesSettingsViewModel DictationPresets { get; }
     public ModesSettingsViewModel UtilityPipelines { get; }
 
     private readonly SettingsManager _settings;
@@ -33,9 +32,6 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isDictationBehaviorsSelected;
-
-    [ObservableProperty]
-    private bool _isDictationPresetsSelected;
 
     [ObservableProperty]
     private bool _isUtilityPipelineSelected;
@@ -65,12 +61,10 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
     // ── Constructor ─────────────────────────────────────────────────────
 
     public WorkflowsSettingsViewModel(
-        DictationModesSettingsViewModel dictationPresets,
         ModesSettingsViewModel utilityPipelines,
         SettingsManager settings,
         LocalizationService loc)
     {
-        DictationPresets = dictationPresets;
         UtilityPipelines = utilityPipelines;
         _settings = settings;
         _loc = loc;
@@ -90,13 +84,11 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
     {
         SubItems.Clear();
         SubItems.Add(new ModeListItem { Id = "behaviors", Title = _loc.GetString("Settings_Workflows_Behaviors"), IsDictationMode = false, IsSeparator = false });
-        SubItems.Add(new ModeListItem { Id = "presets", Title = _loc.GetString("Settings_Workflows_Presets"), IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "ask", Title = "Ask", IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "refine_auto", Title = "Refine (Auto)", IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "refine_instruction", Title = "Refine (Verbal)", IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "translate", Title = "Translate", IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "note", Title = "Notes", IsDictationMode = false, IsSeparator = false });
-        SubItems.Add(new ModeListItem { Id = "chat", Title = "Chat", IsDictationMode = false, IsSeparator = false });
     }
 
     // ── Load / Save dictation behaviors ─────────────────────────────────
@@ -153,15 +145,13 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
         if (!HasSelection)
         {
             IsDictationBehaviorsSelected = false;
-            IsDictationPresetsSelected = false;
             IsUtilityPipelineSelected = false;
             return;
         }
 
         string id = SubItems[value].Id;
         IsDictationBehaviorsSelected = id == "behaviors";
-        IsDictationPresetsSelected = id == "presets";
-        IsUtilityPipelineSelected = !IsDictationBehaviorsSelected && !IsDictationPresetsSelected;
+        IsUtilityPipelineSelected = !IsDictationBehaviorsSelected;
 
         // Sync the utility pipelines inner list selection when a pipeline sub-item is clicked
         if (IsUtilityPipelineSelected)

@@ -33,6 +33,7 @@
   <data name="Nav_Hotkeys.Content" xml:space="preserve"><value>Atajos</value></data>
   <data name="Nav_AIEngine.Content" xml:space="preserve"><value>Motor IA</value></data>
   <data name="Nav_DictationPresets.Content" xml:space="preserve"><value>Ajustes de Dictado</value></data>
+  <data name="Nav_DictationPresets.Text" xml:space="preserve"><value>Ajustes de Dictado</value></data>
   <data name="Nav_Modes.Content" xml:space="preserve"><value>Modos</value></data>
   <data name="Nav_Audio.Content" xml:space="preserve"><value>Audio</value></data>
   <data name="Nav_Tts.Content" xml:space="preserve"><value>Texto a Voz</value></data>
@@ -42,14 +43,14 @@
   <data name="Nav_Snippets.Content" xml:space="preserve"><value>Snippets</value></data>
   <data name="Nav_ControlPanel.Content" xml:space="preserve"><value>Panel de Control</value></data>
   <data name="Nav_About.Content" xml:space="preserve"><value>Acerca de</value></data>
-  <data name="Nav_Hardware.Content" xml:space="preserve"><value>Hardware y Atajos</value></data>
+  <data name="Nav_Hardware.Content" xml:space="preserve"><value>Audio y Atajos</value></data>
   <data name="Nav_Workflows.Content" xml:space="preserve"><value>Flujos y Modos</value></data>
   <data name="Nav_Account.Content" xml:space="preserve"><value>Cuenta</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Hardware (SPEC_012)
        ══════════════════════════════════════════════════════════════════════ -->
-  <data name="Settings_Hardware_Title.Text" xml:space="preserve"><value>Hardware y Atajos</value></data>
+  <data name="Settings_Hardware_Title.Text" xml:space="preserve"><value>Audio y Atajos</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Workflows (SPEC_012)
@@ -69,6 +70,23 @@
   <data name="Settings_Chat_DefaultSystemPrompt_Description.Text" xml:space="preserve"><value>Anular el prompt de sistema para nuevas conversaciones (dejar vac&#237;o para usar predeterminado integrado)</value></data>
   <data name="Settings_Chat_WebSearch_Label.Text" xml:space="preserve"><value>B&#250;squeda Web (solo Gemini)</value></data>
   <data name="Settings_Chat_WebSearch_Description.Text" xml:space="preserve"><value>Habilitar base de B&#250;squeda de Google para respuestas actualizadas con fuentes web</value></data>
+  <data name="Settings_Chat_ModelDefault" xml:space="preserve"><value>Usar predeterminado del perfil</value></data>
+  <data name="Settings_Chat_FontSize_Label.Text" xml:space="preserve"><value>Tama&#241;o de Fuente</value></data>
+  <data name="Settings_Chat_FontSize_Description.Text" xml:space="preserve"><value>Tama&#241;o del texto de mensajes del chat (en puntos)</value></data>
+  <data name="Settings_Chat_WindowOpacity_Label.Text" xml:space="preserve"><value>Opacidad de Ventana</value></data>
+  <data name="Settings_Chat_WindowOpacity_Description.Text" xml:space="preserve"><value>Transparencia de la ventana del chat (1.0 = totalmente opaco)</value></data>
+  <data name="Settings_Chat_Theme_Label.Text" xml:space="preserve"><value>Tema</value></data>
+  <data name="Settings_Chat_Theme_Description.Text" xml:space="preserve"><value>Esquema de color de la ventana de chat</value></data>
+  <data name="Settings_Chat_ForgetOnClose_Label.Text" xml:space="preserve"><value>Olvidar al Cerrar</value></data>
+  <data name="Settings_Chat_ForgetOnClose_Description.Text" xml:space="preserve"><value>Borrar historial del chat al cerrar la ventana (modo privacidad)</value></data>
+  <data name="Settings_Chat_MaxHistory_Label.Text" xml:space="preserve"><value>M&#225;ximo de Mensajes en Historial</value></data>
+  <data name="Settings_Chat_MaxHistory_Description.Text" xml:space="preserve"><value>N&#250;mero de mensajes a mantener en el historial (0 = ilimitado)</value></data>
+  <data name="Settings_Chat_Timestamps_Label.Text" xml:space="preserve"><value>Mostrar Marcas de Tiempo</value></data>
+  <data name="Settings_Chat_Timestamps_Description.Text" xml:space="preserve"><value>Mostrar marca de tiempo junto a cada mensaje</value></data>
+  <data name="Settings_Chat_Markdown_Label.Text" xml:space="preserve"><value>Habilitar Markdown</value></data>
+  <data name="Settings_Chat_Markdown_Description.Text" xml:space="preserve"><value>Renderizar formato Markdown en mensajes del chat (bloques de c&#243;digo, negritas, etc.)</value></data>
+  <data name="Settings_Monitor_Title.Text" xml:space="preserve"><value>Monitor del Sistema</value></data>
+  <data name="Settings_Monitor_ActiveProviders.Text" xml:space="preserve"><value>Proveedores Activos</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > General
@@ -128,16 +146,11 @@
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_AIEngine_Title.Text" xml:space="preserve"><value>Motor IA</value></data>
   <data name="Settings_AIEngine_Sub_ApiKeys" xml:space="preserve"><value>Claves API</value></data>
-  <data name="Settings_AIEngine_Sub_Stt" xml:space="preserve"><value>Voz a Texto</value></data>
+  <data name="Settings_AIEngine_Sub_Stt" xml:space="preserve"><value>Voz a Texto (STT)</value></data>
+  <data name="Settings_AIEngine_STT_Title.Text" xml:space="preserve"><value>Voz a Texto (STT)</value></data>
   <data name="Settings_AIEngine_Sub_Ollama" xml:space="preserve"><value>LLM Local (Ollama)</value></data>
-  <data name="Settings_AIEngine_Sub_Tts" xml:space="preserve"><value>Texto a Voz</value></data>
-  <data name="Settings_AIEngine_STT_Label.Text" xml:space="preserve"><value>Voz a Texto (O&#237;dos)</value></data>
-  <data name="Settings_AIEngine_STT_Description.Text" xml:space="preserve"><value>Elija c&#243;mo se transcribe el audio de voz a texto</value></data>
-  <data name="Settings_AIEngine_LLM_Label.Text" xml:space="preserve"><value>Modelo de Lenguaje (Cerebro)</value></data>
-  <data name="Settings_AIEngine_LLM_Description.Text" xml:space="preserve"><value>Elija c&#243;mo la IA procesa el texto</value></data>
-  <data name="Settings_AIEngine_CurrentConfig_Label.Text" xml:space="preserve"><value>Configuraci&#243;n Actual</value></data>
-  <data name="Settings_AIEngine_InfoBar.Title" xml:space="preserve"><value>Configuraci&#243;n por modo</value></data>
-  <data name="Settings_AIEngine_InfoBar.Message" xml:space="preserve"><value>La selecci&#243;n detallada de proveedor y modelo est&#225; disponible en la pesta&#241;a Modos para cada flujo de trabajo.</value></data>
+  <data name="Settings_AIEngine_Sub_Tts" xml:space="preserve"><value>Texto a Voz (TTS)</value></data>
+  <data name="Settings_AIEngine_Sub_Monitor" xml:space="preserve"><value>Monitor del Sistema</value></data>
   <data name="Settings_AIEngine_Whisper_Section.Text" xml:space="preserve"><value>Whisper (STT Local)</value></data>
   <data name="Settings_AIEngine_Whisper_Model_Label.Text" xml:space="preserve"><value>Tama&#241;o del modelo</value></data>
   <data name="Settings_AIEngine_Whisper_Model_Description.Text" xml:space="preserve"><value>Modelos m&#225;s grandes son m&#225;s precisos pero requieren m&#225;s VRAM. Small es recomendado para GPUs de 8 GB.</value></data>
@@ -160,11 +173,6 @@
   <data name="Settings_AIEngine_Deepgram_Replace_Help.Text" xml:space="preserve"><value>Los t&#233;rminos de b&#250;squeda deben ser min&#250;sculas. Complementa los Snippets (que se ejecutan despu&#233;s del LLM).</value></data>
   <data name="Settings_AIEngine_Deepgram_Streaming_Label.Text" xml:space="preserve"><value>Streaming en Tiempo Real</value></data>
   <data name="Settings_AIEngine_Deepgram_Streaming_Description.Text" xml:space="preserve"><value>Transmitir audio por WebSocket para transcripci&#243;n instant&#225;nea. Siempre opera en modo raw (sin LLM).</value></data>
-  <data name="Settings_AIEngine_STT_Cloud" xml:space="preserve"><value>Nube (Deepgram / Gemini)</value></data>
-  <data name="Settings_AIEngine_STT_Local" xml:space="preserve"><value>Local (Whisper)</value></data>
-  <data name="Settings_AIEngine_LLM_Cloud" xml:space="preserve"><value>Nube (Gemini / OpenAI / Anthropic)</value></data>
-  <data name="Settings_AIEngine_LLM_Local" xml:space="preserve"><value>Local (Ollama)</value></data>
-  <data name="Settings_AIEngine_LLM_Skip" xml:space="preserve"><value>Omitir LLM</value></data>
   <data name="Settings_AIEngine_Deepgram_Nova3" xml:space="preserve"><value>nova-3 (recomendado)</value></data>
   <data name="Settings_AIEngine_Deepgram_Nova2" xml:space="preserve"><value>nova-2</value></data>
 

@@ -134,6 +134,13 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _chatAlwaysOnTop = true;
 
+    /// <summary>Combined model list for Chat default model dropdown (Cloud + Local).</summary>
+    public ObservableCollection<string> ChatModelNames { get; } = [];
+    private readonly List<string> _chatModelIds = [];
+
+    [ObservableProperty]
+    private int _selectedChatModelIndex;
+
     [ObservableProperty]
     private string _chatDefaultModelId = "";
 
@@ -300,6 +307,41 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
             LocalModelNames.Add(m.DisplayName);
             _localModelIds.Add(m.ModelId);
         }
+
+        // Chat: combined model list (all providers)
+        ChatModelNames.Clear();
+        _chatModelIds.Clear();
+        ChatModelNames.Add(_loc.GetString("Settings_Chat_ModelDefault"));
+        _chatModelIds.Add("");
+
+        foreach (var m in models)
+        {
+            ChatModelNames.Add($"{m.DisplayName}  ({m.Provider})");
+            _chatModelIds.Add(m.ModelId);
+        }
+
+        // Restore Chat model selection after refresh
+        SyncChatModelIndex();
+    }
+
+    private void SyncChatModelIndex()
+    {
+        if (string.IsNullOrWhiteSpace(ChatDefaultModelId))
+        {
+            SelectedChatModelIndex = 0;
+            return;
+        }
+
+        int idx = _chatModelIds.IndexOf(ChatDefaultModelId);
+        SelectedChatModelIndex = idx >= 0 ? idx : 0;
+    }
+
+    partial void OnSelectedChatModelIndexChanged(int value)
+    {
+        if (value >= 0 && value < _chatModelIds.Count)
+        {
+            ChatDefaultModelId = _chatModelIds[value];
+        }
     }
 
     [RelayCommand]
@@ -376,6 +418,7 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                 ChatEnableMarkdown = chatSettings.EnableMarkdown;
                 ChatAlwaysOnTop = chatSettings.AlwaysOnTop;
                 ChatDefaultModelId = chatSettings.DefaultModelId ?? "";
+                SyncChatModelIndex();
                 ChatDefaultSystemPrompt = chatSettings.DefaultSystemPrompt ?? "";
                 ChatWebSearchEnabled = chatSettings.WebSearchEnabled;
                 ChatSelectedThemeIndex = Array.IndexOf(ChatThemeCodes, chatSettings.Theme);
@@ -513,6 +556,7 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                 ChatEnableMarkdown = chatDefaults.EnableMarkdown;
                 ChatAlwaysOnTop = chatDefaults.AlwaysOnTop;
                 ChatDefaultModelId = chatDefaults.DefaultModelId ?? "";
+                SyncChatModelIndex();
                 ChatDefaultSystemPrompt = chatDefaults.DefaultSystemPrompt ?? "";
                 ChatWebSearchEnabled = chatDefaults.WebSearchEnabled;
                 ChatSelectedThemeIndex = Array.IndexOf(ChatThemeCodes, chatDefaults.Theme);

@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace DiktaMe.App.ViewModels.Settings;
 
 /// <summary>
-/// Host ViewModel for the Hardware &amp; Hotkeys settings page.
+/// Host ViewModel for the Audio &amp; Hotkeys settings page.
 /// Aggregates AudioSettingsViewModel (microphone, ducking, sounds) and HotkeysSettingsViewModel (keyboard shortcuts).
 /// </summary>
 public sealed partial class HardwareSettingsViewModel : ObservableObject

@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 namespace DiktaMe.App.Views.Settings;
 
 /// <summary>
-/// Workflows &amp; Modes settings page — hosts Dictation Behaviors, Presets, and utility pipeline sub-items.
+/// Workflows &amp; Modes settings page — hosts Dictation Behaviors and utility pipeline sub-items.
 /// </summary>
 public sealed partial class WorkflowsSettingsPage : Page
 {

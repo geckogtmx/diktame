@@ -11,7 +11,7 @@ using Windows.System;
 namespace DiktaMe.App.Views.Settings;
 
 /// <summary>
-/// Hardware &amp; Hotkeys settings page — hosts Microphone, Sound Feedback, and Keyboard Shortcuts sub-items.
+/// Audio &amp; Hotkeys settings page — hosts Microphone, Sound Feedback, and Keyboard Shortcuts sub-items.
 /// The hotkey recording logic is copied from HotkeysSettingsPage (code-behind key capture).
 /// </summary>
 public sealed partial class HardwareSettingsPage : Page

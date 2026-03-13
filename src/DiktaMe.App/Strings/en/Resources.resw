@@ -59,6 +59,9 @@
   <data name="Nav_DictationPresets.Content" xml:space="preserve">
     <value>Dictation Presets</value>
   </data>
+  <data name="Nav_DictationPresets.Text" xml:space="preserve">
+    <value>Dictation Presets</value>
+  </data>
   <data name="Nav_Modes.Content" xml:space="preserve">
     <value>Modes</value>
   </data>
@@ -84,7 +87,7 @@
     <value>About</value>
   </data>
   <data name="Nav_Hardware.Content" xml:space="preserve">
-    <value>Hardware &amp; Hotkeys</value>
+    <value>Audio &amp; Hotkeys</value>
   </data>
   <data name="Nav_Workflows.Content" xml:space="preserve">
     <value>Workflows &amp; Modes</value>
@@ -97,7 +100,7 @@
        Settings > Hardware (SPEC_012)
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_Hardware_Title.Text" xml:space="preserve">
-    <value>Hardware &amp; Hotkeys</value>
+    <value>Audio &amp; Hotkeys</value>
   </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
@@ -147,6 +150,57 @@
   </data>
   <data name="Settings_Chat_WebSearch_Description.Text" xml:space="preserve">
     <value>Enable Google Search grounding for up-to-date answers with web sources</value>
+  </data>
+  <data name="Settings_Chat_ModelDefault" xml:space="preserve">
+    <value>Use profile default</value>
+  </data>
+  <data name="Settings_Chat_FontSize_Label.Text" xml:space="preserve">
+    <value>Font Size</value>
+  </data>
+  <data name="Settings_Chat_FontSize_Description.Text" xml:space="preserve">
+    <value>Chat message text size (in points)</value>
+  </data>
+  <data name="Settings_Chat_WindowOpacity_Label.Text" xml:space="preserve">
+    <value>Window Opacity</value>
+  </data>
+  <data name="Settings_Chat_WindowOpacity_Description.Text" xml:space="preserve">
+    <value>Chat window transparency (1.0 = fully opaque)</value>
+  </data>
+  <data name="Settings_Chat_Theme_Label.Text" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="Settings_Chat_Theme_Description.Text" xml:space="preserve">
+    <value>Chat overlay color scheme</value>
+  </data>
+  <data name="Settings_Chat_ForgetOnClose_Label.Text" xml:space="preserve">
+    <value>Forget on Close</value>
+  </data>
+  <data name="Settings_Chat_ForgetOnClose_Description.Text" xml:space="preserve">
+    <value>Clear chat history when closing the overlay (privacy mode)</value>
+  </data>
+  <data name="Settings_Chat_MaxHistory_Label.Text" xml:space="preserve">
+    <value>Maximum History Messages</value>
+  </data>
+  <data name="Settings_Chat_MaxHistory_Description.Text" xml:space="preserve">
+    <value>Number of messages to keep in chat history (0 = unlimited)</value>
+  </data>
+  <data name="Settings_Chat_Timestamps_Label.Text" xml:space="preserve">
+    <value>Show Timestamps</value>
+  </data>
+  <data name="Settings_Chat_Timestamps_Description.Text" xml:space="preserve">
+    <value>Display timestamp next to each message</value>
+  </data>
+  <data name="Settings_Chat_Markdown_Label.Text" xml:space="preserve">
+    <value>Enable Markdown Rendering</value>
+  </data>
+  <data name="Settings_Chat_Markdown_Description.Text" xml:space="preserve">
+    <value>Render markdown formatting in chat messages (code blocks, bold, etc.)</value>
+  </data>
+  <data name="Settings_Monitor_Title.Text" xml:space="preserve">
+    <value>System Monitor</value>
+  </data>
+  <data name="Settings_Monitor_ActiveProviders.Text" xml:space="preserve">
+    <value>Active Providers</value>
   </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
@@ -303,34 +357,19 @@
     <value>API Keys</value>
   </data>
   <data name="Settings_AIEngine_Sub_Stt" xml:space="preserve">
-    <value>Speech-to-Text</value>
+    <value>Speech-to-Text (STT)</value>
+  </data>
+  <data name="Settings_AIEngine_STT_Title.Text" xml:space="preserve">
+    <value>Speech-to-Text (STT)</value>
   </data>
   <data name="Settings_AIEngine_Sub_Ollama" xml:space="preserve">
     <value>Local LLM (Ollama)</value>
   </data>
   <data name="Settings_AIEngine_Sub_Tts" xml:space="preserve">
-    <value>Text-to-Speech</value>
+    <value>Text-to-Speech (TTS)</value>
   </data>
-  <data name="Settings_AIEngine_STT_Label.Text" xml:space="preserve">
-    <value>Speech-to-Text (Ears)</value>
-  </data>
-  <data name="Settings_AIEngine_STT_Description.Text" xml:space="preserve">
-    <value>Choose how voice audio is transcribed to text</value>
-  </data>
-  <data name="Settings_AIEngine_LLM_Label.Text" xml:space="preserve">
-    <value>Language Model (Brain)</value>
-  </data>
-  <data name="Settings_AIEngine_LLM_Description.Text" xml:space="preserve">
-    <value>Choose how text is processed by AI</value>
-  </data>
-  <data name="Settings_AIEngine_CurrentConfig_Label.Text" xml:space="preserve">
-    <value>Current Configuration</value>
-  </data>
-  <data name="Settings_AIEngine_InfoBar.Title" xml:space="preserve">
-    <value>Per-mode overrides</value>
-  </data>
-  <data name="Settings_AIEngine_InfoBar.Message" xml:space="preserve">
-    <value>Fine-grained provider and model selection is available on the Modes tab for each workflow mode.</value>
+  <data name="Settings_AIEngine_Sub_Monitor" xml:space="preserve">
+    <value>System Monitor</value>
   </data>
   <data name="Settings_AIEngine_Whisper_Section.Text" xml:space="preserve">
     <value>Whisper (Local STT)</value>
@@ -399,21 +438,6 @@
     <value>Stream audio over WebSocket for instant transcription. Always operates in raw mode (no LLM).</value>
   </data>
   <!-- C# keys -->
-  <data name="Settings_AIEngine_STT_Cloud" xml:space="preserve">
-    <value>Cloud (Deepgram / Gemini)</value>
-  </data>
-  <data name="Settings_AIEngine_STT_Local" xml:space="preserve">
-    <value>Local (Whisper)</value>
-  </data>
-  <data name="Settings_AIEngine_LLM_Cloud" xml:space="preserve">
-    <value>Cloud (Gemini / OpenAI / Anthropic)</value>
-  </data>
-  <data name="Settings_AIEngine_LLM_Local" xml:space="preserve">
-    <value>Local (Ollama)</value>
-  </data>
-  <data name="Settings_AIEngine_LLM_Skip" xml:space="preserve">
-    <value>Skip LLM</value>
-  </data>
   <data name="Settings_AIEngine_Deepgram_Nova3" xml:space="preserve">
     <value>nova-3 (recommended)</value>
   </data>

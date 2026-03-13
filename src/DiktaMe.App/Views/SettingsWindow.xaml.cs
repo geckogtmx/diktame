@@ -5,7 +5,7 @@ using Serilog;
 
 namespace DiktaMe.App.Views;
 /// <summary>
-/// Tabbed settings window with NavigationView sidebar (8 items).
+/// Tabbed settings window with NavigationView sidebar (9 items).
 /// </summary>
 public sealed partial class SettingsWindow : Window
 {
@@ -46,6 +46,7 @@ public sealed partial class SettingsWindow : Window
             "hardware" => typeof(Settings.HardwareSettingsPage),
             "aiengine" => typeof(Settings.AIEngineSettingsPage),
             "workflows" => typeof(Settings.WorkflowsSettingsPage),
+            "presets" => typeof(Settings.DictationPresetsSettingsPage),
             "snippets" => typeof(Settings.SnippetsSettingsPage),
             "privacy" => typeof(Settings.PrivacySettingsPage),
             "account" => typeof(Settings.AccountSettingsPage),

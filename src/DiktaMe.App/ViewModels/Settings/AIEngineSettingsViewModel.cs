@@ -8,11 +8,17 @@ using Microsoft.UI.Dispatching;
 using Serilog;
 
 namespace DiktaMe.App.ViewModels.Settings;
+
+/// <summary>
+/// Host ViewModel for the AI Engine settings page.
+/// 6 sub-items: API Keys, Speech-to-Text, Ollama, TTS, Chat, System Monitor.
+/// </summary>
 public sealed partial class AIEngineSettingsViewModel : ObservableObject
 {
     public ApiKeysSettingsViewModel ApiKeys { get; }
     public OllamaSettingsViewModel Ollama { get; }
     public TtsSettingsViewModel Tts { get; }
+    public ModesSettingsViewModel Pipelines { get; }
 
     private readonly SettingsManager _settings;
     private readonly LocalizationService _loc;
@@ -42,24 +48,16 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isTtsSelected;
 
-    // ── STT/LLM fields ──────────────────────────────────────────────────
+    [ObservableProperty]
+    private bool _isChatSelected;
 
     [ObservableProperty]
-    private int _sttModeIndex; // 0 = Cloud, 1 = Local
-
-    [ObservableProperty]
-    private int _llmModeIndex; // 0 = Cloud, 1 = Local (Ollama), 2 = Skip
-
-    [ObservableProperty]
-    private string _capabilitySummary = "";
+    private bool _isSystemMonitorSelected;
 
     // ── Whisper settings ────────────────────────────────────────────────────
 
     [ObservableProperty]
     private int _whisperModelIndex;
-
-    [ObservableProperty]
-    private bool _isWhisperSectionVisible;
 
     [ObservableProperty]
     private bool _isWhisperDownloading;
@@ -90,9 +88,6 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _deepgramStreaming;
 
-    [ObservableProperty]
-    private bool _isDeepgramSectionVisible = true;
-
     /// <summary>
     /// Dictation toggle is disabled when Punctuate is off and SmartFormat is off
     /// (dictation requires punctuation to function).
@@ -100,16 +95,26 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isDictationEnabled = true;
 
+    // ── System Monitor computed properties ────────────────────────────────
+
+    [ObservableProperty]
+    private string _activeSttInfo = "";
+
+    [ObservableProperty]
+    private string _activeTtsInfo = "";
+
     public AIEngineSettingsViewModel(
         ApiKeysSettingsViewModel apiKeys,
         OllamaSettingsViewModel ollama,
         TtsSettingsViewModel tts,
+        ModesSettingsViewModel pipelines,
         SettingsManager settings,
         LocalizationService loc)
     {
         ApiKeys = apiKeys;
         Ollama = ollama;
         Tts = tts;
+        Pipelines = pipelines;
         _settings = settings;
         _loc = loc;
         _dispatcher = DispatcherQueue.GetForCurrentThread();
@@ -132,6 +137,8 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         SubItems.Add(new ModeListItem { Id = "stt", Title = _loc.GetString("Settings_AIEngine_Sub_Stt"), IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "ollama", Title = _loc.GetString("Settings_AIEngine_Sub_Ollama"), IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "tts", Title = _loc.GetString("Settings_AIEngine_Sub_Tts"), IsDictationMode = false, IsSeparator = false });
+        SubItems.Add(new ModeListItem { Id = "chat", Title = "Chat", IsDictationMode = false, IsSeparator = false });
+        SubItems.Add(new ModeListItem { Id = "monitor", Title = _loc.GetString("Settings_AIEngine_Sub_Monitor"), IsDictationMode = false, IsSeparator = false });
     }
 
     partial void OnSelectedIndexChanged(int value)
@@ -144,6 +151,8 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
             IsSttSelected = false;
             IsOllamaSelected = false;
             IsTtsSelected = false;
+            IsChatSelected = false;
+            IsSystemMonitorSelected = false;
             return;
         }
 
@@ -152,17 +161,29 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         IsSttSelected = id == "stt";
         IsOllamaSelected = id == "ollama";
         IsTtsSelected = id == "tts";
+        IsChatSelected = id == "chat";
+        IsSystemMonitorSelected = id == "monitor";
+
+        // Sync Chat selection to the inner ModesSettingsViewModel
+        if (IsChatSelected)
+        {
+            for (int i = 0; i < Pipelines.ModeItems.Count; i++)
+            {
+                if (string.Equals(Pipelines.ModeItems[i].Id, "chat", StringComparison.Ordinal))
+                {
+                    Pipelines.SelectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // Refresh System Monitor info when selected
+        if (IsSystemMonitorSelected)
+        {
+            RefreshSystemMonitorInfo();
+        }
     }
 
-    public string[] SttModes => [
-        _loc.GetString("Settings_AIEngine_STT_Cloud"),
-        _loc.GetString("Settings_AIEngine_STT_Local"),
-    ];
-    public string[] LlmModes => [
-        _loc.GetString("Settings_AIEngine_LLM_Cloud"),
-        _loc.GetString("Settings_AIEngine_LLM_Local"),
-        _loc.GetString("Settings_AIEngine_LLM_Skip"),
-    ];
     public string[] DeepgramModels => [
         _loc.GetString("Settings_AIEngine_Deepgram_Nova3"),
         _loc.GetString("Settings_AIEngine_Deepgram_Nova2"),
@@ -185,35 +206,9 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         _isLoading = true;
 
         var s = _settings.Current;
-        var defaultMode = s.ModeProfiles.GetValueOrDefault("dictate_0", new ModeSettings());
-        var sttLabel = defaultMode.SttProvider switch
-        {
-            "whisper" => "Local Whisper",
-            "deepgram" => "Deepgram Cloud",
-            "gemini-audio" => "Gemini Audio",
-            _ => defaultMode.SttProvider,
-        };
-        var llmLabel = defaultMode.LlmProvider switch
-        {
-            "ollama" => $"Ollama ({s.OllamaModel})",
-            "none" => "Disabled",
-            _ => defaultMode.LlmProvider,
-        };
-
-        SttModeIndex = string.Equals(defaultMode.SttProvider, "whisper", StringComparison.Ordinal) ? 1 : 0;
-        LlmModeIndex = defaultMode.LlmProvider switch
-        {
-            "ollama" => 1,
-            "none" => 2,
-            _ => 0,
-        };
-
-        CapabilitySummary = $"STT: {sttLabel}  |  LLM: {llmLabel}";
 
         // Whisper settings
         WhisperModelIndex = Array.IndexOf(WhisperModelCodes, s.WhisperModel) is var wi and >= 0 ? wi : 2; // default: small (index 2)
-        IsWhisperSectionVisible = SttModeIndex == 1;
-        IsDeepgramSectionVisible = SttModeIndex == 0;
 
         // Deepgram settings
         var dg = s.Deepgram;
@@ -225,109 +220,35 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         DeepgramStreaming = s.General.StreamingEnabled;
         IsDictationEnabled = dg.Punctuate || dg.SmartFormat;
 
+        // System Monitor info
+        RefreshSystemMonitorInfo();
+
         _isLoading = false;
     }
 
-    // ── Mode change handlers ────────────────────────────────────────────────
+    // ── System Monitor ────────────────────────────────────────────────────
 
-    partial void OnSttModeIndexChanged(int value)
+    private void RefreshSystemMonitorInfo()
     {
-        if (_isLoading)
-        {
-            return;
-        }
-
-        string sttProvider = value == 1 ? "whisper" : "deepgram";
-        IsWhisperSectionVisible = value == 1;
-        IsDeepgramSectionVisible = value == 0;
-
-        // Update all ModeProfiles
-        var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
-        string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
-        foreach (var mode in modes)
-        {
-            for (int p = 0; p < 2; p++)
-            {
-                string key = $"{mode}_{p}";
-                var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
-                profiles[key] = existing with { SttProvider = sttProvider };
-            }
-        }
-
-        var updated = _settings.Current with { ModeProfiles = profiles };
-        UpdateCapabilitySummary(updated);
-        _ = _settings.UpdateAsync(updated).ContinueWith(t =>
-        {
-            if (t.IsFaulted)
-            {
-                Log.Error(t.Exception, "Failed to save STT mode change");
-            }
-        }, TaskScheduler.Default);
-    }
-
-    partial void OnLlmModeIndexChanged(int value)
-    {
-        if (_isLoading)
-        {
-            return;
-        }
-
-        string llmProvider = value switch
-        {
-            1 => "ollama",
-            2 => "none",
-            _ => "gemini",
-        };
-        bool useLlm = !string.Equals(llmProvider, "none", StringComparison.Ordinal);
-
-        // LLM choice determines ActiveProfileName
-        string profileName = value == 1 ? "Local" : "Cloud";
-
-        // Update all ModeProfiles
-        var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
-        string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
-        foreach (var mode in modes)
-        {
-            for (int p = 0; p < 2; p++)
-            {
-                string key = $"{mode}_{p}";
-                var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
-                profiles[key] = existing with { LlmProvider = llmProvider, UseLlm = useLlm };
-            }
-        }
-
-        var updated = _settings.Current with
-        {
-            ModeProfiles = profiles,
-            ActiveProfileName = profileName,
-        };
-        UpdateCapabilitySummary(updated);
-        _ = _settings.UpdateAsync(updated).ContinueWith(t =>
-        {
-            if (t.IsFaulted)
-            {
-                Log.Error(t.Exception, "Failed to save LLM mode change");
-            }
-        }, TaskScheduler.Default);
-    }
-
-    private void UpdateCapabilitySummary(AppSettings s)
-    {
+        var s = _settings.Current;
         var defaultMode = s.ModeProfiles.GetValueOrDefault("dictate_0", new ModeSettings());
-        var sttLabel = defaultMode.SttProvider switch
+
+        ActiveSttInfo = defaultMode.SttProvider switch
         {
-            "whisper" => "Local Whisper",
-            "deepgram" => "Deepgram Cloud",
+            "whisper" => $"Whisper ({s.WhisperModel})",
+            "deepgram" => $"Deepgram ({s.Deepgram.Model})",
             "gemini-audio" => "Gemini Audio",
             _ => defaultMode.SttProvider,
         };
-        var llmLabel = defaultMode.LlmProvider switch
+
+        var ttsProvider = s.Tts.Provider;
+        ActiveTtsInfo = ttsProvider switch
         {
-            "ollama" => $"Ollama ({s.OllamaModel})",
-            "none" => "Disabled",
-            _ => defaultMode.LlmProvider,
+            "kokoro" => $"Kokoro ({s.Tts.VoiceId})",
+            "sapi" => $"Windows SAPI ({s.Tts.VoiceId})",
+            "disabled" or "" => "Disabled",
+            _ => ttsProvider,
         };
-        CapabilitySummary = $"STT: {sttLabel}  |  LLM: {llmLabel}";
     }
 
     // ── Whisper change handler ──────────────────────────────────────────────
