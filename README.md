@@ -14,7 +14,8 @@
 |-------|-----------|
 | **UI** | WinUI 3 (Fluent Design) |
 | **Logic** | C# / .NET 8 |
-| **STT** | Cloud (Deepgram, Gemini) + Local (Whisper.net) |
+| **STT** | Cloud (Deepgram, Gemini) + Local (Whisper.net with Vulkan GPU) |
+| **TTS** | Cloud (Deepgram, Inworld, OpenAI) + Local (Kokoro-ONNX) |
 | **LLM** | Gemini, Anthropic, OpenAI, Ollama |
 | **Data** | SQLite (Microsoft.Data.Sqlite) |
 | **Installer** | Self-contained, trimmed |
@@ -28,6 +29,7 @@ DiktaMe.sln
 │   └── DiktaMe.Core/         # Business logic (class library)
 │       ├── Audio/             # NAudio recording, device management
 │       ├── STT/               # Speech-to-Text providers
+│       ├── TTS/               # Text-to-Speech providers
 │       ├── LLM/               # LLM providers
 │       ├── Pipeline/          # Workflow orchestration
 │       ├── Input/             # Hotkeys, text injection
@@ -49,6 +51,7 @@ DiktaMe.sln
 | 4 | **Translate** | `Ctrl+Alt+T` | EN↔ES bidirectional |
 | 5 | **Oops** | `Ctrl+Alt+V` | Re-inject last text |
 | 6 | **Note** | `Ctrl+Alt+N` | Voice post-it notes |
+| 7 | **Read Selection** | `Ctrl+Alt+Q` | Text-to-Speech playback |
 
 ## Development
 
@@ -75,8 +78,8 @@ dotnet test DiktaMe.sln
 
 **Project Phase:** Feature Complete + Testing ✅
 
-| Stream | Tasks | Status |
-|--------|:-----:|--------|
+| Stream / Spec | Tasks | Status |
+|---------------|:-----:|--------|
 | **A** — Scaffolding | A.0–A.2 | ✅ Complete |
 | **B** — Core Engine | B.1–B.5 | ✅ Complete |
 | **C** — STT & LLM Providers | C.1–C.7 | ✅ Complete |
@@ -85,12 +88,19 @@ dotnet test DiktaMe.sln
 | **F** — UI (WinUI 3) | F.1–F.5 | ✅ Complete |
 | **G** — Testing & CI/CD | G.1–G.2 | ✅ Complete |
 | **I** — Promoted Features | I.1–I.5 | ✅ Complete |
+| **J** — CRUD Dictation Modes | J.1–J.7 | ✅ Complete |
+| **K** — OAuth & Trial Credits | K.1–K.7 | ✅ Complete |
+| **L** — Deepgram Streaming | L.1–L.5 | ✅ Complete |
+| **SPEC_003** — TTS | Phase A–G | ✅ Complete |
+| **SPEC_007** — Chat Upgrade | 14/14 tasks | ✅ Complete |
+| **SPEC_009** — Local/Wizard | 15 fixes | ✅ Complete |
+| **SPEC_011** — Ollama Management| API + UI | ✅ Complete |
 | **H** — Distribution | H.1–H.2 | ⏳ Remaining |
 
 ### Metrics
 
 - **Build:** 0 errors, 0 warnings (Release config, `TreatWarningsAsErrors=true`)
-- **Tests:** 414 passing (376 in CI unit filter; 1 pre-existing clipboard flake)
+- **Tests:** 950 passing locally (479 in CI unit filter; DPAPI/Clipboard skipped on runners)
 - **Coverage:** 74.1% line rate, 52.4% branch rate (Core only; UI layer tested manually)
 - **CI/CD:** GitHub Actions green (`Lint ✓ Build ✓ Test ✓ Secret scan ✓ Publish ✓`)
 - **Publish Size:** ~173MB uncompressed (x64), ~70MB compressed
@@ -98,24 +108,25 @@ dotnet test DiktaMe.sln
 
 ### What's Working
 
-✅ **Recording & Injection:** Push-to-talk with 6 global hotkeys, text injection via clipboard
-✅ **Transcription:** Cloud STT (Deepgram, Gemini) + local (Whisper.net optional)
-✅ **LLM:** Cloud (OpenAI, Anthropic, Gemini, Ollama) + streaming responses
-✅ **All 6 Workflows:** Dictate, Refine, Ask, Translate, Oops, Note
+✅ **Recording & Injection:** Push-to-talk with global hotkeys, text injection via clipboard
+✅ **Transcription:** Cloud STT (Deepgram, Gemini) + local Vulkan GPU (Whisper.net)
+✅ **TTS (Text-to-Speech):** Read Selection mode (`Ctrl+Alt+Q`), Kokoro local + cloud fallback
+✅ **LLM:** Cloud (OpenAI, Anthropic, Gemini) + local Ollama with provider caching & auto-start
+✅ **All 7 Workflows:** Dictate, Refine, Ask, Translate, Oops, Note, Read Selection
 ✅ **Settings & Profiles:** Dual-profile system, 16 custom prompts, per-mode providers
 ✅ **Voice Snippets:** Trigger-based macro expansion (Phase 1)
 ✅ **Quick Chat:** Floating LLM overlay (text + voice input)
-✅ **Audio Ducking:** Auto-volume reduction during recording
-✅ **Ollama Management:** Version sensing, health checks, model library UI
+✅ **Ollama Management:** Version sensing, health checks, model library UI, keep-alive
 ✅ **Data:** SQLite history (90-day), session metrics, privacy levels
 ✅ **Security:** DPAPI secrets, PII scrubber, API key validation
-✅ **UI:** WinUI 3 Settings window (10 tabs), Control Panel, Wizard, Notifications
+✅ **UI:** WinUI 3 Settings window (10 tabs), Control Panel, First-Run Wizard, Notifications
+✅ **Website Rebrand:** Comprehensive user docs and marketing on dikta.me
 
-### What's Next (H Stream)
+### What's Next (H Stream & Wallet)
 
+⏳ **Unified Wallet System:** Credits & BYOK prep (`SPEC_008_WALLET.md`)
 ⏳ **Installer:** MSIX or Inno Setup (~70MB compressed)
 ⏳ **V1 Migration:** Detect V1 settings, migrate to V2 format
-⏳ **Website Rebrand:** Update dikta.me for V2 launch
 
 ---
 
