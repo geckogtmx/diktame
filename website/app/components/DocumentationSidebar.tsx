@@ -26,6 +26,7 @@ const navigation = [
       { href: '/docs/features/translate', label: 'Translate' },
       { href: '/docs/features/note', label: 'Note' },
       { href: '/docs/features/oops', label: 'Oops' },
+      { href: '/docs/features/tts', label: 'Text-to-Speech' },
     ]
   },
   {
@@ -43,6 +44,7 @@ const navigation = [
       { href: '/docs/settings/ollama', label: 'Ollama' },
       { href: '/docs/settings/privacy', label: 'Privacy' },
       { href: '/docs/settings/snippets', label: 'Snippets' },
+      { href: '/docs/settings/tts', label: 'Text-to-Speech' },
     ]
   },
   {
@@ -55,6 +57,7 @@ const navigation = [
       { href: '/docs/dev/architecture/threat-model', label: 'Threat Model' },
       { href: '/docs/dev/api/stt-providers', label: 'STT Providers API' },
       { href: '/docs/dev/api/llm-providers', label: 'LLM Providers API' },
+      { href: '/docs/dev/api/tts-providers', label: 'TTS Providers API' },
     ]
   }
 ];

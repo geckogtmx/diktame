@@ -18,6 +18,7 @@
         <SolidColorBrush x:Key="V1TextPrimaryBrush" Color="#e0e0e0"/>
         <SolidColorBrush x:Key="V1TextSecondaryBrush" Color="#888888"/>
         <SolidColorBrush x:Key="V1PerfGreenBrush" Color="#7aff9e"/>
+
     </Page.Resources>
 
     <Grid Background="{StaticResource V1BackgroundBrush}" Padding="0" RowSpacing="0">
@@ -60,9 +61,9 @@
                                        Foreground="{x:Bind ViewModel.SttBadgeBrush, Mode=OneWay}"/>
                         </StackPanel>
                     </ToolTipService.ToolTip>
-                    <TextBlock Text="STT" FontSize="10" FontWeight="SemiBold"
+                    <TextBlock Text="STT" FontSize="11" FontWeight="Bold"
                                Foreground="{x:Bind ViewModel.SttBadgeBrush, Mode=OneWay}"
-                               HorizontalAlignment="Center"/>
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <!-- LLM indicator badge -->
                 <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2" Width="36">
@@ -74,9 +75,9 @@
                                        Foreground="{x:Bind ViewModel.LlmBadgeBrush, Mode=OneWay}"/>
                         </StackPanel>
                     </ToolTipService.ToolTip>
-                    <TextBlock Text="LLM" FontSize="10" FontWeight="SemiBold"
+                    <TextBlock Text="LLM" FontSize="11" FontWeight="Bold"
                                Foreground="{x:Bind ViewModel.LlmBadgeBrush, Mode=OneWay}"
-                               HorizontalAlignment="Center"/>
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <!-- TTS indicator badge -->
                 <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2" Width="36">
@@ -88,9 +89,9 @@
                                        Foreground="{x:Bind ViewModel.TtsBadgeBrush, Mode=OneWay}"/>
                         </StackPanel>
                     </ToolTipService.ToolTip>
-                    <TextBlock Text="TTS" FontSize="10" FontWeight="SemiBold"
+                    <TextBlock Text="TTS" FontSize="11" FontWeight="Bold"
                                Foreground="{x:Bind ViewModel.TtsBadgeBrush, Mode=OneWay}"
-                               HorizontalAlignment="Center"/>
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <!-- Settings gear -->
                 <Button Content="&#xE713;" FontFamily="Segoe MDL2 Assets"
@@ -137,6 +138,12 @@
                                 <Button.Background>
                                     <SolidColorBrush Color="{x:Bind BackgroundHex}"/>
                                 </Button.Background>
+                                <Button.Resources>
+                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#003a4d"/>
+                                    <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#00709a"/>
+                                    <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#004052"/>
+                                </Button.Resources>
                                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="1">
                                     <TextBlock Text="{x:Bind Title}"
                                                FontSize="11" FontWeight="SemiBold"

@@ -6,6 +6,37 @@ dIKta.me relies internally on **NAudio** to securely interface with the low-leve
 
 ## Audio Capture Lifecycle
 
+```mermaid
+sequenceDiagram
+    participant User as User
+    participant Hotkey as GlobalHotkeyService
+    participant Audio as AudioCaptureService
+    participant Ducker as AudioDuckerService
+    participant STT as STTRouter (Pipeline)
+
+    User->>Hotkey: Presses Ctrl+Alt+D
+    Hotkey->>Audio: StartRecordingAsync()
+    Audio->>Ducker: DuckDesktopAudio(20%)
+    
+    rect rgb(20, 40, 60)
+        Note right of Audio: WASAPI Loop (16kHz 16-bit PCM)
+        loop Every 300ms
+            Audio-->>Audio: Write bytes to MemoryStream
+            opt If IStreamingSTTProvider
+                Audio->>STT: Yield return byte[] (WebSockets)
+            end
+        end
+    end
+    
+    User->>Hotkey: Releases Ctrl+Alt+D
+    Hotkey->>Audio: StopRecordingAsync()
+    Audio->>Ducker: RestoreAudioVolume()
+    
+    opt If ISTTProvider (Batch)
+        Audio->>STT: Submit monolithic byte[] array
+    end
+```
+
 The interaction between the user pressing `Ctrl+Alt+D` (Dictate) and the raw voice audio being submitted to the Speech-to-Text inference engine involves a strict, memory-safe data lifecycle.
 
 Because audio capture generates massive arrays of floating-point data, the architecture prioritizes minimizing object allocations.
