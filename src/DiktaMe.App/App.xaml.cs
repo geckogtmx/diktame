@@ -517,22 +517,28 @@ public partial class App : Application
         services.AddSingleton<Services.LocalizationService>();
         services.AddSingleton<Services.NotificationService>();
 
+        ConfigureViewModels(services);
+    }
+
+    private static void ConfigureViewModels(IServiceCollection services)
+    {
         // ── UI ViewModels (F.2+) ───────────────────────────────────────────────
         services.AddSingleton<ViewModels.ControlPanelViewModel>();
-        services.AddTransient<ViewModels.Settings.AccountSettingsViewModel>(); // K.5c: Trial account page
+        services.AddTransient<ViewModels.Settings.AccountSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.GeneralSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.AIEngineSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.AudioSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.TtsSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.HotkeysSettingsViewModel>();
-        services.AddTransient<ViewModels.Settings.ModesSettingsViewModel>(); // Unified modes page (Ask, Refine x2, Translate, Notes, Chat)
-        services.AddTransient<ViewModels.Settings.DictationModesSettingsViewModel>(); // J.6: CRUD dictation modes page
+        services.AddTransient<ViewModels.Settings.ModesSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.DictationModesSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.PrivacySettingsViewModel>();
         services.AddTransient<ViewModels.Settings.ApiKeysSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.OllamaSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.SnippetsSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.ControlPanelConfigViewModel>();
-        services.AddTransient<ViewModels.Settings.HardwareSettingsViewModel>(); // SPEC_012: Hardware & Hotkeys host
+        services.AddTransient<ViewModels.Settings.HardwareSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.WorkflowsSettingsViewModel>();
         services.AddTransient<ViewModels.WizardViewModel>();
         services.AddSingleton<ViewModels.LoadingViewModel>();
         services.AddSingleton<ViewModels.QuickChatViewModel>();

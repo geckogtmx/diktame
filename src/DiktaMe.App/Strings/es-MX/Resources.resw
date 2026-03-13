@@ -52,6 +52,25 @@
   <data name="Settings_Hardware_Title.Text" xml:space="preserve"><value>Hardware y Atajos</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Workflows (SPEC_012)
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_Workflows_Title.Text" xml:space="preserve"><value>Flujos y Modos</value></data>
+  <data name="Settings_Workflows_Behaviors" xml:space="preserve"><value>Comportamientos de Dictado</value></data>
+  <data name="Settings_Workflows_Presets" xml:space="preserve"><value>Preajustes de Dictado</value></data>
+  <data name="Settings_Workflows_RawModeOverride_Label.Text" xml:space="preserve"><value>Omitir Procesamiento LLM (Modo Raw)</value></data>
+  <data name="Settings_Workflows_RawModeOverride_Description.Text" xml:space="preserve"><value>Omitir LLM para todos los modos de dictado — solo salida de transcripci&#243;n STT</value></data>
+  <data name="Settings_Workflows_RefineVoiceMode_Label.Text" xml:space="preserve"><value>Modo de Voz de Refinamiento</value></data>
+  <data name="Settings_Workflows_RefineVoiceMode_Description.Text" xml:space="preserve"><value>Cuando est&#225; habilitado, Refine usa instrucci&#243;n de voz; cuando est&#225; deshabilitado, usa modo de selecci&#243;n de texto autom&#225;tico</value></data>
+  <data name="Settings_Chat_AlwaysOnTop_Label.Text" xml:space="preserve"><value>Siempre Encima</value></data>
+  <data name="Settings_Chat_AlwaysOnTop_Description.Text" xml:space="preserve"><value>Mantener la ventana de chat encima de otras ventanas</value></data>
+  <data name="Settings_Chat_DefaultModel_Label.Text" xml:space="preserve"><value>Modelo Predeterminado</value></data>
+  <data name="Settings_Chat_DefaultModel_Description.Text" xml:space="preserve"><value>Anular el modelo LLM predeterminado para nuevas conversaciones (dejar vac&#237;o para usar predeterminado del perfil)</value></data>
+  <data name="Settings_Chat_DefaultSystemPrompt_Label.Text" xml:space="preserve"><value>Prompt de Sistema Predeterminado</value></data>
+  <data name="Settings_Chat_DefaultSystemPrompt_Description.Text" xml:space="preserve"><value>Anular el prompt de sistema para nuevas conversaciones (dejar vac&#237;o para usar predeterminado integrado)</value></data>
+  <data name="Settings_Chat_WebSearch_Label.Text" xml:space="preserve"><value>B&#250;squeda Web (solo Gemini)</value></data>
+  <data name="Settings_Chat_WebSearch_Description.Text" xml:space="preserve"><value>Habilitar base de B&#250;squeda de Google para respuestas actualizadas con fuentes web</value></data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
        Settings > General
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_General_Title.Text" xml:space="preserve"><value>General</value></data>

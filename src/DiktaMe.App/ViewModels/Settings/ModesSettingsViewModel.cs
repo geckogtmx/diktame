@@ -132,6 +132,18 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
     private bool _chatEnableMarkdown = true;
 
     [ObservableProperty]
+    private bool _chatAlwaysOnTop = true;
+
+    [ObservableProperty]
+    private string _chatDefaultModelId = "";
+
+    [ObservableProperty]
+    private string _chatDefaultSystemPrompt = "";
+
+    [ObservableProperty]
+    private bool _chatWebSearchEnabled;
+
+    [ObservableProperty]
     private bool _isChatSelected;
 
     /// <summary>True if Reset button should be visible (Notes or Chat selected).</summary>
@@ -362,6 +374,10 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                 ChatMaxHistoryMessages = chatSettings.MaxHistoryMessages;
                 ChatShowTimestamps = chatSettings.ShowTimestamps;
                 ChatEnableMarkdown = chatSettings.EnableMarkdown;
+                ChatAlwaysOnTop = chatSettings.AlwaysOnTop;
+                ChatDefaultModelId = chatSettings.DefaultModelId ?? "";
+                ChatDefaultSystemPrompt = chatSettings.DefaultSystemPrompt ?? "";
+                ChatWebSearchEnabled = chatSettings.WebSearchEnabled;
                 ChatSelectedThemeIndex = Array.IndexOf(ChatThemeCodes, chatSettings.Theme);
                 if (ChatSelectedThemeIndex < 0) { ChatSelectedThemeIndex = 0; }
                 break;
@@ -433,7 +449,8 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                     break;
 
                 case "chat":
-                    var newChatSettings = new ChatSettings
+                    // Use 'with' to preserve unbound fields (WindowWidth, WindowHeight, etc.)
+                    var newChatSettings = _settings.Current.Chat with
                     {
                         FontSize = ChatFontSize,
                         WindowOpacity = ChatWindowOpacity,
@@ -441,6 +458,10 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                         MaxHistoryMessages = ChatMaxHistoryMessages,
                         ShowTimestamps = ChatShowTimestamps,
                         EnableMarkdown = ChatEnableMarkdown,
+                        AlwaysOnTop = ChatAlwaysOnTop,
+                        DefaultModelId = string.IsNullOrWhiteSpace(ChatDefaultModelId) ? null : ChatDefaultModelId,
+                        DefaultSystemPrompt = string.IsNullOrWhiteSpace(ChatDefaultSystemPrompt) ? null : ChatDefaultSystemPrompt,
+                        WebSearchEnabled = ChatWebSearchEnabled,
                         Theme = ChatSelectedThemeIndex >= 0 && ChatSelectedThemeIndex < ChatThemeCodes.Length
                             ? ChatThemeCodes[ChatSelectedThemeIndex]
                             : "System",
@@ -490,6 +511,10 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                 ChatMaxHistoryMessages = chatDefaults.MaxHistoryMessages;
                 ChatShowTimestamps = chatDefaults.ShowTimestamps;
                 ChatEnableMarkdown = chatDefaults.EnableMarkdown;
+                ChatAlwaysOnTop = chatDefaults.AlwaysOnTop;
+                ChatDefaultModelId = chatDefaults.DefaultModelId ?? "";
+                ChatDefaultSystemPrompt = chatDefaults.DefaultSystemPrompt ?? "";
+                ChatWebSearchEnabled = chatDefaults.WebSearchEnabled;
                 ChatSelectedThemeIndex = Array.IndexOf(ChatThemeCodes, chatDefaults.Theme);
                 CloudSystemPrompt = PromptDefaults.Chat;
                 LocalSystemPrompt = PromptDefaults.Chat;

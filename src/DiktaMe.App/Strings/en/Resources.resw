@@ -101,6 +101,55 @@
   </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Workflows (SPEC_012)
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_Workflows_Title.Text" xml:space="preserve">
+    <value>Workflows &amp; Modes</value>
+  </data>
+  <data name="Settings_Workflows_Behaviors" xml:space="preserve">
+    <value>Dictation Behaviors</value>
+  </data>
+  <data name="Settings_Workflows_Presets" xml:space="preserve">
+    <value>Dictation Presets</value>
+  </data>
+  <data name="Settings_Workflows_RawModeOverride_Label.Text" xml:space="preserve">
+    <value>Skip LLM Processing (Raw Mode)</value>
+  </data>
+  <data name="Settings_Workflows_RawModeOverride_Description.Text" xml:space="preserve">
+    <value>Bypass LLM for all dictation modes — output raw STT transcript only</value>
+  </data>
+  <data name="Settings_Workflows_RefineVoiceMode_Label.Text" xml:space="preserve">
+    <value>Refine Voice Mode</value>
+  </data>
+  <data name="Settings_Workflows_RefineVoiceMode_Description.Text" xml:space="preserve">
+    <value>When enabled, Refine uses voice instruction; when disabled, uses text-selection auto mode</value>
+  </data>
+  <data name="Settings_Chat_AlwaysOnTop_Label.Text" xml:space="preserve">
+    <value>Always on Top</value>
+  </data>
+  <data name="Settings_Chat_AlwaysOnTop_Description.Text" xml:space="preserve">
+    <value>Keep chat window above other windows</value>
+  </data>
+  <data name="Settings_Chat_DefaultModel_Label.Text" xml:space="preserve">
+    <value>Default Model</value>
+  </data>
+  <data name="Settings_Chat_DefaultModel_Description.Text" xml:space="preserve">
+    <value>Override the default LLM model for new conversations (leave empty to use profile default)</value>
+  </data>
+  <data name="Settings_Chat_DefaultSystemPrompt_Label.Text" xml:space="preserve">
+    <value>Default System Prompt</value>
+  </data>
+  <data name="Settings_Chat_DefaultSystemPrompt_Description.Text" xml:space="preserve">
+    <value>Override the system prompt for new conversations (leave empty to use built-in default)</value>
+  </data>
+  <data name="Settings_Chat_WebSearch_Label.Text" xml:space="preserve">
+    <value>Web Search (Gemini only)</value>
+  </data>
+  <data name="Settings_Chat_WebSearch_Description.Text" xml:space="preserve">
+    <value>Enable Google Search grounding for up-to-date answers with web sources</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
        Settings > General
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_General_Title.Text" xml:space="preserve">
