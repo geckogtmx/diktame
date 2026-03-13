@@ -98,7 +98,13 @@ public sealed class TtsSpeakerTests : IDisposable
     public void Dispose()
     {
         _ducker.Dispose();
-        try { if (File.Exists(_tempPath)) File.Delete(_tempPath); }
+        try
+        {
+            if (File.Exists(_tempPath))
+            {
+                File.Delete(_tempPath);
+            }
+        }
         catch { /* best effort cleanup */ }
     }
 

@@ -50,7 +50,9 @@ public sealed class KokoroTtsProvider : ITTSProvider
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(text))
+        {
             return EmptyResult();
+        }
 
         var sw = Stopwatch.StartNew();
 
@@ -83,7 +85,9 @@ public sealed class KokoroTtsProvider : ITTSProvider
         }
 
         if (tokens.Length == 0)
+        {
             return EmptyResult();
+        }
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -104,7 +108,9 @@ public sealed class KokoroTtsProvider : ITTSProvider
         }
 
         if (audioSamples.Length == 0)
+        {
             return EmptyResult();
+        }
 
         // Convert float[] (–1.0 to 1.0) → byte[] (16-bit PCM)
         byte[] pcmBytes = ConvertToPcm16(audioSamples);
@@ -141,17 +147,25 @@ public sealed class KokoroTtsProvider : ITTSProvider
     private async Task EnsureModelLoadedAsync(CancellationToken cancellationToken)
     {
         if (_model is not null)
+        {
             return;
+        }
 
         if (!_modelManager.IsModelDownloaded)
+        {
             throw new FileNotFoundException(
                 "Kokoro TTS model not downloaded. Open Settings > Text-to-Speech to download it.");
+        }
 
         await Task.Run(() =>
         {
             lock (_lock)
             {
-                if (_model is not null) return;
+                if (_model is not null)
+                {
+                    return;
+                }
+
                 var loadSw = Stopwatch.StartNew();
 
                 _model = new KokoroModel(_modelManager.ModelPath);
@@ -204,14 +218,19 @@ public sealed class KokoroTtsProvider : ITTSProvider
 
             var samples = _model!.Infer(segment, voice, _speed);
             if (samples.Length > 0)
+            {
                 allSamples.Add(samples);
+            }
 
             offset += count;
         }
 
         // Concatenate all segments
         int totalLength = 0;
-        foreach (var s in allSamples) totalLength += s.Length;
+        foreach (var s in allSamples)
+        {
+            totalLength += s.Length;
+        }
 
         var result = new float[totalLength];
         int pos = 0;
@@ -249,7 +268,11 @@ public sealed class KokoroTtsProvider : ITTSProvider
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         lock (_lock)
         {

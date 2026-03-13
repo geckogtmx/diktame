@@ -149,14 +149,19 @@ public sealed class ReadSelectionPipeline
         var level = _settings.Current.Privacy.Level;
 
         if (level == PrivacyLevel.Ghost || level == PrivacyLevel.Stats)
+        {
             return;
+        }
 
         string loggedText = text;
 
         if (level == PrivacyLevel.Balanced && _settings.Current.Privacy.PiiScrubEnabled)
         {
             if (PIIScrubber.ContainsPII(text))
+            {
                 Log.Warning("{Prefix}: contains PII (scrubbed in log)", prefix);
+            }
+
             loggedText = PIIScrubber.Scrub(text);
         }
 

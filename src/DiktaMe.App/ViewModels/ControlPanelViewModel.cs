@@ -52,7 +52,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     // Badge indicator brushes (local/cloud/off)
     private static readonly SolidColorBrush BadgeLocalBrush = new(ColorHelper.FromArgb(255, 122, 255, 158)); // #7AFF9E green
     private static readonly SolidColorBrush BadgeCloudBrush = new(ColorHelper.FromArgb(255, 78, 168, 222));  // #4EA8DE blue
-    private static readonly SolidColorBrush BadgeOffBrush   = new(ColorHelper.FromArgb(255, 255, 68, 68));   // #FF4444 red
+    private static readonly SolidColorBrush BadgeOffBrush = new(ColorHelper.FromArgb(255, 255, 68, 68));   // #FF4444 red
 
     // Active-state colors (V1 palette)
     private const string ActiveBgHex = "#00607a";   // --dark-teal-3

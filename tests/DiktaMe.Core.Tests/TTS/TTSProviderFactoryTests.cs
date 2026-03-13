@@ -196,7 +196,7 @@ public sealed class TTSProviderFactoryTests : IDisposable
     public void Dispose()
     {
         _factory.Dispose();
-        try { if (File.Exists(_tempPath)) File.Delete(_tempPath); } catch { /* best effort */ }
-        try { if (File.Exists(_keysPath)) File.Delete(_keysPath); } catch { /* best effort */ }
+        try { if (File.Exists(_tempPath)) { File.Delete(_tempPath); } } catch { /* best effort */ }
+        try { if (File.Exists(_keysPath)) { File.Delete(_keysPath); } } catch { /* best effort */ }
     }
 }

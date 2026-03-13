@@ -40,7 +40,9 @@ public sealed class InworldTtsProvider : ITTSProvider
     public InworldTtsProvider(string apiKey, string model = DefaultModel, HttpClient? httpClient = null)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
+        {
             throw new ArgumentException("Inworld API key must not be empty.", nameof(apiKey));
+        }
 
         _apiKey = apiKey;
         _model = model;
@@ -59,7 +61,9 @@ public sealed class InworldTtsProvider : ITTSProvider
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(text))
+        {
             return EmptyResult();
+        }
 
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -106,7 +110,9 @@ public sealed class InworldTtsProvider : ITTSProvider
             sw.Stop();
 
             if (audioBytes.Length == 0)
+            {
                 return EmptyResult();
+            }
 
             // LINEAR16 = 2 bytes per sample, mono
             var duration = TimeSpan.FromSeconds(audioBytes.Length / 2.0 / SampleRate);
@@ -145,17 +151,23 @@ public sealed class InworldTtsProvider : ITTSProvider
             var root = doc.RootElement;
 
             if (!root.TryGetProperty("audioContent", out var audioElement))
+            {
                 return [];
+            }
 
             string? base64 = audioElement.GetString();
             if (string.IsNullOrEmpty(base64))
+            {
                 return [];
+            }
 
             byte[] raw = Convert.FromBase64String(base64);
 
             // Strip WAV header (44 bytes) if present — Inworld may wrap PCM in WAV container
             if (raw.Length > 44 && raw[0] == 'R' && raw[1] == 'I' && raw[2] == 'F' && raw[3] == 'F')
+            {
                 return raw[44..];
+            }
 
             return raw;
         }
@@ -203,7 +215,11 @@ public sealed class InworldTtsProvider : ITTSProvider
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _http.Dispose();
     }

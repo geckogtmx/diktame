@@ -103,7 +103,9 @@ public sealed class TtsPlayerService : ITtsPlayerService
     public async Task PlayAsync(byte[] audioData, int sampleRate, CancellationToken cancellationToken = default)
     {
         if (_disposed || audioData.Length == 0)
+        {
             return;
+        }
 
         // Stop any existing playback
         Stop();
@@ -141,7 +143,9 @@ public sealed class TtsPlayerService : ITtsPlayerService
             }
 
             if (!wasUserStopped)
+            {
                 PlaybackFinished?.Invoke(this, EventArgs.Empty);
+            }
 
             tcs.TrySetResult(true);
         };
@@ -173,7 +177,10 @@ public sealed class TtsPlayerService : ITtsPlayerService
         lock (_lock)
         {
             if (_state != State.Playing || _waveOut is null)
+            {
                 return;
+            }
+
             _waveOut.Pause();
             _state = State.Paused;
         }
@@ -185,7 +192,10 @@ public sealed class TtsPlayerService : ITtsPlayerService
         lock (_lock)
         {
             if (_state != State.Paused || _waveOut is null)
+            {
                 return;
+            }
+
             _waveOut.Play();
             _state = State.Playing;
         }
@@ -202,7 +212,9 @@ public sealed class TtsPlayerService : ITtsPlayerService
         lock (_lock)
         {
             if (_state == State.Idle || _waveOut is null)
+            {
                 return;
+            }
 
             _userStopped = true;
             _state = State.Idle;
@@ -238,7 +250,10 @@ public sealed class TtsPlayerService : ITtsPlayerService
     public void Dispose()
     {
         if (_disposed)
+        {
             return;
+        }
+
         _disposed = true;
         Stop();
     }

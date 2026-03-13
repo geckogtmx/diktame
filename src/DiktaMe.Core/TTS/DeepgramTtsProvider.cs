@@ -37,7 +37,9 @@ public sealed class DeepgramTtsProvider : ITTSProvider
     public DeepgramTtsProvider(string apiKey, string model = "aura-asteria-en", HttpClient? httpClient = null)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
+        {
             throw new ArgumentException("Deepgram API key must not be empty.", nameof(apiKey));
+        }
 
         _apiKey = apiKey;
         _model = model;
@@ -56,7 +58,9 @@ public sealed class DeepgramTtsProvider : ITTSProvider
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(text))
+        {
             return EmptyResult();
+        }
 
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -100,7 +104,9 @@ public sealed class DeepgramTtsProvider : ITTSProvider
             sw.Stop();
 
             if (audioBytes.Length == 0)
+            {
                 return EmptyResult();
+            }
 
             // linear16 = 2 bytes per sample, mono
             var duration = TimeSpan.FromSeconds(audioBytes.Length / 2.0 / SampleRate);
@@ -159,7 +165,11 @@ public sealed class DeepgramTtsProvider : ITTSProvider
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _http.Dispose();
     }

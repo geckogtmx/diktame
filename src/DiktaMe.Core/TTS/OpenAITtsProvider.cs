@@ -41,7 +41,9 @@ public sealed class OpenAITtsProvider : ITTSProvider
     public OpenAITtsProvider(string apiKey, string model = "tts-1", double speed = 1.0, HttpClient? httpClient = null)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
+        {
             throw new ArgumentException("OpenAI API key must not be empty.", nameof(apiKey));
+        }
 
         _apiKey = apiKey;
         _model = model;
@@ -61,7 +63,9 @@ public sealed class OpenAITtsProvider : ITTSProvider
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(text))
+        {
             return EmptyResult();
+        }
 
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -108,7 +112,9 @@ public sealed class OpenAITtsProvider : ITTSProvider
             sw.Stop();
 
             if (audioBytes.Length == 0)
+            {
                 return EmptyResult();
+            }
 
             // PCM: 24 kHz, 16-bit signed, mono → 2 bytes per sample
             var duration = TimeSpan.FromSeconds(audioBytes.Length / 2.0 / SampleRate);
@@ -167,7 +173,11 @@ public sealed class OpenAITtsProvider : ITTSProvider
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _http.Dispose();
     }

@@ -29,7 +29,9 @@ public sealed class TTSProviderFactory : ITTSProviderFactory, IDisposable
 
         // Stateless — no caching needed
         if (type is "none" or "skip")
+        {
             return new NullTtsProvider();
+        }
 
         string variant = modelVariant ?? ResolveVariant(type);
         string cacheKey = $"{type}:{variant}";
@@ -42,9 +44,13 @@ public sealed class TTSProviderFactory : ITTSProviderFactory, IDisposable
         });
 
         if (isNew)
+        {
             Log.Information("TTSProviderFactory: created {CacheKey}", cacheKey);
+        }
         else
+        {
             Log.Debug("TTSProviderFactory: cache hit {CacheKey}", cacheKey);
+        }
 
         return provider;
     }
@@ -89,7 +95,9 @@ public sealed class TTSProviderFactory : ITTSProviderFactory, IDisposable
     {
         string? key = _secureStorage.RetrieveKey(providerName);
         if (string.IsNullOrWhiteSpace(key))
+        {
             throw new InvalidOperationException($"{providerName} API key not configured.");
+        }
 
         return factory(key);
     }
@@ -99,7 +107,9 @@ public sealed class TTSProviderFactory : ITTSProviderFactory, IDisposable
         foreach (var provider in _cache.Values)
         {
             if (provider is IDisposable disposable)
+            {
                 disposable.Dispose();
+            }
         }
         _cache.Clear();
     }

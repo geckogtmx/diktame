@@ -20,7 +20,7 @@ public sealed class KokoroModelManager
     private static readonly IReadOnlyDictionary<string, (string FileName, long ApproxSizeMb)> ModelMap =
         new Dictionary<string, (string, long)>(StringComparer.OrdinalIgnoreCase)
         {
-            ["gpu"]  = ("kokoro-quant-gpu.onnx", 169),
+            ["gpu"] = ("kokoro-quant-gpu.onnx", 169),
             ["int8"] = ("kokoro-quant-convinteger.onnx", 88),
             ["fp16"] = ("kokoro-quant.onnx", 169),
             ["fp32"] = ("kokoro.onnx", 310),
@@ -41,7 +41,9 @@ public sealed class KokoroModelManager
     public KokoroModelManager(string variant = "int8")
     {
         if (!ModelMap.ContainsKey(variant))
+        {
             throw new ArgumentException($"Unknown Kokoro model variant: '{variant}'. Valid: gpu, int8, fp16, fp32.", nameof(variant));
+        }
 
         _variant = variant;
         var (fileName, _) = ModelMap[variant];
@@ -122,14 +124,26 @@ public sealed class KokoroModelManager
         {
             Log.Error(ex, "KokoroModelManager: download failed ({ExType})", ex.GetType().Name);
             // Clean up partial download
-            try { if (File.Exists(tempPath)) File.Delete(tempPath); }
+            try
+            {
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+            }
             catch { /* best effort */ }
             throw;
         }
         catch
         {
             // Clean up on cancellation
-            try { if (File.Exists(tempPath)) File.Delete(tempPath); }
+            try
+            {
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+            }
             catch { /* best effort */ }
             throw;
         }

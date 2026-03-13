@@ -122,7 +122,9 @@ public sealed class TtsPlayerServiceTests : IDisposable
     public async Task PlayAsync_ShortAudio_RaisesStartedAndFinished()
     {
         if (!HasAudioOutputDevice())
+        {
             return;
+        }
 
         var started = false;
         var finished = false;
@@ -140,7 +142,9 @@ public sealed class TtsPlayerServiceTests : IDisposable
     public async Task Stop_DuringPlayback_RaisesStoppedNotFinished()
     {
         if (!HasAudioOutputDevice())
+        {
             return;
+        }
 
         var stopped = false;
         var finished = false;
@@ -166,7 +170,9 @@ public sealed class TtsPlayerServiceTests : IDisposable
     public async Task PlayAsync_Cancellation_StopsPlayback()
     {
         if (!HasAudioOutputDevice())
+        {
             return;
+        }
 
         using var cts = new CancellationTokenSource();
         var pcm = GenerateTestPcm(sampleRate: 22050, durationSeconds: 2.0);

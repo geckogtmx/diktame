@@ -18,7 +18,9 @@ public static partial class TextCleaner
     public static string CleanForSpeech(string text, int maxWords = 500)
     {
         if (string.IsNullOrWhiteSpace(text))
+        {
             return string.Empty;
+        }
 
         var result = text;
 
@@ -45,7 +47,9 @@ public static partial class TextCleaner
         result = result.Trim();
 
         if (maxWords > 0)
+        {
             result = Truncate(result, maxWords);
+        }
 
         return result;
     }
@@ -208,11 +212,15 @@ public static partial class TextCleaner
     {
         var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (words.Length <= maxWords)
+        {
             return text;
+        }
 
         var truncated = string.Join(' ', words.Take(maxWords));
         if (!truncated.EndsWith('.'))
+        {
             truncated += ".";
+        }
         return truncated + " Full text has been injected.";
     }
 }
