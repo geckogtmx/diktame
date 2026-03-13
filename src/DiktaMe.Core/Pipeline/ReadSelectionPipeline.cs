@@ -94,8 +94,10 @@ public sealed class ReadSelectionPipeline
             SetState(PipelineState.Speaking);
             _player.Volume = ttsSettings.VolumePercent / 100f;
 
+            var playSw = Stopwatch.StartNew();
             await _player.PlayAsync(ttsResult.AudioData, ttsResult.SampleRate, cancellationToken)
                 .ConfigureAwait(false);
+            playSw.Stop();
 
             total.Stop();
             SetState(PipelineState.Idle);
@@ -107,6 +109,7 @@ public sealed class ReadSelectionPipeline
                 Mode = Mode,
                 IsSuccess = true,
                 ProcessingMs = synthSw.ElapsedMilliseconds,
+                TtsPlayedMs = synthSw.ElapsedMilliseconds + playSw.ElapsedMilliseconds,
                 TotalMs = total.ElapsedMilliseconds,
             };
             Completed?.Invoke(this, result);

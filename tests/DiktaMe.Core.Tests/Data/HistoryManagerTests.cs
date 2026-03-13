@@ -65,6 +65,31 @@ public sealed class HistoryManagerTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task LogSessionAsync_PersistsTtsPlayedMs()
+    {
+        await _history.InitAsync();
+
+        var result = new PipelineResult
+        {
+            Text = "spoken text",
+            Mode = "ask",
+            IsSuccess = true,
+            TotalMs = 2000,
+            TtsPlayedMs = 1234,
+        };
+
+        await _history.LogSessionAsync(result);
+
+        // Read raw column value via direct SQL
+        using var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_dbPath}");
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT tts_played_ms FROM history ORDER BY id DESC LIMIT 1";
+        var value = await cmd.ExecuteScalarAsync();
+        Assert.Equal(1234L, (long)value!);
+    }
+
+    [Fact]
     public async Task LogSessionAsync_GhostLevel_LogsNothing()
     {
         await _settings.UpdateAsync(new AppSettings

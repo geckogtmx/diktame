@@ -109,11 +109,11 @@ public sealed class HistoryManager : IDisposable
             INSERT INTO history
                 (timestamp, mode, text, raw_transcript, stt_provider, llm_provider,
                  word_count, transcription_ms, processing_ms, injection_ms, total_ms, is_success,
-                 recording_ms, audio_duration_s, tokens_per_sec, error_message)
+                 recording_ms, audio_duration_s, tokens_per_sec, error_message, tts_played_ms)
             VALUES
                 ($ts, $mode, $text, $raw, $stt, $llm,
                  $words, $trans_ms, $proc_ms, $inj_ms, $total_ms, $success,
-                 $rec_ms, $audio_dur, $tok_sec, $err_msg)
+                 $rec_ms, $audio_dur, $tok_sec, $err_msg, $tts_ms)
             """;
 
         cmd.Parameters.AddWithValue("$ts", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
@@ -132,6 +132,7 @@ public sealed class HistoryManager : IDisposable
         cmd.Parameters.AddWithValue("$audio_dur", result.AudioDurationSec.HasValue ? result.AudioDurationSec.Value : (object)DBNull.Value);
         cmd.Parameters.AddWithValue("$tok_sec", result.TokensPerSec.HasValue ? result.TokensPerSec.Value : (object)DBNull.Value);
         cmd.Parameters.AddWithValue("$err_msg", result.ErrorMessage ?? (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("$tts_ms", result.TtsPlayedMs);
 
         await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -215,6 +216,7 @@ public sealed class HistoryManager : IDisposable
             "ALTER TABLE history ADD COLUMN audio_duration_s REAL",
             "ALTER TABLE history ADD COLUMN tokens_per_sec REAL",
             "ALTER TABLE history ADD COLUMN error_message TEXT",
+            "ALTER TABLE history ADD COLUMN tts_played_ms INTEGER NOT NULL DEFAULT 0",
         ];
 
         foreach (string ddl in newColumns)

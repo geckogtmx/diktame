@@ -4,7 +4,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 949 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
+| **Tests** | 950 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | 0 errors, 0 warnings |
 | **CI** | Passing on main |
 | **Branch** | main |
@@ -173,9 +173,9 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 | **SPEC_011 Ollama Settings page** | Model list ✅, search/view ✅, pull ✅, delete (needs test), service restart (needs retest after fixes), VRAM display (needs test), warmup ✅ |
 | **Refine on Antigravity** | `CaptureSelection` times out — app-specific accessibility issue, separate investigation |
 
-### Known Gap: TTS Not Persisted to DB
+### ~~Known Gap: TTS Not Persisted to DB~~ ✅ Fixed
 
-`PipelineResult.TtsPlayedMs` field exists but is never written to the SQLite history table (`DictationHistory`). TTS latency is logged to Serilog files only (`%APPDATA%\DiktaMe\logs\diktame_YYYY-MM-DD.log`). Adding a `TtsPlayedMs` column to the history schema is a future task.
+`tts_played_ms` column added to SQLite history table. Ask, Translate, and ReadSelection pipelines now persist TTS latency. Notification TTS wired via `ShowToast` → `SpeakIfEnabledAsync("notification")` with `suppressTts` to prevent double-speak on Ask answers.
 
 ### Tier 2 — Post-local-mode
 

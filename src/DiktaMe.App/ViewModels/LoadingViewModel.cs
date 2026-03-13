@@ -985,19 +985,32 @@ public sealed partial class LoadingViewModel : ObservableObject
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
 
+            // TTS before DB write so we can capture timing
+            long ttsMs = 0;
+            if (result.IsSuccess)
+            {
+                ttsMs = await _ttsSpeaker.SpeakIfEnabledAsync(
+                    result.Text, "ask", _recordingCts?.Token ?? CancellationToken.None);
+                if (ttsMs > 0)
+                    Log.Information("Ask: TTS played in {TtsMs}ms", ttsMs);
+            }
+
             // Notify ControlPanel of pipeline completion (for telemetry)
-            _controlPanel.OnPipelineCompleted(this, result);
+            _controlPanel.OnPipelineCompleted(this,
+                ttsMs > 0 ? result with { TtsPlayedMs = ttsMs } : result);
 
             if (result.IsSuccess)
             {
                 Log.Information("Ask: Answer = {Answer}", result.Text);
 
                 // Route output based on user preference
+                // Suppress notification TTS if the answer was already spoken by Ask TTS
+                bool alreadySpoken = ttsMs > 0;
                 AskOutputMode outputMode = _settings.Current.General.AskOutput;
                 switch (outputMode)
                 {
                     case AskOutputMode.ToastOnly:
-                        _notifications.ShowToast("Answer", result.Text, NotificationType.Success);
+                        _notifications.ShowToast("Answer", result.Text, NotificationType.Success, suppressTts: alreadySpoken);
                         break;
 
                     case AskOutputMode.ClipboardOnly:
@@ -1015,19 +1028,13 @@ public sealed partial class LoadingViewModel : ObservableObject
 
                     case AskOutputMode.ClipboardAndToast:
                         ClipboardManager.SetText(result.Text);
-                        _notifications.ShowToast("Answer (copied)", result.Text, NotificationType.Success);
+                        _notifications.ShowToast("Answer (copied)", result.Text, NotificationType.Success, suppressTts: alreadySpoken);
                         break;
 
                     default:
-                        _notifications.ShowToast("Answer", result.Text, NotificationType.Success);
+                        _notifications.ShowToast("Answer", result.Text, NotificationType.Success, suppressTts: alreadySpoken);
                         break;
                 }
-
-                // TTS: speak the answer aloud if enabled (SPEC_003 Phase D)
-                long ttsMs = await _ttsSpeaker.SpeakIfEnabledAsync(
-                    result.Text, "ask", _recordingCts?.Token ?? CancellationToken.None);
-                if (ttsMs > 0)
-                    Log.Information("Ask: TTS played in {TtsMs}ms", ttsMs);
             }
             else
             {
@@ -1092,18 +1099,23 @@ public sealed partial class LoadingViewModel : ObservableObject
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
 
+            // TTS before DB write so we can capture timing
+            long ttsMs = 0;
+            if (result.IsSuccess)
+            {
+                ttsMs = await _ttsSpeaker.SpeakIfEnabledAsync(
+                    result.Text, "translate", _recordingCts?.Token ?? CancellationToken.None);
+                if (ttsMs > 0)
+                    Log.Information("Translate: TTS played in {TtsMs}ms", ttsMs);
+            }
+
             // Notify ControlPanel of pipeline completion (for telemetry)
-            _controlPanel.OnPipelineCompleted(this, result);
+            _controlPanel.OnPipelineCompleted(this,
+                ttsMs > 0 ? result with { TtsPlayedMs = ttsMs } : result);
 
             if (result.IsSuccess)
             {
                 Log.Information("Translate: Success, {Chars} chars", result.Text.Length);
-
-                // TTS: speak the translation aloud if enabled (SPEC_003 Phase D)
-                long ttsMs = await _ttsSpeaker.SpeakIfEnabledAsync(
-                    result.Text, "translate", _recordingCts?.Token ?? CancellationToken.None);
-                if (ttsMs > 0)
-                    Log.Information("Translate: TTS played in {TtsMs}ms", ttsMs);
             }
             else
             {

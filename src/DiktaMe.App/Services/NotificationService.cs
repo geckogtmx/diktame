@@ -39,7 +39,8 @@ public sealed partial class NotificationService
     /// <summary>
     /// Shows a silent Windows toast notification (visual only, no sound).
     /// </summary>
-    public void ShowToast(string title, string message, NotificationType type = NotificationType.Info)
+    /// <param name="suppressTts">Skip TTS for this toast (e.g. when the caller already spoke the content).</param>
+    public void ShowToast(string title, string message, NotificationType type = NotificationType.Info, bool suppressTts = false)
     {
         try
         {
@@ -48,6 +49,12 @@ public sealed partial class NotificationService
                 .AddText(message)
                 .AddAudio(new Uri("ms-winsoundevent:Notification.Default"), silent: true)
                 .Show();
+
+            // TTS: speak notification aloud if enabled (fire-and-forget, errors handled internally)
+            if (!suppressTts)
+            {
+                _ = _ttsSpeaker.SpeakIfEnabledAsync($"{title}. {message}", "notification");
+            }
         }
         catch (Exception ex)
         {
