@@ -530,7 +530,7 @@ input/output token counts from API usage fields.
 **Created:** `DiktaMe.Core/Config/AppSettings.cs`, `SettingsManager.cs`, `ProfileManager.cs`, `PromptRepository.cs`, `STTProviderFactory.cs`, `LLMProviderFactory.cs`, `PipelineFactory.cs`
 
 - `AppSettings`: strongly-typed record with `GeneralSettings`, `AudioSettings`, `PrivacySettings`, `HotkeySettings`, `ModeSettings` dictionary (8 modes × 2 profiles keyed `"{mode}_{profile}"`), 16-slot `CustomPrompts[]`, `ActiveProfile`, `NotesFilePath`, `OllamaModel`; `AppSettingsContext` source-generated JSON context for trim compatibility
-- `SettingsManager`: persists to `%APPDATA%\DiktaMe\settings.json`; atomic write (`.tmp` → rename); `MergeDefaults()` for schema upgrades; `TryMigrateFromV1Async()` for dIKtate V1 electron-store migration; observable `Current` property + `SettingsChanged` event
+- `SettingsManager`: persists to `%APPDATA%\DiktaMe\settings.json`; atomic write (`.tmp` → rename); `MergeDefaults()` for schema upgrades; observable `Current` property + `SettingsChanged` event
 - `ProfileManager`: dual-profile with `GetModeSettings(mode)` returning active profile's settings
 - `PromptRepository`: CRUD over 16 prompt slots
 - `STTProviderFactory` / `LLMProviderFactory`: runtime provider construction from settings + `SecureStorage` API keys; `LLMProviderFactory` includes `NullLlmProvider` for "none"/"skip" modes
@@ -770,7 +770,7 @@ input/output token counts from API usage fields.
 | NoteWriterTests | 8 | Append, dir creation, empty no-op, timestamp format, cancellation |
 | MetricsCollectorTests | 7 | Session accumulation, average latency, failed-skip, SessionStats record |
 | ClipboardManagerTests | 7 | Set/get, Unicode, save/restore |
-| SettingsManagerTests | 13 | Defaults, round-trip, atomic write, corrupt JSON, V1 migration, SettingsChanged event |
+| SettingsManagerTests | 13 | Defaults, round-trip, atomic write, corrupt JSON, SettingsChanged event |
 | LLMRouterTests | 7 | Primary/fallback routing |
 | GeminiProviderTests | 6 | Auth, model, response parsing |
 | OllamaProviderTests | 6 | Availability, localhost, warmup |
@@ -827,7 +827,7 @@ Filter in CI: `dotnet test --filter "Category!=Integration&Category!=Hardware"`
 
 ---
 
-### Work Stream H: Distribution & Migration (Priority: MEDIUM)
+### Work Stream H: Distribution (Priority: MEDIUM)
 
 #### Task H.1: Installer (MSIX or Inno Setup)
 **Effort:** 1 day
@@ -843,13 +843,6 @@ Filter in CI: `dotnet test --filter "Category!=Integration&Category!=Hardware"`
 4. Register auto-start in Windows Task Scheduler
 5. File associations (if needed)
 
-#### Task H.2: V1 → V2 Migration ✅ (N/A — by design)
-
-**Status:** Complete / Not Applicable. V2 is a clean-slate rewrite:
-- Settings migration handled by J.3 (`SettingsMigration`) for V2 format evolution
-- API keys: Electron `safeStorage` uses process-specific DPAPI context — cannot be decrypted from C#. Users re-enter keys via Configuration Wizard (F.3), which is the intended first-run flow
-- History DB: Same SQLite schema at same `%APPDATA%` path — preserved automatically
-- Custom prompts: Carried forward via `PromptRepository`
 
 ---
 
@@ -890,7 +883,7 @@ Week 4: Testing + Distribution
 ├── Day 18:    I.5 (Ollama Management — finish) + I.6 (Website Rebrand)
 ├── Day 19-20: G.1 (Tests — complete 170+ including promoted feature tests)
 ├── Day 21:    G.2 (CI/CD) + H.1 (Installer)
-├── Day 22:    H.2 (Migration) + Manual QA
+├── Day 22:    Manual QA
 └── Day 23:    Final polish, README update, release prep
                 → Tag: v2.0.0-rc1 → v2.0.0 (release)
 ```
@@ -909,7 +902,7 @@ Week 4: Testing + Distribution
 | IL trimming breaks runtime behavior | Low | Using `TrimMode=partial` (safe default); trim-incompatible packages rooted as `TrimmerRootAssembly` |
 | NAudio API differences from PyAudio | Low | NAudio is mature, well-documented, widely used |
 | Whisper.net model quality vs faster-whisper | Medium | Benchmark early; keep Python sidecar as fallback option |
-| V1 settings migration edge cases | Low | Validate with actual V1 config files from dev machine |
+
 | Global hotkey conflicts on user machines | Low | Same risk as V1; handle gracefully with notification |
 
 ---

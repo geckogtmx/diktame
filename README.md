@@ -126,7 +126,6 @@ dotnet test DiktaMe.sln
 
 ⏳ **Unified Wallet System:** Credits & BYOK prep (`SPEC_008_WALLET.md`)
 ⏳ **Installer:** MSIX or Inno Setup (~70MB compressed)
-⏳ **V1 Migration:** Detect V1 settings, migrate to V2 format
 
 ---
 

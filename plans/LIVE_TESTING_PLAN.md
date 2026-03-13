@@ -863,8 +863,7 @@ E:\git\diktame\
 ### Phase 4: Post-Testing
 
 13. ✅ **Installer (Task H.1):** After polish is complete, create installer
-14. ✅ **V1 Migration (Task H.2):** Test migration from V1 to V2
-15. ✅ **Final QA:** Smoke test installer on clean machine
+14. ✅ **Final QA:** Smoke test installer on clean machine
 16. ✅ **Release Prep:** Update README, CHANGELOG, website
 
 ---

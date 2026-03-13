@@ -322,7 +322,7 @@ All testing artifacts are **gitignored** and won't appear in commits:
 
 When all tests pass and bugs are fixed, you'll be ready for:
 - **Installer Creation** (Task H.1)
-- **V1 Migration Testing** (Task H.2)
+
 - **Final Release** (v2.0.0)
 
 Good luck! 🚀

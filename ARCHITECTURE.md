@@ -665,18 +665,7 @@ All commits go directly to `main`. No feature branches, no PRs. Single contribut
 | `v2.0.0-rc1` | Tests pass, installer works |
 | `v2.0.0` | 🚀 Ship |
 
----
 
-## 13. V1 Migration Path
-
-When V2 reaches feature parity, a migration path exists for V1 users:
-
-1. Detect V1 installation (`%APPDATA%/diktate/config.json`)
-2. Convert V1 `electron-store` settings → V2 `AppSettings` format
-3. Migrate API keys from Electron `safeStorage` → DPAPI
-4. Preserve SQLite history database (same schema)
-5. Preserve custom prompts, hotkey bindings, privacy settings
-6. Show "Welcome to V2" migration summary
 
 ---
 
