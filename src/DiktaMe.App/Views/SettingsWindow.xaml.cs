@@ -5,7 +5,7 @@ using Serilog;
 
 namespace DiktaMe.App.Views;
 /// <summary>
-/// Tabbed settings window with NavigationView sidebar.
+/// Tabbed settings window with NavigationView sidebar (8 items).
 /// </summary>
 public sealed partial class SettingsWindow : Window
 {
@@ -22,12 +22,10 @@ public sealed partial class SettingsWindow : Window
             AppWindow.SetIcon(iconPath);
         }
 
-        // Wire PaneFooter click → navigate to Account page (not in nav menu)
+        // Wire PaneFooter click → sync nav selection to Account item
         UserFooter.NavigateToAccountRequested += () =>
         {
-            // Deselect any nav item so user sees the Account page is "special"
-            NavView.SelectedItem = null;
-            ContentFrame.Navigate(typeof(Settings.AccountSettingsPage));
+            NavView.SelectedItem = NavAccountItem;
         };
 
         // Select General (first item) on load
@@ -45,17 +43,12 @@ public sealed partial class SettingsWindow : Window
         Type? pageType = tag switch
         {
             "general" => typeof(Settings.GeneralSettingsPage),
+            "hardware" => typeof(Settings.HardwareSettingsPage),
             "aiengine" => typeof(Settings.AIEngineSettingsPage),
-            "modes" => typeof(Settings.ModesSettingsPage),
-            "dictationmodes" => typeof(Settings.DictationModesSettingsPage),
-            "audio" => typeof(Settings.AudioSettingsPage),
-            "tts" => typeof(Settings.TtsSettingsPage),
-            "hotkeys" => typeof(Settings.HotkeysSettingsPage),
-            "privacy" => typeof(Settings.PrivacySettingsPage),
-            "apikeys" => typeof(Settings.ApiKeysSettingsPage),
-            "ollama" => typeof(Settings.OllamaSettingsPage),
+            "workflows" => typeof(Settings.WorkflowsSettingsPage),
             "snippets" => typeof(Settings.SnippetsSettingsPage),
-            "controlpanel" => typeof(Settings.ControlPanelConfigPage),
+            "privacy" => typeof(Settings.PrivacySettingsPage),
+            "account" => typeof(Settings.AccountSettingsPage),
             "about" => typeof(Settings.AboutPage),
             _ => typeof(Settings.GeneralSettingsPage),
         };

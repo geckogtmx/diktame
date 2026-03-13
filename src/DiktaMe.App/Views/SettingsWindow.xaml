@@ -22,9 +22,9 @@
                     <FontIcon Glyph="&#xE713;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_Hotkeys" Tag="hotkeys">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Hardware" Tag="hardware">
                 <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE765;"/>
+                    <FontIcon Glyph="&#xE720;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
             <muxc:NavigationViewItem l:Uids.Uid="Nav_AIEngine" Tag="aiengine">
@@ -32,39 +32,9 @@
                     <FontIcon Glyph="&#xE774;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_DictationPresets" Tag="dictationmodes">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE70F;"/>
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_Modes" Tag="modes">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Workflows" Tag="workflows">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE762;"/>
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_Audio" Tag="audio">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE720;"/>
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_Tts" Tag="tts">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE767;"/>
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_Privacy" Tag="privacy">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE72E;"/>
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_ApiKeys" Tag="apikeys">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE8D7;"/>
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_Ollama" Tag="ollama">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE968;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
             <muxc:NavigationViewItem l:Uids.Uid="Nav_Snippets" Tag="snippets">
@@ -72,9 +42,14 @@
                     <FontIcon Glyph="&#xE8FD;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_ControlPanel" Tag="controlpanel">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Privacy" Tag="privacy">
                 <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE7B5;"/>
+                    <FontIcon Glyph="&#xE72E;"/>
+                </muxc:NavigationViewItem.Icon>
+            </muxc:NavigationViewItem>
+            <muxc:NavigationViewItem x:Name="NavAccountItem" l:Uids.Uid="Nav_Account" Tag="account">
+                <muxc:NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE77B;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
             <muxc:NavigationViewItem l:Uids.Uid="Nav_About" Tag="about">
