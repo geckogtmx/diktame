@@ -83,6 +83,22 @@
   <data name="Nav_About.Content" xml:space="preserve">
     <value>About</value>
   </data>
+  <data name="Nav_Hardware.Content" xml:space="preserve">
+    <value>Hardware &amp; Hotkeys</value>
+  </data>
+  <data name="Nav_Workflows.Content" xml:space="preserve">
+    <value>Workflows &amp; Modes</value>
+  </data>
+  <data name="Nav_Account.Content" xml:space="preserve">
+    <value>Account</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > Hardware (SPEC_012)
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_Hardware_Title.Text" xml:space="preserve">
+    <value>Hardware &amp; Hotkeys</value>
+  </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > General

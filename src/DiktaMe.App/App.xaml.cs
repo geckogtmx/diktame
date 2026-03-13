@@ -532,6 +532,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.Settings.OllamaSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.SnippetsSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.ControlPanelConfigViewModel>();
+        services.AddTransient<ViewModels.Settings.HardwareSettingsViewModel>(); // SPEC_012: Hardware & Hotkeys host
         services.AddTransient<ViewModels.WizardViewModel>();
         services.AddSingleton<ViewModels.LoadingViewModel>();
         services.AddSingleton<ViewModels.QuickChatViewModel>();
