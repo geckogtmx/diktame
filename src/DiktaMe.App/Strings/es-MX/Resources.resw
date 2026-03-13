@@ -74,6 +74,8 @@
        Settings > General
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_General_Title.Text" xml:space="preserve"><value>General</value></data>
+  <data name="Settings_General_Sub_Application" xml:space="preserve"><value>Aplicaci&#243;n</value></data>
+  <data name="Settings_General_Sub_Behavior" xml:space="preserve"><value>Comportamiento</value></data>
   <data name="Settings_General_UiLanguage_Label.Text" xml:space="preserve"><value>Idioma de la Interfaz</value></data>
   <data name="Settings_General_UiLanguage_Description.Text" xml:space="preserve"><value>Idioma de la interfaz (requiere reinicio)</value></data>
   <data name="Settings_General_Language_Label.Text" xml:space="preserve"><value>Idioma de Transcripci&#243;n</value></data>

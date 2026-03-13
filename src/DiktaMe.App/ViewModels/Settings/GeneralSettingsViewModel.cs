@@ -1,4 +1,5 @@
 
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -14,32 +15,64 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     private readonly LocalizationService _loc;
     private bool _isLoading;
 
-    [ObservableProperty]
-    private int _selectedUiLanguageIndex;
+    // ── Inner list ───────────────────────────────────────────────────────
+
+    public ObservableCollection<ModeListItem> SubItems { get; } = [];
 
     [ObservableProperty]
-    private int _selectedLanguageIndex;
+    private int _selectedIndex = -1;
+
+    [ObservableProperty]
+    private bool _hasSelection;
+
+    [ObservableProperty]
+    private bool _isApplicationSelected;
+
+    [ObservableProperty]
+    private bool _isBehaviorSelected;
+
+    // ── Application fields ───────────────────────────────────────────────
+
+    [ObservableProperty]
+    private int _selectedUiLanguageIndex;
 
     [ObservableProperty]
     private bool _autoStart;
 
     [ObservableProperty]
-    private bool _soundFeedback = true;
-
-    [ObservableProperty]
-    private int _selectedAdditionalKeyIndex;
-
-    [ObservableProperty]
-    private bool _trailingSpace = true;
-
-    [ObservableProperty]
     private bool _showRestartWarning;
+
+    // ── Control Panel fields (absorbed from ControlPanelConfigViewModel) ─
+
+    [ObservableProperty]
+    private bool _showModesRow = true;
+
+    [ObservableProperty]
+    private bool _showActionsRow = true;
+
+    [ObservableProperty]
+    private bool _showSessionStats = true;
+
+    [ObservableProperty]
+    private bool _showPerformanceStats = true;
+
+    // ── Behavior fields ──────────────────────────────────────────────────
+
+    [ObservableProperty]
+    private int _selectedLanguageIndex;
 
     public GeneralSettingsViewModel(SettingsManager settings, LocalizationService loc)
     {
         _settings = settings;
         _loc = loc;
+
+        LoadSubItems();
         LoadFromSettings();
+
+        if (SubItems.Count > 0)
+        {
+            SelectedIndex = 0;
+        }
     }
 
     public string[] UiLanguages => [
@@ -54,13 +87,32 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     ];
     public string[] LanguageCodes { get; } = ["en", "es"];
 
-    public string[] AdditionalKeyOptions => [
-        _loc.GetString("Settings_General_AdditionalKey_None"),
-        _loc.GetString("Settings_General_AdditionalKey_Enter"),
-        _loc.GetString("Settings_General_AdditionalKey_Tab"),
-        _loc.GetString("Settings_General_AdditionalKey_Space"),
-    ];
-    public string[] AdditionalKeyCodes { get; } = ["", "Enter", "Tab", "Space"];
+    // ── Sub-item list ───────────────────────────────────────────────────
+
+    private void LoadSubItems()
+    {
+        SubItems.Clear();
+        SubItems.Add(new ModeListItem { Id = "application", Title = _loc.GetString("Settings_General_Sub_Application"), IsDictationMode = false, IsSeparator = false });
+        SubItems.Add(new ModeListItem { Id = "behavior", Title = _loc.GetString("Settings_General_Sub_Behavior"), IsDictationMode = false, IsSeparator = false });
+    }
+
+    partial void OnSelectedIndexChanged(int value)
+    {
+        HasSelection = value >= 0 && value < SubItems.Count;
+
+        if (!HasSelection)
+        {
+            IsApplicationSelected = false;
+            IsBehaviorSelected = false;
+            return;
+        }
+
+        string id = SubItems[value].Id;
+        IsApplicationSelected = id == "application";
+        IsBehaviorSelected = id == "behavior";
+    }
+
+    // ── Load / Save ─────────────────────────────────────────────────────
 
     private void LoadFromSettings()
     {
@@ -69,10 +121,14 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         SelectedUiLanguageIndex = Array.IndexOf(UiLanguageCodes, g.UiLanguage) is var ui and >= 0 ? ui : 0;
         SelectedLanguageIndex = Array.IndexOf(LanguageCodes, g.Language) is var i and >= 0 ? i : 0;
         AutoStart = g.AutoStart;
-        SoundFeedback = g.SoundFeedback;
-        SelectedAdditionalKeyIndex = Array.IndexOf(AdditionalKeyCodes, g.AdditionalKey) is var j and >= 0 ? j : 0;
-        TrailingSpace = g.TrailingSpace;
         ShowRestartWarning = false;
+
+        var cp = _settings.Current.ControlPanel;
+        ShowModesRow = cp.ShowModesRow;
+        ShowActionsRow = cp.ShowActionsRow;
+        ShowSessionStats = cp.ShowSessionStats;
+        ShowPerformanceStats = cp.ShowPerformanceStats;
+
         _isLoading = false;
     }
 
@@ -87,9 +143,10 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
 
     partial void OnSelectedLanguageIndexChanged(int value) => Save();
     partial void OnAutoStartChanged(bool value) => Save();
-    partial void OnSoundFeedbackChanged(bool value) => Save();
-    partial void OnSelectedAdditionalKeyIndexChanged(int value) => Save();
-    partial void OnTrailingSpaceChanged(bool value) => Save();
+    partial void OnShowModesRowChanged(bool value) => Save();
+    partial void OnShowActionsRowChanged(bool value) => Save();
+    partial void OnShowSessionStatsChanged(bool value) => Save();
+    partial void OnShowPerformanceStatsChanged(bool value) => Save();
 
     private void Save()
     {
@@ -107,10 +164,13 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
                 Language = SelectedLanguageIndex >= 0 && SelectedLanguageIndex < LanguageCodes.Length
                     ? LanguageCodes[SelectedLanguageIndex] : "en",
                 AutoStart = AutoStart,
-                SoundFeedback = SoundFeedback,
-                AdditionalKey = SelectedAdditionalKeyIndex >= 0 && SelectedAdditionalKeyIndex < AdditionalKeyCodes.Length
-                    ? AdditionalKeyCodes[SelectedAdditionalKeyIndex] : "",
-                TrailingSpace = TrailingSpace,
+            },
+            ControlPanel = _settings.Current.ControlPanel with
+            {
+                ShowModesRow = ShowModesRow,
+                ShowActionsRow = ShowActionsRow,
+                ShowSessionStats = ShowSessionStats,
+                ShowPerformanceStats = ShowPerformanceStats,
             }
         };
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>

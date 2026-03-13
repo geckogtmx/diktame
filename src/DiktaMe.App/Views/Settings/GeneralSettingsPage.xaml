@@ -4,67 +4,120 @@
       xmlns:l="using:WinUI3Localizer"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <ScrollViewer Padding="24,24,24,32">
-        <StackPanel Spacing="24" MaxWidth="600">
-            <TextBlock l:Uids.Uid="Settings_General_Title" FontSize="24" FontWeight="SemiBold"/>
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/SharedResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
 
-            <!-- UI Language (requires restart) -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Description" FontSize="12" Opacity="0.6"/>
-                <ComboBox ItemsSource="{x:Bind ViewModel.UiLanguages}"
-                          SelectedIndex="{x:Bind ViewModel.SelectedUiLanguageIndex, Mode=TwoWay}"
-                          HorizontalAlignment="Stretch"/>
-                <InfoBar l:Uids.Uid="Settings_General_RestartInfoBar"
-                         Severity="Informational"
-                         IsOpen="{x:Bind ViewModel.ShowRestartWarning, Mode=OneWay}"
-                         IsClosable="False"
-                         Margin="0,4,0,0">
-                    <InfoBar.ActionButton>
-                        <Button l:Uids.Uid="Settings_General_RestartButton"
-                                Command="{x:Bind ViewModel.RestartAppCommand}"/>
-                    </InfoBar.ActionButton>
-                </InfoBar>
-            </StackPanel>
+    <Grid Padding="24" ColumnSpacing="24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-            <!-- Transcription Language -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_General_Language_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_General_Language_Description" FontSize="12" Opacity="0.6"/>
-                <ComboBox ItemsSource="{x:Bind ViewModel.Languages}"
-                          SelectedIndex="{x:Bind ViewModel.SelectedLanguageIndex, Mode=TwoWay}"
-                          HorizontalAlignment="Stretch"/>
-            </StackPanel>
-
-            <!-- Auto-start -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_General_AutoStart_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_General_AutoStart_Description" FontSize="12" Opacity="0.6"/>
-                <ToggleSwitch IsOn="{x:Bind ViewModel.AutoStart, Mode=TwoWay}"/>
-            </StackPanel>
-
-            <!-- Sound Feedback -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_General_SoundFeedback_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_General_SoundFeedback_Description" FontSize="12" Opacity="0.6"/>
-                <ToggleSwitch IsOn="{x:Bind ViewModel.SoundFeedback, Mode=TwoWay}"/>
-            </StackPanel>
-
-            <!-- Additional Key -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_General_AdditionalKey_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_General_AdditionalKey_Description" FontSize="12" Opacity="0.6"/>
-                <ComboBox ItemsSource="{x:Bind ViewModel.AdditionalKeyOptions}"
-                          SelectedIndex="{x:Bind ViewModel.SelectedAdditionalKeyIndex, Mode=TwoWay}"
-                          HorizontalAlignment="Stretch"/>
-            </StackPanel>
-
-            <!-- Trailing Space -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12" Opacity="0.6"/>
-                <ToggleSwitch IsOn="{x:Bind ViewModel.TrailingSpace, Mode=TwoWay}"/>
-            </StackPanel>
+        <!-- Left: Sub-item list -->
+        <StackPanel Spacing="8">
+            <TextBlock l:Uids.Uid="Settings_General_Title" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"/>
+            <ListView ItemsSource="{x:Bind ViewModel.SubItems}"
+                      SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}"
+                      SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Padding="4,6">
+                            <TextBlock Text="{Binding Title}" FontSize="14"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
         </StackPanel>
-    </ScrollViewer>
+
+        <!-- Right: Detail pane -->
+        <ScrollViewer Grid.Column="1" Padding="0,0,16,32">
+            <Grid>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 Application
+                 ═══════════════════════════════════════════════════════════════ -->
+            <StackPanel Spacing="24" MaxWidth="600"
+                        Visibility="{x:Bind ViewModel.IsApplicationSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Application" FontSize="20" FontWeight="SemiBold"/>
+
+                <!-- UI Language (requires restart) -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Description" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.UiLanguages}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedUiLanguageIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                    <InfoBar l:Uids.Uid="Settings_General_RestartInfoBar"
+                             Severity="Informational"
+                             IsOpen="{x:Bind ViewModel.ShowRestartWarning, Mode=OneWay}"
+                             IsClosable="False"
+                             Margin="0,4,0,0">
+                        <InfoBar.ActionButton>
+                            <Button l:Uids.Uid="Settings_General_RestartButton"
+                                    Command="{x:Bind ViewModel.RestartAppCommand}"/>
+                        </InfoBar.ActionButton>
+                    </InfoBar>
+                </StackPanel>
+
+                <!-- Auto-start -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_General_AutoStart_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_General_AutoStart_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.AutoStart, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <!-- Control Panel Configuration -->
+                <TextBlock l:Uids.Uid="Settings_ControlPanel_Title" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                <TextBlock l:Uids.Uid="Settings_ControlPanel_Description" FontSize="13" Opacity="0.6"/>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.ShowModesRow, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.ShowActionsRow, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.ShowSessionStats, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.ShowPerformanceStats, Mode=TwoWay}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 Behavior
+                 ═══════════════════════════════════════════════════════════════ -->
+            <StackPanel Spacing="24" MaxWidth="600"
+                        Visibility="{x:Bind ViewModel.IsBehaviorSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Behavior" FontSize="20" FontWeight="SemiBold"/>
+
+                <!-- Transcription Language -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_General_Language_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_General_Language_Description" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.Languages}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedLanguageIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+            </StackPanel>
+
+            </Grid>
+        </ScrollViewer>
+    </Grid>
 </Page>
