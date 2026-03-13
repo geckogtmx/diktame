@@ -4,7 +4,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 944 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
+| **Tests** | 949 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | 0 errors, 0 warnings |
 | **CI** | Passing on main |
 | **Branch** | main |
@@ -26,6 +26,7 @@
 | **SPEC_011** | Ollama Management Hub — Core API, search service, Settings UI, E2E warmup, 22 new tests |
 | **DOCS_V2** | Exhaustive User documentation (Features & Settings), integrated natively into the Next.js Website via Markdown |
 | **SPEC_003 A–G** | TTS: Core infra, Kokoro local, Read Selection hotkey, pipeline hooks, cloud providers, Settings UI + Control Panel toggle, Phase G polish + E2E bugfixes. 282 new tests. **All 40 tasks complete. E2E verified.** |
+| **SPEC_KOKORO_GPU** | **BLOCKED** — DirectML ConvTranspose incompatibility (ONNX Runtime 1.22.0). GPU variant + UI variant reorder kept. NuGet reverted to KokoroSharp.CPU. 5 new tests. |
 
 ## Open Bugs (Stream K)
 
@@ -54,69 +55,28 @@
 
 ## Current Work
 
-**Active: SPEC_KOKORO_GPU — Kokoro TTS DirectML GPU Acceleration**
+**No active spec.** Ready for next task.
+
+### Recently Blocked: SPEC_KOKORO_GPU — Kokoro TTS DirectML GPU Acceleration
 
 | Detail | Value |
 |--------|-------|
 | **Spec** | `plans/SPEC_KOKORO_GPU.md` |
-| **Goal** | Sub-250ms Kokoro TTS synthesis via DirectML GPU (currently 1,800–5,000ms on CPU) |
-| **NuGet swap** | `KokoroSharp.CPU` 0.6.5 → `KokoroSharp.DirectML` 0.6.5 |
-| **No Whisper conflict** | Whisper.net uses whisper.cpp (P/Invoke), KokoroSharp uses ONNX Runtime — different native stacks |
-| **Status** | Plan written, ready to implement |
+| **Goal** | Sub-250ms Kokoro TTS synthesis via DirectML GPU |
+| **Status** | **BLOCKED** — ONNX Runtime 1.22.0 DirectML EP cannot handle Kokoro's `ConvTranspose` node |
+| **Error** | `OnnxRuntimeException: ConvTranspose node '/encoder/F0.1/pool/ConvTranspose' — 80070057` |
+| **Scope** | ALL model variants (gpu, fp32, fp16, int8) fail with DirectML EP active |
+| **Unblock** | KokoroSharp or ONNX Runtime ships a version fixing DirectML ConvTranspose support |
 
-### What to Do (3 Phases)
+**What was kept from this work (5 new tests, net-positive):**
+- `"gpu"` model variant in `KokoroModelManager` (valid quantization, works on CPU, 169MB)
+- Variant reorder in Settings UI: gpu → fp32 → fp16 → int8 (with descriptive labels)
+- Default variant changed from `"int8"` to `"gpu"` for new installs
+- `KokoroUseGpu` property in `AppSettings.TtsSettings` (inert, avoids settings.json compat issue)
 
-**Phase 1 — NuGet + SessionOptions wiring:**
-1. Swap `KokoroSharp.CPU` → `KokoroSharp.DirectML` in `DiktaMe.Core.csproj`
-2. Add `useGpu` param to `KokoroTtsProvider` constructor (default `true`)
-3. Add `CreateSessionOptions()` — `AppendExecutionProvider_DML()` in try/catch (CPU fallback on failure)
-4. Add `KokoroUseGpu` bool to `TtsSettings` in `AppSettings.cs` (default `true`)
-5. Wire `useGpu` through `TTSProviderFactory.CreateProviderCore()`
-
-**Phase 2 — GPU model variant + Settings UI:**
-1. Add `"gpu"` variant (`kokoro-quant-gpu.onnx`, 169MB) to `KokoroModelManager.ModelMap`
-2. Update `TtsSettingsViewModel` variant labels/keys (reorder: gpu, fp32, fp16, int8)
-3. Add GPU toggle CheckBox to `TtsSettingsPage.xaml`
-4. Add int8+GPU InfoBar warning
-5. Change default variant from `"int8"` to `"gpu"` for new installs
-6. Add `ClearCache()` to `TTSProviderFactory`, call on variant/GPU toggle change
-7. Include GPU state in cache key: `"kokoro:gpu:gpu"` vs `"kokoro:fp32:cpu"`
-
-**Phase 3 — Tests + verification:**
-1. Update `KokoroTtsProviderTests` for `useGpu` parameter
-2. Add `"gpu"` variant tests to `KokoroModelManagerTests`
-3. Build (0 warnings), test (944+ passing)
-4. Manual E2E: Test Voice → check log for `runtime=DirectML`, measure latency
-
-### Key Files to Modify
-
-| File | Change |
-|------|--------|
-| `src/DiktaMe.Core/DiktaMe.Core.csproj` | `KokoroSharp.CPU` → `KokoroSharp.DirectML` |
-| `src/DiktaMe.Core/Config/AppSettings.cs` | Add `KokoroUseGpu`, change default variant to `"gpu"` |
-| `src/DiktaMe.Core/TTS/KokoroTtsProvider.cs` | Add `useGpu` param, `CreateSessionOptions()` with DirectML EP |
-| `src/DiktaMe.Core/TTS/KokoroModelManager.cs` | Add `"gpu"` variant to `ModelMap` |
-| `src/DiktaMe.Core/Config/TTSProviderFactory.cs` | GPU-aware cache key, `ClearCache()` method |
-| `src/DiktaMe.App/ViewModels/Settings/TtsSettingsViewModel.cs` | GPU toggle, updated variant labels, cache clear |
-| `src/DiktaMe.App/Views/Settings/TtsSettingsPage.xaml` | GPU toggle CheckBox, int8+GPU InfoBar warning |
-| `tests/DiktaMe.Core.Tests/TTS/KokoroTtsProviderTests.cs` | Tests for `useGpu` parameter |
-| `tests/DiktaMe.Core.Tests/TTS/KokoroModelManagerTests.cs` | Test `"gpu"` variant |
-
-### Critical Context
-
-- `KokoroModel(string modelPath, SessionOptions options = null)` — already accepts optional SessionOptions
-- DirectML auto-falls back to CPU for unsupported ops — safe default
-- int8 model is **slower on GPU** (2,106ms) than CPU (1,887ms) — must warn users
-- fp32 model (310MB) already downloaded on dev machine — can test immediately
-- GPU-optimized model (`kokoro-quant-gpu.onnx`, 169MB) same performance as fp32 at half the size
-- Rollback: one-line revert `KokoroSharp.DirectML` → `KokoroSharp.CPU`
-- ~210MB publish size increase from `DirectML.dll` + `onnxruntime.dll` (compresses to ~60MB)
-
-### Fallback Plan
-
-1. **User-level:** GPU toggle in Settings → force CPU SessionOptions
-2. **Code-level:** try/catch around `AppendExecutionProvider_DML()` → falls back to CPU automatically
-3. **NuGet-level:** Revert to `KokoroSharp.CPU` in csproj — one-commit revert
+**What was rolled back:**
+- NuGet reverted: `KokoroSharp.DirectML` → `KokoroSharp.CPU`
+- DirectML SessionOptions code, GPU toggle UI, GPU-aware cache key — all removed
 
 ---
 
@@ -236,7 +196,7 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 - `plans/SPEC_009_LOCALFLOW.md` — Local mode E2E spec + GPU investigation (§12)
 - `plans/SPEC_009_FIXES.md` — Wizard + local mode fix tracker (15/16 complete, FIX-1 deferred to SPEC_008)
 - `plans/SPEC_009_TESTING.md` — Manual test scenarios
-- `plans/SPEC_KOKORO_GPU.md` — **Active spec**: Kokoro DirectML GPU acceleration plan
+- `plans/SPEC_KOKORO_GPU.md` — Kokoro DirectML GPU acceleration plan (**BLOCKED** — ConvTranspose incompatibility)
 - `plans/SPEC_003_TTS_V2.md` — TTS implementation plan (40 tasks, 7 phases, complete)
 - `plans/SPEC_003_TTS.md` — TTS research reference (V1 draft, superseded by V2)
 - `plans/SPEC_001_MEETINGS.md` / `SPEC_002_VISION.md` — Post-launch feature specs

@@ -26,8 +26,13 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
 
     public string[] ProviderLabels { get; }
 
-    public static readonly string[] KokoroVariantKeys = ["int8", "fp16", "fp32"];
-    public string[] KokoroVariantLabels { get; } = ["int8 (88 MB)", "fp16 (169 MB)", "fp32 (310 MB)"];
+    public static readonly string[] KokoroVariantKeys = ["gpu", "fp32", "fp16", "int8"];
+    public string[] KokoroVariantLabels { get; } = [
+        "GPU Optimized (169 MB, fastest)",
+        "fp32 (310 MB, best quality)",
+        "fp16 (169 MB, balanced)",
+        "int8 (88 MB, CPU only)",
+    ];
 
     private static readonly Dictionary<string, string[]> VoiceLists = new(StringComparer.OrdinalIgnoreCase)
     {

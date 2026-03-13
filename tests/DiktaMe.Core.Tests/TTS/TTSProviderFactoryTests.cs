@@ -95,6 +95,15 @@ public sealed class TTSProviderFactoryTests : IDisposable
         first.Should().NotBeSameAs(second);
     }
 
+    [Fact]
+    public void CreateProvider_KokoroGpuVariant_ReturnsCachedInstance()
+    {
+        var first = _factory.CreateProvider("kokoro", "gpu");
+        var second = _factory.CreateProvider("kokoro", "gpu");
+
+        first.Should().BeSameAs(second);
+    }
+
     // ── Cloud providers — key present ────────────────────────────────────────
 
     [Fact]

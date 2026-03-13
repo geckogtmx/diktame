@@ -36,7 +36,7 @@ public sealed class KokoroTtsProvider : ITTSProvider
     /// <summary>
     /// Creates a new Kokoro TTS provider.
     /// </summary>
-    /// <param name="modelVariant">Model variant: "int8", "fp16", or "fp32".</param>
+    /// <param name="modelVariant">Model variant: "gpu", "int8", "fp16", or "fp32".</param>
     /// <param name="speed">Speech speed multiplier (0.5–2.0).</param>
     public KokoroTtsProvider(string modelVariant = "int8", float speed = 1.0f)
     {
@@ -153,6 +153,7 @@ public sealed class KokoroTtsProvider : ITTSProvider
             {
                 if (_model is not null) return;
                 var loadSw = Stopwatch.StartNew();
+
                 _model = new KokoroModel(_modelManager.ModelPath);
 
                 if (!_voicesLoaded)

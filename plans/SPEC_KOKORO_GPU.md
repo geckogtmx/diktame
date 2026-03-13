@@ -1,9 +1,29 @@
 # SPEC_KOKORO_GPU: Kokoro TTS DirectML GPU Acceleration
 
-> **Status:** APPROVED — Ready to implement
+> **Status:** BLOCKED — DirectML ConvTranspose incompatibility (ONNX Runtime 1.22.0)
 > **Created:** 2026-03-12
+> **Attempted:** 2026-03-12
 > **Parent:** SPEC_003_V2 (TTS)
 > **Goal:** Sub-250ms Kokoro TTS synthesis via DirectML GPU, with CPU fallback
+>
+> ### Outcome
+>
+> **All 3 phases were implemented and building cleanly (0 errors, 0 warnings, 952 tests).**
+> However, runtime testing revealed that ALL Kokoro ONNX models (gpu, fp32, fp16, int8) fail at inference time when DirectML EP is active:
+>
+> ```
+> OnnxRuntimeException: Non-zero status code returned while running ConvTranspose node.
+> Name:'/encoder/F0.1/pool/ConvTranspose'
+> Status Message: ...80070057 The parameter is incorrect.
+> ```
+>
+> This is a **fundamental incompatibility** between Kokoro's `ConvTranspose` operator and ONNX Runtime 1.22.0's DirectML execution provider. Not fixable in our code.
+>
+> **What was rolled back:** NuGet reverted to `KokoroSharp.CPU`, DirectML SessionOptions code removed, GPU toggle removed from UI.
+>
+> **What was kept:** `"gpu"` model variant (valid CPU quantization, 169MB), variant reorder in UI (gpu/fp32/fp16/int8), default variant changed to `"gpu"` for new installs, `KokoroUseGpu` property in AppSettings (inert, avoids settings.json compat issue), all new tests for gpu variant.
+>
+> **Unblock condition:** KokoroSharp or ONNX Runtime ships a version where DirectML handles Kokoro's ConvTranspose correctly. Monitor [KokoroSharp issues](https://github.com/Lyrcaxis/KokoroSharp/issues) and ONNX Runtime releases.
 
 ---
 

@@ -38,6 +38,7 @@ public sealed class KokoroTtsProviderTests
     }
 
     [Theory]
+    [InlineData("gpu")]
     [InlineData("int8")]
     [InlineData("fp16")]
     [InlineData("fp32")]

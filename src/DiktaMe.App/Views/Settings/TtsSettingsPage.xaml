@@ -141,7 +141,7 @@
                     <TextBlock l:Uids.Uid="Settings_Tts_Kokoro_Variant_Description" FontSize="12" Opacity="0.6"/>
                     <ComboBox ItemsSource="{x:Bind ViewModel.KokoroVariantLabels}"
                               SelectedIndex="{x:Bind ViewModel.SelectedKokoroVariantIndex, Mode=TwoWay}"
-                              MinWidth="200"/>
+                              MinWidth="280"/>
                 </StackPanel>
 
                 <!-- Model Status + Download -->

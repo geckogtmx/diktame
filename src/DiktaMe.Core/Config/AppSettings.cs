@@ -322,8 +322,11 @@ public sealed record TtsSettings
     /// <summary>Speak app notifications aloud (errors, warnings, status).</summary>
     public bool SpeakNotifications { get; init; } = false;
 
-    /// <summary>Kokoro model variant: "int8", "fp16", "fp32".</summary>
-    public string KokoroModelVariant { get; init; } = "int8";
+    /// <summary>Kokoro model variant: "gpu", "int8", "fp16", "fp32".</summary>
+    public string KokoroModelVariant { get; init; } = "gpu";
+
+    /// <summary>Use DirectML GPU acceleration for Kokoro inference.</summary>
+    public bool KokoroUseGpu { get; init; } = true;
 }
 
 /// <summary>

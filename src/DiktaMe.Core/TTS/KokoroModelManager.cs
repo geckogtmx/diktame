@@ -20,6 +20,7 @@ public sealed class KokoroModelManager
     private static readonly IReadOnlyDictionary<string, (string FileName, long ApproxSizeMb)> ModelMap =
         new Dictionary<string, (string, long)>(StringComparer.OrdinalIgnoreCase)
         {
+            ["gpu"]  = ("kokoro-quant-gpu.onnx", 169),
             ["int8"] = ("kokoro-quant-convinteger.onnx", 88),
             ["fp16"] = ("kokoro-quant.onnx", 169),
             ["fp32"] = ("kokoro.onnx", 310),
@@ -40,7 +41,7 @@ public sealed class KokoroModelManager
     public KokoroModelManager(string variant = "int8")
     {
         if (!ModelMap.ContainsKey(variant))
-            throw new ArgumentException($"Unknown Kokoro model variant: '{variant}'. Valid: int8, fp16, fp32.", nameof(variant));
+            throw new ArgumentException($"Unknown Kokoro model variant: '{variant}'. Valid: gpu, int8, fp16, fp32.", nameof(variant));
 
         _variant = variant;
         var (fileName, _) = ModelMap[variant];

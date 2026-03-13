@@ -17,6 +17,7 @@ public sealed class KokoroModelManagerTests
     }
 
     [Theory]
+    [InlineData("gpu")]
     [InlineData("int8")]
     [InlineData("fp16")]
     [InlineData("fp32")]
@@ -29,6 +30,7 @@ public sealed class KokoroModelManagerTests
     // ── ModelPath ────────────────────────────────────────────────────────────
 
     [Theory]
+    [InlineData("gpu", "kokoro-quant-gpu.onnx")]
     [InlineData("int8", "kokoro-quant-convinteger.onnx")]
     [InlineData("fp16", "kokoro-quant.onnx")]
     [InlineData("fp32", "kokoro.onnx")]
@@ -72,6 +74,7 @@ public sealed class KokoroModelManagerTests
     // ── GetApproxSizeMb ──────────────────────────────────────────────────────
 
     [Theory]
+    [InlineData("gpu", 169)]
     [InlineData("int8", 88)]
     [InlineData("fp16", 169)]
     [InlineData("fp32", 310)]
