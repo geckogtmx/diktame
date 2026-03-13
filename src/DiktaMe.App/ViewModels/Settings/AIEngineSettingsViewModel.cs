@@ -1,4 +1,5 @@
 
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DiktaMe.App.Services;
 using DiktaMe.Core.Config;
@@ -9,11 +10,39 @@ using Serilog;
 namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class AIEngineSettingsViewModel : ObservableObject
 {
+    public ApiKeysSettingsViewModel ApiKeys { get; }
+    public OllamaSettingsViewModel Ollama { get; }
+    public TtsSettingsViewModel Tts { get; }
+
     private readonly SettingsManager _settings;
     private readonly LocalizationService _loc;
     private readonly DispatcherQueue _dispatcher;
     private bool _isLoading;
     private CancellationTokenSource? _downloadCts;
+
+    // ── Inner list ───────────────────────────────────────────────────────
+
+    public ObservableCollection<ModeListItem> SubItems { get; } = [];
+
+    [ObservableProperty]
+    private int _selectedIndex = -1;
+
+    [ObservableProperty]
+    private bool _hasSelection;
+
+    [ObservableProperty]
+    private bool _isApiKeysSelected;
+
+    [ObservableProperty]
+    private bool _isSttSelected;
+
+    [ObservableProperty]
+    private bool _isOllamaSelected;
+
+    [ObservableProperty]
+    private bool _isTtsSelected;
+
+    // ── STT/LLM fields ──────────────────────────────────────────────────
 
     [ObservableProperty]
     private int _sttModeIndex; // 0 = Cloud, 1 = Local
@@ -71,12 +100,58 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isDictationEnabled = true;
 
-    public AIEngineSettingsViewModel(SettingsManager settings, LocalizationService loc)
+    public AIEngineSettingsViewModel(
+        ApiKeysSettingsViewModel apiKeys,
+        OllamaSettingsViewModel ollama,
+        TtsSettingsViewModel tts,
+        SettingsManager settings,
+        LocalizationService loc)
     {
+        ApiKeys = apiKeys;
+        Ollama = ollama;
+        Tts = tts;
         _settings = settings;
         _loc = loc;
         _dispatcher = DispatcherQueue.GetForCurrentThread();
+
+        LoadSubItems();
         LoadFromSettings();
+
+        if (SubItems.Count > 0)
+        {
+            SelectedIndex = 0;
+        }
+    }
+
+    // ── Sub-item list ───────────────────────────────────────────────────
+
+    private void LoadSubItems()
+    {
+        SubItems.Clear();
+        SubItems.Add(new ModeListItem { Id = "apikeys", Title = _loc.GetString("Settings_AIEngine_Sub_ApiKeys"), IsDictationMode = false, IsSeparator = false });
+        SubItems.Add(new ModeListItem { Id = "stt", Title = _loc.GetString("Settings_AIEngine_Sub_Stt"), IsDictationMode = false, IsSeparator = false });
+        SubItems.Add(new ModeListItem { Id = "ollama", Title = _loc.GetString("Settings_AIEngine_Sub_Ollama"), IsDictationMode = false, IsSeparator = false });
+        SubItems.Add(new ModeListItem { Id = "tts", Title = _loc.GetString("Settings_AIEngine_Sub_Tts"), IsDictationMode = false, IsSeparator = false });
+    }
+
+    partial void OnSelectedIndexChanged(int value)
+    {
+        HasSelection = value >= 0 && value < SubItems.Count;
+
+        if (!HasSelection)
+        {
+            IsApiKeysSelected = false;
+            IsSttSelected = false;
+            IsOllamaSelected = false;
+            IsTtsSelected = false;
+            return;
+        }
+
+        string id = SubItems[value].Id;
+        IsApiKeysSelected = id == "apikeys";
+        IsSttSelected = id == "stt";
+        IsOllamaSelected = id == "ollama";
+        IsTtsSelected = id == "tts";
     }
 
     public string[] SttModes => [

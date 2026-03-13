@@ -293,6 +293,18 @@
   <data name="Settings_AIEngine_Title.Text" xml:space="preserve">
     <value>AI Engine</value>
   </data>
+  <data name="Settings_AIEngine_Sub_ApiKeys" xml:space="preserve">
+    <value>API Keys</value>
+  </data>
+  <data name="Settings_AIEngine_Sub_Stt" xml:space="preserve">
+    <value>Speech-to-Text</value>
+  </data>
+  <data name="Settings_AIEngine_Sub_Ollama" xml:space="preserve">
+    <value>Local LLM (Ollama)</value>
+  </data>
+  <data name="Settings_AIEngine_Sub_Tts" xml:space="preserve">
+    <value>Text-to-Speech</value>
+  </data>
   <data name="Settings_AIEngine_STT_Label.Text" xml:space="preserve">
     <value>Speech-to-Text (Ears)</value>
   </data>

@@ -125,6 +125,10 @@
        Settings > AI Engine
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_AIEngine_Title.Text" xml:space="preserve"><value>Motor IA</value></data>
+  <data name="Settings_AIEngine_Sub_ApiKeys" xml:space="preserve"><value>Claves API</value></data>
+  <data name="Settings_AIEngine_Sub_Stt" xml:space="preserve"><value>Voz a Texto</value></data>
+  <data name="Settings_AIEngine_Sub_Ollama" xml:space="preserve"><value>LLM Local (Ollama)</value></data>
+  <data name="Settings_AIEngine_Sub_Tts" xml:space="preserve"><value>Texto a Voz</value></data>
   <data name="Settings_AIEngine_STT_Label.Text" xml:space="preserve"><value>Voz a Texto (O&#237;dos)</value></data>
   <data name="Settings_AIEngine_STT_Description.Text" xml:space="preserve"><value>Elija c&#243;mo se transcribe el audio de voz a texto</value></data>
   <data name="Settings_AIEngine_LLM_Label.Text" xml:space="preserve"><value>Modelo de Lenguaje (Cerebro)</value></data>

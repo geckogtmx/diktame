@@ -2,130 +2,665 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:l="using:WinUI3Localizer"
+      xmlns:converters="using:DiktaMe.App.Converters"
+      xmlns:sys="using:DiktaMe.Core.SystemManagement"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <ScrollViewer Padding="24,24,24,32">
-        <StackPanel Spacing="24" MaxWidth="600">
-            <TextBlock l:Uids.Uid="Settings_AIEngine_Title" FontSize="24" FontWeight="SemiBold"/>
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/SharedResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <converters:BoolToVisibilityConverter x:Key="LocalBoolToVis"/>
+            <converters:InverseBoolToVisibilityConverter x:Key="LocalInverseBoolToVis"/>
+            <converters:BoolNegationConverter x:Key="LocalBoolNeg"/>
+        </ResourceDictionary>
+    </Page.Resources>
 
-            <!-- STT Provider Mode -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_STT_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_AIEngine_STT_Description" FontSize="12" Opacity="0.6"/>
-                <ComboBox ItemsSource="{x:Bind ViewModel.SttModes}"
-                          SelectedIndex="{x:Bind ViewModel.SttModeIndex, Mode=TwoWay}"
-                          HorizontalAlignment="Stretch"/>
-            </StackPanel>
+    <Grid Padding="24" ColumnSpacing="24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-            <!-- LLM Provider Mode -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_LLM_Label" FontWeight="SemiBold"/>
-                <TextBlock l:Uids.Uid="Settings_AIEngine_LLM_Description" FontSize="12" Opacity="0.6"/>
-                <ComboBox ItemsSource="{x:Bind ViewModel.LlmModes}"
-                          SelectedIndex="{x:Bind ViewModel.LlmModeIndex, Mode=TwoWay}"
-                          HorizontalAlignment="Stretch"/>
-            </StackPanel>
+        <!-- Left: Sub-item list -->
+        <StackPanel Spacing="8">
+            <TextBlock l:Uids.Uid="Settings_AIEngine_Title" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"/>
+            <ListView ItemsSource="{x:Bind ViewModel.SubItems}"
+                      SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}"
+                      SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Padding="4,6">
+                            <TextBlock Text="{Binding Title}" FontSize="14"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
 
-            <!-- Capability Summary -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_CurrentConfig_Label" FontWeight="SemiBold"/>
-                <Border CornerRadius="4" Padding="12,8"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                    <TextBlock Text="{x:Bind ViewModel.CapabilitySummary, Mode=OneWay}"
-                               FontSize="13" IsTextSelectionEnabled="True"/>
-                </Border>
-            </StackPanel>
-
-            <InfoBar l:Uids.Uid="Settings_AIEngine_InfoBar" IsOpen="True" IsClosable="False" Severity="Informational"/>
+        <!-- Right: Detail pane -->
+        <ScrollViewer Grid.Column="1" Padding="0,0,16,32">
+            <Grid>
 
             <!-- ═══════════════════════════════════════════════════════════════
-                 Whisper (Local STT) Settings — visible when STT = Local
+                 API Keys
                  ═══════════════════════════════════════════════════════════════ -->
-            <StackPanel Spacing="16"
-                        Visibility="{x:Bind ViewModel.IsWhisperSectionVisible, Mode=OneWay}">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Section" FontSize="20" FontWeight="SemiBold" Margin="0,16,0,0"/>
+            <StackPanel Spacing="28" MaxWidth="600"
+                        Visibility="{x:Bind ViewModel.IsApiKeysSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <TextBlock l:Uids.Uid="Settings_ApiKeys_Title" FontSize="20" FontWeight="SemiBold"/>
+                <TextBlock l:Uids.Uid="Settings_ApiKeys_Description" FontSize="12" Opacity="0.6"/>
 
-                <!-- Model -->
+                <!-- OpenAI -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="OpenAI" FontWeight="SemiBold"/>
+                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.OpenAiStatus, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
+                    <PasswordBox Password="{x:Bind ViewModel.ApiKeys.OpenAiKey, Mode=TwoWay}"
+                                 PlaceholderText="sk-..." HorizontalAlignment="Stretch"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Save" Command="{x:Bind ViewModel.ApiKeys.SaveOpenAiKeyCommand}"/>
+                        <Button Content="Delete" Command="{x:Bind ViewModel.ApiKeys.DeleteOpenAiKeyCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Anthropic -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Anthropic" FontWeight="SemiBold"/>
+                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.AnthropicStatus, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
+                    <PasswordBox Password="{x:Bind ViewModel.ApiKeys.AnthropicKey, Mode=TwoWay}"
+                                 PlaceholderText="sk-ant-..." HorizontalAlignment="Stretch"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Save" Command="{x:Bind ViewModel.ApiKeys.SaveAnthropicKeyCommand}"/>
+                        <Button Content="Delete" Command="{x:Bind ViewModel.ApiKeys.DeleteAnthropicKeyCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Gemini -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Gemini" FontWeight="SemiBold"/>
+                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.GeminiStatus, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
+                    <PasswordBox Password="{x:Bind ViewModel.ApiKeys.GeminiKey, Mode=TwoWay}"
+                                 PlaceholderText="AIza..." HorizontalAlignment="Stretch"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Save" Command="{x:Bind ViewModel.ApiKeys.SaveGeminiKeyCommand}"/>
+                        <Button Content="Delete" Command="{x:Bind ViewModel.ApiKeys.DeleteGeminiKeyCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Deepgram -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Deepgram" FontWeight="SemiBold"/>
+                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.DeepgramStatus, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
+                    <PasswordBox l:Uids.Uid="Settings_ApiKeys_DeepgramPlaceholder" Password="{x:Bind ViewModel.ApiKeys.DeepgramKey, Mode=TwoWay}"
+                                 HorizontalAlignment="Stretch"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Save" Command="{x:Bind ViewModel.ApiKeys.SaveDeepgramKeyCommand}"/>
+                        <Button Content="Delete" Command="{x:Bind ViewModel.ApiKeys.DeleteDeepgramKeyCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Inworld -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Inworld" FontWeight="SemiBold"/>
+                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.InworldStatus, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
+                    <PasswordBox Password="{x:Bind ViewModel.ApiKeys.InworldKey, Mode=TwoWay}"
+                                 PlaceholderText="Inworld API key" HorizontalAlignment="Stretch"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Save" Command="{x:Bind ViewModel.ApiKeys.SaveInworldKeyCommand}"/>
+                        <Button Content="Delete" Command="{x:Bind ViewModel.ApiKeys.DeleteInworldKeyCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 Speech-to-Text
+                 ═══════════════════════════════════════════════════════════════ -->
+            <StackPanel Spacing="24" MaxWidth="600"
+                        Visibility="{x:Bind ViewModel.IsSttSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <TextBlock l:Uids.Uid="Settings_AIEngine_Sub_Stt" FontSize="20" FontWeight="SemiBold"/>
+
+                <!-- STT Provider Mode -->
                 <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Model_Label" FontWeight="SemiBold"/>
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Model_Description" FontSize="12" Opacity="0.6"/>
-                    <ComboBox ItemsSource="{x:Bind ViewModel.WhisperModels}"
-                              SelectedIndex="{x:Bind ViewModel.WhisperModelIndex, Mode=TwoWay}"
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_STT_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_STT_Description" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.SttModes}"
+                              SelectedIndex="{x:Bind ViewModel.SttModeIndex, Mode=TwoWay}"
                               HorizontalAlignment="Stretch"/>
                 </StackPanel>
 
-                <!-- Whisper model download progress -->
-                <StackPanel Spacing="8"
-                            Visibility="{x:Bind ViewModel.IsWhisperDownloading, Mode=OneWay}">
-                    <ProgressBar Minimum="0" Maximum="100"
-                                 Value="{x:Bind ViewModel.WhisperDownloadPercent, Mode=OneWay}"/>
-                    <TextBlock Text="{x:Bind ViewModel.WhisperDownloadStatus, Mode=OneWay}"
-                               FontSize="12" Opacity="0.7" TextWrapping="Wrap"/>
-                </StackPanel>
-
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_AutoDownload_Note"
-                           FontSize="11" Opacity="0.5"/>
-            </StackPanel>
-
-            <!-- ═══════════════════════════════════════════════════════════════
-                 Deepgram (Cloud STT) Settings — visible when STT = Cloud
-                 ═══════════════════════════════════════════════════════════════ -->
-            <StackPanel Spacing="16"
-                        Visibility="{x:Bind ViewModel.IsDeepgramSectionVisible, Mode=OneWay}">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Section" FontSize="20" FontWeight="SemiBold" Margin="0,16,0,0"/>
-
-                <!-- Model -->
+                <!-- LLM Provider Mode -->
                 <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Label" FontWeight="SemiBold"/>
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Description" FontSize="12" Opacity="0.6"/>
-                    <ComboBox ItemsSource="{x:Bind ViewModel.DeepgramModels}"
-                              SelectedIndex="{x:Bind ViewModel.DeepgramModelIndex, Mode=TwoWay}"
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_LLM_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_LLM_Description" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.LlmModes}"
+                              SelectedIndex="{x:Bind ViewModel.LlmModeIndex, Mode=TwoWay}"
                               HorizontalAlignment="Stretch"/>
                 </StackPanel>
 
-                <!-- Punctuate -->
+                <!-- Capability Summary -->
                 <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Label" FontWeight="SemiBold"/>
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Description" FontSize="12" Opacity="0.6"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramPunctuate, Mode=TwoWay}"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_CurrentConfig_Label" FontWeight="SemiBold"/>
+                    <Border CornerRadius="4" Padding="12,8"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <TextBlock Text="{x:Bind ViewModel.CapabilitySummary, Mode=OneWay}"
+                                   FontSize="13" IsTextSelectionEnabled="True"/>
+                    </Border>
                 </StackPanel>
 
-                <!-- Dictation -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Label" FontWeight="SemiBold"/>
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Description" FontSize="12" Opacity="0.6"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramDictation, Mode=TwoWay}"
-                                  IsEnabled="{x:Bind ViewModel.IsDictationEnabled, Mode=OneWay}"/>
-                </StackPanel>
+                <InfoBar l:Uids.Uid="Settings_AIEngine_InfoBar" IsOpen="True" IsClosable="False" Severity="Informational"/>
 
-                <!-- Smart Format -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Label" FontWeight="SemiBold"/>
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Description" FontSize="12" Opacity="0.6"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramSmartFormat, Mode=TwoWay}"/>
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Warning"
-                               FontSize="11" Opacity="0.5" Visibility="{x:Bind ViewModel.DeepgramSmartFormat, Mode=OneWay}"/>
-                </StackPanel>
+                <!-- Whisper (Local STT) Settings -->
+                <StackPanel Spacing="16"
+                            Visibility="{x:Bind ViewModel.IsWhisperSectionVisible, Mode=OneWay}">
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Section" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"/>
 
-                <!-- Replacements -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Label" FontWeight="SemiBold"/>
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Description" FontSize="12" Opacity="0.6"/>
-                    <TextBox Text="{x:Bind ViewModel.DeepgramReplacements, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                             AcceptsReturn="True" TextWrapping="Wrap"
-                             MinHeight="80" MaxHeight="160"
-                             PlaceholderText="monika:Monica&#x0a;zen desk:Zendesk"/>
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Help"
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Model_Label" FontWeight="SemiBold"/>
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Model_Description" FontSize="12" Opacity="0.6"/>
+                        <ComboBox ItemsSource="{x:Bind ViewModel.WhisperModels}"
+                                  SelectedIndex="{x:Bind ViewModel.WhisperModelIndex, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="8"
+                                Visibility="{x:Bind ViewModel.IsWhisperDownloading, Mode=OneWay}">
+                        <ProgressBar Minimum="0" Maximum="100"
+                                     Value="{x:Bind ViewModel.WhisperDownloadPercent, Mode=OneWay}"/>
+                        <TextBlock Text="{x:Bind ViewModel.WhisperDownloadStatus, Mode=OneWay}"
+                                   FontSize="12" Opacity="0.7" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_AutoDownload_Note"
                                FontSize="11" Opacity="0.5"/>
                 </StackPanel>
 
-                <!-- Streaming -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Label" FontWeight="SemiBold"/>
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Description" FontSize="12" Opacity="0.6"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramStreaming, Mode=TwoWay}"/>
+                <!-- Deepgram (Cloud STT) Settings -->
+                <StackPanel Spacing="16"
+                            Visibility="{x:Bind ViewModel.IsDeepgramSectionVisible, Mode=OneWay}">
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Section" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"/>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Label" FontWeight="SemiBold"/>
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Description" FontSize="12" Opacity="0.6"/>
+                        <ComboBox ItemsSource="{x:Bind ViewModel.DeepgramModels}"
+                                  SelectedIndex="{x:Bind ViewModel.DeepgramModelIndex, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Label" FontWeight="SemiBold"/>
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Description" FontSize="12" Opacity="0.6"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramPunctuate, Mode=TwoWay}"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Label" FontWeight="SemiBold"/>
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Description" FontSize="12" Opacity="0.6"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramDictation, Mode=TwoWay}"
+                                      IsEnabled="{x:Bind ViewModel.IsDictationEnabled, Mode=OneWay}"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Label" FontWeight="SemiBold"/>
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Description" FontSize="12" Opacity="0.6"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramSmartFormat, Mode=TwoWay}"/>
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Warning"
+                                   FontSize="11" Opacity="0.5" Visibility="{x:Bind ViewModel.DeepgramSmartFormat, Mode=OneWay}"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Label" FontWeight="SemiBold"/>
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBox Text="{x:Bind ViewModel.DeepgramReplacements, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                 AcceptsReturn="True" TextWrapping="Wrap"
+                                 MinHeight="80" MaxHeight="160"
+                                 PlaceholderText="monika:Monica&#x0a;zen desk:Zendesk"/>
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Help"
+                                   FontSize="11" Opacity="0.5"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Label" FontWeight="SemiBold"/>
+                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Description" FontSize="12" Opacity="0.6"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramStreaming, Mode=TwoWay}"/>
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
-        </StackPanel>
-    </ScrollViewer>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 Local LLM (Ollama)
+                 ═══════════════════════════════════════════════════════════════ -->
+            <StackPanel Spacing="16" MaxWidth="700"
+                        Visibility="{x:Bind ViewModel.IsOllamaSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <TextBlock l:Uids.Uid="Settings_Ollama_Title" FontSize="20" FontWeight="SemiBold"/>
+
+                <!-- Service Status -->
+                <StackPanel Spacing="6" Padding="0,0,0,8">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.StatusText, Mode=OneWay}" FontSize="14" FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="Ollama" FontSize="12" Opacity="0.6" VerticalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.OllamaVersion, Mode=OneWay}" FontSize="12" Opacity="0.6"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="·" FontSize="12" Opacity="0.4" VerticalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.VramSummary, Mode=OneWay}" FontSize="12" Opacity="0.6"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                        <Button l:Uids.Uid="Settings_Ollama_CheckHealth" Command="{x:Bind ViewModel.Ollama.CheckHealthCommand}"
+                                IsEnabled="{x:Bind ViewModel.Ollama.IsChecking, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"/>
+                        <Button l:Uids.Uid="Settings_Ollama_RestartService" Command="{x:Bind ViewModel.Ollama.RestartServiceCommand}"
+                                IsEnabled="{x:Bind ViewModel.Ollama.IsChecking, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"/>
+                    </StackPanel>
+
+                    <!-- Install Ollama -->
+                    <StackPanel Spacing="8"
+                                Visibility="{x:Bind ViewModel.Ollama.ShowInstall, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                        <ProgressBar IsIndeterminate="{x:Bind ViewModel.Ollama.IsInstalling, Mode=OneWay}"
+                                     Visibility="{x:Bind ViewModel.Ollama.IsInstalling, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Command="{x:Bind ViewModel.Ollama.InstallOllamaCommand}"
+                                    IsEnabled="{x:Bind ViewModel.Ollama.IsInstalling, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}">
+                                <TextBlock Text="{x:Bind ViewModel.Ollama.InstallButtonText, Mode=OneWay}"/>
+                            </Button>
+                            <HyperlinkButton NavigateUri="https://ollama.com/download"
+                                             Visibility="{x:Bind ViewModel.Ollama.ShowManualInstallLink, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                                <TextBlock l:Uids.Uid="Settings_Ollama_ManualInstall"/>
+                            </HyperlinkButton>
+                        </StackPanel>
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.InstallError, Mode=OneWay}" FontSize="12"
+                                   Foreground="Red" TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.Ollama.ShowInstallError, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                    </StackPanel>
+
+                    <!-- 412 Rescue -->
+                    <InfoBar l:Uids.Uid="Settings_Ollama_RescueInfoBar" IsOpen="{x:Bind ViewModel.Ollama.ShowRescue, Mode=OneWay}"
+                             Severity="Warning"
+                             Message="{x:Bind ViewModel.Ollama.RescueMessage, Mode=OneWay}"
+                             IsClosable="False">
+                        <InfoBar.ActionButton>
+                            <Button l:Uids.Uid="Settings_Ollama_UseFallback" Command="{x:Bind ViewModel.Ollama.UseFallbackCommand}"/>
+                        </InfoBar.ActionButton>
+                    </InfoBar>
+                </StackPanel>
+
+                <!-- Default Model -->
+                <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" IsExpanded="True">
+                    <Expander.Header>
+                        <TextBlock l:Uids.Uid="Settings_Ollama_DefaultModel_Header" FontWeight="SemiBold"/>
+                    </Expander.Header>
+                    <StackPanel Spacing="8" Padding="0,8">
+                        <TextBlock l:Uids.Uid="Settings_Ollama_DefaultModel_Hint" FontSize="12" Opacity="0.6"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox ItemsSource="{x:Bind ViewModel.Ollama.InstalledModels, Mode=OneWay}"
+                                      SelectedIndex="{x:Bind ViewModel.Ollama.SelectedModelIndex, Mode=TwoWay}"
+                                      DisplayMemberPath="Name"
+                                      MinWidth="300"
+                                      PlaceholderText="Select a model..."/>
+                            <Button l:Uids.Uid="Settings_Ollama_Warmup" Command="{x:Bind ViewModel.Ollama.WarmupModelCommand}"
+                                    IsEnabled="{x:Bind ViewModel.Ollama.IsWarmingUp, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"/>
+                        </StackPanel>
+                        <StackPanel Spacing="4" Margin="0,4,0,0">
+                            <TextBlock Text="Keep-alive" FontWeight="SemiBold" FontSize="13"/>
+                            <TextBlock Text="How long the model stays loaded in VRAM after use." FontSize="12" Opacity="0.6"/>
+                            <ComboBox SelectedIndex="{x:Bind ViewModel.Ollama.KeepAliveIndex, Mode=TwoWay}" MinWidth="200">
+                                <ComboBoxItem Content="5 minutes"/>
+                                <ComboBoxItem Content="10 minutes"/>
+                                <ComboBoxItem Content="30 minutes"/>
+                                <ComboBoxItem Content="1 hour"/>
+                                <ComboBoxItem Content="2 hours"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+                </Expander>
+
+                <!-- Installed Models -->
+                <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" IsExpanded="True">
+                    <Expander.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock l:Uids.Uid="Settings_Ollama_InstalledModels_Header" FontWeight="SemiBold"/>
+                            <TextBlock Text="{x:Bind ViewModel.Ollama.TotalDiskUsage, Mode=OneWay}" FontSize="12" Opacity="0.6"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Expander.Header>
+                    <StackPanel Spacing="8" Padding="0,8">
+                        <ListView ItemsSource="{x:Bind ViewModel.Ollama.InstalledModels, Mode=OneWay}"
+                                  SelectionMode="None" MaxHeight="300">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="sys:OllamaModelDetail">
+                                    <Grid Padding="4,8" ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="14"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <TextBlock Text="{x:Bind ParameterSize}" FontSize="12" Opacity="0.6"/>
+                                                <TextBlock Text="·" FontSize="12" Opacity="0.4"/>
+                                                <TextBlock Text="{x:Bind QuantizationLevel}" FontSize="12" Opacity="0.6"/>
+                                                <TextBlock Text="·" FontSize="12" Opacity="0.4"/>
+                                                <TextBlock Text="{x:Bind Family}" FontSize="12" Opacity="0.6"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                            <Button Content="Info" FontSize="12" Padding="8,4"
+                                                    Tag="{x:Bind}"
+                                                    Click="InfoButton_Click"/>
+                                            <Button Content="Delete" FontSize="12" Padding="8,4"
+                                                    Tag="{x:Bind}"
+                                                    Click="DeleteButton_Click"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <!-- Pull new model -->
+                        <StackPanel Spacing="4" Margin="0,8,0,0">
+                            <TextBlock l:Uids.Uid="Settings_Ollama_PullNew" FontWeight="SemiBold" FontSize="13"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBox Text="{x:Bind ViewModel.Ollama.PullModelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="e.g. gemma3:4b" MinWidth="250"/>
+                                <Button l:Uids.Uid="Settings_Ollama_Pull" Command="{x:Bind ViewModel.Ollama.PullModelCommand}"
+                                        IsEnabled="{x:Bind ViewModel.Ollama.IsPulling, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"/>
+                            </StackPanel>
+                            <ProgressBar Value="{x:Bind ViewModel.Ollama.PullProgress, Mode=OneWay}" Maximum="100"
+                                         Visibility="{x:Bind ViewModel.Ollama.IsPulling, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                            <TextBlock Text="{x:Bind ViewModel.Ollama.PullStatusText, Mode=OneWay}" FontSize="12" Opacity="0.7"
+                                       Visibility="{x:Bind ViewModel.Ollama.IsPulling, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Expander>
+
+                <!-- Live VRAM Monitor -->
+                <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                    <Expander.Header>
+                        <TextBlock l:Uids.Uid="Settings_Ollama_LiveVram_Header" FontWeight="SemiBold"/>
+                    </Expander.Header>
+                    <StackPanel Spacing="8" Padding="0,8">
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.GpuName, Mode=OneWay}" FontSize="14" FontWeight="SemiBold"/>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock FontSize="13">
+                                <Run Text="VRAM:"/>
+                                <Run Text="{x:Bind ViewModel.Ollama.VramUsedGB, Mode=OneWay}"/>
+                                <Run Text="/"/>
+                                <Run Text="{x:Bind ViewModel.Ollama.VramTotalGB, Mode=OneWay}"/>
+                                <Run Text="GB"/>
+                            </TextBlock>
+                        </StackPanel>
+                        <ProgressBar Value="{x:Bind ViewModel.Ollama.VramPercent, Mode=OneWay}" Maximum="100"/>
+
+                        <TextBlock l:Uids.Uid="Settings_Ollama_LoadedModels" FontWeight="SemiBold" FontSize="13" Margin="0,4,0,0"/>
+                        <ListView ItemsSource="{x:Bind ViewModel.Ollama.RunningModels, Mode=OneWay}"
+                                  SelectionMode="None" MaxHeight="150">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="sys:OllamaRunningModel">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Padding="4,2">
+                                        <TextBlock Text="{x:Bind Name}" FontSize="13"/>
+                                        <TextBlock Text="·" FontSize="13" Opacity="0.4"/>
+                                        <TextBlock Text="{x:Bind ParameterSize}" FontSize="12" Opacity="0.6"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                            <TextBlock FontSize="12" Opacity="0.6">
+                                <Run Text="System RAM:"/>
+                                <Run Text="{x:Bind ViewModel.Ollama.RamSummary, Mode=OneWay}"/>
+                            </TextBlock>
+                        </StackPanel>
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.LastInferenceSpeed, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
+                    </StackPanel>
+                </Expander>
+
+                <!-- Model Library (Live Search) -->
+                <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                    <Expander.Header>
+                        <TextBlock l:Uids.Uid="Settings_Ollama_ModelLibrary_Header" FontWeight="SemiBold"/>
+                    </Expander.Header>
+                    <StackPanel Spacing="8" Padding="0,8">
+                        <TextBlock l:Uids.Uid="Settings_Ollama_ModelLibrary_Hint" FontSize="12" Opacity="0.6"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBox Text="{x:Bind ViewModel.Ollama.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="Search models..." MinWidth="300"/>
+                            <Button l:Uids.Uid="Settings_Ollama_Search" Command="{x:Bind ViewModel.Ollama.SearchModelsCommand}"
+                                    IsEnabled="{x:Bind ViewModel.Ollama.IsSearching, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"/>
+                        </StackPanel>
+                        <ProgressBar IsIndeterminate="True"
+                                     Visibility="{x:Bind ViewModel.Ollama.IsSearching, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.SearchStatusText, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
+
+                        <ListView ItemsSource="{x:Bind ViewModel.Ollama.SearchResults, Mode=OneWay}"
+                                  SelectionMode="None" MaxHeight="400">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="sys:OllamaSearchResult">
+                                    <Grid Padding="4,8" ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="14"/>
+                                                <TextBlock Text="{x:Bind PullCount}" FontSize="12" Opacity="0.5"
+                                                           VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{x:Bind Description}" FontSize="12" Opacity="0.7"
+                                                       TextWrapping="Wrap" MaxLines="2"/>
+                                        </StackPanel>
+                                        <HyperlinkButton Grid.Column="1" Content="View" FontSize="12" Padding="8,4"
+                                                         Tag="{x:Bind Name}" Click="SearchView_Click"
+                                                         VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Expander>
+
+                <!-- Advanced Settings -->
+                <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                    <Expander.Header>
+                        <TextBlock l:Uids.Uid="Settings_Ollama_Advanced_Header" FontWeight="SemiBold"/>
+                    </Expander.Header>
+                    <StackPanel Spacing="12" Padding="0,8">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Ollama_BaseUrl_Label" FontWeight="SemiBold" FontSize="13"/>
+                            <TextBlock l:Uids.Uid="Settings_Ollama_BaseUrl_Hint" FontSize="12" Opacity="0.6"/>
+                            <TextBox Text="{x:Bind ViewModel.Ollama.OllamaBaseUrl, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                     PlaceholderText="http://localhost:11434" MinWidth="350"/>
+                        </StackPanel>
+
+                        <CheckBox l:Uids.Uid="Settings_Ollama_AutoWarmup"
+                                  IsChecked="{x:Bind ViewModel.Ollama.AutoWarmup, Mode=TwoWay}"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Ollama_NumCtx_Label" FontWeight="SemiBold" FontSize="13"/>
+                            <ComboBox SelectedIndex="{x:Bind ViewModel.Ollama.NumCtxIndex, Mode=TwoWay}" MinWidth="150">
+                                <ComboBoxItem Content="2048"/>
+                                <ComboBoxItem Content="4096"/>
+                                <ComboBoxItem Content="8192"/>
+                                <ComboBoxItem Content="16384"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <HyperlinkButton l:Uids.Uid="Settings_Ollama_OpenWebsite"
+                                         Command="{x:Bind ViewModel.Ollama.OpenOllamaWebsiteCommand}"/>
+                    </StackPanel>
+                </Expander>
+
+                <!-- Model Info Dialog -->
+                <ContentDialog x:Name="ModelInfoDialog" Title="{x:Bind ViewModel.Ollama.ModelInfoTitle, Mode=OneWay}"
+                               CloseButtonText="Close"
+                               DefaultButton="Close">
+                    <StackPanel Spacing="8" MinWidth="300">
+                        <TextBlock l:Uids.Uid="Settings_Ollama_ModelInfo_Family" FontWeight="SemiBold" FontSize="13"/>
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.ModelInfoDetail.Family, Mode=OneWay, FallbackValue=''}" FontSize="13"/>
+                        <TextBlock l:Uids.Uid="Settings_Ollama_ModelInfo_Parameters" FontWeight="SemiBold" FontSize="13"/>
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.ModelInfoDetail.ParameterSize, Mode=OneWay, FallbackValue=''}" FontSize="13"/>
+                        <TextBlock l:Uids.Uid="Settings_Ollama_ModelInfo_Quantization" FontWeight="SemiBold" FontSize="13"/>
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.ModelInfoDetail.QuantizationLevel, Mode=OneWay, FallbackValue=''}" FontSize="13"/>
+                        <TextBlock l:Uids.Uid="Settings_Ollama_ModelInfo_ContextLength" FontWeight="SemiBold" FontSize="13"/>
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.ModelInfoDetail.ContextLength, Mode=OneWay, FallbackValue=''}" FontSize="13"/>
+                    </StackPanel>
+                </ContentDialog>
+            </StackPanel>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 Text-to-Speech
+                 ═══════════════════════════════════════════════════════════════ -->
+            <StackPanel Spacing="24" MaxWidth="600"
+                        Visibility="{x:Bind ViewModel.IsTtsSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <TextBlock l:Uids.Uid="Settings_Tts_Title" FontSize="20" FontWeight="SemiBold"/>
+
+                <!-- Provider Selection -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Tts_Provider_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_Tts_Provider_Description" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.Tts.ProviderLabels}"
+                              SelectedIndex="{x:Bind ViewModel.Tts.SelectedProviderIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+                <!-- Voice Selection -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Tts_Voice_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_Tts_Voice_Description" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.Tts.AvailableVoices, Mode=OneWay}"
+                              SelectedIndex="{x:Bind ViewModel.Tts.SelectedVoiceIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+                <!-- Speed Slider -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Tts_Speed_Label" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal" Spacing="0">
+                        <TextBlock l:Uids.Uid="Settings_Tts_Speed_Prefix" FontSize="12" Opacity="0.6"/>
+                        <TextBlock Text="{x:Bind ViewModel.Tts.Speed, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_Speed_Suffix" FontSize="12" Opacity="0.6"/>
+                    </StackPanel>
+                    <Slider Minimum="0.5" Maximum="2.0" StepFrequency="0.1"
+                            Value="{x:Bind ViewModel.Tts.Speed, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <!-- Volume Slider -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Tts_Volume_Label" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal" Spacing="0">
+                        <TextBlock l:Uids.Uid="Settings_Tts_Volume_Prefix" FontSize="12" Opacity="0.6"/>
+                        <TextBlock Text="{x:Bind ViewModel.Tts.VolumePercent, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_Volume_Suffix" FontSize="12" Opacity="0.6"/>
+                    </StackPanel>
+                    <Slider Minimum="0" Maximum="100" StepFrequency="5"
+                            Value="{x:Bind ViewModel.Tts.VolumePercent, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <!-- Max Words -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Tts_MaxWords_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_Tts_MaxWords_Description" FontSize="12" Opacity="0.6"/>
+                    <NumberBox Value="{x:Bind ViewModel.Tts.MaxSpeechWords, Mode=TwoWay}"
+                               Minimum="0" Maximum="10000"
+                               SpinButtonPlacementMode="Compact"
+                               SmallChange="50" LargeChange="100"
+                               HorizontalAlignment="Left" MinWidth="150"/>
+                </StackPanel>
+
+                <!-- Test Voice -->
+                <StackPanel Spacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Command="{x:Bind ViewModel.Tts.TestVoiceCommand}"
+                                IsEnabled="{x:Bind ViewModel.Tts.IsTestPlaying, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE768;" FontSize="14"/>
+                                <TextBlock l:Uids.Uid="Settings_Tts_TestVoice"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock Text="{x:Bind ViewModel.Tts.TestStatusText, Mode=OneWay}"
+                                   FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- When to Speak Section -->
+                <TextBlock l:Uids.Uid="Settings_Tts_WhenToSpeak_Section"
+                           FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"/>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakAsk_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakAsk_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakAskResponses, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakChat_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakChat_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakChatResponses, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakTranslate_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakTranslate_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakTranslations, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakNotifications_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakNotifications_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakNotifications, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Tts_DuckOtherApps_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_Tts_DuckOtherApps_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.DuckDuringPlayback, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <!-- Read Selection Hotkey -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Tts_ReadSelection_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_Tts_ReadSelection_Description" FontSize="12" Opacity="0.6"/>
+                    <TextBlock Text="{x:Bind ViewModel.Tts.ReadSelectionHotkey}" FontSize="14" FontWeight="Medium" Opacity="0.8"/>
+                </StackPanel>
+
+                <!-- Kokoro Model Section -->
+                <StackPanel Spacing="8"
+                            Visibility="{x:Bind ViewModel.Tts.IsKokoroSelected, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                    <TextBlock l:Uids.Uid="Settings_Tts_Kokoro_Section"
+                               FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"/>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_Tts_Kokoro_Variant_Label" FontWeight="SemiBold"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_Kokoro_Variant_Description" FontSize="12" Opacity="0.6"/>
+                        <ComboBox ItemsSource="{x:Bind ViewModel.Tts.KokoroVariantLabels}"
+                                  SelectedIndex="{x:Bind ViewModel.Tts.SelectedKokoroVariantIndex, Mode=TwoWay}"
+                                  MinWidth="280"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.Tts.DownloadStatusText, Mode=OneWay}"
+                                   FontSize="12" Opacity="0.7"/>
+
+                        <Button Command="{x:Bind ViewModel.Tts.DownloadKokoroModelCommand}"
+                                IsEnabled="{x:Bind ViewModel.Tts.IsDownloading, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
+                                Visibility="{x:Bind ViewModel.Tts.IsKokoroModelDownloaded, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE896;" FontSize="14"/>
+                                <TextBlock l:Uids.Uid="Settings_Tts_Kokoro_Download"/>
+                            </StackPanel>
+                        </Button>
+
+                        <ProgressBar Value="{x:Bind ViewModel.Tts.DownloadProgress, Mode=OneWay}"
+                                     Maximum="100"
+                                     Visibility="{x:Bind ViewModel.Tts.IsDownloading, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            </Grid>
+        </ScrollViewer>
+    </Grid>
 </Page>
