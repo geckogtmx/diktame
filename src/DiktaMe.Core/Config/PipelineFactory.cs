@@ -20,6 +20,7 @@ public sealed class PipelineFactory
     private readonly ITtsPlayerService _ttsPlayer;
     private readonly TextInjector _injector;
     private readonly SettingsManager _settings;
+    private readonly SnippetManager _snippets;
 
     public PipelineFactory(
         ProfileManager profiles,
@@ -28,7 +29,8 @@ public sealed class PipelineFactory
         ITTSProviderFactory ttsFactory,
         ITtsPlayerService ttsPlayer,
         TextInjector injector,
-        SettingsManager settings)
+        SettingsManager settings,
+        SnippetManager snippets)
     {
         _profiles = profiles;
         _sttFactory = sttFactory;
@@ -37,6 +39,7 @@ public sealed class PipelineFactory
         _ttsPlayer = ttsPlayer;
         _injector = injector;
         _settings = settings;
+        _snippets = snippets;
     }
 
     // ── Factory methods ───────────────────────────────────────────────────────
@@ -44,13 +47,13 @@ public sealed class PipelineFactory
     public DictationPipeline CreateDictationPipeline(string? modeOverride = null)
     {
         var (stt, llm) = GetProviders("dictate", modeOverride);
-        return new DictationPipeline(stt, llm, _injector);
+        return new DictationPipeline(stt, llm, _injector, _snippets);
     }
 
     public RefinePipeline CreateRefinePipeline(string? modeOverride = null)
     {
         var (stt, llm) = GetProviders("refine", modeOverride);
-        return new RefinePipeline(llm!, _injector, _settings, stt);
+        return new RefinePipeline(llm!, _injector, _settings, stt, _snippets);
     }
 
     /// <summary>
@@ -60,7 +63,7 @@ public sealed class PipelineFactory
     public RefinePipeline CreateRefineAutoPipeline(string? modeOverride = null)
     {
         var (_, llm) = GetProviders("refine", modeOverride);
-        return new RefinePipeline(llm!, _injector, _settings, stt: null);
+        return new RefinePipeline(llm!, _injector, _settings, stt: null, _snippets);
     }
 
     public AskPipeline CreateAskPipeline(string? modeOverride = null)
@@ -72,13 +75,13 @@ public sealed class PipelineFactory
     public TranslatePipeline CreateTranslatePipeline(string? modeOverride = null)
     {
         var (stt, llm) = GetProviders("translate", modeOverride);
-        return new TranslatePipeline(stt, llm!, _injector);
+        return new TranslatePipeline(stt, llm!, _injector, _snippets);
     }
 
     public NotePipeline CreateNotePipeline(string? modeOverride = null)
     {
         var (stt, llm) = GetProviders("note", modeOverride);
-        return new NotePipeline(stt, llm);
+        return new NotePipeline(stt, llm, _snippets);
     }
 
     public ChatPipeline CreateChatPipeline(string? modeOverride = null)
@@ -123,7 +126,7 @@ public sealed class PipelineFactory
             return null;
         }
 
-        return new StreamingDictationPipeline(streaming, _injector);
+        return new StreamingDictationPipeline(streaming, _injector, _snippets);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

@@ -52,6 +52,7 @@ public sealed class PipelineFactoryTests
         var ttsFactory = new Mock<ITTSProviderFactory>();
         var ttsPlayer = new Mock<ITtsPlayerService>();
         var injector = new TextInjector();
+        var snippets = new SnippetManager();
 
         sttFactory.Setup(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string>()))
                   .Returns(MakeStt().Object);
@@ -61,7 +62,7 @@ public sealed class PipelineFactoryTests
                   .Returns(MakeTts().Object);
 
         var factory = new PipelineFactory(profiles, sttFactory.Object, llmFactory.Object,
-            ttsFactory.Object, ttsPlayer.Object, injector, sm);
+            ttsFactory.Object, ttsPlayer.Object, injector, sm, snippets);
         return (factory, sttFactory, llmFactory);
     }
 
