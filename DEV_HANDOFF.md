@@ -54,45 +54,82 @@
 
 ## Current Work
 
-**Active: SPEC_003_V2 — Text-to-Speech ("dIKta.me Speaks Back")**
+**Active: SPEC_KOKORO_GPU — Kokoro TTS DirectML GPU Acceleration**
 
 | Detail | Value |
 |--------|-------|
-| **Spec** | `plans/SPEC_003_TTS_V2.md` (supersedes `plans/SPEC_003_TTS.md`) |
-| **Phases** | A–G (40 tasks total) |
-| **Local TTS** | Kokoro-ONNX via `KokoroSharp.CPU` NuGet (82M params, 88MB int8 model) |
-| **Cloud TTS** | Deepgram Aura-2 (same key as STT), Inworld TTS-1.5 ($10 credit available), OpenAI (BYOK) |
-| **Key hotkey** | `Ctrl+Alt+Q` = "Read Selection" (select text anywhere → hear it) |
-| **Status** | **All phases (A–G) complete.** E2E manual testing next. |
+| **Spec** | `plans/SPEC_KOKORO_GPU.md` |
+| **Goal** | Sub-250ms Kokoro TTS synthesis via DirectML GPU (currently 1,800–5,000ms on CPU) |
+| **NuGet swap** | `KokoroSharp.CPU` 0.6.5 → `KokoroSharp.DirectML` 0.6.5 |
+| **No Whisper conflict** | Whisper.net uses whisper.cpp (P/Invoke), KokoroSharp uses ONNX Runtime — different native stacks |
+| **Status** | Plan written, ready to implement |
 
-### Phase G — Resolved Gaps
+### What to Do (3 Phases)
 
-All 4 gaps from Phase F testing are fixed:
+**Phase 1 — NuGet + SessionOptions wiring:**
+1. Swap `KokoroSharp.CPU` → `KokoroSharp.DirectML` in `DiktaMe.Core.csproj`
+2. Add `useGpu` param to `KokoroTtsProvider` constructor (default `true`)
+3. Add `CreateSessionOptions()` — `AppendExecutionProvider_DML()` in try/catch (CPU fallback on failure)
+4. Add `KokoroUseGpu` bool to `TtsSettings` in `AppSettings.cs` (default `true`)
+5. Wire `useGpu` through `TTSProviderFactory.CreateProviderCore()`
 
-1. **ReadSelection hotkey on Hotkeys Settings page** ✅ — VM + XAML + code-behind + i18n (en + es-MX). SanitizeNulls extended to null-coalesce individual hotkey strings.
-2. **Inworld API key entry** ✅ — Added to API Keys Settings page (VM + XAML, uses `ApiKeyValidator.IsValidGeneric`).
-3. **TTS Settings page crash** ✅ — try/catch in `RefreshKokoroModelState()` and constructor `LoadFromSettings()`.
-4. **Kokoro model download file-lock** ✅ — Stale `.tmp` cleanup + user-friendly IOException on `File.Move`.
-5. **Kokoro observability** ✅ — `IsModelLoaded` property, model load timing log, TTSProviderFactory cache hit/miss logging.
+**Phase 2 — GPU model variant + Settings UI:**
+1. Add `"gpu"` variant (`kokoro-quant-gpu.onnx`, 169MB) to `KokoroModelManager.ModelMap`
+2. Update `TtsSettingsViewModel` variant labels/keys (reorder: gpu, fp32, fp16, int8)
+3. Add GPU toggle CheckBox to `TtsSettingsPage.xaml`
+4. Add int8+GPU InfoBar warning
+5. Change default variant from `"int8"` to `"gpu"` for new installs
+6. Add `ClearCache()` to `TTSProviderFactory`, call on variant/GPU toggle change
+7. Include GPU state in cache key: `"kokoro:gpu:gpu"` vs `"kokoro:fp32:cpu"`
 
-### E2E Manual Testing — Completed (2026-03-12)
+**Phase 3 — Tests + verification:**
+1. Update `KokoroTtsProviderTests` for `useGpu` parameter
+2. Add `"gpu"` variant tests to `KokoroModelManagerTests`
+3. Build (0 warnings), test (944+ passing)
+4. Manual E2E: Test Voice → check log for `runtime=DirectML`, measure latency
 
-| Test | Result |
+### Key Files to Modify
+
+| File | Change |
 |------|--------|
-| **Kokoro local — Settings "Test Voice"** | ✅ Model downloaded, voice played successfully |
-| **Kokoro local — Read Selection (Ctrl+Alt+Q)** | ✅ Selected text read aloud |
-| **Audio ducking** | ✅ YouTube video volume lowered during TTS playback |
-| **Voice selection** | ✅ Multiple Kokoro voices available and working |
-| **Latency** | 3–5s first inference (cold start), expected to improve on subsequent calls |
+| `src/DiktaMe.Core/DiktaMe.Core.csproj` | `KokoroSharp.CPU` → `KokoroSharp.DirectML` |
+| `src/DiktaMe.Core/Config/AppSettings.cs` | Add `KokoroUseGpu`, change default variant to `"gpu"` |
+| `src/DiktaMe.Core/TTS/KokoroTtsProvider.cs` | Add `useGpu` param, `CreateSessionOptions()` with DirectML EP |
+| `src/DiktaMe.Core/TTS/KokoroModelManager.cs` | Add `"gpu"` variant to `ModelMap` |
+| `src/DiktaMe.Core/Config/TTSProviderFactory.cs` | GPU-aware cache key, `ClearCache()` method |
+| `src/DiktaMe.App/ViewModels/Settings/TtsSettingsViewModel.cs` | GPU toggle, updated variant labels, cache clear |
+| `src/DiktaMe.App/Views/Settings/TtsSettingsPage.xaml` | GPU toggle CheckBox, int8+GPU InfoBar warning |
+| `tests/DiktaMe.Core.Tests/TTS/KokoroTtsProviderTests.cs` | Tests for `useGpu` parameter |
+| `tests/DiktaMe.Core.Tests/TTS/KokoroModelManagerTests.cs` | Test `"gpu"` variant |
 
-### E2E Bugs Found & Fixed
+### Critical Context
 
-| Bug | Root Cause | Fix |
-|-----|-----------|-----|
-| **Kokoro download file-lock** | Fixed `.tmp` filename caused stale lock conflicts | GUID-based temp files + cleanup (`d548e66`) |
-| **Misleading "Call ModelManager" error** | Developer-facing error shown to users | User-friendly message + pre-flight check (`d548e66`) |
-| **Inworld API 400 error** | `"encoding"` field should be `"audioEncoding"` in audioConfig JSON | Fixed field name in `InworldTtsProvider.cs` |
-| **Cloud providers receive wrong model ("int8")** | All 3 callers of `CreateProvider()` passed `KokoroModelVariant` to ALL providers, bypassing `ResolveVariant()` | Conditional variant: only pass for Kokoro, `null` for cloud (fixed in `TtsSpeaker.cs`, `PipelineFactory.cs`, `TtsSettingsViewModel.cs`) |
+- `KokoroModel(string modelPath, SessionOptions options = null)` — already accepts optional SessionOptions
+- DirectML auto-falls back to CPU for unsupported ops — safe default
+- int8 model is **slower on GPU** (2,106ms) than CPU (1,887ms) — must warn users
+- fp32 model (310MB) already downloaded on dev machine — can test immediately
+- GPU-optimized model (`kokoro-quant-gpu.onnx`, 169MB) same performance as fp32 at half the size
+- Rollback: one-line revert `KokoroSharp.DirectML` → `KokoroSharp.CPU`
+- ~210MB publish size increase from `DirectML.dll` + `onnxruntime.dll` (compresses to ~60MB)
+
+### Fallback Plan
+
+1. **User-level:** GPU toggle in Settings → force CPU SessionOptions
+2. **Code-level:** try/catch around `AppendExecutionProvider_DML()` → falls back to CPU automatically
+3. **NuGet-level:** Revert to `KokoroSharp.CPU` in csproj — one-commit revert
+
+---
+
+### SPEC_003 TTS — Completed (for reference)
+
+| Detail | Value |
+|--------|-------|
+| **Spec** | `plans/SPEC_003_TTS_V2.md` |
+| **Phases** | A–G (40 tasks, all complete, E2E verified) |
+| **Local TTS** | Kokoro-ONNX via `KokoroSharp.CPU` NuGet (82M params, 88MB int8 model) |
+| **Cloud TTS** | Deepgram Aura-2, Inworld TTS-1.5, OpenAI (all working after variant routing fix) |
+| **Key hotkey** | `Ctrl+Alt+Q` = "Read Selection" (select text anywhere → hear it) |
+| **Tests** | 282 new tests (944 total) |
 
 ### E2E Testing Still Needed
 
@@ -100,20 +137,6 @@ All 4 gaps from Phase F testing are fixed:
 - **Ask/Chat/Translate hooks**: Enable SpeakAskResponses etc. → use mode → verify audio
 - **Control Panel toggle**: ON/OFF enables/disables all TTS output
 - **Settings persistence**: Toggle states, provider, voice/speed survive restart
-
-### Completed Phases (all committed to main)
-
-**Phase A (`adfcee3`):** ITTSProvider interface, TtsResult record, TtsPlayerService (NAudio WasapiOut playback with play/pause/resume/stop), TextCleaner (18 GeneratedRegex rules for markdown→speech), TtsSettings + ReadSelection hotkey in AppSettings, PipelineState.Speaking enum value. 52 new tests.
-
-**Phase B (`adfcee3`):** KokoroSharp.CPU 0.6.5 NuGet, KokoroTtsProvider (KokoroModel.Infer + Tokenizer.Tokenize, 510-token segmentation, float→PCM16 conversion), KokoroModelManager (model download with progress), ITTSProviderFactory + TTSProviderFactory (ConcurrentDictionary caching), TTSRouter (primary+fallback), NullTtsProvider. eSpeak-NG GPL reviewed (process-invoked = mere aggregation, need THIRD_PARTY_NOTICES.md before release). 67 new tests.
-
-**Phase C (`adfcee3`):** ReadSelectionPipeline (capture selected text → TextCleaner → synthesize → play with ducking). HotkeyId.ReadSelection wired in LoadingViewModel. Toggle-stop (press hotkey again → stops playback). 15 new tests.
-
-**Phase D (`85c77cc`):** TtsSpeaker service (reusable clean→synth→play with ducking, `SpeakAsync` + `SpeakIfEnabledAsync`). Post-pipeline TTS hooks in Ask, Chat, Translate handlers. NotificationService.SpeakAsync. PipelineResult.TtsPlayedMs telemetry field. 16 new tests.
-
-**Phase E (this commit):** 3 cloud TTS providers (DeepgramTtsProvider, InworldTtsProvider, OpenAITtsProvider), all behind `ITTSProvider` interface. `TTSProviderFactory` updated with `SecureStorage` dependency for API key retrieval + cloud provider caching. `"inworld"` added to `SecureStorage.ValidProviders`. `TtsFakeHandler` test utility for binary HTTP responses. 66 new tests.
-
-**Phase F (this commit):** TtsSettingsPage + ViewModel, SettingsWindow nav registration, Control Panel TTS toggle (7th column), localization (en + es-MX). Build fix: `KokoroVariantLabels` changed from `static readonly` to instance property. **SanitizeNulls fix** for startup crash caused by `"Tts":null` in settings.json. `UnhandledException` handler added to `App.xaml.cs`. 944 tests passing.
 
 ## CI/CD Notes
 
@@ -213,7 +236,8 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 - `plans/SPEC_009_LOCALFLOW.md` — Local mode E2E spec + GPU investigation (§12)
 - `plans/SPEC_009_FIXES.md` — Wizard + local mode fix tracker (15/16 complete, FIX-1 deferred to SPEC_008)
 - `plans/SPEC_009_TESTING.md` — Manual test scenarios
-- `plans/SPEC_003_TTS_V2.md` — **Active spec**: TTS implementation plan (40 tasks, 7 phases)
+- `plans/SPEC_KOKORO_GPU.md` — **Active spec**: Kokoro DirectML GPU acceleration plan
+- `plans/SPEC_003_TTS_V2.md` — TTS implementation plan (40 tasks, 7 phases, complete)
 - `plans/SPEC_003_TTS.md` — TTS research reference (V1 draft, superseded by V2)
 - `plans/SPEC_001_MEETINGS.md` / `SPEC_002_VISION.md` — Post-launch feature specs
 - `plans/SPEC_011_OLLAMA.md` — Ollama Management Hub spec (implemented)
