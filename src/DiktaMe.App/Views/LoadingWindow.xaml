@@ -3,31 +3,50 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="dIKta.me">
 
-    <Grid VerticalAlignment="Center" HorizontalAlignment="Center" RowSpacing="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Grid Background="#002029" Padding="0,32,0,40">
+        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="24"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="16"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <Image Grid.Row="0" Source="ms-appx:///Assets/loading-logo.png"
-               Width="120" Height="120" HorizontalAlignment="Center"/>
+            <!-- Logo (smaller than before, matches V1 proportions) -->
+            <Image Grid.Row="0" Source="ms-appx:///Assets/loading-logo.png"
+                   Width="90" Height="90" HorizontalAlignment="Center"/>
 
-        <TextBlock Grid.Row="1" Text="dIKta.me" FontSize="28" FontWeight="Bold"
-                   HorizontalAlignment="Center"
-                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+            <!-- Version number below logo -->
+            <TextBlock Grid.Row="1" x:Name="VersionText"
+                       FontSize="11" Foreground="#667788"
+                       HorizontalAlignment="Center"/>
 
-        <ProgressRing Grid.Row="2" IsActive="True" Width="48" Height="48"
-                      HorizontalAlignment="Center"/>
+            <!-- Spacer row 2 -->
 
-        <ProgressBar Grid.Row="3" Width="250"
-                     Minimum="0" Maximum="100"
-                     Value="{x:Bind ViewModel.Progress, Mode=OneWay}"/>
+            <!-- Bold status heading (WARMING UP, LOADING SETTINGS, etc.) -->
+            <TextBlock Grid.Row="3" x:Name="StatusHeading"
+                       Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                       FontSize="22" FontWeight="Bold"
+                       Foreground="#e0e0e0" CharacterSpacing="80"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"/>
 
-        <TextBlock Grid.Row="4"
-                   Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
-                   FontSize="13" Opacity="0.7" HorizontalAlignment="Center"/>
+            <!-- Subtitle description -->
+            <TextBlock Grid.Row="4" x:Name="StatusSubtitle"
+                       FontSize="12" Foreground="#667788"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"/>
+
+            <!-- Spacer row 5 -->
+
+            <!-- Subtle progress bar (thin, teal accent) -->
+            <ProgressBar Grid.Row="6" Width="280" Height="3"
+                         Minimum="0" Maximum="100"
+                         Value="{x:Bind ViewModel.Progress, Mode=OneWay}"
+                         Foreground="#00AACC" Background="#003040"/>
+        </Grid>
     </Grid>
 </Window>

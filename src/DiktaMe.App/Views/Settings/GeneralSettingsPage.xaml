@@ -104,6 +104,63 @@
                     <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Description" FontSize="12" Opacity="0.6"/>
                     <ToggleSwitch IsOn="{x:Bind ViewModel.AlwaysOnTop, Mode=TwoWay}"/>
                 </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Description" FontSize="12" Opacity="0.6"/>
+                    <RadioButtons SelectedIndex="{x:Bind ViewModel.ExpandDirectionIndex, Mode=TwoWay}">
+                        <RadioButton l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Down"/>
+                        <RadioButton l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Up"/>
+                    </RadioButtons>
+                </StackPanel>
+
+                <!-- Visual Effects -->
+                <TextBlock l:Uids.Uid="Settings_VisualEffects_Title" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                <TextBlock l:Uids.Uid="Settings_VisualEffects_Description" FontSize="13" Opacity="0.6"/>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.VisualEffectsEnabled, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <StackPanel Spacing="4"
+                            Visibility="{x:Bind ViewModel.VisualEffectsEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Scope_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Scope_Description" FontSize="12" Opacity="0.6"/>
+                    <RadioButtons SelectedIndex="{x:Bind ViewModel.VisualEffectsScopeIndex, Mode=TwoWay}">
+                        <RadioButton l:Uids.Uid="Settings_VisualEffects_Scope_WholeApp"/>
+                        <RadioButton l:Uids.Uid="Settings_VisualEffects_Scope_TopBarOnly"/>
+                    </RadioButtons>
+                </StackPanel>
+
+                <StackPanel Spacing="4"
+                            Visibility="{x:Bind ViewModel.VisualEffectsEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Intensity_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Intensity_Description" FontSize="12" Opacity="0.6"/>
+                    <Slider Minimum="0" Maximum="100"
+                            Value="{x:Bind ViewModel.VisualEffectsIntensityPercent, Mode=TwoWay}"
+                            StepFrequency="5" TickFrequency="25" TickPlacement="BottomRight"/>
+                </StackPanel>
+
+                <!-- Auto-Hide -->
+                <TextBlock l:Uids.Uid="Settings_AutoHide_Title" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                <TextBlock l:Uids.Uid="Settings_AutoHide_Description" FontSize="13" Opacity="0.6"/>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.AutoHideEnabled, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <StackPanel Spacing="4"
+                            Visibility="{x:Bind ViewModel.AutoHideEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <TextBlock l:Uids.Uid="Settings_AutoHide_Delay_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_AutoHide_Delay_Description" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.AutoHideDelayLabels}"
+                              SelectedIndex="{x:Bind ViewModel.AutoHideDelayIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
             </StackPanel>
 
             <!-- ═══════════════════════════════════════════════════════════════

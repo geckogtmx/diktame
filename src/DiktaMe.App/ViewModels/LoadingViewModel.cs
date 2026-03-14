@@ -39,6 +39,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly ILLMProviderFactory _llmFactory;
     private readonly ITtsPlayerService _ttsPlayer;
     private readonly TtsSpeaker _ttsSpeaker;
+    private readonly AudioLevelMonitor _levelMonitor;
 
     [ObservableProperty] private string _statusText = "";
     [ObservableProperty] private double _progress;
@@ -71,7 +72,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         OllamaProvider ollamaProvider,
         ILLMProviderFactory llmFactory,
         ITtsPlayerService ttsPlayer,
-        TtsSpeaker ttsSpeaker)
+        TtsSpeaker ttsSpeaker,
+        AudioLevelMonitor levelMonitor)
     {
         _settings = settings;
         _history = history;
@@ -94,6 +96,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _llmFactory = llmFactory;
         _ttsPlayer = ttsPlayer;
         _ttsSpeaker = ttsSpeaker;
+        _levelMonitor = levelMonitor;
         _statusText = _loc.GetString("Loading_Initializing");
     }
 
@@ -574,6 +577,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         var soundSettings = _settings.Current.Sound ?? new();
         string stopSound = isDictate ? soundSettings.StopSound : soundSettings.UtilitySound;
 
+        // Wire audio level monitoring for visual effects
+        _levelMonitor.Start();
+        _currentRecorder.AudioDataAvailable += (_, e) =>
+            _levelMonitor.UpdateLevel(e.PcmData, e.BytesRecorded);
+
         // Subscribe to both stop events (auto-stop on duration limit, manual stop on toggle)
         EventHandler<RecordingStoppedEventArgs>? stopHandler = null;
         stopHandler = (_, args) =>
@@ -581,6 +589,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             _currentRecorder!.AutoStopped -= stopHandler;
             _currentRecorder!.RecordingStopped -= stopHandler;
             _isRecording = false;
+            _levelMonitor.Stop();
             _notifications.PlayCustomSound(stopSound);
             tcs.TrySetResult((args.FilePath, args.DurationMs));
         };
@@ -653,6 +662,11 @@ public sealed partial class LoadingViewModel : ObservableObject
             _currentRecorder?.Dispose();
             _currentRecorder = App.Current.Services.GetRequiredService<AudioRecorder>();
 
+            // Wire audio level monitoring for visual effects
+            _levelMonitor.Start();
+            _currentRecorder.AudioDataAvailable += (_, e) =>
+                _levelMonitor.UpdateLevel(e.PcmData, e.BytesRecorded);
+
             // Build DictationOptions (streaming is always raw mode)
             var options = new DictationOptions
             {
@@ -690,6 +704,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                 _currentRecorder, options, _recordingCts.Token);
 
             _isRecording = false;
+            _levelMonitor.Stop();
             _notifications.PlayCustomSound(soundSettings.StopSound);
 
             if (result.IsSuccess)

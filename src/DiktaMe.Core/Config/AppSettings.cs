@@ -177,6 +177,24 @@ public sealed record ControlPanelSettings
     public bool ShowPerformanceStats { get; init; } = true;
     public bool AlwaysOnTop { get; init; } = false;
     public bool IsExpanded { get; init; } = true;
+
+    /// <summary>Expand direction: "Down" (header at top) or "Up" (header at bottom).</summary>
+    public string ExpandDirection { get; init; } = "Down";
+
+    /// <summary>Enable reactive background visual effects (glow, shimmer).</summary>
+    public bool VisualEffectsEnabled { get; init; } = true;
+
+    /// <summary>Scope of visual effects: "WholeApp" or "TopBarOnly".</summary>
+    public string VisualEffectsScope { get; init; } = "WholeApp";
+
+    /// <summary>Intensity of voice-level glow effects (0.0 = subtle, 1.0 = hardcore).</summary>
+    public double VisualEffectsIntensity { get; init; } = 0.5;
+
+    /// <summary>Auto-hide: fade the control panel after idle.</summary>
+    public bool AutoHideEnabled { get; init; } = false;
+
+    /// <summary>Seconds of idle before fade starts. 0 = Never.</summary>
+    public int AutoHideDelaySeconds { get; init; } = 30;
 }
 
 /// <summary>

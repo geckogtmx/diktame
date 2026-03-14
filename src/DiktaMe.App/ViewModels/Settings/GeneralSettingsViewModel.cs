@@ -59,6 +59,30 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _alwaysOnTop;
 
+    [ObservableProperty]
+    private int _expandDirectionIndex; // 0 = Down, 1 = Up
+
+    // ── Visual Effects fields ───────────────────────────────────────────
+
+    [ObservableProperty]
+    private bool _visualEffectsEnabled = true;
+
+    [ObservableProperty]
+    private int _visualEffectsScopeIndex; // 0 = WholeApp, 1 = TopBarOnly
+
+    [ObservableProperty]
+    private double _visualEffectsIntensityPercent = 50; // 0-100
+
+    // ── Auto-Hide fields ──────────────────────────────────────────────
+
+    [ObservableProperty]
+    private bool _autoHideEnabled;
+
+    [ObservableProperty]
+    private int _autoHideDelayIndex; // 0=1s, 1=3s, 2=5s, 3=10s, 4=Never
+
+    public int[] AutoHideDelayValues { get; } = [10, 30, 60, 300, 0]; // 0 = Never
+
     // ── Behavior fields ──────────────────────────────────────────────────
 
     [ObservableProperty]
@@ -89,6 +113,14 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         _loc.GetString("Settings_General_Lang_Spanish"),
     ];
     public string[] LanguageCodes { get; } = ["en", "es"];
+
+    public string[] AutoHideDelayLabels => [
+        _loc.GetString("Settings_AutoHide_Delay_10s"),
+        _loc.GetString("Settings_AutoHide_Delay_30s"),
+        _loc.GetString("Settings_AutoHide_Delay_1m"),
+        _loc.GetString("Settings_AutoHide_Delay_5m"),
+        _loc.GetString("Settings_AutoHide_Delay_Never"),
+    ];
 
     // ── Sub-item list ───────────────────────────────────────────────────
 
@@ -132,6 +164,12 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         ShowSessionStats = cp.ShowSessionStats;
         ShowPerformanceStats = cp.ShowPerformanceStats;
         AlwaysOnTop = cp.AlwaysOnTop;
+        ExpandDirectionIndex = string.Equals(cp.ExpandDirection, "Up", StringComparison.Ordinal) ? 1 : 0;
+        VisualEffectsEnabled = cp.VisualEffectsEnabled;
+        VisualEffectsScopeIndex = string.Equals(cp.VisualEffectsScope, "TopBarOnly", StringComparison.Ordinal) ? 1 : 0;
+        VisualEffectsIntensityPercent = cp.VisualEffectsIntensity * 100;
+        AutoHideEnabled = cp.AutoHideEnabled;
+        AutoHideDelayIndex = Array.IndexOf(AutoHideDelayValues, cp.AutoHideDelaySeconds) is var ah and >= 0 ? ah : 1; // default 30s
 
         _isLoading = false;
     }
@@ -152,6 +190,12 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     partial void OnShowSessionStatsChanged(bool value) => Save();
     partial void OnShowPerformanceStatsChanged(bool value) => Save();
     partial void OnAlwaysOnTopChanged(bool value) => Save();
+    partial void OnExpandDirectionIndexChanged(int value) => Save();
+    partial void OnVisualEffectsEnabledChanged(bool value) => Save();
+    partial void OnVisualEffectsScopeIndexChanged(int value) => Save();
+    partial void OnVisualEffectsIntensityPercentChanged(double value) => Save();
+    partial void OnAutoHideEnabledChanged(bool value) => Save();
+    partial void OnAutoHideDelayIndexChanged(int value) => Save();
 
     private void Save()
     {
@@ -177,6 +221,13 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
                 ShowSessionStats = ShowSessionStats,
                 ShowPerformanceStats = ShowPerformanceStats,
                 AlwaysOnTop = AlwaysOnTop,
+                ExpandDirection = ExpandDirectionIndex == 1 ? "Up" : "Down",
+                VisualEffectsEnabled = VisualEffectsEnabled,
+                VisualEffectsScope = VisualEffectsScopeIndex == 1 ? "TopBarOnly" : "WholeApp",
+                VisualEffectsIntensity = VisualEffectsIntensityPercent / 100.0,
+                AutoHideEnabled = AutoHideEnabled,
+                AutoHideDelaySeconds = AutoHideDelayIndex >= 0 && AutoHideDelayIndex < AutoHideDelayValues.Length
+                    ? AutoHideDelayValues[AutoHideDelayIndex] : 5,
             }
         };
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>

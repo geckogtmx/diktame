@@ -1,4 +1,5 @@
 
+using System.Reflection;
 using DiktaMe.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
@@ -15,7 +16,16 @@ public sealed partial class LoadingWindow : Window
 
         // Small centered window
         var appWindow = this.AppWindow;
-        appWindow.Resize(new Windows.Graphics.SizeInt32(400, 300));
+        appWindow.Resize(new Windows.Graphics.SizeInt32(400, 340));
+
+        // Frameless: hide title bar and caption buttons
+        if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+        {
+            presenter.IsMinimizable = false;
+            presenter.IsMaximizable = false;
+            presenter.IsResizable = false;
+            presenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: false);
+        }
 
         // Set window icon
         var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "tray-icon.ico");
@@ -23,6 +33,12 @@ public sealed partial class LoadingWindow : Window
         {
             appWindow.SetIcon(iconPath);
         }
+
+        // Version number from assembly
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        VersionText.Text = version is not null
+            ? $"v{version.Major}.{version.Minor}.{version.Build}"
+            : "";
 
         ViewModel.LoadingComplete += OnLoadingComplete;
     }

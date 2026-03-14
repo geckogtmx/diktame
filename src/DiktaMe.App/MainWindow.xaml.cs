@@ -1,3 +1,5 @@
+using System;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Windows.Graphics;
@@ -11,6 +13,32 @@ namespace DiktaMe.App;
 /// </summary>
 public sealed partial class MainWindow : Window
 {
+    // Win32 subclassing to intercept title bar double-click
+    private const int WM_NCLBUTTONDBLCLK = 0x00A3;
+    private const int GWLP_WNDPROC = -4;
+    private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+    private WndProcDelegate? _newWndProc; // prevent GC collection
+    private IntPtr _oldWndProc;
+
+    // Win32 layered window for opacity (auto-hide fade)
+    private const int GWL_EXSTYLE = -20;
+    private const int WS_EX_LAYERED = 0x80000;
+    private const int LWA_ALPHA = 0x2;
+    private IntPtr _hWnd;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetLayeredWindowAttributes(IntPtr hWnd, uint crKey, byte bAlpha, uint dwFlags);
+
     public MainWindow()
     {
         this.InitializeComponent();
@@ -57,13 +85,54 @@ public sealed partial class MainWindow : Window
             root.Loaded -= OnRootLoaded;
         }
 
-        // Find the header bar in the ControlPanelPage and set it as the title bar drag region
+        // Find the drag region inside the header bar and set it as the title bar drag surface.
+        // We target DragRegion (a transparent Border) instead of the whole HeaderBar grid
+        // so that buttons inside the header keep full pointer control (hold-click, etc.).
         var page = FindDescendant<Views.ControlPanelPage>(Content as DependencyObject);
-        var headerBar = page?.FindName("HeaderBar") as UIElement;
-        if (headerBar is not null)
+        var dragRegion = page?.FindName("DragRegion") as UIElement;
+        if (dragRegion is not null)
         {
-            SetTitleBar(headerBar);
+            SetTitleBar(dragRegion);
         }
+
+        // Subclass the window to intercept WM_NCLBUTTONDBLCLK (title bar double-click).
+        // With IsMaximizable=false the OS still tries to snap on double-click, which
+        // jumps the window to a corner. We eat the message and toggle expand instead.
+        InstallDoubleClickHook(page);
+
+        // Enable WS_EX_LAYERED for window-level opacity (auto-hide fade)
+        _hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        var exStyle = (int)GetWindowLongPtr(_hWnd, GWL_EXSTYLE);
+        SetWindowLongPtr(_hWnd, GWL_EXSTYLE, (IntPtr)(exStyle | WS_EX_LAYERED));
+        SetLayeredWindowAttributes(_hWnd, 0, 255, LWA_ALPHA);
+    }
+
+    /// <summary>
+    /// Set window opacity (0 = invisible, 255 = fully opaque).
+    /// Called by ControlPanelPage auto-hide logic.
+    /// </summary>
+    public void SetOpacity(byte alpha)
+    {
+        if (_hWnd != IntPtr.Zero)
+        {
+            SetLayeredWindowAttributes(_hWnd, 0, alpha, LWA_ALPHA);
+        }
+    }
+
+    private void InstallDoubleClickHook(Views.ControlPanelPage? page)
+    {
+        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        _newWndProc = (IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam) =>
+        {
+            if (msg == WM_NCLBUTTONDBLCLK)
+            {
+                // Swallow the OS double-click and toggle expand/collapse instead
+                page?.ViewModel?.ToggleExpandedCommand.Execute(null);
+                return IntPtr.Zero;
+            }
+            return CallWindowProc(_oldWndProc, hwnd, msg, wParam, lParam);
+        };
+        _oldWndProc = SetWindowLongPtr(hWnd, GWLP_WNDPROC, Marshal.GetFunctionPointerForDelegate(_newWndProc));
     }
 
     private static T? FindDescendant<T>(DependencyObject? parent) where T : DependencyObject

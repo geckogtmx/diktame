@@ -269,7 +269,29 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private bool _isExpanded = true;
 
     [ObservableProperty]
+    private bool _expandUpward;
+
+    [ObservableProperty]
     private bool _alwaysOnTop;
+
+    // ── Visual effects settings (read-only, consumed by code-behind timer) ──
+
+    [ObservableProperty]
+    private bool _visualEffectsEnabled = true;
+
+    [ObservableProperty]
+    private bool _visualEffectsWholeApp = true;
+
+    [ObservableProperty]
+    private double _visualEffectsIntensity = 0.5;
+
+    // ── Auto-hide settings (read-only, consumed by code-behind timer) ───
+
+    [ObservableProperty]
+    private bool _autoHideEnabled;
+
+    [ObservableProperty]
+    private int _autoHideDelaySeconds = 30;
 
     /// <summary>Effective row visibility: combines IsExpanded with per-row settings.</summary>
     public bool ShowModesRowEffective => IsExpanded && ShowModesRow;
@@ -278,8 +300,10 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     public bool ShowPerformanceStatsEffective => IsExpanded && ShowPerformanceStats;
     public bool ShowFooterEffective => IsExpanded;
 
-    /// <summary>Chevron icon: up when expanded (collapse), down when collapsed (expand).</summary>
-    public string ExpandCollapseIcon => IsExpanded ? "\uE70E" : "\uE70D";
+    /// <summary>Chevron icon reflecting expand direction. Points toward the direction content will collapse.</summary>
+    public string ExpandCollapseIcon => ExpandUpward
+        ? (IsExpanded ? "\uE70D" : "\uE70E")   // Up mode: down-chevron to collapse, up-chevron to expand
+        : (IsExpanded ? "\uE70E" : "\uE70D");   // Down mode: up-chevron to collapse, down-chevron to expand
 
     public ControlPanelViewModel(
         SettingsManager settings,
@@ -404,6 +428,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     [RelayCommand]
     private void ToggleExpanded() => IsExpanded = !IsExpanded;
+
+    [RelayCommand]
+    private void FlipExpandDirection() => ExpandUpward = !ExpandUpward;
 
     [RelayCommand]
     private void OpenSettings()
@@ -632,6 +659,24 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         Log.Information("ControlPanel: Expanded set to {IsExpanded}", value);
     }
 
+    partial void OnExpandUpwardChanged(bool value)
+    {
+        if (!_suppressSave)
+        {
+            var updated = _settings.Current with
+            {
+                ControlPanel = _settings.Current.ControlPanel with
+                {
+                    ExpandDirection = value ? "Up" : "Down"
+                }
+            };
+            _ = _settings.UpdateAsync(updated);
+        }
+
+        OnPropertyChanged(nameof(ExpandCollapseIcon));
+        Log.Information("ControlPanel: ExpandUpward set to {ExpandUpward}", value);
+    }
+
     partial void OnAlwaysOnTopChanged(bool value)
     {
         if (!_suppressSave)
@@ -829,6 +874,12 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         ShowPerformanceStats = settings.ControlPanel.ShowPerformanceStats;
         AlwaysOnTop = settings.ControlPanel.AlwaysOnTop;
         IsExpanded = settings.ControlPanel.IsExpanded;
+        ExpandUpward = string.Equals(settings.ControlPanel.ExpandDirection, "Up", StringComparison.Ordinal);
+        VisualEffectsEnabled = settings.ControlPanel.VisualEffectsEnabled;
+        VisualEffectsWholeApp = !string.Equals(settings.ControlPanel.VisualEffectsScope, "TopBarOnly", StringComparison.Ordinal);
+        VisualEffectsIntensity = settings.ControlPanel.VisualEffectsIntensity;
+        AutoHideEnabled = settings.ControlPanel.AutoHideEnabled;
+        AutoHideDelaySeconds = settings.ControlPanel.AutoHideDelaySeconds;
 
         // Hotkey display
         HotkeyDictate = settings.Hotkeys.Dictate;

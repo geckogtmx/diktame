@@ -389,6 +389,7 @@ public partial class App : Application
     {
         // ── Core engine ──────────────────────────────────────────────────────
         services.AddTransient<AudioRecorder>(); // Transient: IDisposable, cannot reuse after disposal
+        services.AddSingleton<AudioLevelMonitor>();
         services.AddSingleton<AudioDucker>();
         services.AddSingleton<MuteDetector>();
         services.AddSingleton<TextInjector>();

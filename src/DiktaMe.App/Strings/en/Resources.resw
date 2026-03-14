@@ -1213,6 +1213,87 @@
   <data name="Settings_ControlPanel_AlwaysOnTop_Description.Text" xml:space="preserve">
     <value>Keep the control panel above other windows</value>
   </data>
+  <data name="Settings_ControlPanel_ExpandDirection_Label.Text" xml:space="preserve">
+    <value>Expand Direction</value>
+  </data>
+  <data name="Settings_ControlPanel_ExpandDirection_Description.Text" xml:space="preserve">
+    <value>Choose whether the panel expands down or up from the header bar. Tip: hold-click the collapse button to flip.</value>
+  </data>
+  <data name="Settings_ControlPanel_ExpandDirection_Down.Content" xml:space="preserve">
+    <value>Down (header at top)</value>
+  </data>
+  <data name="Settings_ControlPanel_ExpandDirection_Up.Content" xml:space="preserve">
+    <value>Up (header at bottom)</value>
+  </data>
+
+  <!-- Visual Effects -->
+  <data name="Settings_VisualEffects_Title.Text" xml:space="preserve">
+    <value>Visual Effects</value>
+  </data>
+  <data name="Settings_VisualEffects_Description.Text" xml:space="preserve">
+    <value>Background animations that react to dictation activity</value>
+  </data>
+  <data name="Settings_VisualEffects_Enable_Label.Text" xml:space="preserve">
+    <value>Enable Background Effects</value>
+  </data>
+  <data name="Settings_VisualEffects_Enable_Description.Text" xml:space="preserve">
+    <value>Voice-reactive glow during recording and shimmer during processing</value>
+  </data>
+  <data name="Settings_VisualEffects_Scope_Label.Text" xml:space="preserve">
+    <value>Effect Scope</value>
+  </data>
+  <data name="Settings_VisualEffects_Scope_Description.Text" xml:space="preserve">
+    <value>Cover the entire window or only the top header bar</value>
+  </data>
+  <data name="Settings_VisualEffects_Scope_WholeApp.Content" xml:space="preserve">
+    <value>Whole App</value>
+  </data>
+  <data name="Settings_VisualEffects_Scope_TopBarOnly.Content" xml:space="preserve">
+    <value>Top Bar Only</value>
+  </data>
+  <data name="Settings_VisualEffects_Intensity_Label.Text" xml:space="preserve">
+    <value>Glow Intensity</value>
+  </data>
+  <data name="Settings_VisualEffects_Intensity_Description.Text" xml:space="preserve">
+    <value>Controls how strongly the background reacts to voice input</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > General > Auto-Hide
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_AutoHide_Title.Text" xml:space="preserve">
+    <value>Auto-Hide</value>
+  </data>
+  <data name="Settings_AutoHide_Description.Text" xml:space="preserve">
+    <value>Fade the control panel after a period of inactivity</value>
+  </data>
+  <data name="Settings_AutoHide_Enable_Label.Text" xml:space="preserve">
+    <value>Enable Auto-Hide</value>
+  </data>
+  <data name="Settings_AutoHide_Enable_Description.Text" xml:space="preserve">
+    <value>When enabled, the control panel fades out after idle and pops back on activity</value>
+  </data>
+  <data name="Settings_AutoHide_Delay_Label.Text" xml:space="preserve">
+    <value>Fade Delay</value>
+  </data>
+  <data name="Settings_AutoHide_Delay_Description.Text" xml:space="preserve">
+    <value>How long to wait before fading out</value>
+  </data>
+  <data name="Settings_AutoHide_Delay_10s" xml:space="preserve">
+    <value>10 seconds</value>
+  </data>
+  <data name="Settings_AutoHide_Delay_30s" xml:space="preserve">
+    <value>30 seconds</value>
+  </data>
+  <data name="Settings_AutoHide_Delay_1m" xml:space="preserve">
+    <value>1 minute</value>
+  </data>
+  <data name="Settings_AutoHide_Delay_5m" xml:space="preserve">
+    <value>5 minutes</value>
+  </data>
+  <data name="Settings_AutoHide_Delay_Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > About

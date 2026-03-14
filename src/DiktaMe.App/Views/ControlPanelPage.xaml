@@ -37,16 +37,25 @@
         <Grid x:Name="HeaderBar" Grid.Row="0" Background="{StaticResource V1HeaderBrush}"
               Padding="12,4,12,11" BorderBrush="{StaticResource V1BorderBrush}"
               BorderThickness="0,0,0,1">
+            <!-- Transparent drag surface — SetTitleBar targets this, not the whole grid.
+                 This gives buttons full pointer control (hold-click, etc.) -->
+            <Border x:Name="DragRegion" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             <StackPanel Orientation="Horizontal" Spacing="8"
                         HorizontalAlignment="Left" VerticalAlignment="Center">
                 <Ellipse Width="10" Height="10"
                          Fill="{x:Bind ViewModel.CurrentState, Converter={StaticResource StateToColor}, Mode=OneWay}"
                          VerticalAlignment="Center"/>
-                <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                <TextBlock x:Name="StatusTextBlock"
+                           Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
                            FontSize="14" FontWeight="Bold"
                            Foreground="{StaticResource V1TextPrimaryBrush}"
                            CharacterSpacing="100"
-                           VerticalAlignment="Center"/>
+                           VerticalAlignment="Center"
+                           RenderTransformOrigin="0,0.5">
+                    <TextBlock.RenderTransform>
+                        <ScaleTransform x:Name="StatusTextScale" ScaleX="1.0" ScaleY="1.0"/>
+                    </TextBlock.RenderTransform>
+                </TextBlock>
             </StackPanel>
 
             <StackPanel x:Name="HeaderButtons" Orientation="Horizontal" Spacing="5"
@@ -93,10 +102,10 @@
                                Foreground="{x:Bind ViewModel.TtsBadgeBrush, Mode=OneWay}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-                <!-- Collapse/Expand toggle -->
-                <Button Content="{x:Bind ViewModel.ExpandCollapseIcon, Mode=OneWay}"
+                <!-- Collapse/Expand toggle (hold 500ms to flip direction) -->
+                <Button x:Name="CollapseButton"
+                        Content="{x:Bind ViewModel.ExpandCollapseIcon, Mode=OneWay}"
                         FontFamily="Segoe MDL2 Assets"
-                        Command="{x:Bind ViewModel.ToggleExpandedCommand}"
                         Background="Transparent" Foreground="{StaticResource V1TextSecondaryBrush}"
                         BorderThickness="0" Padding="6" FontSize="14"
                         VerticalAlignment="Center" MinWidth="0" MinHeight="0"/>
@@ -118,7 +127,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 1: Dictation Presets (Dynamic 2×4 Grid)
              ═══════════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="1" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
+        <Border x:Name="ModesRow" Grid.Row="1" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
                 Visibility="{x:Bind ViewModel.ShowModesRowEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Padding="8,6">
                 <ItemsRepeater ItemsSource="{x:Bind ViewModel.AvailableModes, Mode=OneWay}">
@@ -179,7 +188,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 2: Cycle Buttons (6-column: STT | LLM | TTS | SOUND | +KEY | REFINE)
              ═══════════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="2" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
+        <Border x:Name="ActionsRow" Grid.Row="2" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
                 Visibility="{x:Bind ViewModel.ShowActionsRowEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Padding="8,4" ColumnSpacing="4">
                 <Grid.ColumnDefinitions>
@@ -352,7 +361,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 3: Session Stats (4-column metric grid)
              ═══════════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="3" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
+        <Border x:Name="SessionStatsRow" Grid.Row="3" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
                 Visibility="{x:Bind ViewModel.ShowSessionStatsEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Background="{StaticResource V1BorderBrush}" ColumnSpacing="1">
                 <Grid.ColumnDefinitions>
@@ -423,7 +432,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 4: Performance Stats (5-column metric grid)
              ═══════════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="4" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
+        <Border x:Name="PerfStatsRow" Grid.Row="4" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
                 Visibility="{x:Bind ViewModel.ShowPerformanceStatsEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Background="{StaticResource V1BorderBrush}" ColumnSpacing="1">
                 <Grid.ColumnDefinitions>
@@ -514,11 +523,58 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 5: Footer — App branding
              ═══════════════════════════════════════════════════════════════ -->
-        <Grid Grid.Row="5" Background="{StaticResource V1HeaderBrush}" Padding="10,4,10,16"
+        <Grid x:Name="FooterRow" Grid.Row="5" Background="{StaticResource V1HeaderBrush}" Padding="10,4,10,16"
               Visibility="{x:Bind ViewModel.ShowFooterEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <TextBlock Text="dIKta.me V2.0" FontSize="10" FontWeight="Medium"
                        Foreground="#666666"
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════════════
+             Visual Effect Overlays (IsHitTestVisible=False = click-through)
+             Voice glow: background color modulated directly in code-behind.
+             Shimmer/edge overlays placed after content rows for higher Z-order.
+             ═══════════════════════════════════════════════════════════════ -->
+
+        <!-- Edge glow highlight (top + side edges) -->
+        <Border x:Name="EdgeGlow" Grid.Row="0" Grid.RowSpan="6"
+                IsHitTestVisible="False" Opacity="0" BorderThickness="2,3,2,0">
+            <Border.BorderBrush>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop x:Name="EdgeGlowStop1" Color="#0000CCAA" Offset="0.0"/>
+                    <GradientStop x:Name="EdgeGlowStop2" Color="#6000CCAA" Offset="0.5"/>
+                    <GradientStop x:Name="EdgeGlowStop3" Color="#0000CCAA" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.BorderBrush>
+        </Border>
+
+        <!-- Shimmer sweep: whole app -->
+        <Border x:Name="ShimmerOverlayFull" Grid.Row="0" Grid.RowSpan="6"
+                IsHitTestVisible="False" Opacity="0">
+            <Border.Background>
+                <LinearGradientBrush x:Name="ShimmerBrushFull" StartPoint="0,0.5" EndPoint="1,0.5">
+                    <GradientStop Color="#00002029" Offset="0.0"/>
+                    <GradientStop x:Name="ShimmerStop1Full" Color="#00002029" Offset="0.3"/>
+                    <GradientStop x:Name="ShimmerStop2Full" Color="#2800AACC" Offset="0.5"/>
+                    <GradientStop x:Name="ShimmerStop3Full" Color="#00002029" Offset="0.7"/>
+                    <GradientStop Color="#00002029" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <!-- Shimmer sweep: header only -->
+        <Border x:Name="ShimmerOverlayHeader" Grid.Row="0"
+                IsHitTestVisible="False" Opacity="0">
+            <Border.Background>
+                <LinearGradientBrush x:Name="ShimmerBrushHeader" StartPoint="0,0.5" EndPoint="1,0.5">
+                    <GradientStop Color="#00002029" Offset="0.0"/>
+                    <GradientStop x:Name="ShimmerStop1Header" Color="#00002029" Offset="0.3"/>
+                    <GradientStop x:Name="ShimmerStop2Header" Color="#2800AACC" Offset="0.5"/>
+                    <GradientStop x:Name="ShimmerStop3Header" Color="#00002029" Offset="0.7"/>
+                    <GradientStop Color="#00002029" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
     </Grid>
 </Page>
