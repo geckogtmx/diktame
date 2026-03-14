@@ -1,8 +1,8 @@
 
 using System;
 using System.ComponentModel;
-using DiktaMe.App.ViewModels;
 using DiktaMe.App.Services;
+using DiktaMe.App.ViewModels;
 using DiktaMe.Core.Audio;
 using DiktaMe.Core.Input;
 using DiktaMe.Core.Pipeline;
