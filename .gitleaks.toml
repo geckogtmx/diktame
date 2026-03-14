@@ -11,6 +11,7 @@ useDefault = true
 description = "Global allowlist — synthetic keys in test fixtures and documentation"
 paths = [
   '''website/QUICKSTART\.md''',
+  '''src/DiktaMe\.App/Themes/SharedResources\.xaml''',
 ]
 regexTarget = "secret"
 regexes = [
