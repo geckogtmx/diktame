@@ -21,7 +21,7 @@
 
     </Page.Resources>
 
-    <Grid Background="{StaticResource V1BackgroundBrush}" Padding="0" RowSpacing="0">
+    <Grid x:Name="RootGrid" VerticalAlignment="Top" Background="{StaticResource V1BackgroundBrush}" Padding="0" RowSpacing="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -35,7 +35,7 @@
              Row 0: Header Bar — Status dot + text + badges + gear
              ═══════════════════════════════════════════════════════════════ -->
         <Grid x:Name="HeaderBar" Grid.Row="0" Background="{StaticResource V1HeaderBrush}"
-              Padding="12,4" BorderBrush="{StaticResource V1BorderBrush}"
+              Padding="12,4,12,11" BorderBrush="{StaticResource V1BorderBrush}"
               BorderThickness="0,0,0,1">
             <StackPanel Orientation="Horizontal" Spacing="8"
                         HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -93,6 +93,13 @@
                                Foreground="{x:Bind ViewModel.TtsBadgeBrush, Mode=OneWay}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
+                <!-- Collapse/Expand toggle -->
+                <Button Content="{x:Bind ViewModel.ExpandCollapseIcon, Mode=OneWay}"
+                        FontFamily="Segoe MDL2 Assets"
+                        Command="{x:Bind ViewModel.ToggleExpandedCommand}"
+                        Background="Transparent" Foreground="{StaticResource V1TextSecondaryBrush}"
+                        BorderThickness="0" Padding="6" FontSize="14"
+                        VerticalAlignment="Center" MinWidth="0" MinHeight="0"/>
                 <!-- Settings gear -->
                 <Button Content="&#xE713;" FontFamily="Segoe MDL2 Assets"
                         Command="{x:Bind ViewModel.OpenSettingsCommand}"
@@ -112,7 +119,7 @@
              Row 1: Dictation Presets (Dynamic 2×4 Grid)
              ═══════════════════════════════════════════════════════════════ -->
         <Border Grid.Row="1" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
-                Visibility="{x:Bind ViewModel.ShowModesRow, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                Visibility="{x:Bind ViewModel.ShowModesRowEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Padding="8,6">
                 <ItemsRepeater ItemsSource="{x:Bind ViewModel.AvailableModes, Mode=OneWay}">
                     <ItemsRepeater.Layout>
@@ -170,13 +177,12 @@
         </Border>
 
         <!-- ═══════════════════════════════════════════════════════════════════
-             Row 2: Toggle Switches (6-column grid: label / toggle / state)
+             Row 2: Cycle Buttons (6-column: STT | LLM | TTS | SOUND | +KEY | REFINE)
              ═══════════════════════════════════════════════════════════════ -->
         <Border Grid.Row="2" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
-                Visibility="{x:Bind ViewModel.ShowActionsRow, Converter={StaticResource BoolToVis}, Mode=OneWay}">
-            <Grid Padding="8,4" ColumnSpacing="2">
+                Visibility="{x:Bind ViewModel.ShowActionsRowEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+            <Grid Padding="8,4" ColumnSpacing="4">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -185,110 +191,161 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- SOUND -->
-                <StackPanel Grid.Column="0" HorizontalAlignment="Center" Spacing="0">
-                    <TextBlock l:Uids.Uid="ControlPanel_Toggle_Sound"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.IsSoundEnabled, Mode=TwoWay}"
-                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
-                                  OffContent="" OnContent=""/>
-                    <TextBlock Text="{x:Bind ViewModel.SoundStateLabel, Mode=OneWay}"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center" Margin="0,-2,0,0"/>
-                </StackPanel>
-
                 <!-- STT -->
-                <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="0">
-                    <TextBlock l:Uids.Uid="ControlPanel_Toggle_Stt"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.IsLocalStt, Mode=TwoWay}"
-                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
-                                  OffContent="" OnContent=""/>
-                    <TextBlock Text="{x:Bind ViewModel.SttStateLabel, Mode=OneWay}"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center" Margin="0,-2,0,0"/>
-                </StackPanel>
+                <Button Grid.Column="0"
+                        Command="{x:Bind ViewModel.CycleSttCommand}"
+                        Background="{StaticResource V1HeaderBrush}"
+                        BorderBrush="{StaticResource V1BorderBrush}"
+                        BorderThickness="1" CornerRadius="4"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Padding="2,4" MinWidth="0" MinHeight="0">
+                    <Button.Resources>
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#003a4d"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#00709a"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#004052"/>
+                    </Button.Resources>
+                    <StackPanel HorizontalAlignment="Center" Spacing="1">
+                        <TextBlock l:Uids.Uid="ControlPanel_Toggle_Stt"
+                                   FontSize="9" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.SttStateLabel, Mode=OneWay}"
+                                   FontSize="10" FontWeight="Bold"
+                                   Foreground="{x:Bind ViewModel.SttStateBrush, Mode=OneWay}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
                 <!-- LLM -->
-                <StackPanel Grid.Column="2" HorizontalAlignment="Center" Spacing="0">
-                    <TextBlock l:Uids.Uid="ControlPanel_Toggle_Llm"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.IsLocalLlm, Mode=TwoWay}"
-                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
-                                  OffContent="" OnContent=""/>
-                    <TextBlock Text="{x:Bind ViewModel.LlmStateLabel, Mode=OneWay}"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center" Margin="0,-2,0,0"/>
-                </StackPanel>
-
-                <!-- +KEY -->
-                <StackPanel Grid.Column="3" HorizontalAlignment="Center" Spacing="0">
-                    <TextBlock l:Uids.Uid="ControlPanel_Toggle_Key"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.IsAdditionalKeyEnabled, Mode=TwoWay}"
-                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
-                                  OffContent="" OnContent=""/>
-                    <TextBlock Text="{x:Bind ViewModel.KeyStateLabel, Mode=OneWay}"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center" Margin="0,-2,0,0"/>
-                </StackPanel>
-
-                <!-- RAW -->
-                <StackPanel Grid.Column="4" HorizontalAlignment="Center" Spacing="0">
-                    <TextBlock l:Uids.Uid="ControlPanel_Toggle_Raw"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.IsRawModeEnabled, Mode=TwoWay}"
-                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
-                                  OffContent="" OnContent=""/>
-                    <TextBlock Text="{x:Bind ViewModel.RawStateLabel, Mode=OneWay}"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center" Margin="0,-2,0,0"/>
-                </StackPanel>
-
-                <!-- REFINE -->
-                <StackPanel Grid.Column="5" HorizontalAlignment="Center" Spacing="0">
-                    <TextBlock l:Uids.Uid="ControlPanel_Toggle_Refine"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.IsRefineVoice, Mode=TwoWay}"
-                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
-                                  OffContent="" OnContent=""/>
-                    <TextBlock Text="{x:Bind ViewModel.RefineStateLabel, Mode=OneWay}"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center" Margin="0,-2,0,0"/>
-                </StackPanel>
+                <Button Grid.Column="1"
+                        Command="{x:Bind ViewModel.CycleLlmCommand}"
+                        Background="{StaticResource V1HeaderBrush}"
+                        BorderBrush="{StaticResource V1BorderBrush}"
+                        BorderThickness="1" CornerRadius="4"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Padding="2,4" MinWidth="0" MinHeight="0">
+                    <Button.Resources>
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#003a4d"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#00709a"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#004052"/>
+                    </Button.Resources>
+                    <StackPanel HorizontalAlignment="Center" Spacing="1">
+                        <TextBlock l:Uids.Uid="ControlPanel_Toggle_Llm"
+                                   FontSize="9" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.LlmStateLabel, Mode=OneWay}"
+                                   FontSize="10" FontWeight="Bold"
+                                   Foreground="{x:Bind ViewModel.LlmStateBrush, Mode=OneWay}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
                 <!-- TTS -->
-                <StackPanel Grid.Column="6" HorizontalAlignment="Center" Spacing="0">
-                    <TextBlock l:Uids.Uid="ControlPanel_Toggle_Tts"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.IsTtsEnabled, Mode=TwoWay}"
-                                  MinWidth="0" Padding="0" Margin="12,0,0,0"
-                                  OffContent="" OnContent=""/>
-                    <TextBlock Text="{x:Bind ViewModel.TtsStateLabel, Mode=OneWay}"
-                               FontSize="9" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                               HorizontalAlignment="Center" Margin="0,-2,0,0"/>
-                </StackPanel>
+                <Button Grid.Column="2"
+                        Command="{x:Bind ViewModel.CycleTtsCommand}"
+                        Background="{StaticResource V1HeaderBrush}"
+                        BorderBrush="{StaticResource V1BorderBrush}"
+                        BorderThickness="1" CornerRadius="4"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Padding="2,4" MinWidth="0" MinHeight="0">
+                    <Button.Resources>
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#003a4d"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#00709a"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#004052"/>
+                    </Button.Resources>
+                    <StackPanel HorizontalAlignment="Center" Spacing="1">
+                        <TextBlock l:Uids.Uid="ControlPanel_Toggle_Tts"
+                                   FontSize="9" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.TtsStateLabel, Mode=OneWay}"
+                                   FontSize="10" FontWeight="Bold"
+                                   Foreground="{x:Bind ViewModel.TtsStateBrush, Mode=OneWay}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- SOUND -->
+                <Button Grid.Column="3"
+                        Command="{x:Bind ViewModel.CycleSoundCommand}"
+                        Background="{StaticResource V1HeaderBrush}"
+                        BorderBrush="{StaticResource V1BorderBrush}"
+                        BorderThickness="1" CornerRadius="4"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Padding="2,4" MinWidth="0" MinHeight="0">
+                    <Button.Resources>
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#003a4d"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#00709a"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#004052"/>
+                    </Button.Resources>
+                    <StackPanel HorizontalAlignment="Center" Spacing="1">
+                        <TextBlock l:Uids.Uid="ControlPanel_Toggle_Sound"
+                                   FontSize="9" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.SoundStateLabel, Mode=OneWay}"
+                                   FontSize="10" FontWeight="Bold"
+                                   Foreground="{x:Bind ViewModel.SoundStateBrush, Mode=OneWay}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- +KEY -->
+                <Button Grid.Column="4"
+                        Command="{x:Bind ViewModel.CycleKeyCommand}"
+                        Background="{StaticResource V1HeaderBrush}"
+                        BorderBrush="{StaticResource V1BorderBrush}"
+                        BorderThickness="1" CornerRadius="4"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Padding="2,4" MinWidth="0" MinHeight="0">
+                    <Button.Resources>
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#003a4d"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#00709a"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#004052"/>
+                    </Button.Resources>
+                    <StackPanel HorizontalAlignment="Center" Spacing="1">
+                        <TextBlock l:Uids.Uid="ControlPanel_Toggle_Key"
+                                   FontSize="9" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.KeyStateLabel, Mode=OneWay}"
+                                   FontSize="10" FontWeight="Bold"
+                                   Foreground="{x:Bind ViewModel.KeyStateBrush, Mode=OneWay}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- REFINE -->
+                <Button Grid.Column="5"
+                        Command="{x:Bind ViewModel.CycleRefineCommand}"
+                        Background="{StaticResource V1HeaderBrush}"
+                        BorderBrush="{StaticResource V1BorderBrush}"
+                        BorderThickness="1" CornerRadius="4"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Padding="2,4" MinWidth="0" MinHeight="0">
+                    <Button.Resources>
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#003a4d"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#00709a"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#004052"/>
+                    </Button.Resources>
+                    <StackPanel HorizontalAlignment="Center" Spacing="1">
+                        <TextBlock l:Uids.Uid="ControlPanel_Toggle_Refine"
+                                   FontSize="9" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.RefineStateLabel, Mode=OneWay}"
+                                   FontSize="10" FontWeight="Bold"
+                                   Foreground="{x:Bind ViewModel.RefineStateBrush, Mode=OneWay}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </Grid>
         </Border>
 
@@ -296,7 +353,7 @@
              Row 3: Session Stats (4-column metric grid)
              ═══════════════════════════════════════════════════════════════ -->
         <Border Grid.Row="3" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
-                Visibility="{x:Bind ViewModel.ShowSessionStats, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                Visibility="{x:Bind ViewModel.ShowSessionStatsEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Background="{StaticResource V1BorderBrush}" ColumnSpacing="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -367,7 +424,7 @@
              Row 4: Performance Stats (5-column metric grid)
              ═══════════════════════════════════════════════════════════════ -->
         <Border Grid.Row="4" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
-                Visibility="{x:Bind ViewModel.ShowPerformanceStats, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                Visibility="{x:Bind ViewModel.ShowPerformanceStatsEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Background="{StaticResource V1BorderBrush}" ColumnSpacing="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -457,7 +514,8 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 5: Footer — App branding
              ═══════════════════════════════════════════════════════════════ -->
-        <Grid Grid.Row="5" Background="{StaticResource V1HeaderBrush}" Padding="10,4">
+        <Grid Grid.Row="5" Background="{StaticResource V1HeaderBrush}" Padding="10,4,10,16"
+              Visibility="{x:Bind ViewModel.ShowFooterEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <TextBlock Text="dIKta.me V2.0" FontSize="10" FontWeight="Medium"
                        Foreground="#666666"
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>

@@ -39,6 +39,37 @@ public enum AskOutputMode
 }
 
 /// <summary>
+/// LLM provider state for the control panel quick toggle.
+/// Replaces the separate IsLocalLlm + RawModeOverride booleans.
+/// </summary>
+public enum LlmMode
+{
+    /// <summary>Local LLM via Ollama.</summary>
+    Local = 0,
+
+    /// <summary>Cloud LLM via Gemini.</summary>
+    Cloud = 1,
+
+    /// <summary>LLM disabled (raw mode — no text processing).</summary>
+    Off = 2,
+}
+
+/// <summary>
+/// TTS provider state for the control panel quick toggle.
+/// </summary>
+public enum TtsMode
+{
+    /// <summary>Local TTS via Kokoro.</summary>
+    Local = 0,
+
+    /// <summary>Cloud TTS via Deepgram/OpenAI.</summary>
+    Cloud = 1,
+
+    /// <summary>TTS disabled.</summary>
+    Off = 2,
+}
+
+/// <summary>
 /// Per-mode settings for a single profile slot (provider + prompt selection).
 /// 8 modes × 2 profiles = 16 configuration slots.
 /// </summary>
@@ -144,6 +175,8 @@ public sealed record ControlPanelSettings
     public bool ShowActionsRow { get; init; } = true;
     public bool ShowSessionStats { get; init; } = true;
     public bool ShowPerformanceStats { get; init; } = true;
+    public bool AlwaysOnTop { get; init; } = false;
+    public bool IsExpanded { get; init; } = true;
 }
 
 /// <summary>
@@ -466,6 +499,8 @@ public sealed record AppSettings
 [JsonSerializable(typeof(List<DictationMode>))]
 [JsonSerializable(typeof(List<PipelineConfig>))]
 [JsonSerializable(typeof(AskOutputMode))]
+[JsonSerializable(typeof(LlmMode))]
+[JsonSerializable(typeof(TtsMode))]
 [JsonSerializable(typeof(AuthMode))]
 [JsonSerializable(typeof(TrialSettings))]
 [JsonSerializable(typeof(AccountSettings))]

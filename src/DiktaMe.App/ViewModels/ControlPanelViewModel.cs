@@ -78,9 +78,8 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [ObservableProperty]
     private string? _activeDictationModeId;
 
-    /// <summary>RAW mode override toggle (independent from normal mode selection).</summary>
-    [ObservableProperty]
-    private bool _isRawModeEnabled;
+    /// <summary>Whether LLM is disabled (backward-compat for pipeline option construction).</summary>
+    public bool IsLlmOff => LlmMode == LlmMode.Off;
 
     /// <summary>Display-only: Title of the currently active mode (for XAML compatibility).</summary>
     public string ActiveMode => _dictationModes.GetAllModes()
@@ -170,10 +169,11 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private bool _isLocalStt;
 
     [ObservableProperty]
-    private bool _isLocalLlm;
+    private LlmMode _llmMode = LlmMode.Cloud;
 
+    /// <summary>Additional key value: "" (off), "Enter", or "Tab".</summary>
     [ObservableProperty]
-    private bool _isAdditionalKeyEnabled;
+    private string _additionalKeyValue = string.Empty;
 
     [ObservableProperty]
     private RefineMode _refineMode = RefineMode.Voice;
@@ -183,17 +183,54 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private bool _isRefineVoice = true;
 
     [ObservableProperty]
-    private bool _isTtsEnabled;
+    private TtsMode _ttsMode;
 
     // ── Toggle state labels ──────────────────────────────────────────────
 
     public string SoundStateLabel => IsSoundEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
     public string SttStateLabel => IsLocalStt ? _loc.GetString("ControlPanel_State_Local") : _loc.GetString("ControlPanel_State_Cloud");
-    public string LlmStateLabel => IsLocalLlm ? _loc.GetString("ControlPanel_State_Local") : _loc.GetString("ControlPanel_State_Cloud");
-    public string KeyStateLabel => IsAdditionalKeyEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
-    public string RawStateLabel => IsRawModeEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
+    public string LlmStateLabel => LlmMode switch
+    {
+        LlmMode.Local => _loc.GetString("ControlPanel_State_Local"),
+        LlmMode.Cloud => _loc.GetString("ControlPanel_State_Cloud"),
+        LlmMode.Off => _loc.GetString("ControlPanel_State_Off"),
+        _ => _loc.GetString("ControlPanel_State_Cloud"),
+    };
+    public string KeyStateLabel => AdditionalKeyValue switch
+    {
+        "Enter" => "Enter",
+        "Tab" => "Tab",
+        _ => _loc.GetString("ControlPanel_State_Off"),
+    };
     public string RefineStateLabel => RefineMode == RefineMode.Voice ? _loc.GetString("ControlPanel_Refine_Voice_Short") : _loc.GetString("ControlPanel_Refine_Auto_Short");
-    public string TtsStateLabel => IsTtsEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
+    public string TtsStateLabel => TtsMode switch
+    {
+        TtsMode.Local => _loc.GetString("ControlPanel_State_Local"),
+        TtsMode.Cloud => _loc.GetString("ControlPanel_State_Cloud"),
+        TtsMode.Off => _loc.GetString("ControlPanel_State_Off"),
+        _ => _loc.GetString("ControlPanel_State_Off"),
+    };
+
+    // ── Toggle state color brushes (for cycle buttons) ──────────────────
+
+    public SolidColorBrush SttStateBrush => IsLocalStt ? BadgeLocalBrush : BadgeCloudBrush;
+    public SolidColorBrush LlmStateBrush => LlmMode switch
+    {
+        LlmMode.Local => BadgeLocalBrush,
+        LlmMode.Cloud => BadgeCloudBrush,
+        LlmMode.Off => BadgeOffBrush,
+        _ => BadgeCloudBrush,
+    };
+    public SolidColorBrush TtsStateBrush => TtsMode switch
+    {
+        TtsMode.Local => BadgeLocalBrush,
+        TtsMode.Cloud => BadgeCloudBrush,
+        TtsMode.Off => BadgeOffBrush,
+        _ => BadgeOffBrush,
+    };
+    public SolidColorBrush SoundStateBrush => IsSoundEnabled ? BadgeLocalBrush : BadgeOffBrush;
+    public SolidColorBrush KeyStateBrush => string.IsNullOrEmpty(AdditionalKeyValue) ? BadgeOffBrush : BadgeLocalBrush;
+    public SolidColorBrush RefineStateBrush => IsRefineVoice ? BadgeLocalBrush : BadgeCloudBrush;
 
     // ── Hotkey display ────────────────────────────────────────────────────
 
@@ -225,6 +262,24 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _showPerformanceStats = true;
+
+    // ── Collapse/expand + always-on-top ───────────────────────────────────
+
+    [ObservableProperty]
+    private bool _isExpanded = true;
+
+    [ObservableProperty]
+    private bool _alwaysOnTop;
+
+    /// <summary>Effective row visibility: combines IsExpanded with per-row settings.</summary>
+    public bool ShowModesRowEffective => IsExpanded && ShowModesRow;
+    public bool ShowActionsRowEffective => IsExpanded && ShowActionsRow;
+    public bool ShowSessionStatsEffective => IsExpanded && ShowSessionStats;
+    public bool ShowPerformanceStatsEffective => IsExpanded && ShowPerformanceStats;
+    public bool ShowFooterEffective => IsExpanded;
+
+    /// <summary>Chevron icon: up when expanded (collapse), down when collapsed (expand).</summary>
+    public string ExpandCollapseIcon => IsExpanded ? "\uE70E" : "\uE70D";
 
     public ControlPanelViewModel(
         SettingsManager settings,
@@ -300,19 +355,55 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ToggleRawMode()
+    private void CycleStt() => IsLocalStt = !IsLocalStt;
+
+    [RelayCommand]
+    private void CycleLlm()
     {
-        IsRawModeEnabled = !IsRawModeEnabled;
-        Log.Information("ControlPanel: RAW mode toggled to {IsEnabled}", IsRawModeEnabled);
+        LlmMode = LlmMode switch
+        {
+            LlmMode.Local => LlmMode.Cloud,
+            LlmMode.Cloud => LlmMode.Off,
+            LlmMode.Off => LlmMode.Local,
+            _ => LlmMode.Local,
+        };
     }
 
     [RelayCommand]
-    private void ToggleRefineMode()
+    private void CycleTts()
+    {
+        TtsMode = TtsMode switch
+        {
+            TtsMode.Local => TtsMode.Cloud,
+            TtsMode.Cloud => TtsMode.Off,
+            TtsMode.Off => TtsMode.Local,
+            _ => TtsMode.Local,
+        };
+    }
+
+    [RelayCommand]
+    private void CycleSound() => IsSoundEnabled = !IsSoundEnabled;
+
+    [RelayCommand]
+    private void CycleKey()
+    {
+        AdditionalKeyValue = AdditionalKeyValue switch
+        {
+            "" => "Enter",
+            "Enter" => "Tab",
+            _ => "",
+        };
+    }
+
+    [RelayCommand]
+    private void CycleRefine()
     {
         RefineMode = RefineMode == RefineMode.Auto ? RefineMode.Voice : RefineMode.Auto;
         IsRefineVoice = RefineMode == RefineMode.Voice;
-        Log.Information("ControlPanel: Refine mode toggled to {Mode}", RefineMode);
     }
+
+    [RelayCommand]
+    private void ToggleExpanded() => IsExpanded = !IsExpanded;
 
     [RelayCommand]
     private void OpenSettings()
@@ -341,6 +432,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(SoundStateLabel));
+        OnPropertyChanged(nameof(SoundStateBrush));
     }
 
     partial void OnIsLocalSttChanged(bool value)
@@ -366,43 +458,56 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
         UpdateBadgeBrushes();
         OnPropertyChanged(nameof(SttStateLabel));
+        OnPropertyChanged(nameof(SttStateBrush));
         Log.Information("ControlPanel: STT toggled to {Provider}", value ? "whisper" : "deepgram");
     }
 
-    partial void OnIsLocalLlmChanged(bool value)
+    partial void OnLlmModeChanged(LlmMode value)
     {
-        string profileName = value ? "Local" : "Cloud";
         if (!_suppressSave)
         {
-            string llmProvider = value ? "ollama" : "gemini";
-            var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
-            string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
-            foreach (var mode in modes)
+            bool rawMode = value == LlmMode.Off;
+            string llmProvider = value switch
             {
-                for (int p = 0; p < 2; p++)
+                LlmMode.Local => "ollama",
+                LlmMode.Cloud => "gemini",
+                _ => _settings.Current.ModeProfiles.GetValueOrDefault("dictate_0", new ModeSettings()).LlmProvider,
+            };
+            string profileName = value == LlmMode.Local ? "Local" : "Cloud";
+
+            var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
+            if (!rawMode)
+            {
+                string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
+                foreach (var mode in modes)
                 {
-                    string key = $"{mode}_{p}";
-                    var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
-                    profiles[key] = existing with { LlmProvider = llmProvider, UseLlm = true };
+                    for (int p = 0; p < 2; p++)
+                    {
+                        string key = $"{mode}_{p}";
+                        var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
+                        profiles[key] = existing with { LlmProvider = llmProvider, UseLlm = true };
+                    }
                 }
             }
 
             var updated = _settings.Current with
             {
+                General = _settings.Current.General with { RawModeOverride = rawMode },
                 ModeProfiles = profiles,
-                ActiveProfileName = profileName,
+                ActiveProfileName = value == LlmMode.Local ? "Local" : "Cloud",
             };
             _ = _settings.UpdateAsync(updated);
         }
 
         UpdateBadgeBrushes();
         OnPropertyChanged(nameof(LlmStateLabel));
+        OnPropertyChanged(nameof(LlmStateBrush));
+        OnPropertyChanged(nameof(IsLlmOff));
 
         // Refresh mode items (subtitle may change between Cloud/Local profile)
         LoadAvailableModes();
 
-        Log.Information("ControlPanel: LLM toggled to {Provider}, profile={Profile}",
-            value ? "ollama" : "gemini", profileName);
+        Log.Information("ControlPanel: LLM mode set to {Mode}", value);
     }
 
     private void UpdateBadgeBrushes()
@@ -411,72 +516,58 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         SttBadgeBrush = IsLocalStt ? BadgeLocalBrush : BadgeCloudBrush;
 
         // LLM: red = off (RAW mode), green = local (Ollama), blue = cloud
-        if (IsRawModeEnabled)
+        switch (LlmMode)
         {
-            LlmBadgeBrush = BadgeOffBrush;
-            LlmProviderName = "Disabled (RAW)";
-        }
-        else
-        {
-            LlmBadgeBrush = IsLocalLlm ? BadgeLocalBrush : BadgeCloudBrush;
+            case LlmMode.Off:
+                LlmBadgeBrush = BadgeOffBrush;
+                LlmProviderName = "Disabled (RAW)";
+                break;
+            case LlmMode.Local:
+                LlmBadgeBrush = BadgeLocalBrush;
+                break;
+            case LlmMode.Cloud:
+                LlmBadgeBrush = BadgeCloudBrush;
+                break;
         }
 
-        // TTS: red = disabled, green = local (kokoro), blue = cloud
-        if (!IsTtsEnabled)
+        // TTS: red = off, green = local (Kokoro), blue = cloud
+        switch (TtsMode)
         {
-            TtsBadgeBrush = BadgeOffBrush;
-            TtsProviderName = "Disabled";
-        }
-        else
-        {
-            string provider = _settings.Current.Tts.Provider;
-            bool isLocal = string.Equals(provider, "kokoro", StringComparison.OrdinalIgnoreCase);
-            TtsBadgeBrush = isLocal ? BadgeLocalBrush : BadgeCloudBrush;
-            TtsProviderName = provider.ToLowerInvariant() switch
-            {
-                "kokoro" => "Kokoro (local)",
-                "deepgram" => "Deepgram Aura",
-                "inworld" => "Inworld TTS",
-                "openai" => "OpenAI TTS",
-                _ => provider,
-            };
+            case TtsMode.Off:
+                TtsBadgeBrush = BadgeOffBrush;
+                TtsProviderName = "Disabled";
+                break;
+            case TtsMode.Local:
+                TtsBadgeBrush = BadgeLocalBrush;
+                TtsProviderName = "Kokoro (local)";
+                break;
+            case TtsMode.Cloud:
+                TtsBadgeBrush = BadgeCloudBrush;
+                string provider = _settings.Current.Tts.Provider;
+                TtsProviderName = provider.ToLowerInvariant() switch
+                {
+                    "deepgram" => "Deepgram Aura",
+                    "inworld" => "Inworld TTS",
+                    "openai" => "OpenAI TTS",
+                    _ => provider,
+                };
+                break;
         }
     }
 
-    partial void OnIsAdditionalKeyEnabledChanged(bool value)
+    partial void OnAdditionalKeyValueChanged(string value)
     {
         if (!_suppressSave)
         {
-            // Preserve the existing key choice — only toggle enable/disable
-            string currentKey = _settings.Current.General.AdditionalKey;
-            string key = value
-                ? (string.IsNullOrEmpty(currentKey) ? "Enter" : currentKey)
-                : "";
-
             var updated = _settings.Current with
             {
-                General = _settings.Current.General with { AdditionalKey = key }
+                General = _settings.Current.General with { AdditionalKey = value }
             };
             _ = _settings.UpdateAsync(updated);
         }
 
         OnPropertyChanged(nameof(KeyStateLabel));
-    }
-
-    partial void OnIsRawModeEnabledChanged(bool value)
-    {
-        if (!_suppressSave)
-        {
-            var updated = _settings.Current with
-            {
-                General = _settings.Current.General with { RawModeOverride = value }
-            };
-            _ = _settings.UpdateAsync(updated);
-        }
-
-        OnPropertyChanged(nameof(RawStateLabel));
-        UpdateBadgeBrushes();
-        Log.Information("ControlPanel: RAW mode set to {IsEnabled}", value);
+        OnPropertyChanged(nameof(KeyStateBrush));
     }
 
     partial void OnIsRefineVoiceChanged(bool value)
@@ -492,24 +583,80 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(RefineStateLabel));
+        OnPropertyChanged(nameof(RefineStateBrush));
         Log.Information("ControlPanel: Refine mode set to {Mode}", RefineMode);
     }
 
-    partial void OnIsTtsEnabledChanged(bool value)
+    partial void OnTtsModeChanged(TtsMode value)
     {
         if (!_suppressSave)
         {
+            bool enabled = value != TtsMode.Off;
+            string provider = value switch
+            {
+                TtsMode.Local => "kokoro",
+                TtsMode.Cloud => _settings.Current.Tts.Provider is "kokoro" or "" ? "deepgram" : _settings.Current.Tts.Provider,
+                _ => _settings.Current.Tts.Provider,
+            };
+
             var updated = _settings.Current with
             {
-                Tts = _settings.Current.Tts with { Enabled = value }
+                Tts = _settings.Current.Tts with { Enabled = enabled, Provider = provider }
             };
             _ = _settings.UpdateAsync(updated);
         }
 
         OnPropertyChanged(nameof(TtsStateLabel));
+        OnPropertyChanged(nameof(TtsStateBrush));
         UpdateBadgeBrushes();
-        Log.Information("ControlPanel: TTS toggled to {IsEnabled}", value);
+        Log.Information("ControlPanel: TTS mode set to {Mode}", value);
     }
+
+    partial void OnIsExpandedChanged(bool value)
+    {
+        if (!_suppressSave)
+        {
+            var updated = _settings.Current with
+            {
+                ControlPanel = _settings.Current.ControlPanel with { IsExpanded = value }
+            };
+            _ = _settings.UpdateAsync(updated);
+        }
+
+        OnPropertyChanged(nameof(ShowModesRowEffective));
+        OnPropertyChanged(nameof(ShowActionsRowEffective));
+        OnPropertyChanged(nameof(ShowSessionStatsEffective));
+        OnPropertyChanged(nameof(ShowPerformanceStatsEffective));
+        OnPropertyChanged(nameof(ShowFooterEffective));
+        OnPropertyChanged(nameof(ExpandCollapseIcon));
+        Log.Information("ControlPanel: Expanded set to {IsExpanded}", value);
+    }
+
+    partial void OnAlwaysOnTopChanged(bool value)
+    {
+        if (!_suppressSave)
+        {
+            var updated = _settings.Current with
+            {
+                ControlPanel = _settings.Current.ControlPanel with { AlwaysOnTop = value }
+            };
+            _ = _settings.UpdateAsync(updated);
+        }
+
+        // Apply to MainWindow presenter at runtime
+        var window = App.Current.MainWindow;
+        if (window?.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p)
+        {
+            p.IsAlwaysOnTop = value;
+        }
+
+        Log.Information("ControlPanel: AlwaysOnTop set to {IsAlwaysOnTop}", value);
+    }
+
+    partial void OnShowModesRowChanged(bool value) => OnPropertyChanged(nameof(ShowModesRowEffective));
+    partial void OnShowActionsRowChanged(bool value) => OnPropertyChanged(nameof(ShowActionsRowEffective));
+    partial void OnShowSessionStatsChanged(bool value) => OnPropertyChanged(nameof(ShowSessionStatsEffective));
+    partial void OnShowPerformanceStatsChanged(bool value) => OnPropertyChanged(nameof(ShowPerformanceStatsEffective));
 
     partial void OnWordsPerMinuteChanged(double value)
     {
@@ -645,20 +792,43 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private void LoadFromSettings(AppSettings settings)
     {
         IsSoundEnabled = settings.General.SoundFeedback;
-        IsAdditionalKeyEnabled = !string.IsNullOrEmpty(settings.General.AdditionalKey);
-        IsRawModeEnabled = settings.General.RawModeOverride;
+        AdditionalKeyValue = settings.General.AdditionalKey;
         IsRefineVoice = settings.General.RefineVoiceMode;
-        IsTtsEnabled = settings.Tts.Enabled;
+        // Derive TtsMode from Tts.Enabled + Tts.Provider
+        if (!settings.Tts.Enabled)
+        {
+            TtsMode = TtsMode.Off;
+        }
+        else
+        {
+            TtsMode = string.Equals(settings.Tts.Provider, "kokoro", StringComparison.OrdinalIgnoreCase)
+                ? TtsMode.Local
+                : TtsMode.Cloud;
+        }
         // Read STT/LLM provider from ModeProfiles (dictate_0 is the reference slot)
         var refSlot = settings.ModeProfiles.GetValueOrDefault("dictate_0", new ModeSettings());
         IsLocalStt = string.Equals(refSlot.SttProvider, "whisper", StringComparison.OrdinalIgnoreCase);
-        IsLocalLlm = string.Equals(refSlot.LlmProvider, "ollama", StringComparison.OrdinalIgnoreCase);
+
+        // Derive LlmMode from RawModeOverride + LlmProvider
+        if (settings.General.RawModeOverride)
+        {
+            LlmMode = LlmMode.Off;
+        }
+        else
+        {
+            LlmMode = string.Equals(refSlot.LlmProvider, "ollama", StringComparison.OrdinalIgnoreCase)
+                ? LlmMode.Local
+                : LlmMode.Cloud;
+        }
+
         UpdateBadgeBrushes();
 
         ShowModesRow = settings.ControlPanel.ShowModesRow;
         ShowActionsRow = settings.ControlPanel.ShowActionsRow;
         ShowSessionStats = settings.ControlPanel.ShowSessionStats;
         ShowPerformanceStats = settings.ControlPanel.ShowPerformanceStats;
+        AlwaysOnTop = settings.ControlPanel.AlwaysOnTop;
+        IsExpanded = settings.ControlPanel.IsExpanded;
 
         // Hotkey display
         HotkeyDictate = settings.Hotkeys.Dictate;
@@ -704,7 +874,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     private DictationProfile GetActiveProfile(DictationMode mode)
     {
-        return IsLocalLlm ? mode.LocalProfile : mode.CloudProfile;
+        return LlmMode == LlmMode.Local ? mode.LocalProfile : mode.CloudProfile;
     }
 
     private DictationModeItem CreateModeItem(DictationMode mode, DictationProfile profile)

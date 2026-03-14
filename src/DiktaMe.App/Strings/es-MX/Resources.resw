@@ -457,6 +457,8 @@
   <data name="Settings_ControlPanel_ShowSessionStats_Description.Text" xml:space="preserve"><value>Contadores REQ, CHAR, WORDS, WORD/MIN</value></data>
   <data name="Settings_ControlPanel_ShowPerformanceStats_Label.Text" xml:space="preserve"><value>Mostrar Estad&#237;sticas de Rendimiento</value></data>
   <data name="Settings_ControlPanel_ShowPerformanceStats_Description.Text" xml:space="preserve"><value>Latencias por etapa REC, TRANS, PROC, INJ</value></data>
+  <data name="Settings_ControlPanel_AlwaysOnTop_Label.Text" xml:space="preserve"><value>Siempre Encima</value></data>
+  <data name="Settings_ControlPanel_AlwaysOnTop_Description.Text" xml:space="preserve"><value>Mantener el panel de control encima de otras ventanas</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > About
@@ -535,7 +537,6 @@
   <data name="ControlPanel_Toggle_Stt.Text" xml:space="preserve"><value>STT</value></data>
   <data name="ControlPanel_Toggle_Llm.Text" xml:space="preserve"><value>LLM</value></data>
   <data name="ControlPanel_Toggle_Key.Text" xml:space="preserve"><value>+TECLA</value></data>
-  <data name="ControlPanel_Toggle_Raw.Text" xml:space="preserve"><value>RAW</value></data>
   <data name="ControlPanel_Toggle_Refine.Text" xml:space="preserve"><value>REFINAR</value></data>
   <data name="ControlPanel_Toggle_Tts.Text" xml:space="preserve"><value>TTS</value></data>
   <!-- C# dynamic state values (ControlPanelViewModel) -->

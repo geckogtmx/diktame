@@ -56,6 +56,9 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _showPerformanceStats = true;
 
+    [ObservableProperty]
+    private bool _alwaysOnTop;
+
     // ── Behavior fields ──────────────────────────────────────────────────
 
     [ObservableProperty]
@@ -128,6 +131,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         ShowActionsRow = cp.ShowActionsRow;
         ShowSessionStats = cp.ShowSessionStats;
         ShowPerformanceStats = cp.ShowPerformanceStats;
+        AlwaysOnTop = cp.AlwaysOnTop;
 
         _isLoading = false;
     }
@@ -147,6 +151,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     partial void OnShowActionsRowChanged(bool value) => Save();
     partial void OnShowSessionStatsChanged(bool value) => Save();
     partial void OnShowPerformanceStatsChanged(bool value) => Save();
+    partial void OnAlwaysOnTopChanged(bool value) => Save();
 
     private void Save()
     {
@@ -171,6 +176,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
                 ShowActionsRow = ShowActionsRow,
                 ShowSessionStats = ShowSessionStats,
                 ShowPerformanceStats = ShowPerformanceStats,
+                AlwaysOnTop = AlwaysOnTop,
             }
         };
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>

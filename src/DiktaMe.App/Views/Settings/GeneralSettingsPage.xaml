@@ -98,6 +98,12 @@
                     <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Description" FontSize="12" Opacity="0.6"/>
                     <ToggleSwitch IsOn="{x:Bind ViewModel.ShowPerformanceStats, Mode=TwoWay}"/>
                 </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Description" FontSize="12" Opacity="0.6"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.AlwaysOnTop, Mode=TwoWay}"/>
+                </StackPanel>
             </StackPanel>
 
             <!-- ═══════════════════════════════════════════════════════════════

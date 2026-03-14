@@ -1207,6 +1207,12 @@
   <data name="Settings_ControlPanel_ShowPerformanceStats_Description.Text" xml:space="preserve">
     <value>REC, TRANS, PROC, INJ per-stage latencies</value>
   </data>
+  <data name="Settings_ControlPanel_AlwaysOnTop_Label.Text" xml:space="preserve">
+    <value>Always On Top</value>
+  </data>
+  <data name="Settings_ControlPanel_AlwaysOnTop_Description.Text" xml:space="preserve">
+    <value>Keep the control panel above other windows</value>
+  </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > About
@@ -1419,9 +1425,6 @@
   </data>
   <data name="ControlPanel_Toggle_Key.Text" xml:space="preserve">
     <value>+KEY</value>
-  </data>
-  <data name="ControlPanel_Toggle_Raw.Text" xml:space="preserve">
-    <value>RAW</value>
   </data>
   <data name="ControlPanel_Toggle_Refine.Text" xml:space="preserve">
     <value>REFINE</value>

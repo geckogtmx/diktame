@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Windows.Graphics;
 
@@ -34,7 +35,12 @@ public sealed partial class MainWindow : Window
         {
             presenter.IsMinimizable = false;
             presenter.IsMaximizable = false;
+            presenter.IsResizable = false;
             presenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: false);
+
+            // Apply Always On Top from saved settings
+            var settings = App.Current.Services.GetRequiredService<DiktaMe.Core.Config.SettingsManager>();
+            presenter.IsAlwaysOnTop = settings.Current.ControlPanel.AlwaysOnTop;
         }
 
         // Defer SetTitleBar until the visual tree is loaded
