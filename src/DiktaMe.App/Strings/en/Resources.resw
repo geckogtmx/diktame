@@ -212,8 +212,8 @@
   <data name="Settings_General_Sub_Application" xml:space="preserve">
     <value>Application</value>
   </data>
-  <data name="Settings_General_Sub_Behavior" xml:space="preserve">
-    <value>Behavior</value>
+  <data name="Settings_General_Sub_Language" xml:space="preserve">
+    <value>Language</value>
   </data>
   <data name="Settings_General_UiLanguage_Label.Text" xml:space="preserve">
     <value>UI Language</value>

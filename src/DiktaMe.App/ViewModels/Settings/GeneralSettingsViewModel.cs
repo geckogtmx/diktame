@@ -29,7 +29,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     private bool _isApplicationSelected;
 
     [ObservableProperty]
-    private bool _isBehaviorSelected;
+    private bool _isLanguageSelected;
 
     // ── Application fields ───────────────────────────────────────────────
 
@@ -83,7 +83,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
 
     public int[] AutoHideDelayValues { get; } = [10, 30, 60, 300, 0]; // 0 = Never
 
-    // ── Behavior fields ──────────────────────────────────────────────────
+    // ── Language fields ──────────────────────────────────────────────────
 
     [ObservableProperty]
     private int _selectedLanguageIndex;
@@ -128,7 +128,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     {
         SubItems.Clear();
         SubItems.Add(new ModeListItem { Id = "application", Title = _loc.GetString("Settings_General_Sub_Application"), IsDictationMode = false, IsSeparator = false });
-        SubItems.Add(new ModeListItem { Id = "behavior", Title = _loc.GetString("Settings_General_Sub_Behavior"), IsDictationMode = false, IsSeparator = false });
+        SubItems.Add(new ModeListItem { Id = "language", Title = _loc.GetString("Settings_General_Sub_Language"), IsDictationMode = false, IsSeparator = false });
     }
 
     partial void OnSelectedIndexChanged(int value)
@@ -138,13 +138,13 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         if (!HasSelection)
         {
             IsApplicationSelected = false;
-            IsBehaviorSelected = false;
+            IsLanguageSelected = false;
             return;
         }
 
         string id = SubItems[value].Id;
         IsApplicationSelected = id == "application";
-        IsBehaviorSelected = id == "behavior";
+        IsLanguageSelected = id == "language";
     }
 
     // ── Load / Save ─────────────────────────────────────────────────────

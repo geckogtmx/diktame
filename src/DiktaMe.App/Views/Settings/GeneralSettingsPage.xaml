@@ -45,25 +45,6 @@
                         Visibility="{x:Bind ViewModel.IsApplicationSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                 <TextBlock Text="Application" FontSize="20" FontWeight="SemiBold"/>
 
-                <!-- UI Language (requires restart) -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Label" FontWeight="SemiBold"/>
-                    <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Description" FontSize="12" Opacity="0.6"/>
-                    <ComboBox ItemsSource="{x:Bind ViewModel.UiLanguages}"
-                              SelectedIndex="{x:Bind ViewModel.SelectedUiLanguageIndex, Mode=TwoWay}"
-                              HorizontalAlignment="Stretch"/>
-                    <InfoBar l:Uids.Uid="Settings_General_RestartInfoBar"
-                             Severity="Informational"
-                             IsOpen="{x:Bind ViewModel.ShowRestartWarning, Mode=OneWay}"
-                             IsClosable="False"
-                             Margin="0,4,0,0">
-                        <InfoBar.ActionButton>
-                            <Button l:Uids.Uid="Settings_General_RestartButton"
-                                    Command="{x:Bind ViewModel.RestartAppCommand}"/>
-                        </InfoBar.ActionButton>
-                    </InfoBar>
-                </StackPanel>
-
                 <!-- Auto-start -->
                 <StackPanel Spacing="4">
                     <TextBlock l:Uids.Uid="Settings_General_AutoStart_Label" FontWeight="SemiBold"/>
@@ -167,8 +148,27 @@
                  Behavior
                  ═══════════════════════════════════════════════════════════════ -->
             <StackPanel Spacing="24" MaxWidth="600"
-                        Visibility="{x:Bind ViewModel.IsBehaviorSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Behavior" FontSize="20" FontWeight="SemiBold"/>
+                        Visibility="{x:Bind ViewModel.IsLanguageSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Language" FontSize="20" FontWeight="SemiBold"/>
+
+                <!-- UI Language (requires restart) -->
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Description" FontSize="12" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.UiLanguages}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedUiLanguageIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"/>
+                    <InfoBar l:Uids.Uid="Settings_General_RestartInfoBar"
+                             Severity="Informational"
+                             IsOpen="{x:Bind ViewModel.ShowRestartWarning, Mode=OneWay}"
+                             IsClosable="False"
+                             Margin="0,4,0,0">
+                        <InfoBar.ActionButton>
+                            <Button l:Uids.Uid="Settings_General_RestartButton"
+                                    Command="{x:Bind ViewModel.RestartAppCommand}"/>
+                        </InfoBar.ActionButton>
+                    </InfoBar>
+                </StackPanel>
 
                 <!-- Transcription Language -->
                 <StackPanel Spacing="4">
