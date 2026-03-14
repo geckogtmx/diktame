@@ -8,9 +8,9 @@ using Serilog;
 namespace DiktaMe.App.ViewModels.Settings;
 
 /// <summary>
-/// Host ViewModel for the Workflows &amp; Modes settings page.
+/// Host ViewModel for the Pipelines settings page.
 /// Aggregates ModesSettingsViewModel (utility pipelines).
-/// Owns the "Dictation Behaviors" fields (AdditionalKey, TrailingSpace, RawModeOverride, RefineVoiceMode).
+/// Owns the "Dictation Behaviors" fields (AdditionalKeyEnabled, TrailingSpace, RawModeOverride, RefineVoiceMode).
 /// </summary>
 public sealed partial class WorkflowsSettingsViewModel : ObservableObject
 {
@@ -39,24 +39,16 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
     // ── Dictation Behaviors fields ───────────────────────────────────────
 
     [ObservableProperty]
-    private int _selectedAdditionalKeyIndex;
+    private bool _trailingSpace = true;
 
     [ObservableProperty]
-    private bool _trailingSpace = true;
+    private bool _additionalKeyEnabled;
 
     [ObservableProperty]
     private bool _rawModeOverride;
 
     [ObservableProperty]
     private bool _refineVoiceMode;
-
-    public string[] AdditionalKeyOptions => [
-        _loc.GetString("Settings_General_AdditionalKey_None"),
-        _loc.GetString("Settings_General_AdditionalKey_Enter"),
-        _loc.GetString("Settings_General_AdditionalKey_Tab"),
-        _loc.GetString("Settings_General_AdditionalKey_Space"),
-    ];
-    public string[] AdditionalKeyCodes { get; } = ["", "Enter", "Tab", "Space"];
 
     // ── Constructor ─────────────────────────────────────────────────────
 
@@ -97,15 +89,15 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
     {
         _isLoading = true;
         var g = _settings.Current.General;
-        SelectedAdditionalKeyIndex = Array.IndexOf(AdditionalKeyCodes, g.AdditionalKey) is var i and >= 0 ? i : 0;
         TrailingSpace = g.TrailingSpace;
+        AdditionalKeyEnabled = !string.IsNullOrEmpty(g.AdditionalKey);
         RawModeOverride = g.RawModeOverride;
         RefineVoiceMode = g.RefineVoiceMode;
         _isLoading = false;
     }
 
-    partial void OnSelectedAdditionalKeyIndexChanged(int value) => SaveDictationBehaviors();
     partial void OnTrailingSpaceChanged(bool value) => SaveDictationBehaviors();
+    partial void OnAdditionalKeyEnabledChanged(bool value) => SaveDictationBehaviors();
     partial void OnRawModeOverrideChanged(bool value) => SaveDictationBehaviors();
     partial void OnRefineVoiceModeChanged(bool value) => SaveDictationBehaviors();
 
@@ -116,12 +108,17 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
             return;
         }
 
+        // When enabling, preserve the existing key value; default to "Enter" if none was set
+        string currentKey = _settings.Current.General.AdditionalKey;
+        string additionalKey = AdditionalKeyEnabled
+            ? (string.IsNullOrEmpty(currentKey) ? "Enter" : currentKey)
+            : "";
+
         var updated = _settings.Current with
         {
             General = _settings.Current.General with
             {
-                AdditionalKey = SelectedAdditionalKeyIndex >= 0 && SelectedAdditionalKeyIndex < AdditionalKeyCodes.Length
-                    ? AdditionalKeyCodes[SelectedAdditionalKeyIndex] : "",
+                AdditionalKey = additionalKey,
                 TrailingSpace = TrailingSpace,
                 RawModeOverride = RawModeOverride,
                 RefineVoiceMode = RefineVoiceMode,

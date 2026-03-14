@@ -203,6 +203,7 @@ public sealed class SettingsManager
             Sound = s.Sound ?? new(),
             Deepgram = s.Deepgram ?? new(),
             Tts = s.Tts ?? new(),
+            CloudLlm = s.CloudLlm ?? new(),
         };
 
         // Protect individual hotkey strings from JSON null override.

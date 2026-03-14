@@ -70,6 +70,17 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasSelection;
 
+    // ── Cloud / Local tab toggle ─────────────────────────────────────────
+
+    [ObservableProperty]
+    private bool _isCloudTab = true;
+
+    [RelayCommand]
+    private void SelectCloud() => IsCloudTab = true;
+
+    [RelayCommand]
+    private void SelectLocal() => IsCloudTab = false;
+
     // ── Constructor ────────────────────────────────────────────────────────
 
     public DictationModesSettingsViewModel(
@@ -119,7 +130,9 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
 
         try
         {
-            var models = await _modelListService.GetAvailableModelsAsync().ConfigureAwait(false);
+            var allModels = await _modelListService.GetAvailableModelsAsync().ConfigureAwait(false);
+            var disabledIds = _settings.Current.CloudLlm.DisabledModelIds;
+            var models = ModelListService.FilterEnabled(allModels, disabledIds);
 
             // Always dispatch to UI thread (remove dual-branch logic)
             if (App.Current.MainWindow?.DispatcherQueue is { } dispatcher)

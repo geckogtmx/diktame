@@ -159,6 +159,17 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
     /// <summary>True if system prompt fields should be visible (all modes except Chat).</summary>
     public bool ShowPromptFields => HasSelection && !IsChatSelected;
 
+    // ── Cloud / Local tab toggle (Utility Pipelines) ────────────────────
+
+    [ObservableProperty]
+    private bool _isCloudTab = true;
+
+    [RelayCommand]
+    private void SelectCloud() => IsCloudTab = true;
+
+    [RelayCommand]
+    private void SelectLocal() => IsCloudTab = false;
+
     // ── Constructor ────────────────────────────────────────────────────────
 
     public ModesSettingsViewModel(
@@ -255,7 +266,9 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
 
         try
         {
-            var models = await _modelListService.GetAvailableModelsAsync().ConfigureAwait(false);
+            var allModels = await _modelListService.GetAvailableModelsAsync().ConfigureAwait(false);
+            var disabledIds = _settings.Current.CloudLlm.DisabledModelIds;
+            var models = ModelListService.FilterEnabled(allModels, disabledIds);
 
             // Populate on UI thread
             if (App.Current.MainWindow?.DispatcherQueue is { } dispatcher)

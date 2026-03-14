@@ -4,59 +4,115 @@
       xmlns:config="using:DiktaMe.Core.Config"
       xmlns:converters="using:DiktaMe.App.Converters"
       xmlns:l="using:WinUI3Localizer"
-      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+      Background="Transparent">
 
     <Page.Resources>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/SharedResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        </ResourceDictionary>
     </Page.Resources>
 
-    <Grid Padding="24" RowSpacing="16">
+    <Grid Padding="32,24,32,32" RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <StackPanel Orientation="Horizontal" Spacing="16">
-            <TextBlock l:Uids.Uid="Settings_Snippets_Title" FontSize="24" FontWeight="SemiBold"/>
-            <TextBlock Text="{x:Bind ViewModel.CountText, Mode=OneWay}"
-                       FontSize="14" Opacity="0.5" VerticalAlignment="Center"/>
-        </StackPanel>
+        <!-- Header: Title + Count + Add button -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <TextBlock l:Uids.Uid="Settings_Snippets_Title" FontSize="24" FontWeight="SemiBold"
+                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                <TextBlock Text="{x:Bind ViewModel.CountText, Mode=OneWay}"
+                           FontSize="13" Foreground="{StaticResource V1TextSecondaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <Button Grid.Column="1" Command="{x:Bind ViewModel.AddSnippetCommand}"
+                    VerticalAlignment="Center" Padding="12,8">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE710;" FontSize="14"/>
+                    <TextBlock l:Uids.Uid="Settings_Snippets_AddButton"/>
+                </StackPanel>
+            </Button>
+        </Grid>
 
         <!-- Snippet list -->
-        <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.Snippets}"
+        <ListView Grid.Row="1"
+                  ItemsSource="{x:Bind ViewModel.Snippets}"
                   SelectedItem="{x:Bind ViewModel.SelectedSnippet, Mode=TwoWay}"
-                  SelectionMode="Single">
+                  SelectionMode="Single"
+                  ContainerContentChanging="ListView_ContainerContentChanging">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="0,0,0,2"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="config:Snippet">
-                    <Grid Padding="4,6" ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="160"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{x:Bind Trigger}" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="1" Text="{x:Bind Content}" Opacity="0.7"
-                                   TextTrimming="CharacterEllipsis"/>
-                    </Grid>
+                    <Border CornerRadius="6" Padding="16,12" MinHeight="52"
+                            BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="1">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Trigger + Content -->
+                            <StackPanel Spacing="4" VerticalAlignment="Center">
+                                <Border Background="{StaticResource V1ActiveModeBrush}"
+                                        CornerRadius="4" Padding="8,3"
+                                        HorizontalAlignment="Left">
+                                    <TextBlock Text="{x:Bind Trigger}" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                                </Border>
+                                <TextBlock Text="{x:Bind Content}" FontSize="12"
+                                           Foreground="{StaticResource V1TextSecondaryBrush}"
+                                           TextTrimming="CharacterEllipsis" MaxLines="2"
+                                           TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <!-- Inline Edit + Delete buttons -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                        VerticalAlignment="Center">
+                                <Button ToolTipService.ToolTip="Edit" Tag="{Binding}"
+                                        Click="EditButton_Click"
+                                        Width="32" Height="32" Padding="0"
+                                        Background="Transparent" BorderThickness="0">
+                                    <FontIcon Glyph="&#xE70F;" FontSize="14"
+                                              Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                </Button>
+                                <Button ToolTipService.ToolTip="Delete" Tag="{Binding}"
+                                        Click="DeleteButton_Click"
+                                        Width="32" Height="32" Padding="0"
+                                        Background="Transparent" BorderThickness="0">
+                                    <FontIcon Glyph="&#xE74D;" FontSize="14"
+                                              Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
 
-        <!-- Buttons -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
-            <Button l:Uids.Uid="Settings_Snippets_AddButton" Command="{x:Bind ViewModel.AddSnippetCommand}"/>
-            <Button l:Uids.Uid="Settings_Snippets_EditButton" Command="{x:Bind ViewModel.EditSelectedSnippetCommand}"/>
-            <Button l:Uids.Uid="Settings_Snippets_DeleteButton" Command="{x:Bind ViewModel.DeleteSnippetCommand}"/>
-        </StackPanel>
-
         <!-- Edit panel -->
-        <Border Grid.Row="3"
+        <Border Grid.Row="2"
                 Visibility="{x:Bind ViewModel.IsEditing, Converter={StaticResource BoolToVis}, Mode=OneWay}"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                CornerRadius="8" Padding="16">
+                Background="{StaticResource V1HeaderBrush}"
+                BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="1"
+                CornerRadius="8" Padding="20,16">
             <StackPanel Spacing="12" MaxWidth="500">
+                <TextBlock Text="{x:Bind ViewModel.EditPanelTitle, Mode=OneWay}" FontSize="16" FontWeight="SemiBold"
+                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
                 <TextBox l:Uids.Uid="Settings_Snippets_TriggerInput"
                          Text="{x:Bind ViewModel.EditTrigger, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBox l:Uids.Uid="Settings_Snippets_ContentInput"

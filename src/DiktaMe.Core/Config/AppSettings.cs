@@ -336,6 +336,18 @@ public sealed record ChatSettings
 }
 
 /// <summary>
+/// Cloud LLM model management settings.
+/// Controls which cloud models are visible in pipeline/chat model dropdowns.
+/// </summary>
+public sealed record CloudLlmSettings
+{
+    /// <summary>
+    /// Model IDs that the user has disabled. Blacklist approach — new models are auto-enabled.
+    /// </summary>
+    public List<string> DisabledModelIds { get; init; } = [];
+}
+
+/// <summary>
 /// Text-to-Speech configuration. TTS is off by default (opt-in feature).
 /// </summary>
 public sealed record TtsSettings
@@ -403,6 +415,7 @@ public sealed record AppSettings
     public SoundSettings Sound { get; init; } = new();
     public DeepgramSettings Deepgram { get; init; } = new();
     public TtsSettings Tts { get; init; } = new();
+    public CloudLlmSettings CloudLlm { get; init; } = new();
 
     /// <summary>
     /// Per-mode settings for 2 profiles.
@@ -524,4 +537,5 @@ public sealed record AppSettings
 [JsonSerializable(typeof(AccountSettings))]
 [JsonSerializable(typeof(Account.TrialStatus))]
 [JsonSerializable(typeof(TtsSettings))]
+[JsonSerializable(typeof(CloudLlmSettings))]
 public partial class AppSettingsContext : JsonSerializerContext { }

@@ -406,6 +406,22 @@ public sealed class ModelListService : IDisposable
         return "ollama";
     }
 
+    // ── Filtering ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Filters out models the user has disabled in Cloud LLM settings.
+    /// Uses blacklist approach — models not in <paramref name="disabledIds"/> are kept.
+    /// </summary>
+    public static List<ModelInfo> FilterEnabled(List<ModelInfo> allModels, IReadOnlyCollection<string> disabledIds)
+    {
+        if (disabledIds.Count == 0)
+        {
+            return allModels;
+        }
+
+        return allModels.Where(m => !disabledIds.Contains(m.ModelId)).ToList();
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     /// <summary>

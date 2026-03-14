@@ -6,6 +6,19 @@ using Microsoft.Data.Sqlite;
 using Serilog;
 
 namespace DiktaMe.Core.Data;
+
+/// <summary>
+/// Aggregated token usage for a single LLM provider over a time period.
+/// </summary>
+public sealed record ProviderUsageSummary
+{
+    public required string Provider { get; init; }
+    public long TotalInputTokens { get; init; }
+    public long TotalOutputTokens { get; init; }
+    public int RequestCount { get; init; }
+    public long TotalTokens => TotalInputTokens + TotalOutputTokens;
+}
+
 /// <summary>
 /// Persists pipeline session history to a SQLite database at
 /// <c>%APPDATA%\DiktaMe\history.db</c>.
@@ -109,11 +122,13 @@ public sealed class HistoryManager : IDisposable
             INSERT INTO history
                 (timestamp, mode, text, raw_transcript, stt_provider, llm_provider,
                  word_count, transcription_ms, processing_ms, injection_ms, total_ms, is_success,
-                 recording_ms, audio_duration_s, tokens_per_sec, error_message, tts_played_ms)
+                 recording_ms, audio_duration_s, tokens_per_sec, error_message, tts_played_ms,
+                 input_tokens, output_tokens)
             VALUES
                 ($ts, $mode, $text, $raw, $stt, $llm,
                  $words, $trans_ms, $proc_ms, $inj_ms, $total_ms, $success,
-                 $rec_ms, $audio_dur, $tok_sec, $err_msg, $tts_ms)
+                 $rec_ms, $audio_dur, $tok_sec, $err_msg, $tts_ms,
+                 $in_tok, $out_tok)
             """;
 
         cmd.Parameters.AddWithValue("$ts", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
@@ -133,6 +148,8 @@ public sealed class HistoryManager : IDisposable
         cmd.Parameters.AddWithValue("$tok_sec", result.TokensPerSec.HasValue ? result.TokensPerSec.Value : (object)DBNull.Value);
         cmd.Parameters.AddWithValue("$err_msg", result.ErrorMessage ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("$tts_ms", result.TtsPlayedMs);
+        cmd.Parameters.AddWithValue("$in_tok", result.InputTokens.HasValue ? result.InputTokens.Value : (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("$out_tok", result.OutputTokens.HasValue ? result.OutputTokens.Value : (object)DBNull.Value);
 
         await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -166,6 +183,48 @@ public sealed class HistoryManager : IDisposable
         }
 
         return (0, 0);
+    }
+
+    /// <summary>
+    /// Returns per-provider token usage totals since the given UTC timestamp.
+    /// </summary>
+    public async Task<List<ProviderUsageSummary>> GetUsageSummaryAsync(
+        DateTimeOffset since,
+        CancellationToken cancellationToken = default)
+    {
+        var results = new List<ProviderUsageSummary>();
+
+        if (_connection is null)
+        {
+            return results;
+        }
+
+        using var cmd = _connection.CreateCommand();
+        cmd.CommandText = """
+            SELECT llm_provider,
+                   COALESCE(SUM(input_tokens), 0),
+                   COALESCE(SUM(output_tokens), 0),
+                   COUNT(*)
+            FROM history
+            WHERE timestamp >= $since AND is_success = 1 AND llm_provider IS NOT NULL
+            GROUP BY llm_provider
+            ORDER BY COALESCE(SUM(input_tokens), 0) + COALESCE(SUM(output_tokens), 0) DESC
+            """;
+        cmd.Parameters.AddWithValue("$since", since.ToUnixTimeSeconds());
+
+        using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            results.Add(new ProviderUsageSummary
+            {
+                Provider = reader.GetString(0),
+                TotalInputTokens = reader.GetInt64(1),
+                TotalOutputTokens = reader.GetInt64(2),
+                RequestCount = reader.GetInt32(3),
+            });
+        }
+
+        return results;
     }
 
     // ── Schema ────────────────────────────────────────────────────────────────
@@ -217,6 +276,8 @@ public sealed class HistoryManager : IDisposable
             "ALTER TABLE history ADD COLUMN tokens_per_sec REAL",
             "ALTER TABLE history ADD COLUMN error_message TEXT",
             "ALTER TABLE history ADD COLUMN tts_played_ms INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE history ADD COLUMN input_tokens INTEGER",
+            "ALTER TABLE history ADD COLUMN output_tokens INTEGER",
         ];
 
         foreach (string ddl in newColumns)

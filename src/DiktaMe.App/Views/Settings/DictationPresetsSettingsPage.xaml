@@ -3,127 +3,162 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:l="using:WinUI3Localizer"
       xmlns:vm="using:DiktaMe.App.ViewModels.Settings"
-      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+      xmlns:converters="using:DiktaMe.App.Converters"
+      Background="Transparent">
 
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Themes/SharedResources.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <converters:BoolToVisibilityConverter x:Key="LocalBoolToVis"/>
+            <converters:InverseBoolToVisibilityConverter x:Key="LocalInverseBoolToVis"/>
         </ResourceDictionary>
     </Page.Resources>
 
-    <Grid Padding="24" ColumnSpacing="16">
+    <Grid ColumnSpacing="0">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="224"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Left: Preset list + toolbar -->
-        <Grid RowSpacing="8">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <Border Background="{StaticResource V1HeaderBrush}"
+                BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,1,0"
+                Padding="24">
+            <Grid RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <TextBlock l:Uids.Uid="Nav_DictationPresets" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                <TextBlock l:Uids.Uid="Nav_DictationPresets" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,4"
+                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
 
-            <ListView Grid.Row="1"
-                      ItemsSource="{x:Bind ViewModel.ModeItems}"
-                      SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}"
-                      SelectionMode="Single">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ModeListItem">
-                        <Grid Padding="4,6">
-                            <TextBlock Text="{x:Bind Title}" VerticalAlignment="Center"/>
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                <ListView Grid.Row="1"
+                          ItemsSource="{x:Bind ViewModel.ModeItems}"
+                          SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}"
+                          SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ModeListItem">
+                            <Grid Padding="4,6">
+                                <TextBlock Text="{x:Bind Title}" VerticalAlignment="Center"
+                                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
 
-            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="4" Margin="0,4,0,0">
-                <Button Content="+" ToolTipService.ToolTip="New Preset"
-                        Command="{x:Bind ViewModel.CreateModeCommand}"
-                        Width="36" Height="32"/>
-                <Button ToolTipService.ToolTip="Move Up"
-                        Command="{x:Bind ViewModel.MoveUpCommand}"
-                        Width="36" Height="32">
-                    <FontIcon Glyph="&#xE70E;" FontSize="12"/>
-                </Button>
-                <Button ToolTipService.ToolTip="Move Down"
-                        Command="{x:Bind ViewModel.MoveDownCommand}"
-                        Width="36" Height="32">
-                    <FontIcon Glyph="&#xE70D;" FontSize="12"/>
-                </Button>
-                <Button ToolTipService.ToolTip="Delete Preset"
-                        Command="{x:Bind ViewModel.DeleteModeCommand}"
-                        Width="36" Height="32">
-                    <FontIcon Glyph="&#xE74D;" FontSize="12"/>
-                </Button>
-            </StackPanel>
-        </Grid>
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="4" Margin="0,4,0,0">
+                    <Button Content="+" ToolTipService.ToolTip="New Preset"
+                            Command="{x:Bind ViewModel.CreateModeCommand}"
+                            Width="36" Height="32"/>
+                    <Button ToolTipService.ToolTip="Move Up"
+                            Command="{x:Bind ViewModel.MoveUpCommand}"
+                            Width="36" Height="32">
+                        <FontIcon Glyph="&#xE70E;" FontSize="12"/>
+                    </Button>
+                    <Button ToolTipService.ToolTip="Move Down"
+                            Command="{x:Bind ViewModel.MoveDownCommand}"
+                            Width="36" Height="32">
+                        <FontIcon Glyph="&#xE70D;" FontSize="12"/>
+                    </Button>
+                    <Button ToolTipService.ToolTip="Delete Preset"
+                            Command="{x:Bind ViewModel.DeleteModeCommand}"
+                            Width="36" Height="32">
+                        <FontIcon Glyph="&#xE74D;" FontSize="12"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <!-- Right: Preset editor -->
-        <ScrollViewer Grid.Column="1" Padding="0,0,16,32"
+        <ScrollViewer Grid.Column="1" Padding="24,24,16,32"
                       Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource BoolToVis}}">
             <StackPanel Spacing="16" MaxWidth="600">
 
                 <!-- Title -->
                 <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_DictationModes_Title_Label" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_DictationModes_Title_Label" FontWeight="SemiBold"
+                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
                     <TextBox l:Uids.Uid="Settings_DictationModes_Title_Placeholder"
                              Text="{x:Bind ViewModel.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 </StackPanel>
 
-                <!-- Cloud Profile -->
-                <TextBlock l:Uids.Uid="Settings_DictationModes_CloudProfile_Title" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"/>
-
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_DictationModes_LlmModel_Label" FontWeight="SemiBold"/>
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.CloudModelNames}"
-                                  SelectedIndex="{x:Bind ViewModel.SelectedCloudModelIndex, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch"
-                                  IsEnabled="{x:Bind ViewModel.IsLoadingModels, Mode=OneWay, Converter={StaticResource BoolNeg}}"/>
-                        <Button Grid.Column="1" ToolTipService.ToolTip="Refresh model list"
-                                Command="{x:Bind ViewModel.RefreshModelsCommand}">
-                            <FontIcon Glyph="&#xE72C;" FontSize="14"/>
-                        </Button>
-                    </Grid>
+                <!-- Cloud / Local tab bar -->
+                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,8,0,4">
+                    <StackPanel>
+                        <Button Content="Cloud" Command="{x:Bind ViewModel.SelectCloudCommand}"
+                                Style="{StaticResource TabButtonStyle}"/>
+                        <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                Visibility="{x:Bind ViewModel.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <Button Content="Local" Command="{x:Bind ViewModel.SelectLocalCommand}"
+                                Style="{StaticResource TabButtonStyle}"/>
+                        <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                Visibility="{x:Bind ViewModel.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                    </StackPanel>
                 </StackPanel>
 
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_DictationModes_CloudSystemPrompt_Label" FontWeight="SemiBold"/>
-                    <TextBox Text="{x:Bind ViewModel.CloudSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True" TextWrapping="Wrap"
-                             MinHeight="100" MaxHeight="180"/>
+                <!-- ── Cloud tab content ─────────────────────────────── -->
+                <StackPanel Spacing="16"
+                            Visibility="{x:Bind ViewModel.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_DictationModes_LlmModel_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.CloudModelNames}"
+                                      SelectedIndex="{x:Bind ViewModel.SelectedCloudModelIndex, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"
+                                      IsEnabled="{x:Bind ViewModel.IsLoadingModels, Mode=OneWay, Converter={StaticResource BoolNeg}}"/>
+                            <Button Grid.Column="1" ToolTipService.ToolTip="Refresh model list"
+                                    Command="{x:Bind ViewModel.RefreshModelsCommand}">
+                                <FontIcon Glyph="&#xE72C;" FontSize="14"/>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_DictationModes_CloudSystemPrompt_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBox Text="{x:Bind ViewModel.CloudSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" TextWrapping="Wrap"
+                                 MinHeight="100" MaxHeight="180"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4"
+                                Visibility="{x:Bind ViewModel.IsDictationMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <TextBlock l:Uids.Uid="Settings_DictationModes_CloudUseLlm_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.CloudUseLlm, Mode=TwoWay}"/>
+                    </StackPanel>
                 </StackPanel>
 
-                <StackPanel Spacing="4"
-                            Visibility="{x:Bind ViewModel.IsDictationMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                    <TextBlock l:Uids.Uid="Settings_DictationModes_CloudUseLlm_Label" FontWeight="SemiBold"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.CloudUseLlm, Mode=TwoWay}"/>
-                </StackPanel>
+                <!-- ── Local tab content ─────────────────────────────── -->
+                <StackPanel Spacing="16"
+                            Visibility="{x:Bind ViewModel.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
 
-                <!-- Local Profile -->
-                <TextBlock l:Uids.Uid="Settings_DictationModes_LocalProfile_Title" FontSize="18" FontWeight="SemiBold" Margin="0,12,0,0"/>
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_DictationModes_LocalSystemPrompt_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBox Text="{x:Bind ViewModel.LocalSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" TextWrapping="Wrap"
+                                 MinHeight="100" MaxHeight="180"/>
+                    </StackPanel>
 
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_DictationModes_LocalSystemPrompt_Label" FontWeight="SemiBold"/>
-                    <TextBox Text="{x:Bind ViewModel.LocalSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True" TextWrapping="Wrap"
-                             MinHeight="100" MaxHeight="180"/>
-                </StackPanel>
-
-                <StackPanel Spacing="4"
-                            Visibility="{x:Bind ViewModel.IsDictationMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                    <TextBlock l:Uids.Uid="Settings_DictationModes_LocalUseLlm_Label" FontWeight="SemiBold"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.LocalUseLlm, Mode=TwoWay}"/>
+                    <StackPanel Spacing="4"
+                                Visibility="{x:Bind ViewModel.IsDictationMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <TextBlock l:Uids.Uid="Settings_DictationModes_LocalUseLlm_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.LocalUseLlm, Mode=TwoWay}"/>
+                    </StackPanel>
                 </StackPanel>
 
                 <!-- Save button -->

@@ -89,6 +89,8 @@ public sealed class DictationPipeline
             string? llmProvider = null;
             string? warningMessage = null;
             double? tokensPerSec = null;
+            int? inputTokens = null;
+            int? outputTokens = null;
 
             bool useLlm = !options.RawMode
                 && _llm is not null
@@ -107,6 +109,8 @@ public sealed class DictationPipeline
                     processingMs = llmSw.ElapsedMilliseconds;
                     llmProvider = llmResult.Provider;
                     tokensPerSec = llmResult.TokensPerSec;
+                    inputTokens = llmResult.InputTokens;
+                    outputTokens = llmResult.OutputTokens;
 
                     if (llmResult.IsSuccess)
                     {
@@ -176,6 +180,8 @@ public sealed class DictationPipeline
                 LlmProvider = llmProvider,
                 AudioDurationSec = sttResult.AudioDurationSec,
                 TokensPerSec = tokensPerSec,
+                InputTokens = inputTokens,
+                OutputTokens = outputTokens,
             };
             Completed?.Invoke(this, result);
             return result;

@@ -13,7 +13,31 @@
                          IsSettingsVisible="False"
                          SelectionChanged="NavView_SelectionChanged"
                          DoubleTapped="NavView_DoubleTapped"
-                         OpenPaneLength="210">
+                         OpenPaneLength="210"
+                         Background="{StaticResource V1BackgroundBrush}">
+        <muxc:NavigationView.Resources>
+            <!-- V1 pane backgrounds -->
+            <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#002029"/>
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#002029"/>
+            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="#002a35"/>
+            <!-- Nav item text/icon colors -->
+            <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#e0e0e0"/>
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#e0e0e0"/>
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPointerOver" Color="#e0e0e0"/>
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPressed" Color="#e0e0e0"/>
+            <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="#e0e0e0"/>
+            <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="#bbbbbb"/>
+            <!-- Selected indicator + background -->
+            <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#00607a"/>
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#00303d"/>
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#004052"/>
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#003a4d"/>
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#00303d"/>
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#003a4d"/>
+            <!-- Hamburger/toggle button -->
+            <SolidColorBrush x:Key="NavigationViewButtonForegroundPointerOver" Color="#e0e0e0"/>
+            <SolidColorBrush x:Key="NavigationViewButtonForegroundPressed" Color="#bbbbbb"/>
+        </muxc:NavigationView.Resources>
         <muxc:NavigationView.PaneFooter>
             <settings:UserPaneFooter x:Name="UserFooter"/>
         </muxc:NavigationView.PaneFooter>

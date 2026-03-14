@@ -17,6 +17,7 @@ public sealed partial class SnippetsSettingsViewModel : ObservableObject
     [ObservableProperty] private bool _isEditing;
     [ObservableProperty] private bool _isNew;
     [ObservableProperty] private string _countText = "0/100";
+    [ObservableProperty] private string _editPanelTitle = "";
 
     public SnippetsSettingsViewModel(SnippetManager snippetManager)
     {
@@ -29,6 +30,7 @@ public sealed partial class SnippetsSettingsViewModel : ObservableObject
     {
         IsNew = true;
         IsEditing = true;
+        EditPanelTitle = "New Snippet";
         EditTrigger = "";
         EditContent = "";
         SelectedSnippet = null;
@@ -44,6 +46,7 @@ public sealed partial class SnippetsSettingsViewModel : ObservableObject
 
         IsNew = false;
         IsEditing = true;
+        EditPanelTitle = "Edit Snippet";
         EditTrigger = SelectedSnippet.Trigger;
         EditContent = SelectedSnippet.Content;
     }

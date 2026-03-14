@@ -536,6 +536,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.Settings.PrivacySettingsViewModel>();
         services.AddTransient<ViewModels.Settings.ApiKeysSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.OllamaSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.CloudLlmSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.SnippetsSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.HardwareSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.WorkflowsSettingsViewModel>();

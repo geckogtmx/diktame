@@ -2,7 +2,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:l="using:WinUI3Localizer"
-      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+      Background="Transparent">
 
     <Page.Resources>
         <ResourceDictionary>
@@ -12,30 +12,37 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <Grid Padding="24" ColumnSpacing="24">
+    <Grid ColumnSpacing="0">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="224"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Left: Sub-item list -->
-        <StackPanel Spacing="8">
-            <TextBlock l:Uids.Uid="Settings_Hardware_Title" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"/>
-            <ListView ItemsSource="{x:Bind ViewModel.SubItems}"
-                      SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}"
-                      SelectionMode="Single">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Padding="4,6">
-                            <TextBlock Text="{Binding Title}" FontSize="14"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </StackPanel>
+        <Border Background="{StaticResource V1HeaderBrush}"
+                BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,1,0"
+                Padding="24">
+            <StackPanel Spacing="8">
+                <TextBlock l:Uids.Uid="Settings_Hardware_Title" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"
+                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                <ListView ItemsSource="{x:Bind ViewModel.SubItems}"
+                          SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}"
+                          SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Padding="4,6">
+                                <TextBlock Text="{Binding Title}" FontSize="14"
+                                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
+        </Border>
 
         <!-- Right: Detail pane -->
-        <ScrollViewer Grid.Column="1" Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+        <ScrollViewer Grid.Column="1" Padding="24,24,16,32"
+                      Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource BoolToVis}}">
             <StackPanel Spacing="20" MaxWidth="600">
 
                 <!-- ══════════════════════════════════════════════════════════ -->
@@ -45,8 +52,10 @@
 
                     <!-- Input Device -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_RecordingDevice_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_RecordingDevice_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_RecordingDevice_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_RecordingDevice_Description" FontSize="12"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <ComboBox ItemsSource="{x:Bind ViewModel.Audio.Devices}"
                                   SelectedIndex="{x:Bind ViewModel.Audio.SelectedDeviceIndex, Mode=TwoWay}"
                                   HorizontalAlignment="Stretch"/>
@@ -54,8 +63,10 @@
 
                     <!-- Max Recording Duration -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_MaxDuration_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_MaxDuration_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_MaxDuration_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_MaxDuration_Description" FontSize="12"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <ComboBox ItemsSource="{x:Bind ViewModel.Audio.DurationLabels}"
                                   SelectedIndex="{x:Bind ViewModel.Audio.SelectedDurationIndex, Mode=TwoWay}"
                                   HorizontalAlignment="Stretch"/>
@@ -63,18 +74,24 @@
 
                     <!-- Audio Ducking -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Description" FontSize="12"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <ToggleSwitch IsOn="{x:Bind ViewModel.Audio.DuckingEnabled, Mode=TwoWay}"/>
                     </StackPanel>
 
                     <!-- Duck Level Slider -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Label" FontWeight="SemiBold"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
                         <StackPanel Orientation="Horizontal" Spacing="0">
-                            <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Prefix" FontSize="12" Opacity="0.6"/>
-                            <TextBlock Text="{x:Bind ViewModel.Audio.DuckLevelPercent, Mode=OneWay}" FontSize="12" Opacity="0.6"/>
-                            <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Suffix" FontSize="12" Opacity="0.6"/>
+                            <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Prefix" FontSize="12"
+                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                            <TextBlock Text="{x:Bind ViewModel.Audio.DuckLevelPercent, Mode=OneWay}" FontSize="12"
+                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Suffix" FontSize="12"
+                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         </StackPanel>
                         <Slider Minimum="0" Maximum="100" StepFrequency="5"
                                 Value="{x:Bind ViewModel.Audio.DuckLevelPercent, Mode=TwoWay}"
@@ -89,15 +106,19 @@
 
                     <!-- Enable Sound Feedback -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Description" FontSize="12"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <ToggleSwitch IsOn="{x:Bind ViewModel.Audio.SoundEnabled, Mode=TwoWay}"/>
                     </StackPanel>
 
                     <!-- Dictate Start Sound -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_StartSound_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_StartSound_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_StartSound_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_StartSound_Description" FontSize="12"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox ItemsSource="{x:Bind ViewModel.Audio.AvailableSounds}"
                                       SelectedIndex="{x:Bind ViewModel.Audio.SelectedStartSoundIndex, Mode=TwoWay}"
@@ -112,8 +133,10 @@
 
                     <!-- Dictate Stop Sound -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_StopSound_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_StopSound_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_StopSound_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_StopSound_Description" FontSize="12"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox ItemsSource="{x:Bind ViewModel.Audio.AvailableSounds}"
                                       SelectedIndex="{x:Bind ViewModel.Audio.SelectedStopSoundIndex, Mode=TwoWay}"
@@ -128,8 +151,10 @@
 
                     <!-- Utility Sound -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_UtilitySound_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_UtilitySound_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_UtilitySound_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Audio_UtilitySound_Description" FontSize="12"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ComboBox ItemsSource="{x:Bind ViewModel.Audio.AvailableSounds}"
                                       SelectedIndex="{x:Bind ViewModel.Audio.SelectedUtilitySoundIndex, Mode=TwoWay}"
@@ -150,8 +175,10 @@
 
                     <!-- Dictate -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Description" FontSize="12"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -178,8 +205,8 @@
 
                     <!-- Refine -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -206,8 +233,8 @@
 
                     <!-- Ask -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -234,8 +261,8 @@
 
                     <!-- Translate -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -262,8 +289,8 @@
 
                     <!-- Oops -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -290,8 +317,8 @@
 
                     <!-- Note -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -318,8 +345,8 @@
 
                     <!-- Chat -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -346,8 +373,8 @@
 
                     <!-- Read Selection -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_ReadSelection_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_ReadSelection_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_ReadSelection_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Hotkeys_ReadSelection_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>

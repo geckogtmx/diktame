@@ -11,4 +11,28 @@
     <converters:NullToVisibilityConverter x:Key="NullToVis"/>
     <converters:ApiKeyMaskConverter x:Key="ApiKeyMask"/>
 
+    <!-- ═══════════════════════════════════════════════════════════════════
+         V1 Color Palette (matches ControlPanelPage)
+         ═══════════════════════════════════════════════════════════════════ -->
+    <SolidColorBrush x:Key="V1BackgroundBrush" Color="#002029"/>
+    <SolidColorBrush x:Key="V1HeaderBrush" Color="#00303d"/>
+    <SolidColorBrush x:Key="V1DetailBrush" Color="#002a35"/>
+    <SolidColorBrush x:Key="V1BorderBrush" Color="#004052"/>
+    <SolidColorBrush x:Key="V1ActiveModeBrush" Color="#00607a"/>
+    <SolidColorBrush x:Key="V1TextPrimaryBrush" Color="#e0e0e0"/>
+    <SolidColorBrush x:Key="V1TextSecondaryBrush" Color="#888888"/>
+    <SolidColorBrush x:Key="V1PerfGreenBrush" Color="#7aff9e"/>
+
+    <!-- Tab button style (Cloud/Local tabs) -->
+    <Style x:Key="TabButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource V1HeaderBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource V1BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="Foreground" Value="#e0e0e0"/>
+    </Style>
+
 </ResourceDictionary>

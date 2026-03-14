@@ -90,7 +90,7 @@
     <value>Audio &amp; Hotkeys</value>
   </data>
   <data name="Nav_Workflows.Content" xml:space="preserve">
-    <value>Workflows &amp; Modes</value>
+    <value>Pipelines</value>
   </data>
   <data name="Nav_Account.Content" xml:space="preserve">
     <value>Account</value>
@@ -107,7 +107,7 @@
        Settings > Workflows (SPEC_012)
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_Workflows_Title.Text" xml:space="preserve">
-    <value>Workflows &amp; Modes</value>
+    <value>Pipelines</value>
   </data>
   <data name="Settings_Workflows_Behaviors" xml:space="preserve">
     <value>Dictation Behaviors</value>
@@ -240,10 +240,10 @@
     <value>Play sounds for recording start/stop and notifications</value>
   </data>
   <data name="Settings_General_AdditionalKey_Label.Text" xml:space="preserve">
-    <value>Additional Key After Injection</value>
+    <value>Additional Key</value>
   </data>
   <data name="Settings_General_AdditionalKey_Description.Text" xml:space="preserve">
-    <value>Optionally press a key after text is injected</value>
+    <value>Enable the additional key press after injection (key is selected from Control Panel)</value>
   </data>
   <data name="Settings_General_TrailingSpace_Label.Text" xml:space="preserve">
     <value>Trailing Space</value>
@@ -357,16 +357,16 @@
     <value>API Keys</value>
   </data>
   <data name="Settings_AIEngine_Sub_Stt" xml:space="preserve">
-    <value>Speech-to-Text (STT)</value>
+    <value>Speech to Text</value>
   </data>
   <data name="Settings_AIEngine_STT_Title.Text" xml:space="preserve">
     <value>Speech-to-Text (STT)</value>
   </data>
-  <data name="Settings_AIEngine_Sub_Ollama" xml:space="preserve">
-    <value>Local LLM (Ollama)</value>
+  <data name="Settings_AIEngine_Sub_Llm" xml:space="preserve">
+    <value>Language Model</value>
   </data>
   <data name="Settings_AIEngine_Sub_Tts" xml:space="preserve">
-    <value>Text-to-Speech (TTS)</value>
+    <value>Text to Speech</value>
   </data>
   <data name="Settings_AIEngine_Sub_Monitor" xml:space="preserve">
     <value>System Monitor</value>
@@ -829,7 +829,7 @@
     <value>Kokoro Model</value>
   </data>
   <data name="Settings_Tts_Kokoro_Variant_Label.Text" xml:space="preserve">
-    <value>Model Variant</value>
+    <value>Kokoro Model Variant</value>
   </data>
   <data name="Settings_Tts_Kokoro_Variant_Description.Text" xml:space="preserve">
     <value>Choose model precision. int8 is smallest; fp32 is highest quality.</value>
@@ -981,7 +981,10 @@
        Settings > Ollama
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_Ollama_Title.Text" xml:space="preserve">
-    <value>Ollama</value>
+    <value>Language Model</value>
+  </data>
+  <data name="Settings_Llm_CloudInfo.Text" xml:space="preserve">
+    <value>Cloud LLM models are configured via API Keys and per-mode settings in Workflows &amp; Modes.</value>
   </data>
   <data name="Settings_Ollama_Status_Label.Text" xml:space="preserve">
     <value>Status</value>

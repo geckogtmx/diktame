@@ -3,40 +3,50 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:l="using:WinUI3Localizer"
       xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
-      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+      xmlns:converters="using:DiktaMe.App.Converters"
+      Background="Transparent">
 
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Themes/SharedResources.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <converters:BoolToVisibilityConverter x:Key="LocalBoolToVis"/>
+            <converters:InverseBoolToVisibilityConverter x:Key="LocalInverseBoolToVis"/>
         </ResourceDictionary>
     </Page.Resources>
 
-    <Grid Padding="24" ColumnSpacing="24">
+    <Grid ColumnSpacing="0">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="224"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Left: Sub-item list -->
-        <StackPanel Spacing="8">
-            <TextBlock l:Uids.Uid="Settings_Workflows_Title" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"/>
-            <ListView ItemsSource="{x:Bind ViewModel.SubItems}"
-                      SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}"
-                      SelectionMode="Single">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Padding="4,6">
-                            <TextBlock Text="{Binding Title}" FontSize="14"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </StackPanel>
+        <Border Background="{StaticResource V1HeaderBrush}"
+                BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,1,0"
+                Padding="24">
+            <StackPanel Spacing="8">
+                <TextBlock l:Uids.Uid="Settings_Workflows_Title" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"
+                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                <ListView ItemsSource="{x:Bind ViewModel.SubItems}"
+                          SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}"
+                          SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Padding="4,6">
+                                <TextBlock Text="{Binding Title}" FontSize="14"
+                                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
+        </Border>
 
         <!-- Right: Detail pane -->
-        <ScrollViewer Grid.Column="1" Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+        <ScrollViewer Grid.Column="1" Padding="24,24,16,32"
+                      Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource BoolToVis}}">
             <StackPanel Spacing="20" MaxWidth="600">
 
                 <!-- ══════════════════════════════════════════════════════════ -->
@@ -44,33 +54,31 @@
                 <!-- ══════════════════════════════════════════════════════════ -->
                 <StackPanel Spacing="20" Visibility="{x:Bind ViewModel.IsDictationBehaviorsSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
-                    <!-- Additional Key -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_General_AdditionalKey_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_General_AdditionalKey_Description" FontSize="12" Opacity="0.6"/>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.AdditionalKeyOptions}"
-                                  SelectedIndex="{x:Bind ViewModel.SelectedAdditionalKeyIndex, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch"/>
-                    </StackPanel>
-
                     <!-- Trailing Space -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <ToggleSwitch IsOn="{x:Bind ViewModel.TrailingSpace, Mode=TwoWay}"/>
+                    </StackPanel>
+
+                    <!-- Additional Key (Enable/Disable — key is selected from Control Panel) -->
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_General_AdditionalKey_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_General_AdditionalKey_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.AdditionalKeyEnabled, Mode=TwoWay}"/>
                     </StackPanel>
 
                     <!-- Raw Mode Override -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Workflows_RawModeOverride_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Workflows_RawModeOverride_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Workflows_RawModeOverride_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Workflows_RawModeOverride_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <ToggleSwitch IsOn="{x:Bind ViewModel.RawModeOverride, Mode=TwoWay}"/>
                     </StackPanel>
 
                     <!-- Refine Voice Mode -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Workflows_RefineVoiceMode_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Workflows_RefineVoiceMode_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Workflows_RefineVoiceMode_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Workflows_RefineVoiceMode_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <ToggleSwitch IsOn="{x:Bind ViewModel.RefineVoiceMode, Mode=TwoWay}"/>
                     </StackPanel>
                 </StackPanel>
@@ -83,72 +91,89 @@
                     <!-- Mode Title -->
                     <TextBlock Text="{x:Bind ViewModel.UtilityPipelines.SelectedModeTitle, Mode=OneWay}"
                                FontSize="28" FontWeight="SemiBold"
+                               Foreground="{StaticResource V1TextPrimaryBrush}"
                                Margin="0,0,0,12"/>
 
                     <!-- Ask: Output Mode -->
                     <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.UtilityPipelines.IsAskSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                        <TextBlock l:Uids.Uid="Settings_Modes_OutputMode_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Modes_OutputMode_Description" FontSize="12" Opacity="0.6"/>
+                        <TextBlock l:Uids.Uid="Settings_Modes_OutputMode_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Modes_OutputMode_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                         <ComboBox ItemsSource="{x:Bind ViewModel.UtilityPipelines.AskOutputOptions}"
                                   SelectedIndex="{x:Bind ViewModel.UtilityPipelines.SelectedAskOutputIndex, Mode=TwoWay}"
                                   HorizontalAlignment="Stretch"/>
                     </StackPanel>
 
-                    <!-- Common: Cloud Model + Prompt -->
-                    <Border BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                            BorderThickness="0,0,0,1" Padding="0,0,0,12"/>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Modes_CloudModel_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Modes_CloudModel_Description" FontSize="12" Opacity="0.6"/>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <ComboBox ItemsSource="{x:Bind ViewModel.UtilityPipelines.CloudModelNames}"
-                                      SelectedIndex="{x:Bind ViewModel.UtilityPipelines.SelectedCloudModelIndex, Mode=TwoWay}"
-                                      HorizontalAlignment="Stretch"/>
-                            <Button l:Uids.Uid="Settings_Modes_CloudRefreshButton" Grid.Column="1" Command="{x:Bind ViewModel.UtilityPipelines.RefreshModelsCommand}"/>
-                        </Grid>
+                    <!-- Cloud / Local tab bar -->
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
+                        <StackPanel>
+                            <Button Content="Cloud" Command="{x:Bind ViewModel.UtilityPipelines.SelectCloudCommand}"
+                                    Style="{StaticResource TabButtonStyle}"/>
+                            <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    Visibility="{x:Bind ViewModel.UtilityPipelines.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <Button Content="Local" Command="{x:Bind ViewModel.UtilityPipelines.SelectLocalCommand}"
+                                    Style="{StaticResource TabButtonStyle}"/>
+                            <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    Visibility="{x:Bind ViewModel.UtilityPipelines.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                        </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.UtilityPipelines.ShowPromptFields, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                        <TextBlock l:Uids.Uid="Settings_Modes_CloudPrompt_Label" FontWeight="SemiBold"/>
-                        <TextBox Text="{x:Bind ViewModel.UtilityPipelines.CloudSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True" TextWrapping="Wrap"
-                                 MinHeight="150" MaxHeight="250"
-                                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    <!-- ── Cloud tab content ─────────────────────────────── -->
+                    <StackPanel Spacing="20"
+                                Visibility="{x:Bind ViewModel.UtilityPipelines.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Modes_CloudModel_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Modes_CloudModel_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.UtilityPipelines.CloudModelNames}"
+                                          SelectedIndex="{x:Bind ViewModel.UtilityPipelines.SelectedCloudModelIndex, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
+                                <Button l:Uids.Uid="Settings_Modes_CloudRefreshButton" Grid.Column="1" Command="{x:Bind ViewModel.UtilityPipelines.RefreshModelsCommand}"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.UtilityPipelines.ShowPromptFields, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <TextBlock l:Uids.Uid="Settings_Modes_CloudPrompt_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            <TextBox Text="{x:Bind ViewModel.UtilityPipelines.CloudSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                     MinHeight="150" MaxHeight="250"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
                     </StackPanel>
 
-                    <!-- Common: Local Model + Prompt -->
-                    <Border BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                            BorderThickness="0,0,0,1" Padding="0,0,0,12"/>
+                    <!-- ── Local tab content ─────────────────────────────── -->
+                    <StackPanel Spacing="20"
+                                Visibility="{x:Bind ViewModel.UtilityPipelines.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Modes_LocalModel_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Modes_LocalModel_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.UtilityPipelines.LocalModelNames}"
+                                          SelectedIndex="{x:Bind ViewModel.UtilityPipelines.SelectedLocalModelIndex, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
+                                <Button l:Uids.Uid="Settings_Modes_LocalRefreshButton" Grid.Column="1" Command="{x:Bind ViewModel.UtilityPipelines.RefreshModelsCommand}"/>
+                            </Grid>
+                        </StackPanel>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Modes_LocalModel_Label" FontWeight="SemiBold"/>
-                        <TextBlock l:Uids.Uid="Settings_Modes_LocalModel_Description" FontSize="12" Opacity="0.6"/>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <ComboBox ItemsSource="{x:Bind ViewModel.UtilityPipelines.LocalModelNames}"
-                                      SelectedIndex="{x:Bind ViewModel.UtilityPipelines.SelectedLocalModelIndex, Mode=TwoWay}"
-                                      HorizontalAlignment="Stretch"/>
-                            <Button l:Uids.Uid="Settings_Modes_LocalRefreshButton" Grid.Column="1" Command="{x:Bind ViewModel.UtilityPipelines.RefreshModelsCommand}"/>
-                        </Grid>
+                        <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.UtilityPipelines.ShowPromptFields, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <TextBlock l:Uids.Uid="Settings_Modes_LocalPrompt_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            <TextBox Text="{x:Bind ViewModel.UtilityPipelines.LocalSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                     MinHeight="150" MaxHeight="250"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+
+                        <muxc:InfoBar l:Uids.Uid="Settings_Modes_OllamaInfoBar" IsOpen="True" IsClosable="False" Severity="Informational"/>
                     </StackPanel>
-
-                    <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.UtilityPipelines.ShowPromptFields, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                        <TextBlock l:Uids.Uid="Settings_Modes_LocalPrompt_Label" FontWeight="SemiBold"/>
-                        <TextBox Text="{x:Bind ViewModel.UtilityPipelines.LocalSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True" TextWrapping="Wrap"
-                                 MinHeight="150" MaxHeight="250"
-                                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-                    </StackPanel>
-
-                    <muxc:InfoBar l:Uids.Uid="Settings_Modes_OllamaInfoBar" IsOpen="True" IsClosable="False" Severity="Informational"/>
 
                     <!-- Notes fields -->
                     <StackPanel Spacing="12" Visibility="{x:Bind ViewModel.UtilityPipelines.IsNoteSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
@@ -156,7 +181,7 @@
                                 BorderThickness="0,0,0,1" Padding="0,0,0,12"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_Modes_NoteFilePath_Label" FontWeight="SemiBold"/>
+                            <TextBlock l:Uids.Uid="Settings_Modes_NoteFilePath_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
                             <Grid ColumnSpacing="8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -168,20 +193,20 @@
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_Modes_LlmProcessing_Label" FontWeight="SemiBold"/>
-                            <TextBlock l:Uids.Uid="Settings_Modes_LlmProcessing_Description" FontSize="12" Opacity="0.6"/>
+                            <TextBlock l:Uids.Uid="Settings_Modes_LlmProcessing_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Modes_LlmProcessing_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                             <ToggleSwitch IsOn="{x:Bind ViewModel.UtilityPipelines.NoteUseLlmProcessing, Mode=TwoWay}"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_Modes_TimestampFormat_Label" FontWeight="SemiBold"/>
-                            <TextBlock l:Uids.Uid="Settings_Modes_TimestampFormat_Description" FontSize="12" Opacity="0.6"/>
+                            <TextBlock l:Uids.Uid="Settings_Modes_TimestampFormat_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Modes_TimestampFormat_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
                             <TextBox Text="{x:Bind ViewModel.UtilityPipelines.NoteTimestampFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      FontFamily="Consolas"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_Modes_LivePreview_Label" FontWeight="SemiBold"/>
+                            <TextBlock l:Uids.Uid="Settings_Modes_LivePreview_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
                             <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                     BorderThickness="1" Padding="12" CornerRadius="4">

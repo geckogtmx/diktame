@@ -1,6 +1,7 @@
 
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DiktaMe.App.Services;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.STT;
@@ -11,7 +12,7 @@ namespace DiktaMe.App.ViewModels.Settings;
 
 /// <summary>
 /// Host ViewModel for the AI Engine settings page.
-/// 6 sub-items: API Keys, Speech-to-Text, Ollama, TTS, Chat, System Monitor.
+/// 6 sub-items: API Keys, Speech to Text, Language Model, Text to Speech, Chat, System Monitor.
 /// </summary>
 public sealed partial class AIEngineSettingsViewModel : ObservableObject
 {
@@ -19,6 +20,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     public OllamaSettingsViewModel Ollama { get; }
     public TtsSettingsViewModel Tts { get; }
     public ModesSettingsViewModel Pipelines { get; }
+    public CloudLlmSettingsViewModel CloudLlm { get; }
 
     private readonly SettingsManager _settings;
     private readonly LocalizationService _loc;
@@ -43,7 +45,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     private bool _isSttSelected;
 
     [ObservableProperty]
-    private bool _isOllamaSelected;
+    private bool _isLlmSelected;
 
     [ObservableProperty]
     private bool _isTtsSelected;
@@ -53,6 +55,22 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isSystemMonitorSelected;
+
+    // ── Cloud/Local tab selection (true = Cloud, false = Local) ──────────
+
+    [ObservableProperty]
+    private bool _isSttCloudTab = true;
+
+    [ObservableProperty]
+    private bool _isLlmCloudTab = true;
+
+    /// <summary>TTS tab index: 0 = When to Speak, 1 = Cloud, 2 = Local.</summary>
+    [ObservableProperty]
+    private int _ttsTabIndex;
+
+    public bool IsTtsWhenToSpeakTab => TtsTabIndex == 0;
+    public bool IsTtsCloudTab => TtsTabIndex == 1;
+    public bool IsTtsLocalTab => TtsTabIndex == 2;
 
     // ── Whisper settings ────────────────────────────────────────────────────
 
@@ -108,6 +126,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         OllamaSettingsViewModel ollama,
         TtsSettingsViewModel tts,
         ModesSettingsViewModel pipelines,
+        CloudLlmSettingsViewModel cloudLlm,
         SettingsManager settings,
         LocalizationService loc)
     {
@@ -115,6 +134,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         Ollama = ollama;
         Tts = tts;
         Pipelines = pipelines;
+        CloudLlm = cloudLlm;
         _settings = settings;
         _loc = loc;
         _dispatcher = DispatcherQueue.GetForCurrentThread();
@@ -135,7 +155,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         SubItems.Clear();
         SubItems.Add(new ModeListItem { Id = "apikeys", Title = _loc.GetString("Settings_AIEngine_Sub_ApiKeys"), IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "stt", Title = _loc.GetString("Settings_AIEngine_Sub_Stt"), IsDictationMode = false, IsSeparator = false });
-        SubItems.Add(new ModeListItem { Id = "ollama", Title = _loc.GetString("Settings_AIEngine_Sub_Ollama"), IsDictationMode = false, IsSeparator = false });
+        SubItems.Add(new ModeListItem { Id = "llm", Title = _loc.GetString("Settings_AIEngine_Sub_Llm"), IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "tts", Title = _loc.GetString("Settings_AIEngine_Sub_Tts"), IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "chat", Title = "Chat", IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "monitor", Title = _loc.GetString("Settings_AIEngine_Sub_Monitor"), IsDictationMode = false, IsSeparator = false });
@@ -149,7 +169,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         {
             IsApiKeysSelected = false;
             IsSttSelected = false;
-            IsOllamaSelected = false;
+            IsLlmSelected = false;
             IsTtsSelected = false;
             IsChatSelected = false;
             IsSystemMonitorSelected = false;
@@ -159,7 +179,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         string id = SubItems[value].Id;
         IsApiKeysSelected = id == "apikeys";
         IsSttSelected = id == "stt";
-        IsOllamaSelected = id == "ollama";
+        IsLlmSelected = id == "llm";
         IsTtsSelected = id == "tts";
         IsChatSelected = id == "chat";
         IsSystemMonitorSelected = id == "monitor";
@@ -181,6 +201,33 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         if (IsSystemMonitorSelected)
         {
             RefreshSystemMonitorInfo();
+        }
+    }
+
+    // ── Cloud/Local tab commands ─────────────────────────────────────────
+
+    [RelayCommand] private void SelectSttCloud() => IsSttCloudTab = true;
+    [RelayCommand] private void SelectSttLocal() => IsSttCloudTab = false;
+    [RelayCommand] private void SelectLlmCloud() => IsLlmCloudTab = true;
+    [RelayCommand] private void SelectLlmLocal() => IsLlmCloudTab = false;
+    [RelayCommand] private void SelectTtsWhenToSpeak() => TtsTabIndex = 0;
+    [RelayCommand] private void SelectTtsCloud() => TtsTabIndex = 1;
+    [RelayCommand] private void SelectTtsLocal() => TtsTabIndex = 2;
+
+    partial void OnTtsTabIndexChanged(int value)
+    {
+        OnPropertyChanged(nameof(IsTtsWhenToSpeakTab));
+        OnPropertyChanged(nameof(IsTtsCloudTab));
+        OnPropertyChanged(nameof(IsTtsLocalTab));
+
+        // Sync active provider with selected tab
+        if (value == 2)
+        {
+            Tts.SelectedProviderIndex = 0; // kokoro
+        }
+        else if (value == 1)
+        {
+            Tts.SelectedProviderIndex = Tts.SelectedCloudProviderIndex + 1;
         }
     }
 

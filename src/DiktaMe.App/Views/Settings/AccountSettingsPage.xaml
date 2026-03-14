@@ -2,7 +2,8 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:converters="using:DiktaMe.App.Converters"
-      xmlns:l="using:WinUI3Localizer">
+      xmlns:l="using:WinUI3Localizer"
+      Background="Transparent">
 
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
@@ -11,7 +12,8 @@
 
     <ScrollViewer Padding="24">
         <StackPanel Spacing="16" MaxWidth="600" HorizontalAlignment="Left">
-            <TextBlock l:Uids.Uid="Settings_Account_Title" FontSize="28" FontWeight="SemiBold"/>
+            <TextBlock l:Uids.Uid="Settings_Account_Title" FontSize="28" FontWeight="SemiBold"
+                       Foreground="{StaticResource V1TextPrimaryBrush}"/>
 
             <!-- Signed-out state -->
             <InfoBar x:Name="SignInBar" l:Uids.Uid="Settings_Account_SignInBar"
@@ -33,7 +35,7 @@
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}" FontSize="13" Opacity="0.7"/>
+                <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}" FontSize="13" Foreground="{StaticResource V1TextSecondaryBrush}"/>
 
                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
                     <HyperlinkButton l:Uids.Uid="Settings_Account_ManageAccountLink" Command="{x:Bind ViewModel.ManageAccountCommand}"/>
@@ -43,12 +45,12 @@
                 <StackPanel Spacing="8" Margin="0,12,0,0"
                             Visibility="{x:Bind ViewModel.HasTrialData, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
-                    <TextBlock l:Uids.Uid="Settings_Account_TrialCredits_Title" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock l:Uids.Uid="Settings_Account_TrialCredits_Title" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
 
                     <ProgressBar Value="{x:Bind ViewModel.UsagePercent, Mode=OneWay}"
                                  Minimum="0" Maximum="100" Height="8"/>
 
-                    <TextBlock Text="{x:Bind ViewModel.UsageText, Mode=OneWay}" FontSize="13" Opacity="0.7"/>
+                    <TextBlock Text="{x:Bind ViewModel.UsageText, Mode=OneWay}" FontSize="13" Foreground="{StaticResource V1TextSecondaryBrush}"/>
 
                     <Button l:Uids.Uid="Settings_Account_RefreshButton" Command="{x:Bind ViewModel.RefreshCommand}"
                             Margin="0,4,0,0"/>

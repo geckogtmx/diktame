@@ -44,7 +44,7 @@
   <data name="Nav_ControlPanel.Content" xml:space="preserve"><value>Panel de Control</value></data>
   <data name="Nav_About.Content" xml:space="preserve"><value>Acerca de</value></data>
   <data name="Nav_Hardware.Content" xml:space="preserve"><value>Audio y Atajos</value></data>
-  <data name="Nav_Workflows.Content" xml:space="preserve"><value>Flujos y Modos</value></data>
+  <data name="Nav_Workflows.Content" xml:space="preserve"><value>Pipelines</value></data>
   <data name="Nav_Account.Content" xml:space="preserve"><value>Cuenta</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
@@ -55,7 +55,7 @@
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Workflows (SPEC_012)
        ══════════════════════════════════════════════════════════════════════ -->
-  <data name="Settings_Workflows_Title.Text" xml:space="preserve"><value>Flujos y Modos</value></data>
+  <data name="Settings_Workflows_Title.Text" xml:space="preserve"><value>Pipelines</value></data>
   <data name="Settings_Workflows_Behaviors" xml:space="preserve"><value>Comportamientos de Dictado</value></data>
   <data name="Settings_Workflows_Presets" xml:space="preserve"><value>Preajustes de Dictado</value></data>
   <data name="Settings_Workflows_RawModeOverride_Label.Text" xml:space="preserve"><value>Omitir Procesamiento LLM (Modo Raw)</value></data>
@@ -102,8 +102,8 @@
   <data name="Settings_General_AutoStart_Description.Text" xml:space="preserve"><value>Iniciar dIKta.me cuando Windows arranque</value></data>
   <data name="Settings_General_SoundFeedback_Label.Text" xml:space="preserve"><value>Retroalimentaci&#243;n de Sonido</value></data>
   <data name="Settings_General_SoundFeedback_Description.Text" xml:space="preserve"><value>Reproducir sonidos al iniciar/detener grabaci&#243;n y notificaciones</value></data>
-  <data name="Settings_General_AdditionalKey_Label.Text" xml:space="preserve"><value>Tecla Adicional Tras Inyecci&#243;n</value></data>
-  <data name="Settings_General_AdditionalKey_Description.Text" xml:space="preserve"><value>Opcionalmente presionar una tecla despu&#233;s de inyectar el texto</value></data>
+  <data name="Settings_General_AdditionalKey_Label.Text" xml:space="preserve"><value>Tecla Adicional</value></data>
+  <data name="Settings_General_AdditionalKey_Description.Text" xml:space="preserve"><value>Habilitar la tecla adicional despu&#233;s de inyecci&#243;n (la tecla se selecciona desde el Panel de Control)</value></data>
   <data name="Settings_General_TrailingSpace_Label.Text" xml:space="preserve"><value>Espacio Final</value></data>
   <data name="Settings_General_TrailingSpace_Description.Text" xml:space="preserve"><value>Agregar un espacio despu&#233;s del texto inyectado</value></data>
   <data name="Settings_General_RestartInfoBar.Title" xml:space="preserve"><value>Reinicio Requerido</value></data>
@@ -146,10 +146,10 @@
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_AIEngine_Title.Text" xml:space="preserve"><value>Motor IA</value></data>
   <data name="Settings_AIEngine_Sub_ApiKeys" xml:space="preserve"><value>Claves API</value></data>
-  <data name="Settings_AIEngine_Sub_Stt" xml:space="preserve"><value>Voz a Texto (STT)</value></data>
+  <data name="Settings_AIEngine_Sub_Stt" xml:space="preserve"><value>Voz a Texto</value></data>
   <data name="Settings_AIEngine_STT_Title.Text" xml:space="preserve"><value>Voz a Texto (STT)</value></data>
-  <data name="Settings_AIEngine_Sub_Ollama" xml:space="preserve"><value>LLM Local (Ollama)</value></data>
-  <data name="Settings_AIEngine_Sub_Tts" xml:space="preserve"><value>Texto a Voz (TTS)</value></data>
+  <data name="Settings_AIEngine_Sub_Llm" xml:space="preserve"><value>Modelo de Lenguaje</value></data>
+  <data name="Settings_AIEngine_Sub_Tts" xml:space="preserve"><value>Texto a Voz</value></data>
   <data name="Settings_AIEngine_Sub_Monitor" xml:space="preserve"><value>Monitor del Sistema</value></data>
   <data name="Settings_AIEngine_Whisper_Section.Text" xml:space="preserve"><value>Whisper (STT Local)</value></data>
   <data name="Settings_AIEngine_Whisper_Model_Label.Text" xml:space="preserve"><value>Tama&#241;o del modelo</value></data>
@@ -316,7 +316,7 @@
   <data name="Settings_Tts_ReadSelection_Description.Text" xml:space="preserve"><value>Atajo de teclado para leer el texto seleccionado en voz alta</value></data>
 
   <data name="Settings_Tts_Kokoro_Section.Text" xml:space="preserve"><value>Modelo Kokoro</value></data>
-  <data name="Settings_Tts_Kokoro_Variant_Label.Text" xml:space="preserve"><value>Variante del Modelo</value></data>
+  <data name="Settings_Tts_Kokoro_Variant_Label.Text" xml:space="preserve"><value>Variante del Modelo Kokoro</value></data>
   <data name="Settings_Tts_Kokoro_Variant_Description.Text" xml:space="preserve"><value>Precisi&#243;n del modelo (int8 = m&#225;s r&#225;pido, fp32 = m&#225;s preciso)</value></data>
   <data name="Settings_Tts_Kokoro_Status_Downloaded" xml:space="preserve"><value>Modelo descargado &#x2714;</value></data>
   <data name="Settings_Tts_Kokoro_Status_NotDownloaded" xml:space="preserve"><value>Modelo no descargado</value></data>
@@ -375,7 +375,8 @@
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Ollama
        ══════════════════════════════════════════════════════════════════════ -->
-  <data name="Settings_Ollama_Title.Text" xml:space="preserve"><value>Ollama</value></data>
+  <data name="Settings_Ollama_Title.Text" xml:space="preserve"><value>Modelo de Lenguaje</value></data>
+  <data name="Settings_Llm_CloudInfo.Text" xml:space="preserve"><value>Los modelos LLM en la nube se configuran mediante Claves API y ajustes por modo en Flujos de Trabajo y Modos.</value></data>
   <data name="Settings_Ollama_Status_Label.Text" xml:space="preserve"><value>Estado</value></data>
   <data name="Settings_Ollama_Version_Label.Text" xml:space="preserve"><value>Versi&#243;n:</value></data>
   <data name="Settings_Ollama_CheckHealth.Content" xml:space="preserve"><value>Verificar Estado</value></data>

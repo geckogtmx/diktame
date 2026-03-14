@@ -23,8 +23,10 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
     // ── Provider / Voice data ────────────────────────────────────────────────
 
     public static readonly string[] ProviderKeys = ["kokoro", "deepgram", "inworld", "openai"];
+    public static readonly string[] CloudProviderKeys = ["deepgram", "inworld", "openai"];
 
     public string[] ProviderLabels { get; }
+    public string[] CloudProviderLabels { get; }
 
     public static readonly string[] KokoroVariantKeys = ["gpu", "fp32", "fp16", "int8"];
     public string[] KokoroVariantLabels { get; } = [
@@ -66,6 +68,9 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private int _selectedProviderIndex;
+
+    [ObservableProperty]
+    private int _selectedCloudProviderIndex; // 0=deepgram, 1=inworld, 2=openai
 
     [ObservableProperty]
     private ObservableCollection<string> _availableVoices = new();
@@ -156,6 +161,13 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
             _loc.GetString("Settings_Tts_Provider_OpenAI"),
         ];
 
+        CloudProviderLabels =
+        [
+            _loc.GetString("Settings_Tts_Provider_Deepgram"),
+            _loc.GetString("Settings_Tts_Provider_Inworld"),
+            _loc.GetString("Settings_Tts_Provider_OpenAI"),
+        ];
+
         try
         {
             LoadFromSettings();
@@ -174,6 +186,7 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
         var tts = _settings.Current.Tts;
 
         SelectedProviderIndex = Array.IndexOf(ProviderKeys, tts.Provider) is var i and >= 0 ? i : 0;
+        SelectedCloudProviderIndex = Array.IndexOf(CloudProviderKeys, tts.Provider) is var ci and >= 0 ? ci : 0;
         Speed = tts.Speed;
         VolumePercent = tts.VolumePercent;
         MaxSpeechWords = tts.MaxSpeechWords;
@@ -270,6 +283,17 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
 
         OnPropertyChanged(nameof(IsKokoroSelected));
         Save();
+    }
+
+    partial void OnSelectedCloudProviderIndexChanged(int value)
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        // Map cloud index to full provider index (cloud offset = 1 since kokoro=0)
+        SelectedProviderIndex = value + 1;
     }
 
     partial void OnSelectedVoiceIndexChanged(int value) => Save();
