@@ -1,9 +1,14 @@
 # SPEC_014: Memory Layer
 
-> **Status:** DRAFT
+> **Status:** DRAFT → **Merged into** [`SPEC_015_MODULES_SPRINT.md`](SPEC_015_MODULES_SPRINT.md) (Module 4, Phases O–Q)
 > **Date:** 2026-03-13
 > **Supersedes:** N/A (Net-new architecture)
 > **Goal:** Add a semantic memory layer to dIKta.me that enables context-aware AI interactions by storing and retrieving meaningful patterns from user interactions while maintaining strict local-first, privacy-first principles.
+> **Related Specs:**
+> - [`SPEC_013_CONNECTORS_IMPLEMENTATION.md`](SPEC_013_CONNECTORS_IMPLEMENTATION.md) — Memory can enrich connector preset LLM prompts with relevant context
+> - [`SPEC_001_MEETINGS.md`](SPEC_001_MEETINGS.md) — Meeting synthesis enriched with memory ("what was discussed about this topic before")
+> - [`SPEC_002_VISION.md`](SPEC_002_VISION.md) — Vision results stored as memories for future context recall
+> - [`SPEC_015_MODULES_SPRINT.md`](SPEC_015_MODULES_SPRINT.md) — **Implementation sprint** (this spec is the design reference; SPEC_015 is the build plan)
 
 ## 1. Executive Summary
 

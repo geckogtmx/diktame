@@ -1,10 +1,14 @@
 # SPEC_002: Vision Module ("See")
 
-> **Status:** DRAFT
+> **Status:** DRAFT → **Absorbed into** [`SPEC_015_MODULES_SPRINT.md`](SPEC_015_MODULES_SPRINT.md) (Module 3, Phases L–N)
 > **Date:** 2026-03-01
 > **Supersedes:** V1 `SPEC_004_VISIONARY_MODULE.md` (researched, never implemented)
-> **Priority:** TBD (post-V2 launch)
 > **Hotkey:** `Ctrl+Alt+S` ("See")
+> **Related Specs:**
+> - [`SPEC_001_MEETINGS.md`](SPEC_001_MEETINGS.md) — Meetings module uses shared `ScreenCapture` for session-bound captures (Phase N)
+> - [`SPEC_013_CONNECTORS_IMPLEMENTATION.md`](SPEC_013_CONNECTORS_IMPLEMENTATION.md) — Vision outputs route through Connectors (cross-module bridge, Phase J)
+> - [`SPEC_014_MEMORY_LAYER.md`](SPEC_014_MEMORY_LAYER.md) — Vision results stored as memories for future context recall
+> - [`SPEC_015_MODULES_SPRINT.md`](SPEC_015_MODULES_SPRINT.md) — **Implementation sprint** (this spec is the design reference; SPEC_015 is the build plan)
 
 ---
 

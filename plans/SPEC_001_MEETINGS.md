@@ -1,10 +1,15 @@
 # SPEC_001: Meeting Intelligence Module ("Scribe")
 
-> **Status:** DRAFT
+> **Status:** DRAFT → **Merged into** [`SPEC_015_MODULES_SPRINT.md`](SPEC_015_MODULES_SPRINT.md) (Module 2, Phases F–I + N)
 > **Date:** 2026-03-01
 > **Supersedes:** V1 `SPEC_003_SCRIBE_LAYER.md` (conceptual, never implemented)
 > **Competitive References:** [Granola](https://www.granola.ai), [Fellow.ai](https://fellow.ai), [HyprNote](https://github.com/fastrepl/hyprnote)
-> **Priority:** TBD (post-V2 launch)
+> **Related Specs:**
+> - [`SPEC_002_VISION.md`](SPEC_002_VISION.md) — Vision module shares `ScreenCapture` infrastructure; meeting captures (Phase N) use it
+> - [`SPEC_013_CONNECTORS_IMPLEMENTATION.md`](SPEC_013_CONNECTORS_IMPLEMENTATION.md) — Scribe outputs route through Connectors (cross-module bridge, Phase J)
+> - [`SPEC_013_USE_CASES.md`](SPEC_013_USE_CASES.md) — Use cases §8 (Meetings + Scribe workflows)
+> - [`SPEC_014_MEMORY_LAYER.md`](SPEC_014_MEMORY_LAYER.md) — Memory enriches meeting synthesis with past context (Phase P)
+> - [`SPEC_015_MODULES_SPRINT.md`](SPEC_015_MODULES_SPRINT.md) — **Implementation sprint** (this spec is the design reference; SPEC_015 is the build plan)
 
 ---
 

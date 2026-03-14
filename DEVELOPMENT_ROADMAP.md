@@ -1,7 +1,7 @@
 # dIKta.me V2 — Development Roadmap (C# + WinUI 3 Rewrite)
 
-**Status:** Feature Complete (Streams A–G, I, J complete; H.1 remaining for release)
-**Date:** 2026-02-18
+**Status:** Feature Complete (Streams A–L + TTS complete; H.1 remaining for release)
+**Date:** 2026-03-14
 **Parent:** V1 `SPEC_039_STRATEGIC_ROADMAP.md` (in diktate repo)
 **Supersedes:** Python modular split approach (deemed throwaway work)
 **Target:** Native Windows app — single process, modular architecture, self-contained installer
@@ -49,6 +49,7 @@ Phase 2 is a **full rewrite** of dIKta.me (formerly dIKtate) from Python + Elect
 | **Engine** | UI, Audio, Hotkeys, Injection | Mandatory | C# + WinUI 3 (single binary) |
 | **STT (Ears)** | Speech-to-Text | Mandatory | Cloud default, optional local |
 | **LLM (Brain)** | Ask, Refine, Translate | Optional | Cloud APIs or Ollama |
+| **TTS (Mouth)** | Text-to-Speech | Optional | Local (KokoroSharp) + Cloud (Deepgram, OpenAI, Inworld) |
 
 ### Success Criteria
 
@@ -94,14 +95,15 @@ Phase 2 is a **full rewrite** of dIKta.me (formerly dIKtate) from Python + Elect
 
 ### 2.3 New V2 Features (Promoted from Deferred)
 
-| Source | Feature | V2 Scope |
-|--------|---------|----------|
-| **SPEC_026** | Voice Snippets (Macros) | Phase 1: SnippetManager, trigger matching, Settings tab (skip cursor placement + dynamic variables) |
-| **SPEC_031** | Ollama Update Management | Version sensing, pre-flight health check, model library UI, auto-fallback |
-| **SPEC_042d** | Quick Chat Overlay | Hotkey-activated floating LLM chat window (text + voice input), stateless MVP |
-| **SPEC_043** | Control Panel Config | Settings toggles to show/hide HUD rows (Modes, Actions, Stats) — *already in V1, port to XAML* |
-| **SPEC_043d** | Audio Ducking | WASAPI-based auto-volume reduction of other apps during dictation |
-| **SPEC_042** | Website Rebrand | Update dikta.me website copy, meta, downloads for V2 launch — *site already live* |
+| Source | Feature | V2 Scope | Status |
+|--------|---------|----------|--------|
+| **SPEC_026** | Voice Snippets (Macros) | Phase 1: SnippetManager, trigger matching, Settings tab (skip cursor placement + dynamic variables) | ✅ |
+| **SPEC_031** | Ollama Update Management | Version sensing, pre-flight health check, model library UI, auto-fallback | ✅ |
+| **SPEC_042d** | Quick Chat Overlay | Hotkey-activated floating LLM chat window (text + voice input), stateless MVP | ✅ |
+| **SPEC_043** | Control Panel Config | Settings toggles to show/hide HUD rows (Modes, Actions, Stats) — *already in V1, port to XAML* | ✅ |
+| **SPEC_043d** | Audio Ducking | WASAPI-based auto-volume reduction of other apps during dictation | ✅ |
+| **SPEC_042** | Website Rebrand | Update dikta.me website copy, meta, downloads for V2 launch — *site already live* | ✅ |
+| **SPEC_003_TTS_V2** | Text-to-Speech — "dIKta.me Speaks Back" | Local-first via KokoroSharp (ONNX), cloud via Deepgram/OpenAI/Inworld. Read Selection hotkey, optional TTS on Ask/Chat/Translate responses. TextCleaner, TTSRouter, TtsPlayerService. | ✅ |
 
 ---
 
@@ -1148,14 +1150,14 @@ publish/
 |----------|---------|-----|
 | 🥇 1 | **Streaming LLM responses** | Biggest single UX improvement — token-by-token injection dramatically reduces perceived latency for Ask/Translate modes. Requires `IAsyncEnumerable<string>` streaming interface on `ILLMProvider` and WinUI 3 live-update injection. |
 | 🥈 2 | **Voice Activity Detection (VAD)** | Hands-free mode — auto-detect speech start/end (WebRTC VAD or Silero). Major differentiator vs Windows Voice Typing. |
-| 🥉 3 | **Text-to-Speech — "dIKta.me Speaks Back"** | Voice output channel: "Read This" hotkey (select text → hear it), Ask/Chat voice responses, app notifications spoken aloud. Local-first via Kokoro-ONNX (82M, ~1.5GB VRAM, 48 voices), cloud via Deepgram Aura-2/Inworld. Spec: `plans/SPEC_003_TTS_V2.md`. 40 tasks across 7 phases. |
-| 4 | **Conversation memory for Ask mode** | Optional rolling context window (last N exchanges) so follow-up questions feel natural. |
+| ~~🥉 3~~ | ~~**Text-to-Speech**~~ | ✅ **SHIPPED** — Moved to V2.0 scope. See `plans/SPEC_003_TTS_V2.md`. Implemented as Stream TTS with KokoroSharp (local), Deepgram, OpenAI, Inworld (cloud). |
+| ~~4~~ | ~~**Conversation memory for Ask mode**~~ | ✅ **PROMOTED to V2.0** — Expanded into full Memory Layer module (SPEC_014). See `plans/SPEC_015_MODULES_SPRINT.md` Phases O-Q. |
 | 5 | **Command mode** | Voice commands to control the app: "switch to Spanish", "use local model", "open settings". |
 | 6 | **Auto-language detection per-phrase** | Leverage existing `TranscriptionResult.DetectedLanguage` to auto-switch LLM prompts for bilingual users (EN/ES code-switching). Low effort — consider pulling into V2.0 late. |
 | 7 | **Recording mode: Toggle vs Hold-to-Record** | Add a setting to choose between "press to start / press to stop" (current) and "hold to record / release to stop". Requires detecting key-up events in HotkeyManager (Win32 `WM_KEYUP` or `RegisterRawInputDevices`). |
 | 8 | **Voice Snippets Phase 2** | Dynamic variables (`{{date}}`, `{{clipboard}}`) and cursor placement. |
-| 9 | **Plugin/extension system** | Third-party integrations (Notion, Obsidian, VS Code). V3 territory. |
-| 10 | **ONNX Runtime GenAI as local LLM provider** | In-process alternative to Ollama via `Microsoft.ML.OnnxRuntimeGenAI` + DirectML. Eliminates daemon dependency, better AMD/Intel GPU support. Currently preview (v0.12.1, DirectML lags at v0.9.0). Add as second `ILLMProvider` behind existing abstraction when mature. Research: `plans/SPEC_003_TTS.md`. |
+| ~~9~~ | ~~**Plugin/extension system**~~ | ✅ **PROMOTED to V2.0** — Implemented as Connectors Module (SPEC_013) with Obsidian, Webhook, Discord, Streamer.bot. See `plans/SPEC_015_MODULES_SPRINT.md` Phases A-C, F, H. |
+| 10 | **ONNX Runtime GenAI as local LLM provider** | In-process alternative to Ollama via `Microsoft.ML.OnnxRuntimeGenAI` + DirectML. Eliminates daemon dependency, better AMD/Intel GPU support. Currently preview (v0.12.1, DirectML lags at v0.9.0). Add as second `ILLMProvider` behind existing abstraction when mature. |
 
 ---
 
@@ -1790,7 +1792,7 @@ These are out of scope for initial CRUD implementation:
 
 ## 12. Stream K: dIKta.me Account & Trial Credits (Post-MVP)
 
-> **Status:** 🔲 NOT STARTED — Audit complete, implementation deferred
+> **Status:** ✅ COMPLETE — All tasks (K.1–K.6) finished
 > **Priority:** HIGH (required before public launch with free trial)
 > **V1 Reference:** `SPEC_042_DIKTA_ME_WEBSITE.md`, `SPEC_042_IMPLEMENTATION.md`, `SPEC_027_WEBSITE_BACKEND.md`
 > **V1 Source Files:** `src/ipc/trialHandlers.ts`, `src/settings/trialAccount.ts`, `src/services/configSync.ts`, `src/main.ts` (deeplink handling)
@@ -1925,7 +1927,29 @@ The following backend components are **shared with the website** and require NO 
 
 ---
 
+---
+
+## 13. V2 Modules Sprint (SPEC_015)
+
+> **Full plan:** [`plans/SPEC_015_MODULES_SPRINT.md`](plans/SPEC_015_MODULES_SPRINT.md)
+
+The core engine (Streams A-L, TTS) is feature-complete. The final V2 development phase adds four isolated modules — **Connectors**, **Meetings/Scribe**, **Vision/See**, and **Memory** — that extend the pipeline without modifying it. This sprint locks down the V2 feature set.
+
+| Module | What It Does | Design Spec | SPEC_015 Phases |
+|--------|-------------|------------|----------------|
+| **Connectors** | Route pipeline outputs to external destinations (Obsidian, Webhook, Discord, Streamer.bot) | [`SPEC_013`](plans/SPEC_013_CONNECTORS_IMPLEMENTATION.md) | A-C, F, H, J, K |
+| **Meetings (Scribe)** | Record meetings, type notes, AI-synthesize artifacts (minutes, action items) | [`SPEC_001`](plans/SPEC_001_MEETINGS.md) | D, E, G, I, N |
+| **Vision (See)** | Screenshot → multimodal LLM → response at cursor (`Ctrl+Alt+S`) | [`SPEC_002`](plans/SPEC_002_VISION.md) | L, M, N |
+| **Memory** | Semantic vector memory — stores embeddings, enriches LLM prompts with past context | [`SPEC_014`](plans/SPEC_014_MEMORY_LAYER.md) | O, P, Q |
+
+**Key principle:** Modules never depend on each other. All cross-module flows go through shared Core contracts (`PipelineResult`, `IMemoryLayer`, `ScreenCapture`). Each module hooks into the pipeline with 1-3 lines of code in `OnPipelineCompleted()`.
+
+**Scale:** 17 phases, 18-23 sessions, ~146 new tests (1096+ cumulative).
+
+---
+
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, H.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅, Control Panel V2 rework (Phase 1–3) ✅, Session stats rework (REQ/CHAR/WORDS/WORD-MIN) ✅, Perf row reorder + tooltips ✅, Header badge truncation ✅, **K.1–K.7 (Stream K Complete ✅)**, **L.1–L.4 (Deepgram Streaming)** ✅, L.5 ⏳ (manual test pending)
-**Remaining:** H.1 (Installer), I.6 (Website Rebrand), L.5 (Streaming UI toggle — pending manual test)
-**Build:** 0 errors, 0 warnings | **Tests:** 620 passing
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, H.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅, Control Panel V2 rework (Phase 1–3) ✅, Session stats rework (REQ/CHAR/WORDS/WORD-MIN) ✅, Perf row reorder + tooltips ✅, Header badge truncation ✅, **K.1–K.7 (Stream K Complete ✅)**, **L.1–L.4 (Deepgram Streaming)** ✅, L.5 ⏳ (manual test pending), **TTS (SPEC_003_TTS_V2 Complete ✅)**
+**Remaining:** H.1 (Installer), I.6 (Website Rebrand), L.5 (Streaming UI toggle — pending manual test), **SPEC_015 Modules Sprint (17 phases)**
+**Build:** 0 errors, 0 warnings | **Tests:** 961 passing
+**Modules Sprint:** [`plans/SPEC_015_MODULES_SPRINT.md`](plans/SPEC_015_MODULES_SPRINT.md)
