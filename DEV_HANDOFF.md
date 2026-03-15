@@ -4,7 +4,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 950 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
+| **Tests** | 968 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | 0 errors, 0 warnings |
 | **CI** | Passing on main |
 | **Branch** | main |
@@ -53,17 +53,22 @@
 
 **Root cause**: `GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia)` returned only ONE endpoint — Chrome/Edge/Spotify sessions on other endpoints were invisible. **Fix**: Replaced with `EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)` to iterate ALL active render devices and their sessions. Ducking now works for both recording and TTS playback.
 
-## Open Bug: TTS ReadSelection Text Capture
+## Resolved: TTS ReadSelection Text Capture
 
-ReadSelection hotkey (Ctrl+Alt+Q) is unreliable at capturing selected text. HWND timing and focus restoration have been improved (capture on hotkey thread, reordered sound/capture), but further investigation needed for edge cases with static text, web pages, and DiktaMe's own UI fields.
+**Root cause**: Two bugs — (1) `CaptureSelection` sent Ctrl+C while Alt was still held from Ctrl+Alt+Q hotkey, OS combined into Ctrl+Alt+C firing the Chat hotkey instead; (2) HWND was captured on UI thread (after dispatch delay) instead of hotkey thread. **Fix**: Added `WaitForModifierRelease()` before Ctrl+C in `CaptureSelection`, moved `GetCurrentForegroundWindow()` to `OnHotkeyPressed` (hotkey thread), reordered sound/capture in ReadSelection. Ducking restore race also fixed with `didDuck` flag.
 
-## Pending Feature: Audio Ducking Ramp-Down
+## Resolved: Audio Ducking Fade Duration
 
-Audio ducking currently sets volume instantly — needs a 500ms smooth ramp-down from current volume to duck level for better UX. Implement as a loop with small volume steps in `AudioDucker.Duck()`.
+**Implemented**: `DuckAsync()` and `RestoreAsync()` with linear volume interpolation over configurable `RampDownMs` (default 500ms, 0 = instant). New "Fade Duration" slider in Audio Settings (0–2000ms, step 100ms). All recording and TTS ducking paths use ramped transitions. Instant `Duck()`/`Restore()` kept for event handlers and `finally` safety nets.
 
 ## Known Issues (SPEC_011)
 
 - **Settings corruption from TextBox bug may persist** — users who typed in the old TextBox may have `OllamaModel` set to a partial/invalid string in `settings.json`. Fix: open Ollama Settings → select correct model from dropdown.
+
+## Open Issues
+
+- **App quit stalling after TTS**: `AppWindow.Closing` handler cancels close unconditionally — `Application.Current.Exit()` gets blocked. Needs `_isExiting` flag to bypass cancellation during shutdown.
+- **Test beep ducks live audio**: One test instantiates a real AudioDucker and ducks live audio sessions (YouTube volume drops during test run). Needs mocking or environment guard.
 
 ## Current Work
 
