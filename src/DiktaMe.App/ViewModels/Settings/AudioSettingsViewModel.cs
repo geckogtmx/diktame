@@ -30,6 +30,9 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
     [ObservableProperty]
     private double _duckLevelPercent = 20;
 
+    [ObservableProperty]
+    private double _rampDownMs = 500;
+
     // ── Sound Feedback ────────────────────────────────────────────────────────
 
     [ObservableProperty]
@@ -120,6 +123,7 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
         SelectedDurationIndex = Array.IndexOf(DurationValues, a.MaxDurationSeconds) is var j and >= 0 ? j : 1;
         DuckingEnabled = d.Enabled;
         DuckLevelPercent = d.DuckLevelPercent;
+        RampDownMs = d.RampDownMs;
 
         SoundEnabled = _settings.Current.General.SoundFeedback;
         SelectedStartSoundIndex = SoundStemToIndex(s.StartSound);
@@ -133,6 +137,7 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
     partial void OnSelectedDurationIndexChanged(int value) => Save();
     partial void OnDuckingEnabledChanged(bool value) => Save();
     partial void OnDuckLevelPercentChanged(double value) => Save();
+    partial void OnRampDownMsChanged(double value) => Save();
     partial void OnSoundEnabledChanged(bool value) => Save();
     partial void OnSelectedStartSoundIndexChanged(int value) => Save();
     partial void OnSelectedStopSoundIndexChanged(int value) => Save();
@@ -174,6 +179,7 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
             {
                 Enabled = DuckingEnabled,
                 DuckLevelPercent = (int)DuckLevelPercent,
+                RampDownMs = (int)RampDownMs,
             },
             Sound = new SoundSettings
             {

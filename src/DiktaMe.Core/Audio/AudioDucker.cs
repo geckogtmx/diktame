@@ -24,8 +24,12 @@ public sealed class AudioDucker : IDisposable
     /// <summary>Session → original volume before ducking.</summary>
     private readonly Dictionary<AudioSessionControl, float> _saved = new();
 
+    /// <summary>Session → target (ducked) volume.</summary>
+    private readonly Dictionary<AudioSessionControl, float> _targets = new();
+
     private bool _isDucked;
     private bool _disposed;
+    private CancellationTokenSource? _rampCts;
 
     // ── Settings (mutable at runtime) ────────────────────────────────────────
 
@@ -36,6 +40,11 @@ public sealed class AudioDucker : IDisposable
     /// Volume level to duck to (0.0–1.0).  Applied to non-dIKta.me sessions.
     /// </summary>
     public float DuckLevel { get; set; } = DefaultDuckLevel;
+
+    /// <summary>
+    /// Duration in milliseconds to ramp volume down when ducking starts (0 = instant).
+    /// </summary>
+    public int RampDownMs { get; set; }
 
     // ── Constructor ──────────────────────────────────────────────────────────
 
@@ -55,6 +64,7 @@ public sealed class AudioDucker : IDisposable
 
     /// <summary>
     /// Lowers the volume of all non-dIKta.me audio sessions to <see cref="DuckLevel"/>.
+    /// Instant (no ramp). Use <see cref="DuckAsync"/> for ramped ducking.
     /// No-op if <see cref="IsEnabled"/> is false or already ducked.
     /// </summary>
     public void Duck()
@@ -73,26 +83,10 @@ public sealed class AudioDucker : IDisposable
 
             try
             {
-                EnumerateSessions(session =>
-                {
-                    try
-                    {
-                        uint pid = session.GetProcessID;
-                        float current = session.SimpleAudioVolume.Volume;
-                        _saved[session] = current;
-                        float target = Math.Min(current, DuckLevel);
-                        session.SimpleAudioVolume.Volume = target;
-                        Log.Information("AudioDucker: ducked PID={Pid} ({Name}) {From:P0} → {To:P0}",
-                            pid, GetProcessName(pid), current, target);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, "AudioDucker: failed to duck session {Session}", GetSessionLabel(session));
-                    }
-                });
-
+                EnumerateAndSaveSessions();
+                ApplyTargetVolumes();
                 _isDucked = true;
-                Log.Information("AudioDucker: ducked {Count} session(s) to {Level:P0}", _saved.Count, DuckLevel);
+                Log.Information("AudioDucker: ducked {Count} session(s) to {Level:P0} (instant)", _saved.Count, DuckLevel);
             }
             catch (Exception ex)
             {
@@ -102,8 +96,108 @@ public sealed class AudioDucker : IDisposable
     }
 
     /// <summary>
-    /// Restores all previously-ducked sessions to their original volumes.
-    /// No-op if not currently ducked.
+    /// Lowers the volume of all non-dIKta.me audio sessions to <see cref="DuckLevel"/>
+    /// with a linear ramp over <see cref="RampDownMs"/> milliseconds.
+    /// Falls back to instant ducking when <see cref="RampDownMs"/> is 0 or less.
+    /// No-op if <see cref="IsEnabled"/> is false or already ducked.
+    /// </summary>
+    public async Task DuckAsync()
+    {
+        if (!IsEnabled || _disposed)
+        {
+            return;
+        }
+
+        int rampMs;
+
+        lock (_lock)
+        {
+            if (_isDucked)
+            {
+                return;
+            }
+
+            rampMs = RampDownMs;
+
+            try
+            {
+                EnumerateAndSaveSessions();
+
+                if (rampMs <= 0 || _saved.Count == 0)
+                {
+                    ApplyTargetVolumes();
+                    _isDucked = true;
+                    Log.Information("AudioDucker: ducked {Count} session(s) to {Level:P0} (instant)", _saved.Count, DuckLevel);
+                    return;
+                }
+
+                // Mark as ducked immediately to prevent re-entry
+                _isDucked = true;
+                _rampCts?.Cancel();
+                _rampCts = new CancellationTokenSource();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "AudioDucker: DuckAsync() failed during setup");
+                return;
+            }
+        }
+
+        // Ramp outside the lock so Restore() is not blocked
+        Log.Information("AudioDucker: ramping {Count} session(s) to {Level:P0} over {Ms}ms",
+            _targets.Count, DuckLevel, rampMs);
+
+        var ct = _rampCts!.Token;
+        const int stepMs = 20;
+        int steps = Math.Max(1, rampMs / stepMs);
+        var sw = Stopwatch.StartNew();
+
+        try
+        {
+            for (int i = 1; i <= steps; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                float progress = (float)i / steps;
+
+                lock (_lock)
+                {
+                    foreach (var (session, target) in _targets)
+                    {
+                        try
+                        {
+                            if (_saved.TryGetValue(session, out float original))
+                            {
+                                float vol = original + (target - original) * progress;
+                                session.SimpleAudioVolume.Volume = vol;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Warning(ex, "AudioDucker: ramp step failed for session");
+                        }
+                    }
+                }
+
+                if (i < steps)
+                {
+                    await Task.Delay(stepMs, ct).ConfigureAwait(false);
+                }
+            }
+
+            sw.Stop();
+            Log.Information("AudioDucker: ramp complete in {Ms}ms", sw.ElapsedMilliseconds);
+        }
+        catch (OperationCanceledException)
+        {
+            Log.Information("AudioDucker: ramp cancelled after {Ms}ms", sw.ElapsedMilliseconds);
+        }
+    }
+
+    /// <summary>
+    /// Restores all previously-ducked sessions to their original volumes instantly.
+    /// Cancels any in-progress ramp. No-op if not currently ducked.
+    /// Use <see cref="RestoreAsync"/> for a gradual fade-in.
     /// </summary>
     public void Restore()
     {
@@ -112,6 +206,9 @@ public sealed class AudioDucker : IDisposable
             return;
         }
 
+        // Cancel any in-progress ramp first (outside lock to avoid deadlock)
+        _rampCts?.Cancel();
+
         lock (_lock)
         {
             if (!_isDucked)
@@ -119,6 +216,113 @@ public sealed class AudioDucker : IDisposable
                 return;
             }
 
+            RestoreInternal();
+        }
+    }
+
+    /// <summary>
+    /// Restores all previously-ducked sessions with a linear ramp over <see cref="RampDownMs"/>.
+    /// Falls back to instant restore when <see cref="RampDownMs"/> is 0 or less.
+    /// Cancels any in-progress duck ramp. No-op if not currently ducked.
+    /// </summary>
+    public async Task RestoreAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        // Cancel any in-progress duck ramp
+        _rampCts?.Cancel();
+
+        int rampMs;
+        Dictionary<AudioSessionControl, float>? snapshot;
+
+        lock (_lock)
+        {
+            if (!_isDucked)
+            {
+                return;
+            }
+
+            rampMs = RampDownMs;
+
+            if (rampMs <= 0 || _saved.Count == 0)
+            {
+                RestoreInternal();
+                return;
+            }
+
+            // Take a snapshot of sessions to restore (targets = original volumes)
+            snapshot = new Dictionary<AudioSessionControl, float>(_saved);
+
+            // Read current (ducked) volumes as the starting point
+            foreach (var session in snapshot.Keys.ToList())
+            {
+                try
+                {
+                    _targets[session] = session.SimpleAudioVolume.Volume;
+                }
+                catch
+                {
+                    // Session may have ended — will be cleaned up in RestoreInternal
+                }
+            }
+
+            _rampCts = new CancellationTokenSource();
+        }
+
+        Log.Information("AudioDucker: restoring {Count} session(s) over {Ms}ms", snapshot.Count, rampMs);
+
+        var ct = _rampCts!.Token;
+        const int stepMs = 20;
+        int steps = Math.Max(1, rampMs / stepMs);
+        var sw = Stopwatch.StartNew();
+
+        try
+        {
+            for (int i = 1; i <= steps; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                float progress = (float)i / steps;
+
+                lock (_lock)
+                {
+                    foreach (var (session, originalVol) in snapshot)
+                    {
+                        try
+                        {
+                            if (_targets.TryGetValue(session, out float duckedVol))
+                            {
+                                float vol = duckedVol + (originalVol - duckedVol) * progress;
+                                session.SimpleAudioVolume.Volume = vol;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Warning(ex, "AudioDucker: restore ramp step failed for session");
+                        }
+                    }
+                }
+
+                if (i < steps)
+                {
+                    await Task.Delay(stepMs, ct).ConfigureAwait(false);
+                }
+            }
+
+            sw.Stop();
+            Log.Information("AudioDucker: restore ramp complete in {Ms}ms", sw.ElapsedMilliseconds);
+        }
+        catch (OperationCanceledException)
+        {
+            Log.Information("AudioDucker: restore ramp cancelled after {Ms}ms — snapping to original", sw.ElapsedMilliseconds);
+        }
+
+        // Final cleanup — ensure volumes are exactly at original and clear state
+        lock (_lock)
+        {
             RestoreInternal();
         }
     }
@@ -148,9 +352,55 @@ public sealed class AudioDucker : IDisposable
 
     // ── Private ───────────────────────────────────────────────────────────────
 
-    private void OnRecordingStarted(object? sender, RecordingStartedEventArgs e) => Duck();
+    private void OnRecordingStarted(object? sender, RecordingStartedEventArgs e) => _ = DuckAsync();
 
-    private void OnRecordingStopped(object? sender, RecordingStoppedEventArgs e) => Restore();
+    private void OnRecordingStopped(object? sender, RecordingStoppedEventArgs e) => _ = RestoreAsync();
+
+    /// <summary>
+    /// Enumerates all active non-self sessions and populates <see cref="_saved"/> and <see cref="_targets"/>.
+    /// Must be called inside <see cref="_lock"/>.
+    /// </summary>
+    private void EnumerateAndSaveSessions()
+    {
+        _saved.Clear();
+        _targets.Clear();
+
+        EnumerateSessions(session =>
+        {
+            try
+            {
+                uint pid = session.GetProcessID;
+                float current = session.SimpleAudioVolume.Volume;
+                float target = Math.Min(current, DuckLevel);
+                _saved[session] = current;
+                _targets[session] = target;
+                Log.Information("AudioDucker: will duck PID={Pid} ({Name}) {From:P0} → {To:P0}",
+                    pid, GetProcessName(pid), current, target);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "AudioDucker: failed to read session {Session}", GetSessionLabel(session));
+            }
+        });
+    }
+
+    /// <summary>
+    /// Sets all sessions to their target volumes instantly. Must be called inside <see cref="_lock"/>.
+    /// </summary>
+    private void ApplyTargetVolumes()
+    {
+        foreach (var (session, target) in _targets)
+        {
+            try
+            {
+                session.SimpleAudioVolume.Volume = target;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "AudioDucker: failed to apply target volume");
+            }
+        }
+    }
 
     /// <summary>
     /// Enumerates active non-dIKta.me audio sessions across ALL active render
@@ -233,6 +483,7 @@ public sealed class AudioDucker : IDisposable
             }
         }
         _saved.Clear();
+        _targets.Clear();
         _isDucked = false;
         Log.Information("AudioDucker: restored {Count} session(s)", restored);
     }
@@ -260,6 +511,7 @@ public sealed class AudioDucker : IDisposable
         }
 
         _disposed = true;
+        _rampCts?.Cancel();
 
         lock (_lock)
         {
@@ -268,5 +520,7 @@ public sealed class AudioDucker : IDisposable
                 RestoreInternal();
             }
         }
+
+        _rampCts?.Dispose();
     }
 }

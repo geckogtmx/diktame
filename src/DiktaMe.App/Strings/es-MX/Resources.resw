@@ -253,6 +253,9 @@
   <data name="Settings_Audio_DuckLevel_Label.Text" xml:space="preserve"><value>Nivel de Reducci&#243;n</value></data>
   <data name="Settings_Audio_DuckLevel_Prefix.Text" xml:space="preserve"><value>Otras apps reducidas a </value></data>
   <data name="Settings_Audio_DuckLevel_Suffix.Text" xml:space="preserve"><value>% de volumen</value></data>
+  <data name="Settings_Audio_DuckRamp_Label.Text" xml:space="preserve"><value>Duraci&#243;n de Transici&#243;n</value></data>
+  <data name="Settings_Audio_DuckRamp_Prefix.Text" xml:space="preserve"><value>El volumen baja en </value></data>
+  <data name="Settings_Audio_DuckRamp_Suffix.Text" xml:space="preserve"><value>ms</value></data>
   <data name="Settings_Audio_SoundFeedback_Section.Text" xml:space="preserve"><value>Retroalimentaci&#243;n de Sonido</value></data>
   <data name="Settings_Audio_EnableSounds_Label.Text" xml:space="preserve"><value>Activar Sonidos</value></data>
   <data name="Settings_Audio_EnableSounds_Description.Text" xml:space="preserve"><value>Reproducir se&#241;ales de audio al iniciar y detener la grabaci&#243;n</value></data>

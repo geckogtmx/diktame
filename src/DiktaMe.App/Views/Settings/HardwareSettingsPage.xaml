@@ -97,6 +97,23 @@
                                 Value="{x:Bind ViewModel.Audio.DuckLevelPercent, Mode=TwoWay}"
                                 IsEnabled="{x:Bind ViewModel.Audio.DuckingEnabled, Mode=OneWay}"/>
                     </StackPanel>
+
+                    <!-- Duck Ramp Down -->
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_Audio_DuckRamp_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="0">
+                            <TextBlock l:Uids.Uid="Settings_Audio_DuckRamp_Prefix" FontSize="12"
+                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                            <TextBlock Text="{x:Bind ViewModel.Audio.RampDownMs, Mode=OneWay}" FontSize="12"
+                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Audio_DuckRamp_Suffix" FontSize="12"
+                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <Slider Minimum="0" Maximum="2000" StepFrequency="100"
+                                Value="{x:Bind ViewModel.Audio.RampDownMs, Mode=TwoWay}"
+                                IsEnabled="{x:Bind ViewModel.Audio.DuckingEnabled, Mode=OneWay}"/>
+                    </StackPanel>
                 </StackPanel>
 
                 <!-- ══════════════════════════════════════════════════════════ -->

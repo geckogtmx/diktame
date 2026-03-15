@@ -154,6 +154,11 @@ public sealed record AudioDuckingSettings
     /// Stored as integer percentage; converted to 0.0–1.0 float when applied.
     /// </summary>
     public int DuckLevelPercent { get; init; } = 20;
+
+    /// <summary>
+    /// Duration in milliseconds to ramp volume down when ducking starts (0 = instant).
+    /// </summary>
+    public int RampDownMs { get; init; } = 500;
 }
 
 /// <summary>

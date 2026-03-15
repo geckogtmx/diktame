@@ -48,7 +48,8 @@ public sealed class TtsSpeaker
         {
             _ducker.IsEnabled = true;
             _ducker.DuckLevel = _settings.Current.AudioDucking.DuckLevelPercent / 100f;
-            _ducker.Duck();
+            _ducker.RampDownMs = _settings.Current.AudioDucking.RampDownMs;
+            await _ducker.DuckAsync().ConfigureAwait(false);
         }
 
         try
@@ -77,6 +78,13 @@ public sealed class TtsSpeaker
             sw.Stop();
             Log.Information("TtsSpeaker: played {Chars} chars in {Ms}ms via {Provider}",
                 cleaned.Length, sw.ElapsedMilliseconds, result.Provider);
+
+            // Restore ducking with ramp after successful playback
+            if (shouldDuck)
+            {
+                await _ducker.RestoreAsync().ConfigureAwait(false);
+            }
+
             return sw.ElapsedMilliseconds;
         }
         catch (OperationCanceledException)
@@ -92,6 +100,7 @@ public sealed class TtsSpeaker
         }
         finally
         {
+            // Safety net: ensure ducking is restored instantly on error/cancel
             if (shouldDuck)
             {
                 _ducker.Restore();

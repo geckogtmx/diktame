@@ -664,7 +664,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     /// <param name="mode">Display name for logging/toast (e.g. "Dictate", "Ask").</param>
     /// <param name="isDictate">True for dictation modes (uses start/stop sounds), false for utility (uses utility sound).</param>
     /// <returns>A tuple containing the audio file path and recording duration in milliseconds.</returns>
-    private Task<(string? FilePath, long DurationMs)> RecordAudioAsync(string mode, bool isDictate)
+    private async Task<(string? FilePath, long DurationMs)> RecordAudioAsync(string mode, bool isDictate)
     {
         var tcs = new TaskCompletionSource<(string?, long)>();
 
@@ -705,7 +705,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             _audioDucker.IsEnabled = true;
             _audioDucker.DuckLevel = _settings.Current.AudioDucking.DuckLevelPercent / 100f;
-            _audioDucker.Duck();
+            _audioDucker.RampDownMs = _settings.Current.AudioDucking.RampDownMs;
+            await _audioDucker.DuckAsync().ConfigureAwait(false);
         }
 
         // Start recording (all params are optional)
@@ -721,7 +722,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         string startSound = isDictate ? soundSettings.StartSound : soundSettings.UtilitySound;
         _notifications.PlayCustomSound(startSound);
 
-        return tcs.Task;
+        return await tcs.Task;
     }
 
     // ── Pipeline Handlers ─────────────────────────────────────────────────────
@@ -785,7 +786,8 @@ public sealed partial class LoadingViewModel : ObservableObject
             {
                 _audioDucker.IsEnabled = true;
                 _audioDucker.DuckLevel = _settings.Current.AudioDucking.DuckLevelPercent / 100f;
-                _audioDucker.Duck();
+                _audioDucker.RampDownMs = _settings.Current.AudioDucking.RampDownMs;
+                await _audioDucker.DuckAsync().ConfigureAwait(false);
             }
 
             // Start recording — AudioRecorder fires AudioDataAvailable events
@@ -852,8 +854,8 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
-            // Stop ducking
-            _audioDucker.Restore();
+            // Stop ducking (ramped fade-in)
+            await _audioDucker.RestoreAsync().ConfigureAwait(false);
 
             Log.Information("Dictate: Recording complete, processing...");
 
@@ -1021,8 +1023,8 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
-            // Stop ducking
-            _audioDucker.Restore();
+            // Stop ducking (ramped fade-in)
+            await _audioDucker.RestoreAsync().ConfigureAwait(false);
 
             Log.Information("Refine Voice: Recording complete, processing...");
 
@@ -1090,8 +1092,8 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
-            // Stop ducking
-            _audioDucker.Restore();
+            // Stop ducking (ramped fade-in)
+            await _audioDucker.RestoreAsync().ConfigureAwait(false);
 
             Log.Information("Ask: Recording complete, processing...");
 
@@ -1199,8 +1201,8 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
-            // Stop ducking
-            _audioDucker.Restore();
+            // Stop ducking (ramped fade-in)
+            await _audioDucker.RestoreAsync().ConfigureAwait(false);
 
             Log.Information("Translate: Recording complete, processing...");
 
@@ -1282,8 +1284,8 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
-            // Stop ducking
-            _audioDucker.Restore();
+            // Stop ducking (ramped fade-in)
+            await _audioDucker.RestoreAsync().ConfigureAwait(false);
 
             Log.Information("Note: Recording complete, processing...");
 
@@ -1380,7 +1382,8 @@ public sealed partial class LoadingViewModel : ObservableObject
             {
                 _audioDucker.IsEnabled = true;
                 _audioDucker.DuckLevel = _settings.Current.AudioDucking.DuckLevelPercent / 100f;
-                _audioDucker.Duck();
+                _audioDucker.RampDownMs = _settings.Current.AudioDucking.RampDownMs;
+                await _audioDucker.DuckAsync().ConfigureAwait(false);
                 didDuck = true;
             }
 
@@ -1407,7 +1410,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             // Restore ducking only if WE started it (avoid stomping on TtsSpeaker's ducking)
             if (didDuck)
             {
-                _audioDucker.Restore();
+                await _audioDucker.RestoreAsync().ConfigureAwait(false);
             }
         }
         catch (Exception ex)

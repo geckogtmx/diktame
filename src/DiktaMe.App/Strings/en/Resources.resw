@@ -656,6 +656,15 @@
   <data name="Settings_Audio_DuckLevel_Suffix.Text" xml:space="preserve">
     <value>% volume</value>
   </data>
+  <data name="Settings_Audio_DuckRamp_Label.Text" xml:space="preserve">
+    <value>Fade Duration</value>
+  </data>
+  <data name="Settings_Audio_DuckRamp_Prefix.Text" xml:space="preserve">
+    <value>Volume fades over </value>
+  </data>
+  <data name="Settings_Audio_DuckRamp_Suffix.Text" xml:space="preserve">
+    <value>ms</value>
+  </data>
   <data name="Settings_Audio_SoundFeedback_Section.Text" xml:space="preserve">
     <value>Sound Feedback</value>
   </data>
