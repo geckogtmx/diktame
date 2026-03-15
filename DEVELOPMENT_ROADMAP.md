@@ -1790,11 +1790,12 @@ These are out of scope for initial CRUD implementation:
 
 ---
 
-## 12. Stream K: dIKta.me Account & Trial Credits (Post-MVP)
+## 12. Stream K: dIKta.me Account & Wallet System (Post-MVP)
 
-> **Status:** ✅ COMPLETE — All tasks (K.1–K.6) finished
-> **Priority:** HIGH (required before public launch with free trial)
+> **Status:** ✅ COMPLETE — K.1–K.7 (Trial), K.8–K.12 (Wallet), M.1–M.4 (Cloud infra) all finished
+> **Priority:** HIGH (required before public launch)
 > **V1 Reference:** `SPEC_042_DIKTA_ME_WEBSITE.md`, `SPEC_042_IMPLEMENTATION.md`, `SPEC_027_WEBSITE_BACKEND.md`
+> **V2 Spec:** [`plans/SPEC_008_WALLET_SERVICE.md`](plans/SPEC_008_WALLET_SERVICE.md)
 > **V1 Source Files:** `src/ipc/trialHandlers.ts`, `src/settings/trialAccount.ts`, `src/services/configSync.ts`, `src/main.ts` (deeplink handling)
 
 ### 12.1 Context & Problem Statement
@@ -1909,7 +1910,55 @@ The following backend components are **shared with the website** and require NO 
 2. `TrialGeminiProviderTests` — request routing, auth header, quota exceeded handling
 3. Integration: verify `LLMRouter` correctly delegates to trial provider when `AuthMode == Trial`
 
-### 12.5 Future: LemonSqueezy License Validation
+### 12.5 Wallet System (SPEC_008) — Replaces Trial Credits
+
+> **Status:** ✅ COMPLETE — All tasks implemented and E2E verified
+> The original trial credits system (word-count-based, 15K free words) was replaced with a **prepaid dollar-denominated wallet** that supports both LLM (Gemini Flash) and STT (Deepgram Nova-3) via managed proxy providers.
+
+#### Task K.8: Trial Teardown + AuthMode Overhaul ✅
+- Deleted 11 trial artifacts, `AuthMode.Trial` → `AuthMode.Wallet`
+- Simplified `AccountService` (Login, HandleAuthCallbackAsync, LogoutAsync)
+
+#### Task K.9: WalletManager SQLite Ledger ✅
+- Append-only local ledger (`wallet.db`), thread-safe with `SemaphoreSlim`
+- `GetBalanceMicroAsync()`, `InsertTransactionAsync()`, `SyncBalanceAsync()`
+
+#### Task K.10: Wallet Proxy Providers + Router Wiring ✅
+- `WalletGeminiProxy` (ILLMProvider) + `WalletDeepgramProxy` (ISTTProvider)
+- JWT auth, cost tracking via `X-Wallet-Cost`/`X-Wallet-Balance` headers
+- PipelineFactory wallet intercept (overrides all provider selection)
+- Chat excluded from wallet (defense-in-depth: `ProcessConversationAsync` throws)
+
+#### Task K.11: Wallet Dashboard UI ✅
+- Balance display, transaction history, "Use Wallet Proxy" toggle
+- Top Up button (opens `dikta.me/wallet`)
+
+#### Task K.12: Integration + Polish ✅
+- Startup sync via `wallet-status` Edge Function
+- Post-pipeline balance update via `BalanceUpdated` event
+- Streaming pipeline forced to batch when `AuthMode.Wallet`
+
+#### Task M.1: Wallet Proxy Edge Function ✅
+- Supabase Edge Function with JWT validation, rate limiting (60 req/min)
+- Two-phase deduction: pre-check balance, post-deduct exact cost atomically
+- Routes to Deepgram Nova-3 (STT) and Gemini 2.0 Flash (LLM)
+
+#### Task M.2: Supabase Schema + Atomic RPC ✅
+- `wallet_ledger` table (append-only, RLS), `rate_limits`, `proxy_audit_log`
+- `deduct_wallet_balance()` RPC with `FOR UPDATE` row lock
+- `grant_on_signup()` trigger — $1.00 promotional grant
+
+#### Task M.3: Payment Webhook + Gateway Adapter Pattern ✅
+- Gateway-agnostic webhook handler (LemonSqueezy adapter + manual adapter)
+- HMAC-SHA256 signature validation, $50 balance cap, order deduplication
+
+#### Task M.4: Operation Liquidity ✅
+- Emergency freeze (`config.service_frozen`), balance snapshot, refund plan
+- Dry-run default, requires `X-Execute: true` + `ADMIN_SECRET`
+
+**E2E verified:** Sign in → wallet grant → dictate → STT+LLM costs deducted → balance updates → chat excluded → 401/402/503 handled gracefully. Average cost: $0.001/dictation STT + $0.000014/dictation LLM. $5 ≈ 65,000 words.
+
+### 12.6 Future: LemonSqueezy License Validation
 
 > **NOT in scope for Stream K.** Planned for a future stream per `SPEC_015_APP_LICENSE_VERIFICATION.md`.
 >
@@ -1949,7 +1998,7 @@ The core engine (Streams A-L, TTS) is feature-complete. The final V2 development
 ---
 
 **Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, H.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅, Control Panel V2 rework (Phase 1–3) ✅, Session stats rework (REQ/CHAR/WORDS/WORD-MIN) ✅, Perf row reorder + tooltips ✅, Header badge truncation ✅, **K.1–K.7 (Stream K Complete ✅)**, **L.1–L.4 (Deepgram Streaming)** ✅, L.5 ⏳ (manual test pending), **TTS (SPEC_003_TTS_V2 Complete ✅)**
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, H.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅, Control Panel V2 rework (Phase 1–3) ✅, Session stats rework (REQ/CHAR/WORDS/WORD-MIN) ✅, Perf row reorder + tooltips ✅, Header badge truncation ✅, **K.1–K.7 (Stream K Complete ✅)**, **K.8–K.12 + M.1–M.4 (Wallet System Complete ✅)**, **L.1–L.4 (Deepgram Streaming)** ✅, L.5 ⏳ (manual test pending), **TTS (SPEC_003_TTS_V2 Complete ✅)**
 **Remaining:** H.1 (Installer), I.6 (Website Rebrand), L.5 (Streaming UI toggle — pending manual test), **SPEC_015 Modules Sprint (17 phases)**
-**Build:** 0 errors, 0 warnings | **Tests:** 961 passing
+**Build:** 0 errors, 0 warnings | **Tests:** 968 passing
 **Modules Sprint:** [`plans/SPEC_015_MODULES_SPRINT.md`](plans/SPEC_015_MODULES_SPRINT.md)
