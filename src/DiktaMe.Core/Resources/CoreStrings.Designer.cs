@@ -56,11 +56,11 @@ internal static class CoreStrings
     internal static string Capabilities_NoLlm
         => ResourceManager.GetString("Capabilities_NoLlm", s_resourceCulture) ?? "No LLM";
 
-    // ── Trial provider messages ─────────────────────────────────────────────
+    // ── Wallet provider messages ────────────────────────────────────────────
 
-    internal static string Trial_SessionExpired
-        => ResourceManager.GetString("Trial_SessionExpired", s_resourceCulture) ?? "Trial session expired. Please sign in again.";
+    internal static string Wallet_SessionExpired
+        => ResourceManager.GetString("Wallet_SessionExpired", s_resourceCulture) ?? "Session expired. Please sign in again.";
 
-    internal static string Trial_QuotaExceeded
-        => ResourceManager.GetString("Trial_QuotaExceeded", s_resourceCulture) ?? "Trial quota exceeded. You've used all 15,000 free words.";
+    internal static string Wallet_InsufficientBalance
+        => ResourceManager.GetString("Wallet_InsufficientBalance", s_resourceCulture) ?? "Insufficient wallet balance. Please top up your account.";
 }

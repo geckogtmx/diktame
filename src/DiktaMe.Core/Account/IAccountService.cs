@@ -2,8 +2,7 @@
 namespace DiktaMe.Core.Account;
 /// <summary>
 /// Authentication-only service — login, logout, token, email.
-/// No trial-specific operations. Consumers that only need auth
-/// should depend on this interface instead of <see cref="ITrialAccountService"/>.
+/// Wallet operations (balance, transactions) live on WalletManager.
 /// </summary>
 public interface IAccountService
 {
@@ -14,7 +13,7 @@ public interface IAccountService
 
     /// <summary>
     /// Processes the JWT received from the <c>diktame://auth?token=...</c> deeplink.
-    /// Stores the token, extracts email, sets <see cref="Config.AuthMode.Account"/>.
+    /// Stores the token, extracts email, sets <see cref="Config.AuthMode.Wallet"/>.
     /// </summary>
     Task HandleAuthCallbackAsync(string token, CancellationToken cancellationToken = default);
 

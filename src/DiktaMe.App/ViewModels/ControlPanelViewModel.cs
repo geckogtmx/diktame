@@ -293,6 +293,14 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [ObservableProperty]
     private int _autoHideDelaySeconds = 30;
 
+    // ── Wallet balance HUD ──────────────────────────────────────────────
+
+    [ObservableProperty]
+    private string _walletBalanceFormatted = "";
+
+    [ObservableProperty]
+    private bool _showWalletBalance;
+
     /// <summary>Effective row visibility: combines IsExpanded with per-row settings.</summary>
     public bool ShowModesRowEffective => IsExpanded && ShowModesRow;
     public bool ShowActionsRowEffective => IsExpanded && ShowActionsRow;
@@ -887,6 +895,14 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         HotkeyAsk = settings.Hotkeys.Ask;
         HotkeyNote = settings.Hotkeys.Note;
         HotkeyTranslate = settings.Hotkeys.Translate;
+
+        // Wallet balance HUD (visible when AuthMode is Wallet)
+        ShowWalletBalance = settings.AuthMode == AuthMode.Wallet;
+        if (ShowWalletBalance)
+        {
+            decimal balanceDollars = settings.Account.WalletBalanceMicro / 1_000_000m;
+            WalletBalanceFormatted = balanceDollars.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
+        }
 
         // Sync active mode ID from settings
         if (!string.Equals(settings.ActiveDictationModeId, ActiveDictationModeId, StringComparison.Ordinal))

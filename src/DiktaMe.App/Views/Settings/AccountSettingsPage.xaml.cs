@@ -9,7 +9,6 @@ namespace DiktaMe.App.Views.Settings;
 public sealed partial class AccountSettingsPage : Page
 {
     private IAccountService? _accountService;
-    private ITrialService? _trialService;
 
     public AccountSettingsViewModel ViewModel { get; }
 
@@ -24,16 +23,10 @@ public sealed partial class AccountSettingsPage : Page
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         _accountService = App.Current.Services.GetService<IAccountService>();
-        _trialService = App.Current.Services.GetService<ITrialService>();
 
         if (_accountService is not null)
         {
             _accountService.AuthStateChanged += OnAuthStateChanged;
-        }
-
-        if (_trialService is not null)
-        {
-            _trialService.StatusChanged += OnStatusChanged;
         }
 
         // Always refresh on load to pick up changes that happened while navigated away
@@ -46,19 +39,9 @@ public sealed partial class AccountSettingsPage : Page
         {
             _accountService.AuthStateChanged -= OnAuthStateChanged;
         }
-
-        if (_trialService is not null)
-        {
-            _trialService.StatusChanged -= OnStatusChanged;
-        }
     }
 
     private void OnAuthStateChanged(bool signedIn)
-    {
-        DispatcherQueue.TryEnqueue(() => ViewModel.Refresh());
-    }
-
-    private void OnStatusChanged(TrialStatus? status)
     {
         DispatcherQueue.TryEnqueue(() => ViewModel.Refresh());
     }

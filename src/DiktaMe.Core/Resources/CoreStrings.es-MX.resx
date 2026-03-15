@@ -21,8 +21,8 @@
   <data name="Capabilities_Ollama" xml:space="preserve"><value>Ollama</value></data>
   <data name="Capabilities_NoLlm" xml:space="preserve"><value>Sin LLM</value></data>
 
-  <!-- Trial provider messages -->
-  <data name="Trial_SessionExpired" xml:space="preserve"><value>La sesi&#243;n de prueba expir&#243;. Inicie sesi&#243;n nuevamente.</value></data>
-  <data name="Trial_QuotaExceeded" xml:space="preserve"><value>Cuota de prueba excedida. Ha utilizado las 15,000 palabras gratuitas.</value></data>
+  <!-- Wallet provider messages -->
+  <data name="Wallet_SessionExpired" xml:space="preserve"><value>La sesi&#243;n expir&#243;. Inicie sesi&#243;n nuevamente.</value></data>
+  <data name="Wallet_InsufficientBalance" xml:space="preserve"><value>Saldo insuficiente. Recargue su cuenta.</value></data>
 
 </root>

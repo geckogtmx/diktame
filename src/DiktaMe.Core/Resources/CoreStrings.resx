@@ -36,13 +36,13 @@
   </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
-       Trial provider — user-visible result text
+       Wallet provider — user-visible result text
        ══════════════════════════════════════════════════════════════════════ -->
-  <data name="Trial_SessionExpired" xml:space="preserve">
-    <value>Trial session expired. Please sign in again.</value>
+  <data name="Wallet_SessionExpired" xml:space="preserve">
+    <value>Session expired. Please sign in again.</value>
   </data>
-  <data name="Trial_QuotaExceeded" xml:space="preserve">
-    <value>Trial quota exceeded. You've used all 15,000 free words.</value>
+  <data name="Wallet_InsufficientBalance" xml:space="preserve">
+    <value>Insufficient wallet balance. Please top up your account.</value>
   </data>
 
 </root>

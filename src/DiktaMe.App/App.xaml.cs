@@ -408,12 +408,14 @@ public partial class App : Application
         // NOTE: Cloud providers require keys; they are deliberately NOT registered
         // against ISTTProvider here — the router below uses WhisperProvider as
         // the default until settings/keys are configured.
-        // Trial mode routes through TrialGeminiAudioProvider when AuthMode == Trial.
-        services.AddSingleton<TrialGeminiAudioProvider>();
+        services.AddSingleton<WalletDeepgramProxy>(sp => new WalletDeepgramProxy(
+            sp.GetRequiredService<SecureStorage>(),
+            sp.GetRequiredService<SettingsManager>(),
+            sp.GetRequiredService<WalletManager>()));
         services.AddSingleton<ISTTProvider>(sp => new STTRouter(
             primary: sp.GetRequiredService<WhisperProvider>(),
             settings: sp.GetRequiredService<SettingsManager>(),
-            trialStt: sp.GetRequiredService<TrialGeminiAudioProvider>()));
+            walletStt: sp.GetRequiredService<WalletDeepgramProxy>()));
 
         // ── LLM providers ────────────────────────────────────────────────────
         // Ollama (local, no API key — works out of the box when Ollama is running)
@@ -433,17 +435,17 @@ public partial class App : Application
                 numCtx: settings.Current.OllamaNumCtx);
         });
 
-        // Trial Gemini provider (managed proxy, Bearer JWT auth)
-        services.AddSingleton<TrialGeminiProvider>();
-
         // Register router against interface — Ollama is the default offline provider.
         // Cloud LLM providers are created dynamically by LLMRouter (J.5) for per-mode model selection.
-        // Trial mode routes through TrialGeminiProvider when AuthMode == Trial.
+        services.AddSingleton<WalletGeminiProxy>(sp => new WalletGeminiProxy(
+            sp.GetRequiredService<SecureStorage>(),
+            sp.GetRequiredService<SettingsManager>(),
+            sp.GetRequiredService<WalletManager>()));
         services.AddSingleton<ILLMProvider>(sp => new LLMRouter(
             primary: sp.GetRequiredService<OllamaProvider>(),
             factory: sp.GetRequiredService<ILLMProviderFactory>(),
             settings: sp.GetRequiredService<SettingsManager>(),
-            trialProvider: sp.GetRequiredService<TrialGeminiProvider>()));
+            walletProvider: sp.GetRequiredService<WalletGeminiProxy>()));
 
         // ── Pipelines (transient — new instance per invocation) ──────────────
         services.AddTransient<DictationPipeline>(sp => new DictationPipeline(
@@ -494,19 +496,15 @@ public partial class App : Application
             sp.GetRequiredService<SettingsManager>()));
         services.AddSingleton<PipelineFactory>();
 
-        // ── Account (K.2 / L.3h) ─────────────────────────────────────────────
-        // Single instance behind three interfaces for incremental migration.
-        services.AddSingleton<TrialAccountService>();
-#pragma warning disable CS0618 // ITrialAccountService is obsolete — kept for backward compat during migration
-        services.AddSingleton<ITrialAccountService>(sp => sp.GetRequiredService<TrialAccountService>());
-#pragma warning restore CS0618
-        services.AddSingleton<IAccountService>(sp => sp.GetRequiredService<TrialAccountService>());
-        services.AddSingleton<ITrialService>(sp => sp.GetRequiredService<TrialAccountService>());
+        // ── Account (K.2 / K.8) ──────────────────────────────────────────────
+        services.AddSingleton<AccountService>();
+        services.AddSingleton<IAccountService>(sp => sp.GetRequiredService<AccountService>());
 
-        // ── Data (E.2 + SPEC_007) ────────────────────────────────────────────
+        // ── Data (E.2 + SPEC_007 + K.9) ─────────────────────────────────────
         services.AddSingleton<HistoryManager>();
         services.AddSingleton<MetricsCollector>();
         services.AddSingleton<ConversationManager>();
+        services.AddSingleton<WalletManager>();
 
         // ── System (I.5) ──────────────────────────────────────────────────────
         services.AddSingleton<OllamaManager>(sp =>

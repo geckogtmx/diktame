@@ -153,15 +153,15 @@ When deducting credits locally, the app mirrors the cloud's Priority Queue: **Pr
 
 ## 4. The Cloud Architecture (The "Meter")
 
-### 4.1 Payment Flow (Lemon Squeezy)
+### 4.1 Payment Flow (Gateway-Agnostic)
 
-User opens `https://dikta.me/wallet`.
+User opens `https://dikta.me/wallet` — our page, we control what payment options appear.
 
 **Balance Constraints** (carried from V1 SPEC_036):
-- **Minimum Top-Up:** **$5.00 USD** (below this, Lemon Squeezy's $0.50 fixed fee is disproportionate).
+- **Minimum Top-Up:** **$5.00 USD** (gateway fees are disproportionate below this).
 - **Maximum Wallet Balance:** **$50.00 USD** (strict liability cap — prevents large-scale refund exposure).
 
-**Products:**
+**Products (example pricing — varies per gateway):**
 | Product | Credit Amount | Checkout Total (incl. service fee) |
 |---|---|---|
 | Starter | $5.00 | $6.50 |
@@ -169,9 +169,17 @@ User opens `https://dikta.me/wallet`.
 | Pro | $20.00 | $24.00 |
 | Power | $50.00 | $60.00 |
 
-**"What you buy is what you get" UX:** Lemon Squeezy fees (5% + $0.50) and operational margin are added at checkout as a service fee. The user always receives the exact credit amount listed.
+**"What you buy is what you get" UX:** Gateway fees and operational margin are added at checkout as a service fee. The user always receives the exact credit amount listed.
 
-The Webhook fires an `order_created` event to a Supabase Edge Function, which inserts a `PURCHASE` transaction into the master ledger.
+**Gateway architecture:** The webhook handler uses an **adapter pattern** — one adapter per payment provider (LemonSqueezy, Ko-fi, Stripe, Substack, manual donations, etc.). Each adapter validates the incoming webhook, extracts the payment details, and produces a normalized `CreditRequest`. The core handler is gateway-agnostic. Adding a new gateway = adding one adapter file.
+
+**Planned gateways:**
+- **LemonSqueezy** — primary, one-time purchases with product tiers
+- **Ko-fi** — low-key donation support
+- **Manual grants** — admin-initiated credits for support cases, beta testers, etc.
+- Future: Stripe, Substack, etc.
+
+The Webhook fires an event to a Supabase Edge Function, which inserts a `PURCHASE` transaction into the master ledger with `{"gateway":"<name>"}` metadata.
 
 ### 4.2 The Proxy (Cloudflare Workers)
 

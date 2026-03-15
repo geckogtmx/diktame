@@ -15,12 +15,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using Serilog;
 
+
 namespace DiktaMe.App.ViewModels;
 public sealed partial class LoadingViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
     private readonly HistoryManager _history;
     private readonly ConversationManager _conversations;
+    private readonly WalletManager _wallet;
     private readonly SnippetManager _snippets;
     private readonly OllamaManager _ollama;
     private readonly HotkeyManager _hotkeyManager;
@@ -32,7 +34,6 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly TextInjector _textInjector;
     private readonly ControlPanelViewModel _controlPanel;
     private readonly IAccountService _accountService;
-    private readonly ITrialService _trialService;
     private readonly LocalizationService _loc;
     private readonly WhisperProvider _whisper;
     private readonly OllamaProvider _ollamaProvider;
@@ -55,6 +56,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         SettingsManager settings,
         HistoryManager history,
         ConversationManager conversations,
+        WalletManager wallet,
         SnippetManager snippets,
         OllamaManager ollama,
         HotkeyManager hotkeyManager,
@@ -66,7 +68,6 @@ public sealed partial class LoadingViewModel : ObservableObject
         TextInjector textInjector,
         ControlPanelViewModel controlPanel,
         IAccountService accountService,
-        ITrialService trialService,
         LocalizationService loc,
         WhisperProvider whisper,
         OllamaProvider ollamaProvider,
@@ -78,6 +79,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _settings = settings;
         _history = history;
         _conversations = conversations;
+        _wallet = wallet;
         _snippets = snippets;
         _ollama = ollama;
         _hotkeyManager = hotkeyManager;
@@ -89,7 +91,6 @@ public sealed partial class LoadingViewModel : ObservableObject
         _textInjector = textInjector;
         _controlPanel = controlPanel;
         _accountService = accountService;
-        _trialService = trialService;
         _loc = loc;
         _whisper = whisper;
         _ollamaProvider = ollamaProvider;
@@ -110,10 +111,11 @@ public sealed partial class LoadingViewModel : ObservableObject
             await _settings.LoadAsync();
             Progress = 25;
 
-            // Step 2: Initialize database
+            // Step 2: Initialize databases
             StatusText = _loc.GetString("Loading_Database");
             await _history.InitAsync();
             await _conversations.InitAsync();
+            await _wallet.InitAsync();
             Progress = 50;
 
             // Step 3: Load snippets
@@ -210,19 +212,19 @@ public sealed partial class LoadingViewModel : ObservableObject
             }
             Progress = 85;
 
-            // Step 5: Sync trial account status (if signed in)
+            // Step 5: Sync wallet status (if signed in)
+            // Cloud sync (wallet-status API call) will be wired in K.12.
+            // For now, update the cached balance from the local ledger.
             if (_accountService.HasValidToken)
             {
                 StatusText = _loc.GetString("Loading_Account");
-                try
+                long localBalance = await _wallet.GetBalanceMicroAsync();
+                var updated = _settings.Current with
                 {
-                    await _trialService.RefreshStatusAsync();
-                }
-                catch (Exception ex)
-                {
-                    // Non-fatal — network may be unavailable
-                    Log.Debug(ex, "Trial status refresh skipped during loading");
-                }
+                    Account = _settings.Current.Account with { WalletBalanceMicro = localBalance },
+                };
+                await _settings.UpdateAsync(updated);
+                Log.Information("Wallet: local balance cached at startup = {Balance}µ$", localBalance);
             }
             Progress = 90;
 

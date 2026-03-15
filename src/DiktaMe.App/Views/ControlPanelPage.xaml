@@ -60,6 +60,14 @@
 
             <StackPanel x:Name="HeaderButtons" Orientation="Horizontal" Spacing="5"
                         HorizontalAlignment="Right" VerticalAlignment="Center">
+                <!-- Wallet balance badge (visible when AuthMode=Wallet) -->
+                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2"
+                        Visibility="{x:Bind ViewModel.ShowWalletBalance, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{x:Bind ViewModel.WalletBalanceFormatted, Mode=OneWay}"
+                               FontSize="11" FontWeight="Bold"
+                               Foreground="{StaticResource V1PerfGreenBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
                 <!-- STT indicator badge -->
                 <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2" Width="36">
                     <ToolTipService.ToolTip>

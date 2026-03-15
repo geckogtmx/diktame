@@ -1,35 +1,40 @@
 
+using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiktaMe.App.Services;
 using DiktaMe.Core.Account;
 using DiktaMe.Core.Config;
+using DiktaMe.Core.Data;
 using Serilog;
 
 namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class AccountSettingsViewModel : ObservableObject
 {
     private readonly IAccountService _accountService;
-    private readonly ITrialService _trialService;
     private readonly SettingsManager _settings;
+    private readonly WalletManager _wallet;
     private readonly LocalizationService _loc;
 
     [ObservableProperty] private bool _isSignedIn;
     [ObservableProperty] private string _email = string.Empty;
-    [ObservableProperty] private bool _hasTrialData;
-    [ObservableProperty] private int _wordsUsed;
-    [ObservableProperty] private int _wordsQuota = 15_000;
-    [ObservableProperty] private int _daysRemaining;
-    [ObservableProperty] private bool _trialActive;
-    [ObservableProperty] private double _usagePercent;
-    [ObservableProperty] private string _usageText = "";
+    [ObservableProperty] private string _walletBalanceFormatted = "$0.00";
     [ObservableProperty] private string _statusText = "";
+    [ObservableProperty] private string _balanceColorHex = "#FFFFFF";
 
-    public AccountSettingsViewModel(IAccountService accountService, ITrialService trialService, SettingsManager settings, LocalizationService loc)
+    /// <summary>Recent wallet transactions for the history list.</summary>
+    public ObservableCollection<WalletTransactionItem> RecentTransactions { get; } = [];
+
+    public AccountSettingsViewModel(
+        IAccountService accountService,
+        SettingsManager settings,
+        WalletManager wallet,
+        LocalizationService loc)
     {
         _accountService = accountService;
-        _trialService = trialService;
         _settings = settings;
+        _wallet = wallet;
         _loc = loc;
         Refresh();
     }
@@ -44,12 +49,6 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     private async Task SignOutAsync()
     {
         await _accountService.LogoutAsync();
-    }
-
-    [RelayCommand]
-    private async Task RefreshAsync()
-    {
-        await _trialService.RefreshStatusAsync();
     }
 
     [RelayCommand]
@@ -68,26 +67,98 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private static void TopUp()
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://www.dikta.me/wallet")
+            {
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "AccountSettingsViewModel: failed to open top-up page");
+        }
+    }
+
     internal void Refresh()
     {
-        var trial = _settings.Current.Trial;
         IsSignedIn = _accountService.HasValidToken;
         Email = _accountService.Email ?? string.Empty;
 
-        // Trial section is conditional — only show when trial data exists
-        HasTrialData = trial.TrialWordsQuota > 0
-            && !string.IsNullOrEmpty(trial.TrialExpiresAt);
+        // Format wallet balance from cached microdollars
+        long balanceMicro = _settings.Current.Account.WalletBalanceMicro;
+        decimal balanceDollars = balanceMicro / 1_000_000m;
+        WalletBalanceFormatted = balanceDollars.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
 
-        WordsUsed = trial.TrialWordsUsed;
-        WordsQuota = trial.TrialWordsQuota > 0 ? trial.TrialWordsQuota : 15_000;
-        DaysRemaining = trial.TrialDaysRemaining;
-        TrialActive = trial.TrialActive;
-        UsagePercent = WordsQuota > 0 ? Math.Min(100.0, (double)WordsUsed / WordsQuota * 100.0) : 0;
-        UsageText = _loc.GetFormatted("Settings_Account_UsageText", WordsUsed, WordsQuota);
+        // Color-code balance: green > $1, yellow $0.50-$1, red < $0.50
+        BalanceColorHex = balanceDollars >= 1.00m ? "#7AFF9E"  // green
+            : balanceDollars >= 0.50m ? "#FFD54F"              // yellow
+            : "#FF4444";                                        // red
+
         StatusText = IsSignedIn
-            ? (HasTrialData
-                ? (TrialActive ? _loc.GetFormatted("Settings_Account_Status_DaysRemaining", DaysRemaining) : _loc.GetString("Settings_Account_Status_Expired"))
-                : _loc.GetString("Settings_Account_Status_Active"))
+            ? _loc.GetString("Settings_Account_Status_Active")
             : _loc.GetString("Settings_Account_Status_NotSignedIn");
+
+        // Load recent transactions (fire-and-forget — UI update via dispatcher)
+        _ = LoadTransactionsAsync();
     }
+
+    private async Task LoadTransactionsAsync()
+    {
+        try
+        {
+            var transactions = await _wallet.GetTransactionsAsync(20);
+            RecentTransactions.Clear();
+            foreach (var txn in transactions)
+            {
+                RecentTransactions.Add(new WalletTransactionItem
+                {
+                    TypeIcon = GetTypeIcon(txn.Type),
+                    TypeLabel = txn.Type,
+                    AmountFormatted = FormatAmount(txn.AmountMicro),
+                    AmountColorHex = txn.AmountMicro >= 0 ? "#7AFF9E" : "#FF4444",
+                    DateFormatted = txn.CreatedAt.LocalDateTime.ToString("MMM d, h:mm tt", CultureInfo.InvariantCulture),
+                    BalanceAfterFormatted = (txn.BalanceAfterMicro / 1_000_000m).ToString("C2", CultureInfo.GetCultureInfo("en-US")),
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "AccountSettingsViewModel: failed to load transactions");
+        }
+    }
+
+    private static string GetTypeIcon(string type) => type switch
+    {
+        WalletTransactionType.Grant => "\uE8A1",    // Gift
+        WalletTransactionType.Purchase => "\uE8A1",  // Gift/Money
+        WalletTransactionType.Usage => "\uE700",     // Down arrow
+        WalletTransactionType.Refund => "\uE72C",    // Undo
+        WalletTransactionType.Sync => "\uE895",      // Sync
+        WalletTransactionType.Expiry => "\uE823",    // Clock
+        _ => "\uE7BA",                               // Info
+    };
+
+    private static string FormatAmount(long amountMicro)
+    {
+        decimal dollars = amountMicro / 1_000_000m;
+        string sign = dollars >= 0 ? "+" : "";
+        return sign + dollars.ToString("C4", CultureInfo.GetCultureInfo("en-US"));
+    }
+}
+
+/// <summary>
+/// Display-friendly transaction item for the UI ListView.
+/// </summary>
+public sealed class WalletTransactionItem
+{
+    public required string TypeIcon { get; init; }
+    public required string TypeLabel { get; init; }
+    public required string AmountFormatted { get; init; }
+    public required string AmountColorHex { get; init; }
+    public required string DateFormatted { get; init; }
+    public required string BalanceAfterFormatted { get; init; }
 }

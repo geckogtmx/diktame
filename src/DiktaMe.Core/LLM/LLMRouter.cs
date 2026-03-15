@@ -1,5 +1,4 @@
 
-using DiktaMe.Core.Account;
 using DiktaMe.Core.Config;  // ILLMProviderFactory
 using Serilog;
 
@@ -8,7 +7,8 @@ namespace DiktaMe.Core.LLM;
 /// Routes LLM processing requests to the correct <see cref="ILLMProvider"/>
 /// based on a configured primary provider, with automatic fallback.
 /// Supports per-mode model selection by dynamically resolving providers from model names.
-/// When <see cref="AuthMode.Trial"/> is active, routes to <see cref="TrialGeminiProvider"/>.
+/// When <see cref="AuthMode.Wallet"/> is active, routes dictation/rewrite to the wallet proxy
+/// but skips wallet for chat (BYOK/local only).
 /// Implements <see cref="ILLMProvider"/> itself so callers are provider-agnostic.
 /// Mirrors <c>STTRouter</c> in the STT layer.
 /// </summary>
@@ -18,7 +18,7 @@ public sealed class LLMRouter : ILLMProvider
     private readonly ILLMProvider? _fallback;
     private readonly ILLMProviderFactory _factory;
     private readonly SettingsManager? _settings;
-    private readonly TrialGeminiProvider? _trialProvider;
+    private readonly ILLMProvider? _walletProvider;
 
     /// <inheritdoc/>
     public string ProviderName =>
@@ -30,19 +30,19 @@ public sealed class LLMRouter : ILLMProvider
     /// <param name="factory">Factory for creating providers dynamically based on model names. API keys are resolved internally by the factory.</param>
     /// <param name="fallback">Optional secondary provider used when primary fails.</param>
     /// <param name="settings">Optional settings manager for AuthMode-aware routing.</param>
-    /// <param name="trialProvider">Optional trial provider for managed Gemini proxy routing.</param>
+    /// <param name="walletProvider">Optional wallet LLM proxy for managed Pay-As-You-Go routing.</param>
     public LLMRouter(
         ILLMProvider primary,
         ILLMProviderFactory factory,
         ILLMProvider? fallback = null,
         SettingsManager? settings = null,
-        TrialGeminiProvider? trialProvider = null)
+        ILLMProvider? walletProvider = null)
     {
         _primary = primary;
         _fallback = fallback;
         _factory = factory;
         _settings = settings;
-        _trialProvider = trialProvider;
+        _walletProvider = walletProvider;
     }
 
     /// <inheritdoc/>
@@ -92,11 +92,11 @@ public sealed class LLMRouter : ILLMProvider
         string mode = "dictate",
         CancellationToken cancellationToken = default)
     {
-        // Trial mode — route through managed Gemini proxy
-        if (_settings?.Current.AuthMode == AuthMode.Trial && _trialProvider is not null)
+        // Wallet mode — route through managed wallet proxy (dictation/rewrite only)
+        if (_settings?.Current.AuthMode == AuthMode.Wallet && _walletProvider is not null)
         {
-            Log.Debug("LLMRouter: AuthMode=Trial — routing to {Provider}", _trialProvider.ProviderName);
-            return await _trialProvider.ProcessAsync(text, systemPrompt, mode, cancellationToken)
+            Log.Debug("LLMRouter: AuthMode=Wallet — routing to {Provider}", _walletProvider.ProviderName);
+            return await _walletProvider.ProcessAsync(text, systemPrompt, mode, cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -155,12 +155,11 @@ public sealed class LLMRouter : ILLMProvider
         string mode = "chat",
         CancellationToken cancellationToken = default)
     {
-        // Trial mode — route through managed Gemini proxy
-        if (_settings?.Current.AuthMode == AuthMode.Trial && _trialProvider is not null)
+        // Wallet mode — chat is excluded from wallet credits (BYOK/local only).
+        // Fall through to primary/fallback providers instead.
+        if (_settings?.Current.AuthMode == AuthMode.Wallet)
         {
-            Log.Debug("LLMRouter: AuthMode=Trial — routing conversation to {Provider}", _trialProvider.ProviderName);
-            return await _trialProvider.ProcessConversationAsync(history, systemPrompt, mode, cancellationToken)
-                .ConfigureAwait(false);
+            Log.Debug("LLMRouter: AuthMode=Wallet — chat excluded from wallet, using BYOK/local providers");
         }
 
         // If no model override, use the primary provider

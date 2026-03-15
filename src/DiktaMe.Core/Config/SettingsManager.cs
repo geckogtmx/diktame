@@ -204,6 +204,7 @@ public sealed class SettingsManager
             Deepgram = s.Deepgram ?? new(),
             Tts = s.Tts ?? new(),
             CloudLlm = s.CloudLlm ?? new(),
+            Account = s.Account ?? new(),
         };
 
         // Protect individual hotkey strings from JSON null override.
@@ -283,12 +284,7 @@ public sealed class SettingsManager
             };
         }
 
-        // Migration 4: Ensure Trial settings are never null (pre-K.1 settings files have "Trial":null)
-        if (migrated.Trial is null)
-        {
-            migrated = migrated with { Trial = new TrialSettings() };
-            Log.Information("SettingsManager: initialized null Trial settings to defaults");
-        }
+        // Migration 4: (removed — Trial system replaced by Wallet in K.8)
 
         // Migration 5: Ensure Account settings are never null
         if (migrated.Account is null)

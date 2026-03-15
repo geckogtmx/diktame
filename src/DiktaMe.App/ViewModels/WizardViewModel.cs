@@ -167,8 +167,7 @@ public sealed partial class WizardViewModel : ObservableObject
             await _settings.UpdateAsync(updated);
 
             // Open browser for login — token will arrive via deeplink.
-            // AuthMode will be set to Account by HandleAuthCallbackAsync,
-            // then upgraded to Trial by RefreshStatusAsync if server confirms.
+            // AuthMode will be set to Wallet by HandleAuthCallbackAsync.
             _accountService.Login();
 
             Log.Information("Wizard: wallet path — wizard completed, browser opened for login");

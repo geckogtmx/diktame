@@ -489,21 +489,16 @@ public sealed record AppSettings
     /// </summary>
     public string? ActiveDictationModeId { get; init; }
 
-    // ── Stream K: OAuth & Trial Credits ──────────────────────────────────────
+    // ── Stream K: OAuth & Wallet ─────────────────────────────────────────────
 
     /// <summary>
     /// Authentication mode controlling LLM/STT routing.
-    /// <see cref="AuthMode.Trial"/> routes through managed Gemini proxy.
+    /// <see cref="AuthMode.Wallet"/> routes through managed wallet proxy.
     /// </summary>
     public AuthMode AuthMode { get; init; } = AuthMode.None;
 
     /// <summary>
-    /// Non-sensitive trial account metadata. JWT token stored separately in SecureStorage.
-    /// </summary>
-    public TrialSettings Trial { get; init; } = new();
-
-    /// <summary>
-    /// Non-sensitive account metadata (auth-only, no trial fields).
+    /// Non-sensitive account and wallet metadata. JWT token stored separately in SecureStorage.
     /// </summary>
     public AccountSettings Account { get; init; } = new();
 }
@@ -533,9 +528,7 @@ public sealed record AppSettings
 [JsonSerializable(typeof(LlmMode))]
 [JsonSerializable(typeof(TtsMode))]
 [JsonSerializable(typeof(AuthMode))]
-[JsonSerializable(typeof(TrialSettings))]
 [JsonSerializable(typeof(AccountSettings))]
-[JsonSerializable(typeof(Account.TrialStatus))]
 [JsonSerializable(typeof(TtsSettings))]
 [JsonSerializable(typeof(CloudLlmSettings))]
 public partial class AppSettingsContext : JsonSerializerContext { }
