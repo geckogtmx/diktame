@@ -101,10 +101,7 @@ public sealed class RefinePipeline
                 if (!sttResult.IsSuccess)
                 {
                     Log.Warning("RefinePipeline: empty instruction — aborting");
-                    SetState(PipelineState.Idle);
-                    var emptyResult = PipelineResult.Failure(Mode, "No instruction detected");
-                    Completed?.Invoke(this, emptyResult);
-                    return emptyResult;
+                    return EmitFailure(Mode, "No instruction detected");
                 }
 
                 instruction = sttResult.Text;
@@ -113,9 +110,18 @@ public sealed class RefinePipeline
 
             // ── Stage 2: Capture selection ────────────────────────────────
             SetState(PipelineState.Processing);
-            Log.Information("RefinePipeline: capturing selection");
 
-            string? selectedText = _injector.CaptureSelection();
+            string? selectedText = options.PreCapturedText;
+            if (selectedText is null)
+            {
+                Log.Information("RefinePipeline: capturing selection via Ctrl+C");
+                TextInjector.RestoreFocus(options.Injection.SourceWindowHandle);
+                selectedText = _injector.CaptureSelection(options.Injection.SourceWindowHandle);
+            }
+            else
+            {
+                Log.Information("RefinePipeline: using pre-captured text ({Chars} chars)", selectedText.Length);
+            }
 
             if (string.IsNullOrWhiteSpace(selectedText))
             {
@@ -129,18 +135,13 @@ public sealed class RefinePipeline
                 }
 
                 Log.Warning("RefinePipeline: no text selected (autopilot) — aborting");
-                SetState(PipelineState.Idle);
-                var noSelResult = PipelineResult.Failure(Mode, "No text selected");
-                Completed?.Invoke(this, noSelResult);
-                return noSelResult;
+                return EmitFailure(Mode, "No text selected");
             }
 
             Log.Information("RefinePipeline: captured {Chars} chars of selected text", selectedText.Length);
 
             // ── Stage 3: Build prompt and call LLM ────────────────────────
-            string effectivePrompt = instruction is not null
-                ? options.SystemPrompt.Replace("{instruction}", instruction, StringComparison.Ordinal)
-                : options.SystemPrompt;
+            string effectivePrompt = BuildEffectivePrompt(options.SystemPrompt, instruction);
 
             Log.Information("RefinePipeline: calling LLM ({Provider})", _llm.ProviderName);
             var llmSw = Stopwatch.StartNew();
@@ -152,10 +153,7 @@ public sealed class RefinePipeline
             if (!llmResult.IsSuccess)
             {
                 Log.Warning("RefinePipeline: LLM returned empty result");
-                SetState(PipelineState.Idle);
-                var emptyLlm = PipelineResult.Failure(Mode, "LLM returned empty result");
-                Completed?.Invoke(this, emptyLlm);
-                return emptyLlm;
+                return EmitFailure(Mode, "LLM returned empty result");
             }
 
             string refinedText = llmResult.Text;
@@ -169,6 +167,9 @@ public sealed class RefinePipeline
             // ── Stage 5: Inject ───────────────────────────────────────────
             SetState(PipelineState.Injecting);
             Log.Information("RefinePipeline: injecting {Chars} chars refined text", refinedText.Length);
+
+            // Restore focus to the source window so Ctrl+V reaches the right app.
+            TextInjector.RestoreFocus(options.Injection.SourceWindowHandle);
 
             var injSw = Stopwatch.StartNew();
             _injector.InjectText(
@@ -264,6 +265,34 @@ public sealed class RefinePipeline
         };
         Completed?.Invoke(this, result);
         return result;
+    }
+
+    /// <summary>
+    /// Builds the effective prompt, injecting the spoken instruction if present.
+    /// Falls back to appending the instruction when the prompt lacks the <c>{instruction}</c> placeholder.
+    /// </summary>
+    private static string BuildEffectivePrompt(string systemPrompt, string? instruction)
+    {
+        if (instruction is null)
+        {
+            return systemPrompt;
+        }
+
+        if (systemPrompt.Contains("{instruction}", StringComparison.Ordinal))
+        {
+            return systemPrompt.Replace("{instruction}", instruction, StringComparison.Ordinal);
+        }
+
+        Log.Warning("RefinePipeline: prompt missing {{instruction}} placeholder — appended instruction");
+        return $"{systemPrompt}\nInstruction: {instruction}";
+    }
+
+    private PipelineResult EmitFailure(string mode, string message)
+    {
+        SetState(PipelineState.Idle);
+        var r = PipelineResult.Failure(mode, message);
+        Completed?.Invoke(this, r);
+        return r;
     }
 
     private void SetState(PipelineState state) => StateChanged?.Invoke(this, state);

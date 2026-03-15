@@ -322,6 +322,26 @@ public sealed class SettingsManager
             Log.Information("SettingsManager: populated {Count} default dictation presets", defaultPresets.Count);
         }
 
+        // Migration 9: Fix refine_instruction prompt missing {instruction} placeholder.
+        // Earlier settings had a custom prompt without the placeholder, causing spoken
+        // instructions ("translate this", "add bullets") to be silently dropped.
+        var refineInstr = migrated.UtilityPipelines
+            .FirstOrDefault(p => string.Equals(p.PipelineType, "refine_instruction", StringComparison.Ordinal));
+        if (refineInstr is not null
+            && refineInstr.CloudProfile.SystemPrompt is not null
+            && !refineInstr.CloudProfile.SystemPrompt.Contains("{instruction}", StringComparison.Ordinal))
+        {
+            var builtIn = DictationModeDefaults.CreateBuiltInUtilityPipelines()
+                .First(p => string.Equals(p.PipelineType, "refine_instruction", StringComparison.Ordinal));
+
+            var updatedPipelines = migrated.UtilityPipelines
+                .Select(p => string.Equals(p.PipelineType, "refine_instruction", StringComparison.Ordinal) ? builtIn : p)
+                .ToList();
+
+            migrated = migrated with { UtilityPipelines = updatedPipelines };
+            Log.Information("SettingsManager: migrated 'refine_instruction' prompt to include {{instruction}} placeholder");
+        }
+
         // Migration 8: Auto-complete wizard when a settings file already exists on disk.
         // If MigrateIfNeeded is called, the file was loaded from disk — the user has been
         // using the app. WizardCompleted=false in an existing file means the flag wasn't

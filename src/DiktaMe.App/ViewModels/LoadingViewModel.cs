@@ -321,7 +321,10 @@ public sealed partial class LoadingViewModel : ObservableObject
 
     private void OnHotkeyPressed(object? sender, HotkeyPressedEventArgs e)
     {
-        Log.Information("Hotkey pressed: {Id}", e.Id);
+        // Capture the foreground window IMMEDIATELY on the hotkey thread —
+        // before TryEnqueue, which may delay and allow focus to shift.
+        IntPtr sourceWindow = TextInjector.GetCurrentForegroundWindow();
+        Log.Information("Hotkey pressed: {Id} (sourceHwnd=0x{Hwnd:X})", e.Id, sourceWindow);
 
         // Dispatch to UI thread — use the dispatcher captured during init
         // (this handler fires on the message-pump thread, not the UI thread)
@@ -369,7 +372,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                         break;
 
                     case HotkeyId.Refine:
-                        _ = RunRefinePipelineAsync();
+                        _ = RunRefinePipelineAsync(sourceWindow);
                         break;
 
                     case HotkeyId.Ask:
@@ -394,7 +397,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                         break;
 
                     case HotkeyId.ReadSelection:
-                        _ = RunReadSelectionPipelineAsync();
+                        _ = RunReadSelectionPipelineAsync(sourceWindow);
                         break;
                 }
             }
@@ -926,25 +929,30 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
     }
 
-    private async Task RunRefinePipelineAsync()
+    private async Task RunRefinePipelineAsync(IntPtr sourceWindow)
     {
         bool isAutoMode = _controlPanel.RefineMode == RefineMode.Auto;
 
         if (isAutoMode)
         {
-            await RunRefineAutoAsync();
+            await RunRefineAutoAsync(sourceWindow);
         }
         else
         {
-            await RunRefineVoiceAsync();
+            await RunRefineVoiceAsync(sourceWindow);
         }
     }
 
-    private async Task RunRefineAutoAsync()
+    private async Task RunRefineAutoAsync(IntPtr sourceWindow)
     {
         try
         {
-            Log.Information("Starting Refine Auto pipeline (no audio)...");
+            Log.Information("Starting Refine Auto pipeline (no audio, sourceHwnd=0x{Hwnd:X})...", sourceWindow);
+
+            // Pre-capture selection on background thread (clipboard ops + Ctrl+C simulation)
+            string? preCaptured = await Task.Run(() => _textInjector.CaptureSelection(sourceWindow));
+            Log.Information("Refine Auto: pre-captured {Chars} chars",
+                preCaptured?.Length ?? 0);
 
             var soundSettings = _settings.Current.Sound ?? new();
             _notifications.PlayCustomSound(soundSettings.UtilitySound);
@@ -957,19 +965,21 @@ public sealed partial class LoadingViewModel : ObservableObject
                 SystemPrompt = profile.SystemPrompt ?? PromptDefaults.RefineAuto,
                 ModelName = profile.ModelName,
                 Language = _settings.Current.General.Language,
+                PreCapturedText = preCaptured,
                 Injection = new PipelineInjectionOptions
                 {
                     TrailingSpace = _settings.Current.General.TrailingSpace,
                     AdditionalKey = string.IsNullOrEmpty(_settings.Current.General.AdditionalKey)
                         ? null
                         : _settings.Current.General.AdditionalKey,
+                    SourceWindowHandle = sourceWindow,
                 },
             };
 
             var pipeline = _pipelineFactory.CreateRefineAutoPipeline();
             pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
             _recordingCts = new CancellationTokenSource();
-            var result = await pipeline.RunAsync(null, options, _recordingCts.Token);
+            var result = await Task.Run(() => pipeline.RunAsync(null, options, _recordingCts.Token));
 
             _controlPanel.OnPipelineCompleted(this, result);
             _notifications.PlayCustomSound(soundSettings.UtilitySound);
@@ -996,11 +1006,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
     }
 
-    private async Task RunRefineVoiceAsync()
+    private async Task RunRefineVoiceAsync(IntPtr sourceWindow)
     {
         try
         {
-            Log.Information("Starting Refine Voice pipeline...");
+            Log.Information("Starting Refine Voice pipeline (sourceHwnd=0x{Hwnd:X})...", sourceWindow);
 
             // Record audio (waits for auto-stop event)
             var (audioFile, recordingDurationMs) = await RecordAudioAsync("Refine", isDictate: false);
@@ -1030,6 +1040,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                     AdditionalKey = string.IsNullOrEmpty(_settings.Current.General.AdditionalKey)
                         ? null
                         : _settings.Current.General.AdditionalKey,
+                    SourceWindowHandle = sourceWindow,
                 },
                 RecordingDurationMs = recordingDurationMs,
             };
@@ -1325,11 +1336,11 @@ public sealed partial class LoadingViewModel : ObservableObject
 
     // ── Read Selection (SPEC_003 Phase C) ─────────────────────────────────────
 
-    private async Task RunReadSelectionPipelineAsync()
+    private async Task RunReadSelectionPipelineAsync(IntPtr sourceWindow)
     {
         try
         {
-            Log.Information("Starting ReadSelection pipeline...");
+            Log.Information("Starting ReadSelection pipeline (sourceHwnd=0x{Hwnd:X})...", sourceWindow);
 
             // Check if TTS is enabled
             var ttsSettings = _settings.Current.Tts;
@@ -1343,12 +1354,13 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
-            // Play utility sound to acknowledge hotkey
+            // Capture selection BEFORE playing any sound (sound may steal focus).
+            // Runs on background thread to avoid blocking UI.
+            string? selectedText = await Task.Run(() => _textInjector.CaptureSelection(sourceWindow));
+
+            // Play utility sound to acknowledge hotkey (after capture succeeds)
             var soundSettings = _settings.Current.Sound ?? new();
             _notifications.PlayCustomSound(soundSettings.UtilitySound);
-
-            // Capture selection (runs on background thread to avoid blocking UI)
-            string? selectedText = await Task.Run(() => _textInjector.CaptureSelection());
 
             if (string.IsNullOrWhiteSpace(selectedText))
             {

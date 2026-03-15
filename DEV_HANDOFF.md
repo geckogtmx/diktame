@@ -49,6 +49,18 @@
 
 **Key lesson**: Any new `AppSettings` sub-object property is vulnerable to this if a user's existing `settings.json` has the property set to `null` (or doesn't have it at all and a migration writes `null`). The `SanitizeNulls` method now covers all sub-objects.
 
+## Resolved: Audio Ducking Not Finding App Sessions
+
+**Root cause**: `GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia)` returned only ONE endpoint — Chrome/Edge/Spotify sessions on other endpoints were invisible. **Fix**: Replaced with `EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)` to iterate ALL active render devices and their sessions. Ducking now works for both recording and TTS playback.
+
+## Open Bug: TTS ReadSelection Text Capture
+
+ReadSelection hotkey (Ctrl+Alt+Q) is unreliable at capturing selected text. HWND timing and focus restoration have been improved (capture on hotkey thread, reordered sound/capture), but further investigation needed for edge cases with static text, web pages, and DiktaMe's own UI fields.
+
+## Pending Feature: Audio Ducking Ramp-Down
+
+Audio ducking currently sets volume instantly — needs a 500ms smooth ramp-down from current volume to duck level for better UX. Implement as a loop with small volume steps in `AudioDucker.Duck()`.
+
 ## Known Issues (SPEC_011)
 
 - **Settings corruption from TextBox bug may persist** — users who typed in the old TextBox may have `OllamaModel` set to a partial/invalid string in `settings.json`. Fix: open Ollama Settings → select correct model from dropdown.

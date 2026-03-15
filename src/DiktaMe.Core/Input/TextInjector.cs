@@ -86,6 +86,46 @@ public sealed class TextInjector
     {
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         internal static extern short GetAsyncKeyState(int vKey);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        internal static extern IntPtr GetForegroundWindow();
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        internal static extern bool SetForegroundWindow(IntPtr hWnd);
+    }
+
+    /// <summary>
+    /// Returns the HWND of the current foreground window.
+    /// Call this at hotkey time to capture which window should receive Ctrl+C / Ctrl+V.
+    /// </summary>
+    public static IntPtr GetCurrentForegroundWindow()
+        => NativeMethods.GetForegroundWindow();
+
+    /// <summary>
+    /// Restores focus to the specified window and waits briefly for Windows to settle.
+    /// No-op if <paramref name="hwnd"/> is <see cref="IntPtr.Zero"/>.
+    /// </summary>
+    public static void RestoreFocus(IntPtr hwnd)
+    {
+        if (hwnd == IntPtr.Zero)
+        {
+            return;
+        }
+
+        bool ok = NativeMethods.SetForegroundWindow(hwnd);
+        Thread.Sleep(100); // let Windows process the activation
+
+        IntPtr actual = NativeMethods.GetForegroundWindow();
+        if (actual != hwnd)
+        {
+            Log.Warning("TextInjector: RestoreFocus to 0x{Target:X} — actual foreground is 0x{Actual:X}",
+                hwnd, actual);
+        }
+        else
+        {
+            Log.Debug("TextInjector: RestoreFocus to 0x{Hwnd:X} — ok", hwnd);
+        }
     }
 
     /// <summary>
@@ -147,19 +187,32 @@ public sealed class TextInjector
     /// Captures the currently selected text in the active window by sending Ctrl+C
     /// and reading the clipboard. Restores the original clipboard content on return.
     /// </summary>
+    /// <param name="targetHwnd">
+    /// HWND of the window that should receive the Ctrl+C keystroke.
+    /// When non-zero, focus is restored to this window before sending Ctrl+C.
+    /// When zero, falls back to a 1-second sleep (legacy behaviour).
+    /// </param>
     /// <param name="timeoutMs">
     /// Maximum time to wait for the clipboard to change after Ctrl+C (default: 1500 ms).
     /// </param>
     /// <returns>
     /// The captured text, or <c>null</c> if nothing was selected or the operation timed out.
     /// </returns>
-    public string? CaptureSelection(int timeoutMs = 1500)
+    public string? CaptureSelection(IntPtr targetHwnd = default, int timeoutMs = 1500)
     {
-        Log.Information("TextInjector: capturing selection (timeout={TimeoutMs}ms)", timeoutMs);
+        Log.Information("TextInjector: capturing selection (timeout={TimeoutMs}ms, hwnd=0x{Hwnd:X})",
+            timeoutMs, targetHwnd);
 
-        // Wait for focus to return to the previously active window.
-        // The global hotkey may have briefly stolen focus.
-        Thread.Sleep(1000);
+        // Ensure the target window has focus before sending Ctrl+C.
+        if (targetHwnd != IntPtr.Zero)
+        {
+            RestoreFocus(targetHwnd);
+        }
+        else
+        {
+            // Legacy fallback: blind sleep hoping focus returns naturally.
+            Thread.Sleep(1000);
+        }
 
         // 1. Save current clipboard
         string original = ClipboardManager.GetText();

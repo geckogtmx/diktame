@@ -16,6 +16,13 @@ public sealed record PipelineInjectionOptions
     /// Null or empty means no additional key. Default: null.
     /// </summary>
     public string? AdditionalKey { get; init; }
+
+    /// <summary>
+    /// HWND of the window that should receive Ctrl+C / Ctrl+V keystrokes.
+    /// Captured at hotkey press time; used to restore focus before capture and injection.
+    /// <see cref="IntPtr.Zero"/> means no tracking (legacy behaviour).
+    /// </summary>
+    public IntPtr SourceWindowHandle { get; init; }
 }
 
 /// <summary>
@@ -83,6 +90,13 @@ public sealed record RefineOptions
     /// Used to populate PipelineResult.RecordingMs for telemetry.
     /// </summary>
     public long RecordingDurationMs { get; init; }
+
+    /// <summary>
+    /// Pre-captured selected text (captured on the UI thread before the pipeline starts).
+    /// When non-null, the pipeline skips <c>CaptureSelection</c> and uses this text directly.
+    /// This avoids focus race conditions when the source window is DiktaMe itself.
+    /// </summary>
+    public string? PreCapturedText { get; init; }
 }
 
 /// <summary>

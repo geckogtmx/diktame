@@ -1,4 +1,5 @@
 
+using System.Diagnostics;
 using NAudio.CoreAudioApi;
 using Serilog;
 
@@ -76,9 +77,13 @@ public sealed class AudioDucker : IDisposable
                 {
                     try
                     {
+                        uint pid = session.GetProcessID;
                         float current = session.SimpleAudioVolume.Volume;
                         _saved[session] = current;
-                        session.SimpleAudioVolume.Volume = Math.Min(current, DuckLevel);
+                        float target = Math.Min(current, DuckLevel);
+                        session.SimpleAudioVolume.Volume = target;
+                        Log.Information("AudioDucker: ducked PID={Pid} ({Name}) {From:P0} → {To:P0}",
+                            pid, GetProcessName(pid), current, target);
                     }
                     catch (Exception ex)
                     {
@@ -87,7 +92,7 @@ public sealed class AudioDucker : IDisposable
                 });
 
                 _isDucked = true;
-                Log.Debug("AudioDucker: ducked {Count} session(s) to {Level:P0}", _saved.Count, DuckLevel);
+                Log.Information("AudioDucker: ducked {Count} session(s) to {Level:P0}", _saved.Count, DuckLevel);
             }
             catch (Exception ex)
             {
@@ -148,50 +153,68 @@ public sealed class AudioDucker : IDisposable
     private void OnRecordingStopped(object? sender, RecordingStoppedEventArgs e) => Restore();
 
     /// <summary>
-    /// Enumerates active non-dIKta.me audio sessions on the default render device
-    /// and invokes <paramref name="action"/> on each.
+    /// Enumerates active non-dIKta.me audio sessions across ALL active render
+    /// endpoints and invokes <paramref name="action"/> on each.
     /// </summary>
     private void EnumerateSessions(Action<AudioSessionControl> action)
     {
         using var enumerator = new MMDeviceEnumerator();
-
-        MMDevice? device;
+        MMDeviceCollection devices;
         try
         {
-            device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "AudioDucker: no default render endpoint available");
+            Log.Warning(ex, "AudioDucker: failed to enumerate render endpoints");
             return;
         }
 
-        using (device)
+        int totalSessions = 0;
+        int skipped = 0;
+
+        for (int d = 0; d < devices.Count; d++)
         {
-            var sessionManager = device.AudioSessionManager;
-            var sessions = sessionManager.Sessions;
-
-            for (int i = 0; i < sessions.Count; i++)
+            var device = devices[d];
+            try
             {
-                var session = sessions[i];
-                try
-                {
-                    // Skip our own process
-                    if (session.GetProcessID == (uint)_ownPid)
-                    {
-                        continue;
-                    }
+                var sessionManager = device.AudioSessionManager;
+                sessionManager.RefreshSessions();
+                var sessions = sessionManager.Sessions;
 
-                    // Skip sessions that are already at or below duck level
-                    // (nothing to duck; still save them so Restore is a no-op)
-                    action(session);
-                }
-                catch (Exception ex)
+                Log.Debug("AudioDucker: device '{Name}' has {Count} session(s)",
+                    device.FriendlyName, sessions.Count);
+
+                for (int i = 0; i < sessions.Count; i++)
                 {
-                    Log.Warning(ex, "AudioDucker: error inspecting session {Index}", i);
+                    var session = sessions[i];
+                    try
+                    {
+                        if (session.GetProcessID == (uint)_ownPid)
+                        {
+                            skipped++;
+                            continue;
+                        }
+
+                        action(session);
+                        totalSessions++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "AudioDucker: error inspecting session {Index} on '{Device}'",
+                            i, device.FriendlyName);
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "AudioDucker: failed to enumerate sessions on '{Device}'",
+                    device.FriendlyName);
+            }
         }
+
+        Log.Information("AudioDucker: enumerated {Total} actionable session(s) across {Devices} device(s), {Skipped} own-PID skipped",
+            totalSessions, devices.Count, skipped);
     }
 
     private void RestoreInternal()
@@ -211,12 +234,18 @@ public sealed class AudioDucker : IDisposable
         }
         _saved.Clear();
         _isDucked = false;
-        Log.Debug("AudioDucker: restored {Count} session(s)", restored);
+        Log.Information("AudioDucker: restored {Count} session(s)", restored);
     }
 
     private static string GetSessionLabel(AudioSessionControl session)
     {
         try { return session.DisplayName; }
+        catch { return "?"; }
+    }
+
+    private static string GetProcessName(uint pid)
+    {
+        try { return Process.GetProcessById((int)pid).ProcessName; }
         catch { return "?"; }
     }
 
