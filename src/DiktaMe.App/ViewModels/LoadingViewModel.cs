@@ -9,6 +9,7 @@ using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
 using DiktaMe.Core.STT;
+using DiktaMe.Core.Security;
 using DiktaMe.Core.SystemManagement;
 using DiktaMe.Core.TTS;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,6 +42,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly ITtsPlayerService _ttsPlayer;
     private readonly TtsSpeaker _ttsSpeaker;
     private readonly AudioLevelMonitor _levelMonitor;
+    private readonly WalletGeminiProxy _walletProxy;
 
     [ObservableProperty] private string _statusText = "";
     [ObservableProperty] private double _progress;
@@ -74,7 +76,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         ILLMProviderFactory llmFactory,
         ITtsPlayerService ttsPlayer,
         TtsSpeaker ttsSpeaker,
-        AudioLevelMonitor levelMonitor)
+        AudioLevelMonitor levelMonitor,
+        WalletGeminiProxy walletProxy)
     {
         _settings = settings;
         _history = history;
@@ -98,6 +101,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _ttsPlayer = ttsPlayer;
         _ttsSpeaker = ttsSpeaker;
         _levelMonitor = levelMonitor;
+        _walletProxy = walletProxy;
         _statusText = _loc.GetString("Loading_Initializing");
     }
 
@@ -212,20 +216,15 @@ public sealed partial class LoadingViewModel : ObservableObject
             }
             Progress = 85;
 
-            // Step 5: Sync wallet status (if signed in)
-            // Cloud sync (wallet-status API call) will be wired in K.12.
-            // For now, update the cached balance from the local ledger.
+            // Step 5: Sync wallet balance (if signed in)
             if (_accountService.HasValidToken)
             {
                 StatusText = _loc.GetString("Loading_Account");
-                long localBalance = await _wallet.GetBalanceMicroAsync();
-                var updated = _settings.Current with
-                {
-                    Account = _settings.Current.Account with { WalletBalanceMicro = localBalance },
-                };
-                await _settings.UpdateAsync(updated);
-                Log.Information("Wallet: local balance cached at startup = {Balance}µ$", localBalance);
+                await SyncWalletBalanceAsync();
             }
+
+            // Wire post-pipeline balance updates from wallet proxy events
+            WireWalletBalanceEvents();
             Progress = 90;
 
             // Step 6: Start hotkey manager and register hotkeys
@@ -539,6 +538,101 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             Log.Information("Ollama warmup completed (tok/s not reported)");
         }
+    }
+
+    // ── Wallet Sync ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Sync wallet balance from server (wallet-status Edge Function).
+    /// Falls back to local ledger balance if cloud is unreachable.
+    /// </summary>
+    private async Task SyncWalletBalanceAsync()
+    {
+        try
+        {
+            var secureStorage = App.Current.Services.GetRequiredService<SecureStorage>();
+            string? token = secureStorage.RetrieveKey("trial_token"); // backward compat key name
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                string statusUrl = _settings.Current.Account.WalletProxyUrl
+                    .Replace("/wallet-proxy", "/wallet-status", StringComparison.Ordinal);
+
+                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                using var request = new System.Net.Http.HttpRequestMessage(
+                    System.Net.Http.HttpMethod.Get, statusUrl);
+                request.Headers.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                using var response = await http.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("balance_micro", out var balProp))
+                    {
+                        long serverBalance = balProp.GetInt64();
+                        await _wallet.SyncBalanceAsync(serverBalance);
+                        await CacheWalletBalanceAsync(serverBalance);
+                        Log.Information("Wallet: cloud sync succeeded, balance = {Balance}µ$", serverBalance);
+                        return;
+                    }
+                }
+                else
+                {
+                    Log.Warning("Wallet: cloud sync returned {StatusCode}, using local balance",
+                        (int)response.StatusCode);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Wallet: cloud sync failed, using local balance");
+        }
+
+        // Fallback: use local ledger balance
+        long localBalance = await _wallet.GetBalanceMicroAsync();
+        await CacheWalletBalanceAsync(localBalance);
+        Log.Information("Wallet: local balance cached at startup = {Balance}µ$", localBalance);
+    }
+
+    /// <summary>
+    /// Caches the wallet balance in settings for HUD display.
+    /// </summary>
+    private async Task CacheWalletBalanceAsync(long balanceMicro)
+    {
+        var updated = _settings.Current with
+        {
+            Account = _settings.Current.Account with { WalletBalanceMicro = balanceMicro },
+        };
+        await _settings.UpdateAsync(updated);
+    }
+
+    /// <summary>
+    /// Subscribes to the WalletGeminiProxy.BalanceUpdated event to keep the
+    /// HUD balance badge in sync after each proxy response.
+    /// </summary>
+    private void WireWalletBalanceEvents()
+    {
+        _walletProxy.BalanceUpdated += balanceMicro =>
+        {
+            // Fire-and-forget: update settings cache + tell ControlPanel to refresh
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _wallet.SyncBalanceAsync(balanceMicro);
+                    await CacheWalletBalanceAsync(balanceMicro);
+
+                    // Refresh ControlPanel HUD on UI thread
+                    _uiDispatcher?.TryEnqueue(() => _controlPanel.LoadFromSettings(_settings.Current));
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Wallet: failed to update balance after proxy response");
+                }
+            });
+        };
     }
 
     /// <summary>

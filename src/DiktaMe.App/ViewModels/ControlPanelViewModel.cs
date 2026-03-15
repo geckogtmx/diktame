@@ -842,7 +842,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         });
     }
 
-    private void LoadFromSettings(AppSettings settings)
+    internal void LoadFromSettings(AppSettings settings)
     {
         IsSoundEnabled = settings.General.SoundFeedback;
         AdditionalKeyValue = settings.General.AdditionalKey;
