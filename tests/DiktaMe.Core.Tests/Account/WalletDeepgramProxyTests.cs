@@ -252,7 +252,13 @@ public sealed class WalletDeepgramProxyTests : IAsyncDisposable
 
     private static void CleanupFile(string path)
     {
-        try { if (File.Exists(path)) File.Delete(path); }
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
         catch { /* best effort */ }
     }
 

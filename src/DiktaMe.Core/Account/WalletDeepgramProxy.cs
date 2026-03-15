@@ -250,12 +250,18 @@ public sealed class WalletDeepgramProxy : ISTTProvider, IDisposable
             using var fs = new FileStream(wavPath, FileMode.Open, FileAccess.Read);
             using var br = new BinaryReader(fs);
 
-            if (fs.Length < 44) return null;
+            if (fs.Length < 44)
+            {
+                return null;
+            }
 
             // Skip to byte rate (offset 28)
             fs.Position = 28;
             int byteRate = br.ReadInt32();
-            if (byteRate <= 0) return null;
+            if (byteRate <= 0)
+            {
+                return null;
+            }
 
             // Data size starts at offset 40
             fs.Position = 40;
