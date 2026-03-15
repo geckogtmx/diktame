@@ -195,15 +195,55 @@ These 11 languages can be transcribed by Whisper but are **not listed in any Gem
 | 101 | Turkmen | tk | Turkic (Central Asia) |
 | 102 | Walloon | wa | Romance minority (Belgium) |
 
+## 4. Kokoro TTS — 8 Languages (Local)
+
+Kokoro-82M is the primary local TTS engine for dIKta.me, providing high-quality synthetic speech without cloud dependencies. It is optimized for speed and runs on CPU or GPU via ONNX Runtime.
+
+| Code | Language | Voice Prefix | espeak-ng Fallback |
+|------|----------|--------------|--------------------|
+| a | English (American) | `af_`, `am_` | en-us |
+| b | English (British) | `bf_`, `bm_` | en-gb |
+| e | Spanish | `ef_`, `em_` | es |
+| f | French | `ff_`, `fm_` | fr-fr |
+| h | Hindi | `hf_`, `hm_` | hi |
+| i | Italian | `if_`, `im_` | it |
+| p | Portuguese (Brazilian) | `pf_`, `pm_` | pt-br |
+| j | Japanese | `jf_`, `jm_` | N/A (misaki[ja]) |
+| z | Chinese (Mandarin) | `zf_`, `zm_` | N/A (misaki[zh]) |
+
+### Key Notes
+- **Voice Blending**: Kokoro supports blending multiple voice vectors to create unique personas (e.g., `af_sky + af_sarah`).
+- **Phonemization**: Uses `misaki` and `espeak-ng` for high-accuracy grapheme-to-phoneme conversion.
+- **V2 Implementation**: Integrated via `KokoroTtsProvider` using KokoroSharp. Supports `gpu`, `int8`, `fp16`, and `fp32` model variants.
+
 ---
 
-## 4. Compatibility Summary
+## 5. Cloud TTS Providers
 
-| Tier | Languages | Whisper STT | Deepgram STT | Gemma 3 LLM | Local Pipeline |
-|------|-----------|-------------|--------------|-------------|----------------|
-| **Tier 1** | 38 | ✅ | ✅ (all in Nova-3) | ✅ High confidence | ✅ Full support |
-| **Tier 2** | 53 | ✅ | ⚠️ Partial (~25 in Nova-3) | ⚠️ Extended tier | ⚠️ Best with gemma3:4b+ |
-| **Tier 3** | 11 | ✅ | ❌ Not supported | ❌ Not listed | ❌ STT-only, skip LLM |
+dIKta.me supports three major cloud TTS engines, each with different language capabilities and latency profiles.
+
+### Deepgram Aura
+Aura is highly optimized for real-time conversational AI (ultra-low latency).
+**Supported Languages (7):** English (US, UK, AU, IE), Spanish, French, German, Dutch, Italian, Japanese.
+
+### OpenAI TTS (tts-1)
+Provides highly natural, expressive voices at the cost of slightly higher latency.
+**Supported Languages (50+):** Matches the Whisper STT language list. If Whisper can transcribe it, OpenAI TTS can synthesize it.
+
+### Inworld TTS
+Designed for gaming and NPC voice generation with emotional range.
+**Supported Languages (16):** English, Spanish, French, German, Italian, Portuguese, Mandarin, Japanese, Korean, Dutch, Polish, Russian, Hindi, Arabic, Hebrew.
+
+---
+
+## 6. Compatibility Summary
+
+| Tier | Languages | Local STT (Whisper) | Cloud STT (Deepgram) | Cloud LLM (Gemini/OpenAI) | Local TTS (Kokoro) | Cloud TTS (Aura/Inworld) | Cloud TTS (OpenAI) |
+|------|-----------|--------------------|-----------------------|---------------------------|---------------------|---------------------------|--------------------|
+| **Tier 1** | 38 | ✅ | ✅ (Nova-3) | ✅ High | ⚠️ (8/38) | ⚠️ Partial | ✅ Full |
+| **Tier 2** | 53 | ✅ | ⚠️ Partial | ⚠️ Medium | ❌ No | ❌ No | ✅ Full |
+| **Tier 3** | 11 | ✅ | ❌ No | ❌ No | ❌ No | ❌ No | ⚠️ Varies |
+
 
 ### Deepgram ↔ Whisper Overlap
 
@@ -213,9 +253,9 @@ Deepgram Nova-3 covers ~38 of the Tier 1 languages almost completely. For Tier 2
 
 ---
 
-## 5. High-Value Feature Recommendations
+## 7. High-Value Feature Recommendations
 
-### 5.1 Expand Language Dropdown (Low Effort, High Impact)
+### 7.1 Expand Language Dropdown (Low Effort, High Impact)
 
 **Current state:** Only English and Spanish in the Settings dropdown.
 **Proposal:** Expand to all 38 Tier 1 languages.
@@ -230,7 +270,7 @@ The infrastructure already supports arbitrary language codes — `LanguageCodes[
 
 **Files:** `GeneralSettingsViewModel.cs`, `GeneralSettingsPage.xaml`, `Resources.resw`
 
-### 5.2 Auto-Detect Language Option (Low Effort, High Impact)
+### 7.2 Auto-Detect Language Option (Low Effort, High Impact)
 
 **Current state:** Language is always explicitly set. Auto-detection is implemented in both Whisper (`WithLanguageDetection()`) and Deepgram batch (`detect_language=true`) but not exposed in UI.
 
@@ -246,7 +286,7 @@ All three STT providers already handle `language="auto"`:
 
 **Files:** `GeneralSettingsViewModel.cs`, `GeneralSettingsPage.xaml`
 
-### 5.3 Skip LLM for Unsupported Languages (Medium Effort, Medium Impact)
+### 7.3 Skip LLM for Unsupported Languages (Medium Effort, Medium Impact)
 
 **Problem:** For Tier 3 languages (and possibly some Tier 2), the Gemma 3 LLM step may garble the transcription rather than improve it.
 
@@ -260,7 +300,7 @@ All three STT providers already handle `language="auto"`:
 
 **Files:** `PipelineFactory.cs` or `LoadingViewModel.cs`, constants file
 
-### 5.4 Per-Mode Language Setting (Medium Effort, High Impact)
+### 7.4 Per-Mode Language Setting (Medium Effort, High Impact)
 
 **Current state:** Language is global — all dictation modes use the same language from `GeneralSettings.Language`.
 
@@ -276,7 +316,7 @@ All three STT providers already handle `language="auto"`:
 
 **Files:** `DictationMode.cs`, `DictationModesSettingsPage.xaml/.cs`, `LoadingViewModel.cs`
 
-### 5.5 Model Size Recommendation by Language (Low Effort, Medium Impact)
+### 7.5 Model Size Recommendation by Language (Low Effort, Medium Impact)
 
 **Problem:** Users on `gemma3:1b` using Tier 2 languages may get poor LLM quality without understanding why.
 
@@ -290,42 +330,74 @@ This is informational only — no blocking, no forced changes.
 
 ---
 
-## 6. Feature Priority Matrix
+## 8. Feature Priority Matrix
 
 | # | Feature | Effort | Impact | Dependencies |
 |---|---------|--------|--------|-------------|
-| 5.1 | Expand language dropdown | Low (1-2h) | High | None |
-| 5.2 | Auto-detect language | Low (1-2h) | High | None |
-| 5.5 | Model size recommendation | Low (1h) | Medium | None |
-| 5.3 | Skip LLM for unsupported langs | Medium (2-3h) | Medium | 5.1 |
-| 5.4 | Per-mode language | Medium (3-4h) | High | 5.1 |
+| 7.1 | Expand language dropdown | Low (1-2h) | High | None |
+| 7.2 | Auto-detect language | Low (1-2h) | High | None |
+| 7.5 | Model size recommendation | Low (1h) | Medium | None |
+| 7.3 | Skip LLM for unsupported langs | Medium (2-3h) | Medium | 7.1 |
+| 7.4 | Per-mode language | Medium (3-4h) | High | 7.1 |
 
-Recommended order: 5.1 → 5.2 → 5.5 → 5.3 → 5.4
-
----
-
-## 6.1 Future Opportunity: TTS for Language Learning & Live Voice Translation
-
-> **See also:** SPEC_003_TTS.md (TTS module architecture)
-
-The language matrix above maps STT and LLM coverage, but a **TTS module** (per SPEC_003) would unlock two high-value use cases that leverage the same multilingual pipeline:
-
-**Language Learning Mode** — Speak in your native language, see the transcription, then hear the LLM's translation read back in the target language. The loop would be: Whisper STT (source lang) → LLM translation (Gemma 3 or cloud) → TTS playback (target lang). This creates an interactive pronunciation and comprehension trainer without leaving dIKta.me.
-
-**Live Voice-to-Voice Translation** — Real-time speech translation where the user speaks in language A and hears the output in language B. Pipeline: streaming STT → LLM translate → TTS speak. Latency is the key constraint — fully local (Whisper + Gemma 3 + local TTS) could hit 2-4s round-trip on a decent GPU; cloud (Deepgram streaming + Gemini + cloud TTS) could hit sub-2s.
-
-Both features depend on TTS engine language coverage. The major cloud TTS providers (Google, Azure, ElevenLabs) cover 50-100+ languages. Local TTS models vary — Kokoro covers ~8 languages, while Piper/eSpeak covers 30+. The Tier 1 languages (38) from this spec would be the starting point for either use case.
-
-These are post-launch features that would build on the existing language infrastructure. No implementation work needed now — just noting the strategic fit.
+Recommended order: 7.1 → 7.2 → 7.5 → 7.3 → 7.4
 
 ---
 
-## 7. Sources
+## 9. Advanced Multilingual Workflows & Use Cases
+
+With the complete linguistic pipeline mapped (STT → LLM → TTS), dIKta.me is uniquely positioned to handle complex multilingual scenarios. Beyond simple transcription, these interconnected workflows represent the highest-value opportunities for our users.
+
+### 9.1 Multilingual Meeting Live Transcriptions (The "Babel" Overlay)
+**The Need:** Users attending international Zoom/Teams meetings need real-time, translated context without relying on enterprise-tier software add-ons.
+**The Solution:** 
+- The user selects system audio (Stereo Mix or virtual cable) as the input device.
+- We utilize Deepgram Nova-3's **Code-Switching** capability, which can automatically identify and transcribe up to 10 mixed languages in a single live audio stream (en, es, fr, de, hi, ru, pt, ja, it, nl).
+- The raw, mixed-language transcript is streamed into a floating UI overlay (like the Chat window) where an LLM translates it into the user's native language on the fly. 
+
+### 9.2 Cross-Lingual Professional Dictation (Summarize & Translate)
+**The Need:** Medical, legal, or research professionals operating in non-English countries often need to produce English documentation (EHR systems, international papers) while thinking and speaking in their native tongue.
+**The Solution:**
+- Asynchronous batched dictation: The user dictates a full patient encounter in Spanish.
+- Whisper STT (which has excellent non-English clinical vocabulary recognition) produces the base transcript.
+- Gemma 3 (or Cloud LLM) intercepts the Spanish transcript, translates it to English, and structures it into a formal SOAP note or summary, outputting perfectly formatted English directly to the clipboard.
+
+### 9.3 Live Voice-to-Voice Translation (Real-time Interpreter)
+**The Need:** Direct, conversational communication with non-native speakers in person, serving as a pocket translator.
+**The Solution:**
+- **Input:** User speaks in Language A. Deepgram Streaming STT captures it with sub-300ms latency.
+- **Processing:** Fast LLM (e.g., `gpt-4o-mini` or `gemma3:8b`) translates to Language B instantly.
+- **Output:** Kokoro TTS (local) or Deepgram Aura (cloud) speaks the translation in Language B.
+- *Constraint:* Latency is critical here. While local processing is private, the cloud pipeline currently provides the most natural sub-2-second conversational flow.
+
+### 9.4 Language Learning & Pronunciation Trainer
+**The Need:** Language learners need a safe, non-judgmental space to practice speaking and immediately hear the correct pronunciation.
+**The Solution:**
+- The user speaks in their target learning language (e.g., struggling through a French sentence).
+- STT transcribes the attempt. The LLM acts as the "Tutor," identifying grammatical or structural errors, explaining the correction in English, and providing the perfect French sentence.
+- Kokoro TTS or OpenAI TTS reads back the *corrected* French sentence using a native accent voice (e.g., Kokoro `ff_` prefix) for the user to mimic.
+
+### 9.5 The "Read Selection" Accent Matcher (Accessibility)
+**The Need:** Reading foreign language web pages or documents seamlessly without standard screen readers using jarring, robotic OS voices attempting foreign words.
+**The Solution:** 
+- A user highlights foreign text (e.g., an Italian news article) and hits the `Ctrl+Alt+Q` "Read Selection" hotkey.
+- The pipeline detects the text language using the LLM (or simple heuristic) and automatically routes it to the corresponding Kokoro local voice (`if_` for Italian), bypassing English default voices to provide a native listening experience.
+
+### 9.6 Multilingual Accessibility Board (AAC Communication)
+**The Need:** Assisting users with speech impairments (e.g., ALS, aphasia) to communicate while traveling or in multi-cultural environments.
+**The Solution:**
+- The user types rapidly in their native language (or triggers predefined text snippets).
+- The LLM translates the text to the local language of the environment and Kokoro/Inworld TTS synthesizes it aloud. This turns the laptop/tablet into a localized communication device.
+
+---
+
+## 10. Sources
 
 - [OpenAI Whisper — GitHub](https://github.com/openai/whisper) — tokenizer.py LANGUAGES dict
 - [Whisper Supported Languages](https://whisper-api.com/docs/languages/)
 - [Deepgram Models & Languages](https://developers.deepgram.com/docs/models-languages-overview)
 - [Deepgram Language Detection](https://developers.deepgram.com/docs/language-detection)
+- [Deepgram Aura (TTS) — Languages](https://developers.deepgram.com/docs/tts-models)
 - [Deepgram Nova-3 Language Expansion](https://deepgram.com/learn/deepgram-expands-nova-3-with-11-new-languages-across-europe-and-asia)
 - [Deepgram Smart Formatting](https://developers.deepgram.com/docs/smart-format)
 - [Deepgram Dictation](https://developers.deepgram.com/docs/dictation)
@@ -335,3 +407,6 @@ These are post-launch features that would build on the existing language infrast
 - [Gemini Supported Languages (Firebase)](https://firebase.google.com/docs/ai-logic/models)
 - [Gemma 3 HuggingFace Language Discussion](https://huggingface.co/google/gemma-3-27b-it/discussions/16)
 - [Gemma 3 on Ollama](https://ollama.com/library/gemma3)
+- [Kokoro-82M — Hugging Face](https://huggingface.co/hexgrad/Kokoro-82M)
+- [Kokoro TTS CLI — GitHub](https://github.com/nazdridoy/kokoro-tts)
+- [Kokoro VOICES — GitHub](https://github.com/hexgrad/kokoro/blob/main/VOICES.md)
