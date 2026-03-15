@@ -1375,11 +1375,13 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("ReadSelection: captured {Chars} chars", selectedText.Length);
 
             // Start audio ducking if enabled
+            bool didDuck = false;
             if (ttsSettings.DuckDuringPlayback && _settings.Current.AudioDucking.Enabled)
             {
                 _audioDucker.IsEnabled = true;
                 _audioDucker.DuckLevel = _settings.Current.AudioDucking.DuckLevelPercent / 100f;
                 _audioDucker.Duck();
+                didDuck = true;
             }
 
             // Create and run pipeline
@@ -1401,6 +1403,12 @@ public sealed partial class LoadingViewModel : ObservableObject
                 Log.Warning("ReadSelection: failed - {Error}", result.ErrorMessage);
                 _notifications.ShowToast("Error", result.ErrorMessage ?? "TTS failed", NotificationType.Error);
             }
+
+            // Restore ducking only if WE started it (avoid stomping on TtsSpeaker's ducking)
+            if (didDuck)
+            {
+                _audioDucker.Restore();
+            }
         }
         catch (Exception ex)
         {
@@ -1409,7 +1417,6 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         finally
         {
-            _audioDucker.Restore();
             _recordingCts?.Dispose();
             _recordingCts = null;
         }

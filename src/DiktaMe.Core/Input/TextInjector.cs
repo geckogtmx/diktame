@@ -214,16 +214,21 @@ public sealed class TextInjector
             Thread.Sleep(1000);
         }
 
-        // 1. Save current clipboard
+        // 1. Wait for hotkey modifier keys (Alt, Shift) to be released.
+        // Without this, Ctrl+Alt+Q (ReadSelection) bleeds into the simulated
+        // Ctrl+C — the OS sees Ctrl+Alt+C and fires the Chat hotkey instead.
+        WaitForModifierRelease();
+
+        // 2. Save current clipboard
         string original = ClipboardManager.GetText();
 
-        // 2. Send Ctrl+C
+        // 3. Send Ctrl+C
         _sim.Keyboard.ModifiedKeyStroke(VirtualKeyCode.CONTROL, VirtualKeyCode.VK_C);
 
         // Wait a moment for the clipboard to update
         Thread.Sleep(100);
 
-        // 3. Poll for clipboard change
+        // 4. Poll for clipboard change
         var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
         while (DateTime.UtcNow < deadline)
         {
