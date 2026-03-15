@@ -21,6 +21,8 @@ public sealed class PipelineFactory
     private readonly TextInjector _injector;
     private readonly SettingsManager _settings;
     private readonly SnippetManager _snippets;
+    private readonly ISTTProvider? _walletStt;
+    private readonly ILLMProvider? _walletLlm;
 
     public PipelineFactory(
         ProfileManager profiles,
@@ -30,7 +32,9 @@ public sealed class PipelineFactory
         ITtsPlayerService ttsPlayer,
         TextInjector injector,
         SettingsManager settings,
-        SnippetManager snippets)
+        SnippetManager snippets,
+        ISTTProvider? walletStt = null,
+        ILLMProvider? walletLlm = null)
     {
         _profiles = profiles;
         _sttFactory = sttFactory;
@@ -40,6 +44,8 @@ public sealed class PipelineFactory
         _injector = injector;
         _settings = settings;
         _snippets = snippets;
+        _walletStt = walletStt;
+        _walletLlm = walletLlm;
     }
 
     // ── Factory methods ───────────────────────────────────────────────────────
@@ -133,6 +139,12 @@ public sealed class PipelineFactory
 
     private (ISTTProvider Stt, ILLMProvider? Llm) GetProviders(string mode, string? modeOverride)
     {
+        // Wallet mode — override all provider selection with wallet proxies.
+        if (_settings.Current.AuthMode == AuthMode.Wallet && _walletStt is not null && _walletLlm is not null)
+        {
+            return (_walletStt, _walletLlm);
+        }
+
         string effectiveMode = modeOverride ?? mode;
         ModeSettings ms = _profiles.GetModeSettings(effectiveMode);
 

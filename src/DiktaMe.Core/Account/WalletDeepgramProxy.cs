@@ -95,24 +95,16 @@ public sealed class WalletDeepgramProxy : ISTTProvider, IDisposable
                     case HttpStatusCode.Unauthorized:
                         Log.Warning("WalletDeepgramProxy: 401 — session expired");
                         SessionExpired?.Invoke();
-                        return new TranscriptionResult
-                        {
-                            Text = Resources.CoreStrings.Wallet_SessionExpired,
-                            Provider = ProviderName,
-                        };
+                        throw new InvalidOperationException("Session expired. Please sign in again.");
 
                     case HttpStatusCode.PaymentRequired:
                         Log.Warning("WalletDeepgramProxy: 402 — insufficient wallet balance");
                         UpdateBalanceFromHeaders(response);
-                        return new TranscriptionResult
-                        {
-                            Text = Resources.CoreStrings.Wallet_InsufficientBalance,
-                            Provider = ProviderName,
-                        };
+                        throw new InvalidOperationException("Insufficient wallet balance. Please top up.");
 
                     case HttpStatusCode.ServiceUnavailable:
                         Log.Warning("WalletDeepgramProxy: 503 — service frozen");
-                        return new TranscriptionResult { Text = "Service temporarily unavailable.", Provider = ProviderName };
+                        throw new InvalidOperationException("Service temporarily unavailable.");
 
                     case HttpStatusCode.TooManyRequests:
                         Log.Warning("WalletDeepgramProxy: 429 — rate limited (attempt {Attempt})", attempt + 1);
@@ -189,7 +181,10 @@ public sealed class WalletDeepgramProxy : ISTTProvider, IDisposable
             using var doc = JsonDocument.Parse(responseBody);
             var root = doc.RootElement;
 
-            string text = root.TryGetProperty("text", out var textProp) ? textProp.GetString() ?? "" : "";
+            // Edge Function returns "transcript" for Deepgram, "text" for Gemini
+            string text = root.TryGetProperty("transcript", out var txProp) ? txProp.GetString() ?? ""
+                         : root.TryGetProperty("text", out var textProp) ? textProp.GetString() ?? ""
+                         : "";
             string? language = root.TryGetProperty("detectedLanguage", out var langProp) ? langProp.GetString() : null;
 
             return new TranscriptionResult

@@ -494,7 +494,17 @@ public partial class App : Application
         services.AddSingleton(sp => new ModelListService( // J.5: Multi-provider model discovery
             sp.GetRequiredService<SecureStorage>(),
             sp.GetRequiredService<SettingsManager>()));
-        services.AddSingleton<PipelineFactory>();
+        services.AddSingleton<PipelineFactory>(sp => new PipelineFactory(
+            sp.GetRequiredService<ProfileManager>(),
+            sp.GetRequiredService<ISTTProviderFactory>(),
+            sp.GetRequiredService<ILLMProviderFactory>(),
+            sp.GetRequiredService<ITTSProviderFactory>(),
+            sp.GetRequiredService<ITtsPlayerService>(),
+            sp.GetRequiredService<TextInjector>(),
+            sp.GetRequiredService<SettingsManager>(),
+            sp.GetRequiredService<SnippetManager>(),
+            walletStt: sp.GetRequiredService<WalletDeepgramProxy>(),
+            walletLlm: sp.GetRequiredService<WalletGeminiProxy>()));
 
         // ── Account (K.2 / K.8) ──────────────────────────────────────────────
         services.AddSingleton<AccountService>();

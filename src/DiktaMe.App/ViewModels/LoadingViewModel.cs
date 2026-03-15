@@ -725,7 +725,10 @@ public sealed partial class LoadingViewModel : ObservableObject
 
     private async Task RunDictationPipelineAsync()
     {
-        if (_settings.Current.General.StreamingEnabled && _pipelineFactory.CanStreamDictation())
+        // Wallet mode forces batch path — STTRouter/LLMRouter handle proxy routing.
+        if (_settings.Current.General.StreamingEnabled
+            && _pipelineFactory.CanStreamDictation()
+            && _settings.Current.AuthMode != AuthMode.Wallet)
         {
             await RunStreamingDictationAsync();
         }

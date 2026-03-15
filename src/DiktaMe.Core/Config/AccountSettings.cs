@@ -21,5 +21,5 @@ public sealed record AccountSettings
     /// <summary>
     /// Base URL for the wallet proxy Edge Function. Overridable for dev/staging.
     /// </summary>
-    public string WalletProxyUrl { get; init; } = "https://mfbwpjkcbvmrmnaejkdt.supabase.co/functions/v1/wallet-proxy";
+    public string WalletProxyUrl { get; init; } = "https://volwljbiyzvvcqqdojyf.supabase.co/functions/v1/wallet-proxy";
 }

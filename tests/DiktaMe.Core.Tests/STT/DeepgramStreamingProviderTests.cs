@@ -239,7 +239,8 @@ public sealed class DeepgramStreamingProviderTests
     public async Task SendAudio_WhenConnected_SendsBinaryFrame()
     {
         var ws = new FakeWebSocket();
-        ws.EnqueueClose();
+        // Don't enqueue close before send — the background receive loop races
+        // with SendAudioAsync and can set State=CloseReceived before we send.
         await using var provider = new DeepgramStreamingProvider("key", webSocketClient: ws);
         await provider.ConnectAsync("en");
 
@@ -248,6 +249,9 @@ public sealed class DeepgramStreamingProviderTests
 
         ws.SentBinaryFrames.Should().HaveCount(1);
         ws.SentBinaryFrames[0].Should().BeEquivalentTo(pcm);
+
+        // Now enqueue close so DisposeAsync can shut down cleanly
+        ws.EnqueueClose();
     }
 
     [Fact]

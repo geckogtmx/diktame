@@ -99,24 +99,16 @@ public sealed class WalletGeminiProxy : ILLMProvider, IDisposable
                     case HttpStatusCode.Unauthorized:
                         Log.Warning("WalletGeminiProxy: 401 — session expired");
                         SessionExpired?.Invoke();
-                        return new LlmResult
-                        {
-                            Text = Resources.CoreStrings.Wallet_SessionExpired,
-                            Provider = ProviderName,
-                        };
+                        throw new InvalidOperationException("Session expired. Please sign in again.");
 
                     case HttpStatusCode.PaymentRequired:
                         Log.Warning("WalletGeminiProxy: 402 — insufficient wallet balance");
                         UpdateBalanceFromHeaders(response);
-                        return new LlmResult
-                        {
-                            Text = Resources.CoreStrings.Wallet_InsufficientBalance,
-                            Provider = ProviderName,
-                        };
+                        throw new InvalidOperationException("Insufficient wallet balance. Please top up.");
 
                     case HttpStatusCode.ServiceUnavailable:
                         Log.Warning("WalletGeminiProxy: 503 — service frozen");
-                        return new LlmResult { Text = "Service temporarily unavailable.", Provider = ProviderName };
+                        throw new InvalidOperationException("Service temporarily unavailable.");
 
                     case HttpStatusCode.TooManyRequests:
                         Log.Warning("WalletGeminiProxy: 429 — rate limited (attempt {Attempt})", attempt + 1);

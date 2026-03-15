@@ -22,6 +22,7 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     [ObservableProperty] private string _walletBalanceFormatted = "$0.00";
     [ObservableProperty] private string _statusText = "";
     [ObservableProperty] private string _balanceColorHex = "#FFFFFF";
+    [ObservableProperty] private bool _useWalletProxy;
 
     /// <summary>Recent wallet transactions for the history list.</summary>
     public ObservableCollection<WalletTransactionItem> RecentTransactions { get; } = [];
@@ -83,10 +84,21 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
         }
     }
 
+    partial void OnUseWalletProxyChanged(bool value)
+    {
+        AuthMode newMode = value ? AuthMode.Wallet : AuthMode.Account;
+        if (_settings.Current.AuthMode != newMode)
+        {
+            _ = _settings.UpdateAsync(_settings.Current with { AuthMode = newMode });
+            Log.Information("AccountSettings: Wallet proxy toggled to {Mode}", newMode);
+        }
+    }
+
     internal void Refresh()
     {
         IsSignedIn = _accountService.HasValidToken;
         Email = _accountService.Email ?? string.Empty;
+        UseWalletProxy = _settings.Current.AuthMode == AuthMode.Wallet;
 
         // Format wallet balance from cached microdollars
         long balanceMicro = _settings.Current.Account.WalletBalanceMicro;

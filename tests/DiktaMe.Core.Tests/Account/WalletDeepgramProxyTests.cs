@@ -52,7 +52,7 @@ public sealed class WalletDeepgramProxyTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task TranscribeAsync_On401_RaisesSessionExpired()
+    public async Task TranscribeAsync_On401_ThrowsAndRaisesSessionExpired()
     {
         await _wallet.InitAsync();
         var storage = CreateStorageWithToken();
@@ -63,15 +63,15 @@ public sealed class WalletDeepgramProxyTests : IAsyncDisposable
         bool sessionExpiredFired = false;
         proxy.SessionExpired += () => sessionExpiredFired = true;
 
-        var result = await proxy.TranscribeAsync(wavPath, "en");
+        var act = () => proxy.TranscribeAsync(wavPath, "en");
 
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*expired*");
         sessionExpiredFired.Should().BeTrue();
-        result.Text.Should().Contain("expired");
         CleanupFile(wavPath);
     }
 
     [Fact]
-    public async Task TranscribeAsync_On402_ReturnsInsufficientBalance()
+    public async Task TranscribeAsync_On402_ThrowsInsufficientBalance()
     {
         await _wallet.InitAsync();
         var storage = CreateStorageWithToken();
@@ -81,14 +81,14 @@ public sealed class WalletDeepgramProxyTests : IAsyncDisposable
         var http = CreateMockHttpClient(response);
         using var proxy = new WalletDeepgramProxy(storage, _settings, _wallet, http);
 
-        var result = await proxy.TranscribeAsync(wavPath, "en");
+        var act = () => proxy.TranscribeAsync(wavPath, "en");
 
-        result.Text.Should().Contain("Insufficient");
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*wallet balance*");
         CleanupFile(wavPath);
     }
 
     [Fact]
-    public async Task TranscribeAsync_On503_ReturnsServiceUnavailable()
+    public async Task TranscribeAsync_On503_ThrowsServiceUnavailable()
     {
         await _wallet.InitAsync();
         var storage = CreateStorageWithToken();
@@ -96,9 +96,9 @@ public sealed class WalletDeepgramProxyTests : IAsyncDisposable
         var http = CreateMockHttpClient(HttpStatusCode.ServiceUnavailable, "");
         using var proxy = new WalletDeepgramProxy(storage, _settings, _wallet, http);
 
-        var result = await proxy.TranscribeAsync(wavPath, "en");
+        var act = () => proxy.TranscribeAsync(wavPath, "en");
 
-        result.Text.Should().Contain("unavailable");
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*unavailable*");
         CleanupFile(wavPath);
     }
 

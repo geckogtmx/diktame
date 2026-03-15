@@ -227,6 +227,16 @@ public sealed class SettingsManager
             },
         };
 
+        // Protect AccountSettings.WalletProxyUrl from JSON null override.
+        var acctDefaults = new AccountSettings();
+        if (string.IsNullOrEmpty(s.Account.WalletProxyUrl))
+        {
+            s = s with
+            {
+                Account = s.Account with { WalletProxyUrl = acctDefaults.WalletProxyUrl },
+            };
+        }
+
         return s;
     }
 

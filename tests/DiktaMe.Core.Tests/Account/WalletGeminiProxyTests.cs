@@ -53,7 +53,7 @@ public sealed class WalletGeminiProxyTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ProcessAsync_On401_RaisesSessionExpired()
+    public async Task ProcessAsync_On401_ThrowsAndRaisesSessionExpired()
     {
         await _wallet.InitAsync();
         var storage = CreateStorageWithToken();
@@ -63,14 +63,14 @@ public sealed class WalletGeminiProxyTests : IAsyncDisposable
         bool sessionExpiredFired = false;
         proxy.SessionExpired += () => sessionExpiredFired = true;
 
-        var result = await proxy.ProcessAsync("hello", "prompt", "dictate");
+        var act = () => proxy.ProcessAsync("hello", "prompt", "dictate");
 
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*expired*");
         sessionExpiredFired.Should().BeTrue();
-        result.Text.Should().Contain("expired");
     }
 
     [Fact]
-    public async Task ProcessAsync_On402_ReturnsInsufficientBalance()
+    public async Task ProcessAsync_On402_ThrowsInsufficientBalance()
     {
         await _wallet.InitAsync();
         var storage = CreateStorageWithToken();
@@ -79,22 +79,22 @@ public sealed class WalletGeminiProxyTests : IAsyncDisposable
         var http = CreateMockHttpClient(response);
         using var proxy = new WalletGeminiProxy(storage, _settings, _wallet, http);
 
-        var result = await proxy.ProcessAsync("hello", "prompt", "dictate");
+        var act = () => proxy.ProcessAsync("hello", "prompt", "dictate");
 
-        result.Text.Should().Contain("Insufficient");
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*wallet balance*");
     }
 
     [Fact]
-    public async Task ProcessAsync_On503_ReturnsServiceUnavailable()
+    public async Task ProcessAsync_On503_ThrowsServiceUnavailable()
     {
         await _wallet.InitAsync();
         var storage = CreateStorageWithToken();
         var http = CreateMockHttpClient(HttpStatusCode.ServiceUnavailable, "");
         using var proxy = new WalletGeminiProxy(storage, _settings, _wallet, http);
 
-        var result = await proxy.ProcessAsync("hello", "prompt", "dictate");
+        var act = () => proxy.ProcessAsync("hello", "prompt", "dictate");
 
-        result.Text.Should().Contain("unavailable");
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*unavailable*");
     }
 
     [Fact]
