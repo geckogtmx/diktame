@@ -1,6 +1,6 @@
 # SPEC_008: Wallet Service (Pay-As-You-Go AI)
 
-> **Status:** DRAFT
+> **Status:** ✅ COMPLETE (code-verified 2026-03-16: K.8-K.12 client + M.1-M.4 cloud, all committed)
 > **Date:** 2026-03-09
 > **Parent Specs:** `DEVELOPMENT_ROADMAP.md`
 > **Replaces:** V1 `SPEC_036_WALLET_SERVICE.md`, Stream K Trial architecture

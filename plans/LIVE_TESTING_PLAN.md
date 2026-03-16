@@ -9,7 +9,7 @@
 
 ## 1. Overview
 
-The dIKta.me V2 application is feature-complete with 414 unit tests covering all core functionality. However, manual end-to-end testing is required to validate:
+The dIKta.me V2 application is feature-complete with 950+ unit tests covering all core functionality. However, manual end-to-end testing is required to validate:
 
 - ✅ Full user workflows from first launch through daily usage
 - ✅ UI interactions and visual polish
@@ -19,8 +19,8 @@ The dIKta.me V2 application is feature-complete with 414 unit tests covering all
 
 This plan provides a **comprehensive, workflow-based testing script** organized in three phases:
 
-1. **Manual Testing** (Sections 1-9): ~125 test scenarios with markdown checklists
-2. **Automated Voice Testing** (Section 10): Audio feeder tool with real YouTube audio
+1. **Manual Testing** (Sections 1-10): ~140 test scenarios with markdown checklists
+2. **Automated Voice Testing** (Section 11): Audio feeder tool with real YouTube audio
 3. **Polish & Bug Fixes**: Iterate until all scenarios pass
 
 **Testing Environment:** Development build (not installed) — running from Visual Studio or published output in `bin/` directory. The installer will be created AFTER manual testing and polish are complete.
@@ -33,7 +33,7 @@ This plan provides a **comprehensive, workflow-based testing script** organized 
 
 | File | Purpose | Tracked in Git? |
 |------|---------|:---------------:|
-| **`MANUAL_TEST_PLAN.md`** | Master checklist (9 manual sections + 1 automated) | ✅ Yes |
+| **`MANUAL_TEST_PLAN.md`** | Master checklist (10 manual sections + 1 automated) | ✅ Yes |
 | **`test-helpers/*.ps1`** | PowerShell validation scripts (8 core + 3 audio feeder) | ✅ Yes |
 | **`tests/fixtures/downloads/`** | YouTube audio + subtitle files for automated testing | ❌ No (gitignored) |
 | **`test-session-log.md`** | Working copy with notes (user's scratch space) | ❌ No (gitignored) |
@@ -122,34 +122,42 @@ This plan provides a **comprehensive, workflow-based testing script** organized 
 ## 3. Manual Testing Sections (1–9)
 
 ### Section 1: First-Run Experience (Wizard Flow)
-**Goal:** Validate configuration wizard and initial setup
-**Time Estimate:** 30 minutes
-**Scenarios:** ~15
+**Goal:** Validate configuration wizard and initial setup across all paths
+**Time Estimate:** 2 hours
+**Scenarios:** See `plans/SPEC_009_WIZARD_FLOW.md` for complete 14-path test matrix
 
 **Prerequisites:** Delete `%APPDATA%\DiktaMe\settings.json` to simulate first launch
 
 **Test Coverage:**
 - Clean state detection (WizardCompleted=false)
-- Wizard UI navigation (5 steps)
-- STT/LLM provider selection
-- Test recording validation
+- Wizard UI navigation (8 steps: Language → GetStarted → STT → LLM → TTS → API Keys → Test → Ready)
+- Three entry paths: Wallet (OAuth), Local (fully offline), BYOK (API Keys)
+- STT provider selection (Cloud Deepgram / Local Whisper with ~466MB download)
+- LLM provider selection (Cloud Gemini / Local Ollama with install + model pull)
+- TTS provider selection (Off / Local Kokoro with ~88MB download / Cloud Deepgram)
+- API Keys step skip logic (skipped when all providers are local/off)
+- `BeforeLeaveStep` download pattern (Whisper, Ollama, Kokoro)
 - Settings persistence after wizard completion
-- Transition to main app (Loading screen → Control Panel or Quick Chat)
+- Transition to main app (Loading screen → Control Panel)
 
-**Key Scenarios:**
-1. First launch shows wizard (not main app)
-2. Step 1 (Welcome) displays branding and "Build Your Stack" explanation
-3. Step 2 (STT choice): Cloud vs Local options work
-4. Step 3 (LLM choice): Cloud vs Ollama vs Skip options work
-5. Step 4 (Test recording): Record 3s audio, transcription displayed
-6. Step 5 (Ready): Summary shows selected providers
-7. "Start Dictating" button saves `WizardCompleted=true` and transitions
-8. Next launch skips wizard (shows main app directly)
-9. Can reset wizard by deleting settings.json
+**Key Scenarios (14 paths):**
+1. **W1 — Wallet**: Language → Wallet → browser opens, wizard exits
+2. **L1 — Local**: Language → Local → wizard exits, Whisper+Ollama+Kokoro configured (downloads deferred to loading screen)
+3. **A1 — Cloud/Cloud/Off**: Full BYOK wizard, all cloud, TTS off
+4. **A2 — Cloud/Cloud/Local TTS**: Cloud STT+LLM + Kokoro TTS download in wizard
+5. **A10 — Local/Local/Off**: Both local, API Keys step skipped
+6. **A11 — Local/Local/Local**: Fully offline via BYOK, all 3 downloads, API Keys skipped
+7. **A12 — Local/Local/Cloud TTS**: Edge case — API Keys shown for TTS Deepgram key only
+8. **A4 — Cloud STT/Local LLM/Off**: Hybrid, STT key only
+9. **A7 — Local STT/Cloud LLM/Off**: Hybrid, LLM key only
+10. Edge cases: download cancellation (Back mid-download), wizard interruption, second launch
+
+**Full checklist**: See `plans/SPEC_009_WIZARD_FLOW.md` for step-by-step test tables for all 14 paths + 17 edge cases.
 
 **Validation:**
-- Visual: Wizard steps flow correctly
+- Visual: Wizard steps flow correctly, downloads show progress
 - Helper: `.\Verify-AppSettings.ps1 -SettingPath "WizardCompleted" -ExpectedValue "true"`
+- Settings: Verify `ActiveProfileName`, `ModeProfiles`, `Tts.Enabled`, `Tts.Provider` per path
 
 ---
 
@@ -240,14 +248,19 @@ This plan provides a **comprehensive, workflow-based testing script** organized 
 **Test Coverage:**
 - Voice Q&A → answer displayed (not injected)
 - Result visible in Control Panel or notification
+- TTS: Answer spoken aloud when `SpeakAskResponses=true`
 
 **Key Scenarios:**
 1. Press Ctrl+Alt+A, say "What is the capital of France", release → "Paris" displayed (not injected)
 2. Check Control Panel or notification for answer
 3. Same test with complex question → multi-sentence answer
+4. Enable TTS + `SpeakAskResponses` → answer spoken via active TTS provider
+5. TTS off → answer displayed only (no audio)
+6. Press any hotkey during TTS playback → TTS stops immediately
 
 **Validation:**
 - Visual: Answer shown in UI
+- Audio: Answer spoken (if TTS enabled + SpeakAskResponses on)
 - Helper: `.\Verify-HistoryDb.ps1 -ExpectedMode "ask"`
 
 #### 3C. Translate Mode (Ctrl+Alt+T)
@@ -256,14 +269,18 @@ This plan provides a **comprehensive, workflow-based testing script** organized 
 - EN → ES translation
 - ES → EN translation
 - Auto-language detection
+- TTS: Translation spoken aloud when `SpeakTranslations=true`
 
 **Key Scenarios:**
 1. Press Ctrl+Alt+T, say "Hello how are you", release → "Hola cómo estás" injected
 2. Press Ctrl+Alt+T, say "Hola cómo estás", release → "Hello how are you" injected
 3. Auto-detection works (no language specified in settings)
+4. Enable TTS + `SpeakTranslations` → translated text spoken
+5. TTS off → text injected only (no audio)
 
 **Validation:**
 - Visual: Translated text in Notepad
+- Audio: Translation spoken (if TTS enabled + SpeakTranslations on)
 - Helper: `.\Verify-HistoryDb.ps1 -ExpectedMode "translate"`
 
 #### 3D. Note Mode (Ctrl+Alt+N)
@@ -322,6 +339,25 @@ This plan provides a **comprehensive, workflow-based testing script** organized 
 - Visual: Window behavior correct
 - Helper: `.\Verify-HistoryDb.ps1 -ExpectedMode "chat"`
 
+#### 3G. ReadSelection Mode (Ctrl+Alt+S)
+
+**Test Coverage:**
+- Reads selected text aloud via TTS
+- Toggle-stop behavior (press again to stop)
+- Requires TTS to be enabled (shows toast if disabled)
+- Audio ducking during playback
+
+**Key Scenarios:**
+1. Select text in Notepad, press Ctrl+Alt+S → text spoken aloud via active TTS provider
+2. Press Ctrl+Alt+S during playback → TTS stops
+3. TTS disabled → press Ctrl+Alt+S → toast notification "TTS is disabled"
+4. Long text (>500 words) → truncated to MaxSpeechWords setting
+5. No text selected → no crash, graceful no-op
+
+**Validation:**
+- Audio: Selected text spoken aloud
+- Visual: Toast shown if TTS disabled
+
 ---
 
 ### Section 4: Audio System
@@ -355,9 +391,9 @@ This plan provides a **comprehensive, workflow-based testing script** organized 
 ---
 
 ### Section 5: Settings Management
-**Goal:** Validate all 10 settings tabs
-**Time Estimate:** 2 hours
-**Scenarios:** ~35
+**Goal:** Validate all settings pages (14+ tabs including TTS, Dictation Presets, Notes, Chat)
+**Time Estimate:** 2.5 hours
+**Scenarios:** ~45
 
 #### 5A. General Settings
 - Language selection (EN/ES)
@@ -403,14 +439,25 @@ This plan provides a **comprehensive, workflow-based testing script** organized 
 - 100-snippet limit enforcement
 - Trigger validation (no duplicates)
 
-#### 5I. Control Panel Config
+#### 5I. TTS Settings
+- TTS enable/disable toggle
+- Provider selection (Kokoro, Deepgram, Gemini, OpenAI)
+- Voice selection per provider
+- Speed slider (0.5–2.0x)
+- Volume slider (0–100%)
+- Max speech words (truncation limit)
+- Duck during playback toggle
+- Per-pipeline toggles: SpeakAskResponses, SpeakChatResponses, SpeakTranslations, SpeakNotifications
+- Kokoro model variant selection (int8/fp16/fp32)
+
+#### 5J. Control Panel Config
 - Toggle visibility of HUD rows:
   - Modes row
   - Actions row
   - Session stats row
   - Performance stats row
 
-#### 5J. About Page
+#### 5K. About Page
 - Version info display (app version, .NET version)
 - Credits and links (GitHub, website)
 
@@ -440,8 +487,14 @@ This plan provides a **comprehensive, workflow-based testing script** organized 
 23. Control Panel Config → Show all rows → all visible
 24. About → Version number displayed correctly
 25. About → GitHub link opens browser
-
-(... continue for all 35 scenarios)
+26. TTS → Enable TTS → set provider to Kokoro → model downloads if missing
+27. TTS → Change voice → playback uses new voice
+28. TTS → Adjust speed to 1.5x → speech rate increases
+29. TTS → Enable SpeakAskResponses → Ask mode answers are spoken
+30. TTS → Disable SpeakAskResponses → Ask mode answers are silent
+31. TTS → Enable DuckDuringPlayback → other apps duck during TTS
+32. TTS → Switch provider to Deepgram → cloud TTS used
+33. TTS → Switch provider back to Kokoro → local TTS used
 
 **Validation:**
 - Helper: `.\Verify-AppSettings.ps1` for each setting
@@ -616,9 +669,51 @@ This plan provides a **comprehensive, workflow-based testing script** organized 
 
 ---
 
-## 4. Automated Voice Testing (Section 10)
+### Section 10: Text-to-Speech (TTS) System
+**Goal:** Validate TTS across all providers, modes, and configurations
+**Time Estimate:** 1 hour
+**Scenarios:** ~15
 
-### Section 10: Audio Feeder Automation
+**Test Coverage:**
+- Control Panel TTS toggle cycling (Off → Local → Cloud → Off)
+- Kokoro local TTS (model download, synthesis, playback)
+- Cloud TTS providers (Deepgram, Gemini)
+- Per-pipeline TTS: Ask responses, Translate responses, Chat responses, Notifications
+- ReadSelection mode (Ctrl+Alt+S) — speaks selected text
+- Audio ducking during TTS playback
+- TTS Settings page configuration
+- TTS provider switching
+- TTS interruption (hotkey press stops playback)
+- Anti-double-speak (notification TTS suppressed if answer already spoken)
+
+**Key Scenarios:**
+1. Control Panel → cycle TTS toggle Off → Local → label shows "Local" (Kokoro)
+2. Kokoro first use → model downloads (~88MB int8) on first TTS call
+3. Ask mode → ask a question → answer spoken via Kokoro
+4. Translate mode → translate a phrase → translation spoken
+5. ReadSelection → select text in Notepad → Ctrl+Alt+S → text read aloud
+6. ReadSelection → press Ctrl+Alt+S during playback → TTS stops
+7. ReadSelection → TTS disabled → Ctrl+Alt+S → toast "TTS is disabled"
+8. Control Panel → cycle TTS to Cloud → Deepgram TTS used
+9. Cloud TTS → ask a question → answer spoken via Deepgram
+10. Press any hotkey during TTS playback → TTS stops immediately
+11. Audio ducking during TTS → other apps volume reduced
+12. Disable DuckDuringPlayback → other apps volume unchanged during TTS
+13. Settings → TTS → change voice → next TTS uses new voice
+14. Settings → TTS → adjust speed to 1.5x → speech rate increases
+15. Settings → TTS → disable SpeakAskResponses → Ask mode answers are silent
+
+**Validation:**
+- Audio: TTS audio plays correctly through speakers
+- Visual: Control Panel TTS state label updates correctly
+- Manual: Verify ducking behavior during playback
+- Helper: `.\Verify-AppSettings.ps1 -SettingPath "Tts.Enabled" -ExpectedValue "true"`
+
+---
+
+## 4. Automated Voice Testing (Section 11)
+
+### Section 11: Audio Feeder Automation
 **Goal:** Validate transcription quality with diverse real voices and accents
 **Time Estimate:** 2 hours setup + 1-3 hours runs
 **Scenarios:** ~5 test runs
@@ -841,7 +936,7 @@ E:\git\diktame\
 
 ### Phase 1: Manual Testing Infrastructure
 
-1. ✅ **`MANUAL_TEST_PLAN.md`** with ~125 test scenarios (9 manual + 1 automated)
+1. ✅ **`MANUAL_TEST_PLAN.md`** with ~140 test scenarios (10 manual + 1 automated)
 2. ✅ **8 core validation helper scripts** in `test-helpers/`
 3. ✅ **Session management:** `New-TestSession.ps1` + `.gitignore` entry
 4. ✅ **Documentation:** This plan document (`LIVE_TESTING_PLAN.md`)
@@ -856,7 +951,8 @@ E:\git\diktame\
 ### Phase 3: Testing Execution
 
 9. ✅ **Section 1-9 Complete:** All manual scenarios tested, bugs logged
-10. ✅ **Section 10 Complete:** Audio feeder runs complete, accuracy measured
+10. ✅ **Section 10 Complete:** TTS scenarios tested
+11. ✅ **Section 11 Complete:** Audio feeder runs complete, accuracy measured
 11. ✅ **Bug Fixes:** All critical bugs fixed, non-critical prioritized
 12. ✅ **Polish:** UI tweaks, performance tuning, edge case handling
 
@@ -873,7 +969,7 @@ E:\git\diktame\
 | Phase | Activity | Time |
 |-------|----------|------|
 | **Setup** | Create test plan + helpers | 4-6 hours |
-| **Manual Testing** | Sections 1-9 execution | 9-10 hours |
+| **Manual Testing** | Sections 1-10 execution | 11-12 hours |
 | **Audio Feeder** | Port tool + IPC server | 2-3 hours |
 | **Audio Feeder** | Run test scenarios | 1-3 hours |
 | **Bug Fixes** | Fix critical bugs (estimate) | 4-8 hours |
@@ -890,14 +986,14 @@ E:\git\diktame\
 
 ## 9. Success Criteria
 
-### Manual Testing (Sections 1-9)
+### Manual Testing (Sections 1-10)
 - ✅ All 125 scenarios executed at least once
 - ✅ 95%+ scenarios pass (120+ / 125)
 - ✅ All critical bugs fixed (blocking issues)
 - ✅ Non-critical bugs documented (GitHub Issues)
 - ✅ Performance targets met (startup <3s, memory <80MB)
 
-### Automated Testing (Section 10)
+### Automated Testing (Section 11)
 - ✅ Audio feeder tool successfully controls app via IPC
 - ✅ TED talk scenario achieves 90%+ transcription success rate
 - ✅ Diverse accents tested (3+ different accents/speakers)
@@ -920,8 +1016,8 @@ E:\git\diktame\
 3. **Implement helper scripts** — 8 core + 3 audio feeder scripts
 4. **Port audio feeder** — Migrate V1's `audio_feeder.py` to PowerShell
 5. **Build IPC server** — TCP server in C# or PowerShell
-6. **Execute manual tests** — Work through Sections 1-9
-7. **Run audio feeder** — Execute Section 10 scenarios
+6. **Execute manual tests** — Work through Sections 1-10
+7. **Run audio feeder** — Execute Section 11 scenarios
 8. **Fix bugs** — Prioritize and resolve issues
 9. **Polish** — UI tweaks, performance tuning
 10. **Build installer** — Task H.1 (post-testing)

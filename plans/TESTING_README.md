@@ -25,8 +25,8 @@
 
 3. **[MANUAL_TEST_PLAN.md](MANUAL_TEST_PLAN.md)** (Checklist)
    - 125 test scenarios with `- [ ]` checkboxes
-   - 9 manual sections (Sections 1-9)
-   - 1 automated section (Section 10 — Audio Feeder)
+   - 10 manual sections (Sections 1-10)
+   - 1 automated section (Section 11 — Audio Feeder)
    - Each scenario includes: goal, prerequisites, steps, validation
    - Notes section for bugs/observations
    - **Use this as your primary working document**
@@ -98,20 +98,21 @@ tests/fixtures/downloads/
 
 | Section | Goal | Time | Scenarios |
 |---------|------|------|-----------|
-| **1. First-Run** | Wizard flow | 30 min | 15 |
+| **1. First-Run** | Wizard flow (14 paths) | 2 hours | See WIZARD_FLOW.md |
 | **2. Dictation** | Basic voice-to-text | 1 hour | 20 |
-| **3. Advanced Modes** | All 6 modes + Chat | 1.5 hours | 25 |
+| **3. Advanced Modes** | All modes + Chat + ReadSelection | 1.5 hours | 30 |
 | **4. Audio System** | Hardware integration | 30 min | 10 |
-| **5. Settings** | All 14 tabs | 2.5 hours | 40 |
+| **5. Settings** | All 14+ tabs (incl. TTS) | 2.5 hours | 45 |
 | **6. Data & Privacy** | Persistence & compliance | 45 min | 12 |
 | **7. System Integration** | OS-level features | 1 hour | 15 |
 | **8. Error Handling** | Edge cases & recovery | 1.5 hours | 18 |
 | **9. Performance** | Non-functional reqs | 30 min | 10 |
-| **10. Audio Feeder** | Real voice testing | 2-5 hours | 5 runs |
+| **10. TTS System** | Text-to-speech providers & modes | 1 hour | 15 |
+| **11. Audio Feeder** | Real voice testing | 2-5 hours | 5 runs |
 
-**Total Manual:** 10 hours (Sections 1-9)
-**Total Automated:** 3-5 hours (Section 10 setup + runs)
-**Total with Fixes:** 19-29 hours
+**Total Manual:** 12 hours (Sections 1-10)
+**Total Automated:** 3-5 hours (Section 11 setup + runs)
+**Total with Fixes:** 21-31 hours
 
 ---
 
@@ -126,7 +127,7 @@ tests/fixtures/downloads/
 # 2. Open the checklist
 code MANUAL_TEST_PLAN.md
 
-# 3. Work through Sections 1-9
+# 3. Work through Sections 1-10
 # - Read each section's goal and prerequisites
 # - Perform manual test steps
 # - Check off items: - [ ] → - [x]
@@ -172,7 +173,7 @@ Start-Process DiktaMe.exe -ArgumentList "--enable-ipc"
 
 ## Success Criteria
 
-**Manual Testing (Sections 1-9):**
+**Manual Testing (Sections 1-10):**
 - ✅ All 125 scenarios executed at least once
 - ✅ 95%+ pass rate (120+ / 125)
 - ✅ All critical bugs fixed
@@ -216,7 +217,7 @@ This validates:
 ### Before Starting Tests
 
 1. **Build the app:** `dotnet build DiktaMe.sln -c Release` (0 errors expected)
-2. **Run existing tests:** `dotnet test DiktaMe.sln` (414 tests should pass)
+2. **Run existing tests:** `dotnet test DiktaMe.sln` (950+ tests should pass)
 3. **Delete old state:** `del %APPDATA%\DiktaMe\settings.json` (for wizard testing)
 4. **Have Notepad ready:** For text injection tests
 
@@ -249,14 +250,14 @@ All testing artifacts are **gitignored** and won't appear in commits:
 
 1. **Review TESTING.md** — Quick overview
 2. **Build the app** — Ensure it compiles with 0 errors
-3. **Run unit tests** — 521 tests should pass
+3. **Run unit tests** — 950+ tests should pass
 4. **Delete settings.json** — Reset to first-run state
 5. **Update MANUAL_TEST_PLAN.md** — Add test scenarios for:
    - Dictation Presets page (CRUD operations, model selection)
    - Notes page (file path, timestamp, LLM processing)
    - Chat page (UI settings, forget-on-close, prompts)
 
-### During Testing (Sections 1-9)
+### During Testing (Sections 1-10)
 
 - Work systematically through each section
 - Use helper scripts liberally
@@ -270,7 +271,7 @@ All testing artifacts are **gitignored** and won't appear in commits:
 - Fix bugs in batch
 - Re-test affected scenarios
 
-### For Section 10 (Audio Feeder)
+### For Section 11 (Audio Feeder)
 
 - Port three scripts from V1 (`E:\git\diktate\python\tools\audio_feeder.py`)
 - Build IPC server (TCP on 127.0.0.1:5005)
@@ -344,12 +345,17 @@ Good luck! 🚀
 - ⏳ Chat settings page (font size, opacity, theme, forget-on-close, prompts)
 - ⏳ Live model discovery from APIs (OpenAI, Anthropic, Gemini, OpenRouter, Ollama)
 - ⏳ Per-preset model selection (Cloud profiles only)
+- ⏳ **TTS System** — Kokoro local + Deepgram/Gemini/OpenAI cloud TTS, Control Panel toggle, per-pipeline speak toggles, ReadSelection mode (Ctrl+Alt+S), audio ducking during playback
+- ⏳ **Wizard TTS Step** (FIX-17) — New Step 4: Off/Local Kokoro/Cloud Deepgram, Kokoro model download in wizard
+- ⏳ **Wallet/OAuth path** — Wizard "Test with free Wallet credits" option (SPEC_008)
+- ⏳ **Local mode E2E** — SPEC_009 fixes (Whisper download, Ollama install/pull, STT+LLM toggles, caching)
 
 **Testing Impact:**
-- Settings tabs expanded: 10 → 14 (+4 tabs: Dictation Presets, Notes, Chat, Modes split)
-- Estimated additional test scenarios: +5-10 scenarios
-- Estimated additional testing time: +30-60 minutes
-- Unit tests expanded: 414 → 521 (+107 tests for new features)
+- Settings tabs expanded: 10 → 14+ (+TTS, Dictation Presets, Notes, Chat, etc.)
+- Wizard steps expanded: 5 → 8 (Language, GetStarted, STT, LLM, TTS, API Keys, Test, Ready)
+- Wizard paths: 3 entry paths × up to 12 BYOK combinations = 14 total paths (see `SPEC_009_WIZARD_FLOW.md`)
+- New test section: Section 10 (TTS System) with ~15 scenarios
+- Unit tests expanded: 414 → 950+ (streams K, L, SPEC_007, SPEC_008, SPEC_009, TTS, etc.)
 
 **Action Required:**
 - Update MANUAL_TEST_PLAN.md Section 5 (Settings) with new scenarios
@@ -357,3 +363,6 @@ Good luck! 🚀
 - Test Notes page file picker and live preview
 - Test Chat page UI settings
 - Verify model dropdown populates correctly from APIs
+- Test all 14 wizard paths (see `plans/SPEC_009_WIZARD_FLOW.md`)
+- Test TTS system (Section 10 in LIVE_TESTING_PLAN.md)
+- Test ReadSelection mode (Ctrl+Alt+S)

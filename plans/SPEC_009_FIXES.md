@@ -2,7 +2,7 @@
 
 > **Source**: Manual testing of SPEC_009 Scenario 1 (Full Cloud, no Ollama)
 > **Date**: 2026-03-09
-> **Status**: 15/16 complete (FIX-1 deferred to SPEC_008, FIX-16 API Keys skip needs manual verification)
+> **Status**: 15/17 complete (FIX-1 deferred to SPEC_008, FIX-16 done, FIX-17 TTS wizard step pending)
 
 ---
 
@@ -287,6 +287,66 @@ _hotkeyManager.RegistrationFailed += OnHotkeyRegistrationFailed;
 
 ---
 
+## FIX-17: Wizard TTS Step — Off / Local (Kokoro) / Cloud (Deepgram)
+
+**Problem**: TTS is fully implemented (Kokoro local, Deepgram/Gemini/OpenAI cloud, Control Panel toggle, per-pipeline settings) but the wizard doesn't offer it. Users who choose the "Local" path get Whisper + Ollama but never discover Kokoro TTS exists. The fully offline experience (Whisper + Ollama + Kokoro) is incomplete. TTS defaults to `Enabled=false` — users must discover it via Control Panel toggle or Settings.
+
+**Current TTS state**:
+- `AppSettings.TtsSettings`: `Enabled=false`, `Provider="kokoro"`, `KokoroModelVariant="gpu"` (but int8 is the practical default at 88MB)
+- 5 TTS providers: Kokoro (local ONNX), Deepgram, Gemini, OpenAI, Inworld
+- Control Panel cycles: Off → Local (Kokoro) → Cloud → Off
+- Per-pipeline toggles: SpeakAskResponses, SpeakChatResponses, SpeakTranslations, SpeakNotifications
+- Kokoro models: int8 (~88MB), fp16 (~169MB), fp32 (~310MB), gpu (~169MB, BLOCKED by DirectML ConvTranspose)
+- Model download: `KokoroModelManager` downloads from GitHub releases to `%APPDATA%\DiktaMe\models\tts\`
+
+**Design**: Add `WizardTtsPage` as new Step 4 (shifts API Keys→5, Test→6, Ready→7). Three options:
+
+1. **Off** (default) — No TTS, same as today
+2. **Local (Kokoro)** — Downloads int8 model (~88MB) via `KokoroModelManager`. Uses `BeforeLeaveStep` pattern (same as Whisper/Ollama pages). Download triggered on Next click, cancellable on Back or radio switch.
+3. **Cloud (Deepgram)** — Uses Deepgram TTS. **Reuses same API key** as Deepgram STT — no extra key section needed in wizard.
+
+**Wizard changes**:
+- `TotalSteps`: 7 → 8
+- New `TtsChoice` property on `WizardViewModel`: `"off"` (default), `"local"`, `"cloud"`
+- Step numbering: Language(0) → GetStarted(1) → STT(2) → LLM(3) → **TTS(4)** → API Keys(5) → Test(6) → Ready(7)
+
+**`CompleteWizardAsync()` changes**:
+```
+If TtsChoice == "local":  Tts.Enabled = true, Tts.Provider = "kokoro"
+If TtsChoice == "cloud":  Tts.Enabled = true, Tts.Provider = "deepgram"
+If TtsChoice == "off":    Tts.Enabled = false (default, no explicit write needed)
+```
+
+**`StartLocalAsync()` changes** (Local shortcut path):
+- Now also writes `Tts = new TtsSettings { Enabled = true, Provider = "kokoro" }` for fully offline experience
+- Kokoro model download deferred to `LoadingViewModel` startup (same as Whisper/Ollama)
+
+**`NeedsApiKeys()` update**:
+- Current: `SttChoice == "cloud" || LlmChoice == "cloud"`
+- New: `SttChoice == "cloud" || LlmChoice == "cloud" || TtsChoice == "cloud"`
+- This handles edge case A12: user picks local STT + local LLM + cloud TTS → API Keys step must show for Deepgram key
+
+**Kokoro download pattern** (same as Whisper FIX-7/FIX-9):
+1. User selects "Local (Kokoro)" radio → panel shows "Model will be downloaded when you click Next" with size info
+2. User clicks Next → `BeforeLeaveStep` triggers `KokoroModelManager.DownloadModelAsync()` with progress
+3. Next button disabled during download, ProgressBar + status text shown
+4. On completion → status shows "Kokoro model ready", returns `false` (user clicks Next again to advance)
+5. On second Next → model already downloaded → `return true` → advances
+6. On Back or radio switch → `CancellationToken` cancels download
+7. On failure → error shown in red, Next re-enabled (user can switch to Off or Cloud)
+
+**Files to create**:
+- `src/DiktaMe.App/Views/Wizard/WizardTtsPage.xaml` — Radio buttons (Off/Local/Cloud) + download panel
+- `src/DiktaMe.App/Views/Wizard/WizardTtsPage.xaml.cs` — Download logic with BeforeLeaveStep
+
+**Files to modify**:
+- `src/DiktaMe.App/ViewModels/WizardViewModel.cs` — `TtsChoice` property, `TotalSteps` 7→8, `CompleteWizardAsync()`, `StartLocalAsync()`, `NeedsApiKeys()`
+- `src/DiktaMe.App/Views/WizardWindow.xaml.cs` — Step array + page type mapping (insert TTS at index 4)
+- `src/DiktaMe.App/Strings/en/Resources.resw` — New keys: `Wizard_Tts_Title`, `Wizard_Tts_Subtitle`, `Wizard_Tts_Off`, `Wizard_Tts_OffDesc`, `Wizard_Tts_Local`, `Wizard_Tts_LocalDesc`, `Wizard_Tts_Cloud`, `Wizard_Tts_CloudDesc`, `Wizard_Tts_DownloadPending`, `Wizard_Tts_Downloading`, `Wizard_Tts_DownloadComplete`, `Wizard_Tts_DownloadFailed`, `Wizard_Tts_ModelReady`
+- `src/DiktaMe.App/Strings/es-MX/Resources.resw` — Same keys in Spanish
+
+---
+
 ## Task Log
 
 | # | Fix | Status | Notes |
@@ -307,3 +367,4 @@ _hotkeyManager.RegistrationFailed += OnHotkeyRegistrationFailed;
 | 14 | Wizard: Ollama auto-install via winget | Done | winget install + fallback to browser. Default model → `gemma3:4b`. |
 | 15 | Local mode polish (auto-start, keep-alive, GPU log, Settings downloads) | Done | Ollama auto-start on launch, keep-alive setting, first-inference GPU log, Whisper download + Ollama install in Settings |
 | 16 | LLMProviderFactory caching + wizard fixes | Done | Provider caching (5x Ollama latency fix), language Back bug, API Keys skip, phased install messages |
+| 17 | Wizard: Add TTS step (Off/Local Kokoro/Cloud Deepgram) | Pending | TotalSteps 7→8, Kokoro download in wizard, Local path auto-enables Kokoro, NeedsApiKeys updated |

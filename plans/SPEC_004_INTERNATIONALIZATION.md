@@ -1,6 +1,6 @@
 # SPEC_004: Internationalization (i18n)
 
-> **Status:** DRAFT
+> **Status:** ✅ COMPLETE (code-verified 2026-03-16: 606 strings in en-US + es-MX, WinUI3Localizer across 80 XAML files, CoreStrings.resx)
 > **Date:** 2026-03-05
 > **Supersedes:** V1 i18next JSON-based i18n (only Settings window translated)
 > **V1 Reference:** `E:\git\diktate\src\locales\{en,es}\{common.json,settings.json}` (~279 keys)

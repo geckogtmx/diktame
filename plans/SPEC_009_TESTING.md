@@ -49,7 +49,7 @@ Before starting:
 
 | #   | Action                                        | Expected                            | Pass? |
 | --- | --------------------------------------------- | ----------------------------------- | ----- |
-| 1.1 | Launch app                                    | Wizard window appears (Step 1 of 6) | [✓]   |
+| 1.1 | Launch app                                    | Wizard window appears (Step 1 of 8) | [✓]   |
 | 1.2 | Step 0: Select "I have API Keys" → Next       | Moves to STT step                   | [✓]   |
 | 1.3 | Step 1: Select **"Cloud (Deepgram)"** → Next  | Moves to LLM step                   | [✓]   |
 | 1.4 | Step 2: Select **"Cloud (Gemini)"** → Next    | Moves to API Keys step              | [✓]   |
@@ -100,7 +100,7 @@ Before starting:
 
 | # | Action | Expected | Pass? |
 |---|--------|----------|-------|
-| 2.1 | Launch app | Wizard appears (Step 1 of 7) — Language selection | [✓] |
+| 2.1 | Launch app | Wizard appears (Step 1 of 8) — Language selection | [✓] |
 | 2.2 | Step 0 (Language): Select English → Next | Moves to onboarding step | [✓] |
 | 2.3 | Step 1 (Get Started): Select **"I have API Keys"** → Next | Moves to STT step | [✓] |
 | 2.4 | Step 2 (STT): Select **"Local (Whisper)"** | Download panel shows "Model will be downloaded when you click Next" | [✓] |
@@ -145,6 +145,15 @@ Before starting:
 |---|--------|----------|-------|
 | 2.25 | Ctrl+Alt+D → speak → wait | Whisper transcribes locally, Gemini processes via cloud, text injected | [✓] |
 | 2.26 | Check logs | No Ollama calls, Gemini API used for LLM | [✓] |
+
+#### TTS Toggle Test (Post-FIX-17)
+
+| # | Action | Expected | Pass? |
+|---|--------|----------|-------|
+| 2.27 | Control Panel → TTS state | "Off" (TTS not enabled via wizard in this scenario) | [ ] |
+| 2.28 | Cycle TTS toggle → Local (Kokoro) | First TTS call will trigger Kokoro model download (~88MB) | [ ] |
+| 2.29 | Cycle TTS toggle → Cloud | TTS uses Deepgram (same API key as STT) | [ ] |
+| 2.30 | Cycle TTS toggle → Off | TTS disabled | [ ] |
 
 ---
 
@@ -255,7 +264,7 @@ Before starting:
 
 | # | Action | Expected | Pass? |
 |---|--------|----------|-------|
-| 4.1 | Launch app | Wizard window appears (Step 1 of 6) | [ ] |
+| 4.1 | Launch app | Wizard window appears (Step 1 of 8) | [ ] |
 | 4.2 | Step 0: Select "I have API Keys" → Next | Moves to STT step | [ ] |
 | 4.3 | Step 1: Select **"Local (Whisper)"** → Next | Moves to LLM step | [ ] |
 | 4.4 | Step 2: Select **"Local (Ollama)"** → Next | Moves to API Keys step | [ ] |
@@ -308,6 +317,17 @@ Before starting:
 | 4.31 | Whisper section | **Visible** with "Small (~466 MB, recommended)" selected | [ ] |
 | 4.32 | Deepgram section | **Hidden** | [ ] |
 | 4.33 | Capability summary | Shows "STT: Local Whisper  |  LLM: Ollama (gemma3)" | [ ] |
+
+#### TTS Verification (Post-FIX-17 — Local path auto-enables Kokoro)
+
+| # | Action | Expected | Pass? |
+|---|--------|----------|-------|
+| 4.34 | Control Panel → TTS state | "Local" (Kokoro auto-enabled by Local shortcut path) | [ ] |
+| 4.35 | `settings.json` → `Tts.Enabled` | `true` | [ ] |
+| 4.36 | `settings.json` → `Tts.Provider` | `"kokoro"` | [ ] |
+| 4.37 | Ctrl+Alt+A → ask "What is 2+2" | Answer displayed + spoken via Kokoro (if SpeakAskResponses default is true) | [ ] |
+| 4.38 | Select text in Notepad → Ctrl+Alt+S | Text read aloud via Kokoro | [ ] |
+| 4.39 | Press Ctrl+Alt+S during playback | TTS stops | [ ] |
 
 ---
 
@@ -484,6 +504,73 @@ Close and relaunch the app
 
 ---
 
+## Part D: TTS Integration (Post-FIX-17)
+
+---
+
+### Scenario 9: TTS Wizard Step + Kokoro Local TTS
+
+**Tests**: Wizard TTS step, Kokoro model download, TTS playback, Control Panel toggle
+
+#### Setup
+
+```
+1. Close dIKta.me
+2. Delete: %APPDATA%\DiktaMe\settings.json
+3. Delete: %APPDATA%\DiktaMe\models\tts\ (entire folder)
+4. Ollama running with gemma3:4b pulled
+5. Have Deepgram + Gemini API keys ready
+```
+
+#### Wizard Flow (BYOK → Local/Local/Local)
+
+| # | Action | Expected | Pass? |
+|---|--------|----------|-------|
+| 9.1 | Launch app → wizard → Language → BYOK | Step 2 (STT) | [ ] |
+| 9.2 | Select "Local (Whisper)" → Next | Whisper downloads (~466MB) | [ ] |
+| 9.3 | Next → Local LLM (Ollama check) → Next | Step 4 (TTS) | [ ] |
+| 9.4 | TTS step shows 3 options: Off / Local (Kokoro) / Cloud | Off selected by default | [ ] |
+| 9.5 | Select "Local (Kokoro)" | Download panel: "Model will be downloaded (~88MB)" | [ ] |
+| 9.6 | Click Next | Kokoro int8 model downloads with progress bar | [ ] |
+| 9.7 | Download completes | Status: "Kokoro model ready" | [ ] |
+| 9.8 | Click Next again | Step 5 (API Keys) — **SKIPPED** (all local) | [ ] |
+| 9.9 | Test mic → Ready → Finish | Wizard completes | [ ] |
+
+#### Settings Verification
+
+| # | Check | Expected | Pass? |
+|---|-------|----------|-------|
+| 9.10 | `Tts.Enabled` | `true` | [ ] |
+| 9.11 | `Tts.Provider` | `"kokoro"` | [ ] |
+| 9.12 | Kokoro model file | `%APPDATA%\DiktaMe\models\tts\kokoro-quant-convinteger.onnx` (~88MB) | [ ] |
+
+#### TTS Playback Tests
+
+| # | Action | Expected | Pass? |
+|---|--------|----------|-------|
+| 9.13 | Control Panel TTS state | "Local" (Kokoro) | [ ] |
+| 9.14 | Select text in Notepad → Ctrl+Alt+S | Text spoken via Kokoro (local audio) | [ ] |
+| 9.15 | Press Ctrl+Alt+S during playback | TTS stops | [ ] |
+| 9.16 | TTS off in Control Panel → Ctrl+Alt+S | Toast: "TTS is disabled" | [ ] |
+
+#### Wizard TTS Download Cancellation
+
+| # | Action | Expected | Pass? |
+|---|--------|----------|-------|
+| 9.17 | On TTS step: select Local Kokoro → Next → start download | Progress bar updating | [ ] |
+| 9.18 | Click Back mid-download | Download cancels, returns to LLM step | [ ] |
+| 9.19 | Return to TTS step → select "Off" → Next | Advances without download | [ ] |
+
+#### Wizard TTS Edge Case (A12: Local/Local/Cloud TTS)
+
+| # | Action | Expected | Pass? |
+|---|--------|----------|-------|
+| 9.20 | Fresh wizard → Local STT → Local LLM → TTS: "Cloud" → Next | Step 5 (API Keys) shown (not skipped) | [ ] |
+| 9.21 | API Keys page | Deepgram key section visible (for TTS), Gemini hidden | [ ] |
+| 9.22 | Enter Deepgram key → Test → Finish | Wizard completes, `Tts.Provider="deepgram"` | [ ] |
+
+---
+
 ## Run Log
 
 Use this section to record test run results.
@@ -509,6 +596,12 @@ Use this section to record test run results.
 | 6. Settings UI switching | | |
 | 7. Second launch (model cached) | | |
 | 8. Ollama service stopped | | |
+
+**Part D (TTS — Post-FIX-17)**:
+
+| Scenario | Result | Notes |
+|----------|--------|-------|
+| 9. TTS wizard step + Kokoro local TTS | | |
 
 **Blockers found**:
 -
