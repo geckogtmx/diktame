@@ -36,7 +36,7 @@ serve(async (req) => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "dIKta.me <invites@updates.dikta.me>",
+        from: "dIKta.me <onboarding@resend.dev>",
         to: [recipientEmail],
         subject: `${senderName} gifted you a Priority Pass for dIKta.me`,
         html: `
