@@ -68,7 +68,7 @@ export function HeroSection() {
             >
               Download for Windows
               <span className="text-xs font-normal opacity-80 block ml-2 border-l border-white/20 pl-2">
-                v0.1 • Free
+                v2.0 • Free
               </span>
             </Link>
 

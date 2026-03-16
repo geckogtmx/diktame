@@ -55,11 +55,14 @@ export function PricingSection() {
             </div>
             {/* Power Version ($25) */}
             <div className="card !overflow-visible p-8 border-2 border-primary relative text-left flex flex-col  delay-300 shadow-glow">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white border border-primary px-4 py-1 rounded-full text-xs font-medium uppercase tracking-widest">
-                Best Value
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-cta text-white border border-cta px-4 py-1 rounded-full text-xs font-medium uppercase tracking-widest animate-pulse">
+                Early Bird Sale
               </div>
               <h3 className="text-xl font-bold mb-2 mt-2 text-white">Power Version</h3>
-              <div className="text-5xl font-bold mb-6 text-white">$25</div>
+              <div className="flex items-baseline gap-3 mb-6">
+                <span className="text-3xl font-bold text-white/40 line-through">$25</span>
+                <span className="text-5xl font-bold text-white">$20</span>
+              </div>
               <p className="text-sm text-muted mb-8">The complete arsenal.</p>
               <ul className="space-y-3 text-sm text-muted mb-8">
                 <li className="flex gap-2">
@@ -125,6 +128,20 @@ export function PricingSection() {
             </div>
           </div>
 
+          {/* Support the Dev */}
+          <div className="text-center mt-12">
+            <a
+              href="https://ko-fi.com/geckogtmx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-white/5 border border-white/20 text-white px-6 py-3 rounded-full font-bold text-sm hover:scale-105 hover:bg-white hover:text-black transition-all"
+            >
+              Support the Developer
+              <span className="block text-[10px] font-normal opacity-60 mt-0.5 font-mono">
+                Keep dIKta.me updated &amp; independent via Ko-Fi
+              </span>
+            </a>
+          </div>
         </div>
 
         <FeaturesModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />

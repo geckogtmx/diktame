@@ -30,16 +30,14 @@ export function SpecsSection() {
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Core</div>
                 <h3 className="text-lg font-bold text-text mb-2 text-white">Whisper V3 Turbo</h3>
                 <p className="text-sm text-muted">
-                  State-of-the-art accuracy running locally. Use it in RAW Mode for instant transcription and injection
-                  with good tolerance for filler and punctuation correction.
+                  State-of-the-art local STT with natural tolerance for filler words, stutters, and punctuation.
                 </p>
               </div>
               <div className="card p-6">
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Intelligence</div>
                 <h3 className="text-lg font-bold text-text mb-2 text-white">Local Small Model Brain</h3>
                 <p className="text-sm text-muted">
-                  Intelligent formatting, filler removal, excellent math, and general knowledge. Utilize different models
-                  for various simple tasks, all local, all private, and all exceptionally fast.
+                  Intelligent formatting, filler removal, and general knowledge. All local, all private, all fast.
                 </p>
               </div>
               <div className="card p-6">
@@ -49,18 +47,15 @@ export function SpecsSection() {
                   <p>Ctrl+Alt+D (Dictate)</p>
                   <p>Ctrl+Alt+A (Ask)</p>
                   <p>Ctrl+Alt+R (Refine)</p>
-                  <p>Ctrl+Alt+T (Translate)</p>
                   <p>Ctrl+Alt+N (Notes)</p>
-                  <p>Ctrl+Alt+C (Quick Chat)</p>
-                  <p>Ctrl+Alt+Q (Read Selection)</p>
-                  <p>Ctrl+Alt+V (Re-inject Last)</p>
+                  <p className="text-white/40">More...</p>
                 </div>
               </div>
               <div className="card p-6">
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Integration</div>
                 <h3 className="text-lg font-bold text-text mb-2 text-white">Precision Injection</h3>
                 <p className="text-sm text-muted">
-                  Zero-latency, 1,000 WPM text injection with native window emulation across every application.
+                  Ultra-fast text injection with native window emulation across every application.
                 </p>
               </div>
               <div className="card p-6">
@@ -120,7 +115,9 @@ export function SpecsSection() {
               <div className="card p-6">
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">UI</div>
                 <h3 className="text-lg font-bold text-text mb-2 text-white">Floating Pill</h3>
-                <p className="text-sm text-muted">Unobtrusive overlay. Out of your way.</p>
+                <p className="text-sm text-muted">
+                  Minimal overlay that stays out of your way. Lives in the system tray when not recording.
+                </p>
               </div>
               <div className="card p-6">
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Deploy</div>
@@ -132,12 +129,16 @@ export function SpecsSection() {
               <div className="card p-6">
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Productivity</div>
                 <h3 className="text-lg font-bold text-text mb-2 text-white">Voice Macros</h3>
-                <p className="text-sm text-muted">Expand snippets and signatures instantly with trigger phrases.</p>
+                <p className="text-sm text-muted">
+                  Define trigger phrases that auto-expand into full snippets, signatures, or templates.
+                </p>
               </div>
               <div className="card p-6">
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Flexibility</div>
                 <h3 className="text-lg font-bold text-text mb-2 text-white">Model Agnostic</h3>
-                <p className="text-sm text-muted">Switch between Llama, Mistral, or Gemma.</p>
+                <p className="text-sm text-muted">
+                  Switch freely between Llama, Mistral, Gemma, or any Ollama-compatible model. No lock-in.
+                </p>
               </div>
               <div className="card p-6">
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Reliability</div>
