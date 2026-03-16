@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { submitWaitlist } from '../actions/waitlist';
+import { ViralSuccessCard } from './ViralSuccessCard';
 
 export function WaitingListForm() {
   const [isPending, setIsPending] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [userData, setUserData] = useState<{ id: string; name: string } | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -20,12 +22,19 @@ export function WaitingListForm() {
     if (result.error) {
       setMessage({ type: 'error', text: result.error });
     } else if (result.success) {
+      if (result.id && result.name) {
+        setUserData({ id: result.id, name: result.name });
+      }
       setMessage({ 
         type: 'success', 
         text: result.message || 'Thank you! You have been added to the waiting list.' 
       });
       (event.target as HTMLFormElement).reset();
     }
+  }
+
+  if (userData) {
+    return <ViralSuccessCard senderId={userData.id} senderName={userData.name} />;
   }
 
   return (
