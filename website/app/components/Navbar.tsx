@@ -51,15 +51,15 @@ export function Navbar() {
 
         {/* Desktop Links & CTA */}
         <div className="hidden md:flex items-center gap-12 text-sm font-medium">
-          <a href="#core-track" className="text-[#94a3b8] hover:text-white transition-colors">
+          <Link href="/#core-track" className="text-[#94a3b8] hover:text-white transition-colors">
             Features
-          </a>
-          <a href="#versus-track" className="text-[#94a3b8] hover:text-white transition-colors">
+          </Link>
+          <Link href="/#versus-track" className="text-[#94a3b8] hover:text-white transition-colors">
             vs Others
-          </a>
-          <a href="#pricing" className="text-[#94a3b8] hover:text-white transition-colors">
+          </Link>
+          <Link href="/#pricing" className="text-[#94a3b8] hover:text-white transition-colors">
             Pricing
-          </a>
+          </Link>
           <Link href="/docs" className="text-[#2563eb] hover:text-white transition-colors">
             Docs
           </Link>
@@ -91,15 +91,15 @@ export function Navbar() {
         className={`${isMobileMenuOpen ? 'block' : 'hidden'
           } md:hidden absolute top-full left-0 w-full bg-[#0f172a] border-b border-white/10 p-4 flex flex-col gap-4`}
       >
-        <a href="#core-track" className="text-white hover:text-[#2563eb]" onClick={() => setIsMobileMenuOpen(false)}>
+        <Link href="/#core-track" className="text-white hover:text-[#2563eb]" onClick={() => setIsMobileMenuOpen(false)}>
           Features
-        </a>
-        <a href="#versus-track" className="text-white hover:text-[#2563eb]" onClick={() => setIsMobileMenuOpen(false)}>
+        </Link>
+        <Link href="/#versus-track" className="text-white hover:text-[#2563eb]" onClick={() => setIsMobileMenuOpen(false)}>
           vs Others
-        </a>
-        <a href="#pricing" className="text-white hover:text-[#2563eb]" onClick={() => setIsMobileMenuOpen(false)}>
+        </Link>
+        <Link href="/#pricing" className="text-white hover:text-[#2563eb]" onClick={() => setIsMobileMenuOpen(false)}>
           Pricing
-        </a>
+        </Link>
         <Link href="/docs" className="text-[#2563eb] hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>
           Documentation
         </Link>
