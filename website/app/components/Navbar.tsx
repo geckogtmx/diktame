@@ -68,7 +68,7 @@ export function Navbar() {
               Dashboard
             </Link>
           ) : (
-            <Link href="/login" className="btn-primary py-2.5 px-8 text-xs shadow-none hover:shadow-glow">
+            <Link href="/waitlist" className="btn-primary py-2.5 px-8 text-xs shadow-none hover:shadow-glow">
               Sign Up
             </Link>
           )}
@@ -108,7 +108,7 @@ export function Navbar() {
             Dashboard
           </Link>
         ) : (
-          <Link href="/login" className="btn-primary w-full justify-center" onClick={() => setIsMobileMenuOpen(false)}>
+          <Link href="/waitlist" className="btn-primary w-full justify-center" onClick={() => setIsMobileMenuOpen(false)}>
             Sign Up
           </Link>
         )}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useHeroScroll } from '@/lib/animations/useHeroScroll';
+import Link from 'next/link';
 
 export function HeroSection() {
   const { translateY } = useHeroScroll();
@@ -61,12 +62,15 @@ export function HeroSection() {
           {/* CTAs */}
           <div className="flex flex-col items-center gap-8">
             {/* Primary Action: Windows */}
-            <button className="btn-primary justify-center w-full sm:w-auto text-lg px-12 py-5 shadow-glow hover:scale-105 transition-all">
+            <Link 
+              href="/waitlist"
+              className="btn-primary justify-center w-full sm:w-auto text-lg px-12 py-5 shadow-glow hover:scale-105 transition-all"
+            >
               Download for Windows
               <span className="text-xs font-normal opacity-80 block ml-2 border-l border-white/20 pl-2">
                 v0.1 • Free
               </span>
-            </button>
+            </Link>
 
             {/* Platform Badges */}
             <div className="flex flex-wrap items-center justify-center gap-8 text-xs font-medium text-[#94a3b8]/60 uppercase tracking-widest">

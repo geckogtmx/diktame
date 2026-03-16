@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { FeaturesModal } from './FeaturesModal';
 
 export function PricingSection() {
@@ -44,9 +45,12 @@ export function PricingSection() {
                   <span className="text-[#ef4444]">✕</span> No Offline AI (Cloud Only)
                 </li>
               </ul>
-              <button className="w-full py-3 rounded-lg bg-white/10 text-white font-bold hover:scale-105 transition-transform mt-auto hover:bg-white/20 border border-white/20">
+              <Link 
+                href="/waitlist"
+                className="w-full py-3 rounded-lg bg-white/10 text-white font-bold hover:scale-105 transition-transform mt-auto hover:bg-white/20 border border-white/20 text-center"
+              >
                 Start Free Trial
-              </button>
+              </Link>
               <p className="text-xs text-[#94a3b8] mt-4 text-center">Pre-loaded wallet included.</p>
             </div>
             {/* Power Version ($25) */}
@@ -83,9 +87,12 @@ export function PricingSection() {
               >
                 + See all 45+ features
               </button>
-              <button className="w-full py-3 rounded-lg bg-orange-400 text-black font-bold hover:scale-105 transition-transform mt-auto hover:bg-orange-300">
+              <Link 
+                href="/waitlist"
+                className="w-full py-3 rounded-lg bg-orange-400 text-black font-bold hover:scale-105 transition-transform mt-auto hover:bg-orange-300 text-center"
+              >
                 Get Power
-              </button>
+              </Link>
               <p className="text-xs text-[#94a3b8] mt-4 text-center">One-time payment. Forever.</p>
             </div>
           </div>
@@ -109,9 +116,12 @@ export function PricingSection() {
 
             <div className="text-center md:text-right flex flex-col items-center md:items-end min-w-[200px]">
 
-              <button className="w-full md:w-auto px-8 py-3 rounded-xl border border-white/20 hover:bg-white hover:text-black transition-all whitespace-nowrap text-white">
+              <Link 
+                href="/waitlist"
+                className="w-full md:w-auto px-8 py-3 rounded-xl border border-white/20 hover:bg-white hover:text-black transition-all whitespace-nowrap text-white text-center"
+              >
                 Start Learning
-              </button>
+              </Link>
             </div>
           </div>
 
