@@ -83,7 +83,7 @@ export async function sendWaitlistInvite(senderId: string, senderName: string, r
   // 3. Trigger Edge Function (fire and forget or wait for success)
   try {
     const functionUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/waitlist-invite`;
-    await fetch(functionUrl, {
+    const response = await fetch(functionUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -91,9 +91,13 @@ export async function sendWaitlistInvite(senderId: string, senderName: string, r
       },
       body: JSON.stringify({ senderName, recipientEmail }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Edge Function returned error:', response.status, errorData);
+    }
   } catch (e) {
-    console.error('Email trigger failed:', e);
-    // We don't block the UI here as the database record is saved
+    console.error('Email trigger connection failed:', e);
   }
 
   return { success: true };
