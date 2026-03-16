@@ -5,6 +5,7 @@ import "./globals.css";
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://dikta.me"),
   title: "dIKta.me - Private AI Voice Dictation for Windows",
   description: "Local, fast, intelligent voice-to-text powered by on-device AI. No cloud, no subscriptions, no compromise on privacy.",
   keywords: ["voice dictation", "speech recognition", "AI", "local AI", "privacy", "Windows"],
@@ -15,13 +16,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://dikta.me",
+    url: "/",
     title: "dIKta.me - Private AI Voice Dictation",
     description: "Local, fast, intelligent voice-to-text powered by on-device AI.",
     siteName: "dIKta.me",
     images: [
       {
-        url: "https://dikta.me/og-image.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "dIKta.me - AI Voice Dictation",
@@ -32,10 +33,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "dIKta.me - Private AI Voice Dictation",
     description: "Local, fast, intelligent voice-to-text powered by on-device AI.",
-    images: ["https://dikta.me/og-image.png"],
+    images: ["/og-image.png"],
     creator: "@diktate_app",
   },
-
 };
 
 export default function RootLayout({
