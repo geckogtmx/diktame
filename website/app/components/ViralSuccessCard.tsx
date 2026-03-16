@@ -42,10 +42,19 @@ export function ViralSuccessCard({ senderId, senderName }: ViralSuccessCardProps
 
     if (result.error) {
       setError(result.error);
+
+      // Log details for debugging (visible in browser console)
+      console.error('Invitation error details:', result);
     } else {
       setInvites([...invites, currentEmail]);
       setCurrentEmail('');
-      setSuccess(`Priority pass gifted to ${currentEmail}!`);
+
+      // Differentiate between email sent vs. just recorded
+      if (result.emailSent) {
+        setSuccess(`Priority pass emailed to ${currentEmail}!`);
+      } else {
+        setSuccess(`Invitation recorded for ${currentEmail} (email status unknown)`);
+      }
     }
   }
 

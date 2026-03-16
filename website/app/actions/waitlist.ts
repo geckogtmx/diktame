@@ -86,7 +86,7 @@ export async function sendWaitlistInvite(senderId: string, senderName: string, r
     return { error: 'Invitation failed. Please try again.' };
   }
 
-  // 3. Trigger Edge Function (fire and forget or wait for success)
+  // 3. Trigger Edge Function and handle errors
   try {
     const functionUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/waitlist-invite`;
     const response = await fetch(functionUrl, {
@@ -99,13 +99,34 @@ export async function sendWaitlistInvite(senderId: string, senderName: string, r
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
       console.error('Edge Function returned error:', response.status, errorData);
+
+      return {
+        error: 'Failed to send invitation email. The invitation was recorded but email delivery failed.',
+        emailSent: false
+      };
     }
+
+    // Verify Resend response
+    const resendResponse = await response.json();
+    if (resendResponse.error) {
+      console.error('Resend API error:', resendResponse.error);
+      return {
+        error: 'Email service error. The invitation was recorded but email may not have been sent.',
+        emailSent: false
+      };
+    }
+
+    return { success: true, emailSent: true };
+
   } catch (e) {
     console.error('Email trigger connection failed:', e);
+    return {
+      error: 'Network error while sending email. Please check your connection and try again.',
+      emailSent: false
+    };
   }
-  return { success: true };
 }
 
 export async function getWaitlistInvites(senderId: string) {

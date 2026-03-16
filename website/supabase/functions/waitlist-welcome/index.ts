@@ -40,7 +40,8 @@ serve(async (req) => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "dIKta.me <onboarding@resend.dev>",
+        from: "dIKta.me <welcome@dikta.me>",
+        replyTo: "geckogt@gmail.com",
         to: [email],
         subject: "Welcome to the dIKta.me Waitlist!",
         html: `
@@ -51,7 +52,7 @@ serve(async (req) => {
               body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020617; color: #ffffff; margin: 0; padding: 40px; }
               .container { max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 40px; }
               .logo { font-size: 24px; font-weight: bold; color: #ffffff; margin-bottom: 32px; display: flex; align-items: center; gap: 8px; }
-              const-dot { color: #2563eb; }
+              .dot { color: #2563eb; }
               h1 { font-size: 28px; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em; }
               p { font-size: 16px; line-height: 1.6; color: #94a3b8; margin-bottom: 24px; }
               .highlight { color: #2563eb; font-weight: 600; }
