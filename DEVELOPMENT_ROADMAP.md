@@ -1,10 +1,33 @@
 # dIKta.me V2 — Development Roadmap (C# + WinUI 3 Rewrite)
 
 **Status:** Feature Complete (Streams A–L + TTS complete; H.1 remaining for release)
-**Date:** 2026-03-14
+**Date:** 2026-03-16
 **Parent:** V1 `SPEC_039_STRATEGIC_ROADMAP.md` (in diktate repo)
 **Supersedes:** Python modular split approach (deemed throwaway work)
 **Target:** Native Windows app — single process, modular architecture, self-contained installer
+
+---
+
+## Next 10 Steps (2026-03-16)
+
+> **Context:** Core engine is feature-complete with 968 tests. SPEC_009 FIX-1 through FIX-16 done (15/17). SPEC_008 (Wallet) and SPEC_004 (i18n) verified complete. SPEC_015 (Modules Sprint) fully spec'd as DRAFT. The items below are ordered to maximize shippability — steps 1-4 close all loose ends and produce a releasable V2.0, steps 5-10 build the SPEC_015 modules.
+
+| # | Task | Scope | Rationale |
+|---|------|-------|-----------|
+| **1** | **FIX-17: TTS wizard step** | `WizardViewModel`, new `WizardTtsPage`, `WizardWindow`, `Resources.resw` x2 | Spec + test matrix ready (`SPEC_009_WIZARD_FLOW.md`). Closes wizard TTS gap — users discover Kokoro. Local path gets fully offline (Whisper + Ollama + Kokoro). |
+| **2** | **FIX-1: Wallet terminology** | Wizard strings only | Was deferred on SPEC_008 — now COMPLETE. Quick text swap ("Trial" → "Wallet"). Closes all 17 SPEC_009 FIXes. |
+| **3** | **L.5: Streaming UI toggle** | Manual test only | Listed as pending. 15 min manual test pass, marks Stream L fully done. |
+| **4** | **H.1: Installer (Inno Setup)** | New `installer/` directory | Only hard blocker before V2.0 ships. Enables dogfooding + beta testing while building modules. |
+| **5** | **SPEC_015 Phase 0A: Factory tests** | `STTProviderFactoryTests`, `LLMProviderFactoryTests` (~28 tests) | Closes SPEC_009 test gap. No dependencies, fast (~1 session). |
+| **6** | **SPEC_015 Phase 0B: Plugin infrastructure** | `DiktaMe.Plugin.Abstractions` project: `IPlugin`, `PipelineEventBus`, `PluginManager`, `PluginUIRegistry` | Foundation — every plugin depends on this. Nothing parallelizes until 0B is done. |
+| **7** | **SPEC_015 Phase 0C: Vision core** | `ScreenCapture`, `ImageProcessor`, multimodal LLM, `VisionPipeline`, new hotkey (TBD — `Ctrl+Alt+S` conflicts with ReadSelection) | Killer feature (screenshot → AI at cursor). Lives in Core, not a plugin. High market differentiation. |
+| **8** | **SPEC_015 Phases A-C: Connectors** | `IConnector` framework + Obsidian + Webhook/Discord/Streamer.bot | Most user-visible module. "Voice to Obsidian" is unique on any platform. |
+| **9** | **SPEC_015 Phases O-Q: Memory** | SQLite+VSS, embedding model, pipeline hooks, Settings page | Fully independent track (parallel with Connectors after 0B). Semantic memory = product improves with use. |
+| **10** | **SPEC_015 Phases D-E: Meetings** | Session engine + Scribe window | Heaviest module — save for when Connectors and Memory are stable. |
+
+**Key principle:** Don't block shipping on SPEC_015. After step 4, V2.0 is releasable. Modules ship as incremental updates.
+
+**Full SPEC_015 details:** [`plans/SPEC_015_MODULES_SPRINT.md`](plans/SPEC_015_MODULES_SPRINT.md) (17 phases, 18-23 sessions, ~146 new tests)
 
 ---
 
@@ -1999,6 +2022,6 @@ The core engine (Streams A-L, TTS) is feature-complete. The final V2 development
 
 **Document Status:** IN PROGRESS
 **Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, H.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅, Control Panel V2 rework (Phase 1–3) ✅, Session stats rework (REQ/CHAR/WORDS/WORD-MIN) ✅, Perf row reorder + tooltips ✅, Header badge truncation ✅, **K.1–K.7 (Stream K Complete ✅)**, **K.8–K.12 + M.1–M.4 (Wallet System Complete ✅)**, **L.1–L.4 (Deepgram Streaming)** ✅, L.5 ⏳ (manual test pending), **TTS (SPEC_003_TTS_V2 Complete ✅)**
-**Remaining:** H.1 (Installer), I.6 (Website Rebrand), L.5 (Streaming UI toggle — pending manual test), **SPEC_015 Modules Sprint (17 phases)**
+**Remaining:** FIX-17 (TTS wizard step), FIX-1 (Wallet terminology), H.1 (Installer), I.6 (Website Rebrand), L.5 (Streaming UI toggle — pending manual test), **SPEC_015 Modules Sprint (17 phases)**
 **Build:** 0 errors, 0 warnings | **Tests:** 968 passing
 **Modules Sprint:** [`plans/SPEC_015_MODULES_SPRINT.md`](plans/SPEC_015_MODULES_SPRINT.md)

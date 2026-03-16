@@ -22,7 +22,7 @@
 | **K** | OAuth & Trial Credits — K.1-K.7 (open bugs below) |
 | **L** | Deepgram Streaming — L.1-L.5 committed. L.6-L.7 (Flux) deferred. |
 | **SPEC_007** | Chat Feature Upgrade — 14/14 tasks complete (committed) |
-| **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-G complete, FIX-1 through FIX-16 (15/16 done, FIX-1 deferred to SPEC_008) |
+| **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-G complete, FIX-1 through FIX-16 (15/17 done; FIX-1 unblocked by SPEC_008, FIX-17 TTS wizard step pending) |
 | **SPEC_011** | Ollama Management Hub — Core API, search service, Settings UI, E2E warmup, 22 new tests |
 | **DOCS_V2** | Exhaustive User documentation (Features & Settings), integrated natively into the Next.js Website via Markdown |
 | **SPEC_003 A–G** | TTS: Core infra, Kokoro local, Read Selection hotkey, pipeline hooks, cloud providers, Settings UI + Control Panel toggle, Phase G polish + E2E bugfixes. 282 new tests. **All 40 tasks complete. E2E verified.** |
@@ -73,7 +73,14 @@
 
 ## Current Work
 
-**No active spec.** Ready for next task.
+**Next 10 Steps** defined in `DEVELOPMENT_ROADMAP.md` (top of file). Priority order:
+1. **FIX-17**: TTS wizard step (spec + test matrix ready in `SPEC_009_WIZARD_FLOW.md`)
+2. **FIX-1**: Wallet terminology (unblocked — SPEC_008 COMPLETE)
+3. **L.5**: Streaming UI toggle (manual test only)
+4. **H.1**: Installer — only hard blocker before V2.0 ships
+5–10. **SPEC_015 Modules Sprint** — plugin infra → Vision → Connectors → Memory → Meetings
+
+After step 4, V2.0 is releasable. Modules ship as incremental updates.
 
 ## Recent Session: Settings Rework + Gemini TTS + UX Improvements (2026-03-15)
 
@@ -332,12 +339,32 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 
 `tts_played_ms` column added to SQLite history table. Ask, Translate, and ReadSelection pipelines now persist TTS latency. Notification TTS wired via `ShowToast` → `SpeakIfEnabledAsync("notification")` with `suppressTts` to prevent double-speak on Ask answers.
 
-### Tier 2 — Post-local-mode
+### Tier 2 — Ship Blockers (Steps 1-4)
+
+| Task | Effort | Status |
+|------|--------|--------|
+| **FIX-17** | TTS wizard step (Off / Local Kokoro / Cloud Deepgram) | Pending — spec ready (`SPEC_009_FIXES.md`, `SPEC_009_WIZARD_FLOW.md`) |
+| **FIX-1** | Wizard: Trial → Wallet terminology | Unblocked — SPEC_008 now COMPLETE |
+| **L.5** | Streaming UI toggle | Manual test pass only (~15 min) |
+| **H.1** | Installer (Inno Setup) | Only hard blocker before V2.0 ships |
+
+### Tier 3 — Modules (Steps 5-10, SPEC_015)
 
 | Task | Effort |
 |------|--------|
-| **FIX-1** | Wizard: Trial → Wallet terminology (deferred, depends on SPEC_008) |
-| **H.1** | Installer (MSIX or Inno Setup) |
+| **Phase 0A** | Factory tests (~28 tests, ~1 session) |
+| **Phase 0B** | Plugin infrastructure: `IPlugin`, `PipelineEventBus`, `PluginManager`, `PluginUIRegistry` |
+| **Phase 0C** | Vision core: screenshot → AI at cursor (new hotkey TBD — `Ctrl+Alt+S` conflicts with ReadSelection) |
+| **Phases A-C** | Connectors: `IConnector` + Obsidian + Webhook/Discord/Streamer.bot |
+| **Phases O-Q** | Memory: SQLite+VSS, embedding model, pipeline hooks |
+| **Phases D-E** | Meetings: session engine + Scribe window (heaviest module, do last) |
+
+Full spec: `plans/SPEC_015_MODULES_SPRINT.md` (17 phases, 18-23 sessions)
+
+### Tier 4 — Deferred
+
+| Task | Effort |
+|------|--------|
 | **LemonSqueezy** | License integration, device binding, trial abuse prevention |
 | Cloud latency tuning | Cloud inference profiling |
 | Control Panel wiring | RAW toggle→pipeline, REFINE toggle→pipeline (see `plans/CONTROL_PANEL_REWORK.md`) |
@@ -349,11 +376,13 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 - `ARCHITECTURE.md` — Technical architecture
 - `SECURITY.md` — GitHub security policy
 - `plans/SPEC_009_LOCALFLOW.md` — Local mode E2E spec + GPU investigation (§12)
-- `plans/SPEC_009_FIXES.md` — Wizard + local mode fix tracker (15/16 complete, FIX-1 deferred to SPEC_008)
+- `plans/SPEC_009_FIXES.md` — Wizard + local mode fix tracker (15/17 complete; FIX-1 unblocked, FIX-17 pending)
 - `plans/SPEC_009_TESTING.md` — Manual test scenarios
 - `plans/SPEC_KOKORO_GPU.md` — Kokoro DirectML GPU acceleration plan (**BLOCKED** — ConvTranspose incompatibility)
 - `plans/SPEC_003_TTS_V2.md` — TTS implementation plan (40 tasks, 7 phases, complete)
 - `plans/SPEC_003_TTS.md` — TTS research reference (V1 draft, superseded by V2)
-- `plans/SPEC_001_MEETINGS.md` / `SPEC_002_VISION.md` — Post-launch feature specs
+- `plans/SPEC_015_MODULES_SPRINT.md` — Modules Sprint: plugin infra, Vision, Connectors, Memory, Meetings (17 phases, DRAFT)
+- `plans/SPEC_009_WIZARD_FLOW.md` — Complete wizard path test matrix (14 paths, target-state for FIX-17)
+- `plans/SPEC_001_MEETINGS.md` / `SPEC_002_VISION.md` — Post-launch feature specs (superseded by SPEC_015)
 - `plans/SPEC_011_OLLAMA.md` — Ollama Management Hub spec (implemented)
 - `plans/archive/` — Completed implementation plans (Stream F, K, OAuth Restructure, etc.)
