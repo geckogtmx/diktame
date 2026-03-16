@@ -16,7 +16,7 @@ export async function submitWaitlist(formData: FormData) {
     return { error: 'Please enter a valid email address.' };
   }
 
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { data, error } = await supabase
     .from('waiting_list')
@@ -59,7 +59,7 @@ export async function sendWaitlistInvite(senderId: string, senderName: string, r
     return { error: 'Missing information.' };
   }
 
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   // 1. Check invite count
   const { count, error: countError } = await supabase
