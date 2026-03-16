@@ -89,8 +89,39 @@ serve(async (req) => {
 
     const data = await res.json();
 
-    return new Response(JSON.stringify(data), {
-      status: res.status,
+    // If Resend returned an error, pass it through
+    if (!res.ok || data.error) {
+      console.error('Resend API error:', res.status, data);
+      return new Response(JSON.stringify({ error: data.error || data.message || 'Email sending failed' }), {
+        status: 500,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
+
+    // Send notification to owner (fire and forget - don't block on errors)
+    fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "dIKta.me Waitlist <welcome@dikta.me>",
+        to: ["geckogt@gmail.com"],
+        subject: `🎉 New Waitlist Signup: ${name}`,
+        html: `
+          <p><strong>New waitlist signup!</strong></p>
+          <p><strong>Name:</strong> ${name}<br>
+          <strong>Email:</strong> ${email}<br>
+          <strong>Time:</strong> ${new Date().toLocaleString()}</p>
+          <p>View all signups in your <a href="https://supabase.com/dashboard/project/volwljbiyzvvcqqdojyf/editor">Supabase Dashboard</a></p>
+        `,
+      }),
+    }).catch(err => console.error('Owner notification failed:', err));
+
+    // Success - return the Resend email ID
+    return new Response(JSON.stringify({ id: data.id, success: true }), {
+      status: 200,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   } catch (error) {
