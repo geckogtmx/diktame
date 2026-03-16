@@ -99,6 +99,22 @@ export async function sendWaitlistInvite(senderId: string, senderName: string, r
   } catch (e) {
     console.error('Email trigger connection failed:', e);
   }
-
   return { success: true };
+}
+
+export async function getWaitlistInvites(senderId: string) {
+  if (!senderId) return { invites: [] };
+
+  const supabase = await createAdminClient();
+  const { data, error } = await supabase
+    .from('waitlist_invites')
+    .select('recipient_email')
+    .eq('sender_id', senderId);
+
+  if (error) {
+    console.error('Error fetching invites:', error);
+    return { invites: [] };
+  }
+
+  return { invites: data.map((i: any) => i.recipient_email) };
 }

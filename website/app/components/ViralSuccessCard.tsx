@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { sendWaitlistInvite } from '../actions/waitlist';
+import { useState, useEffect } from 'react';
+import { sendWaitlistInvite, getWaitlistInvites } from '../actions/waitlist';
 
 interface ViralSuccessCardProps {
   senderId: string;
@@ -17,6 +17,16 @@ export function ViralSuccessCard({ senderId, senderName }: ViralSuccessCardProps
 
   const inviteLimit = 5;
   const remaining = inviteLimit - invites.length;
+
+  useEffect(() => {
+    async function fetchInvites() {
+      const { invites: existingInvites } = await getWaitlistInvites(senderId);
+      if (existingInvites && existingInvites.length > 0) {
+        setInvites(existingInvites);
+      }
+    }
+    fetchInvites();
+  }, [senderId]);
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
