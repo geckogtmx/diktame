@@ -24,6 +24,11 @@ export async function submitWaitlist(formData: FormData) {
     .insert([{ name, email }]);
 
   if (error) {
+    // Check for unique constraint violation (Postgres error code 23505)
+    if (error.code === '23505') {
+      return { success: true, message: "You're already on the list! We'll stay in touch." };
+    }
+    
     console.error('Waitlist submission error:', error);
     return { error: 'Something went wrong. Please try again.' };
   }

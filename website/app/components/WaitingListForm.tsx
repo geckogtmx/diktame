@@ -20,7 +20,10 @@ export function WaitingListForm() {
     if (result.error) {
       setMessage({ type: 'error', text: result.error });
     } else if (result.success) {
-      setMessage({ type: 'success', text: 'Thank you! You have been added to the waiting list.' });
+      setMessage({ 
+        type: 'success', 
+        text: result.message || 'Thank you! You have been added to the waiting list.' 
+      });
       (event.target as HTMLFormElement).reset();
     }
   }
