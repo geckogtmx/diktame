@@ -26,27 +26,28 @@ export async function submitWaitlist(formData: FormData) {
 
   if (error) {
     if (error.code === '23505') {
-      // If they already exist, try to get their ID for the viral card, but don't fail if we can't
-      try {
-        const { data: existing } = await supabase
+      console.log(`Duplicate waitlist signup attempt: ${email}`);
+      // Try to get user data for the viral card, but handle RLS failures gracefully
+      const { data: existing, error: selectError } = await supabase
           .from('waiting_list')
           .select('id, name')
           .eq('email', email)
           .maybeSingle();
-          
-        return { 
-          success: true, 
-          id: existing?.id,
-          name: existing?.name,
-          message: "You're already on the list! Spread the word to get priority access." 
-        };
-      } catch (e) {
-        return { success: true, message: "You're already on the list! We'll stay in touch." };
+      
+      if (selectError) {
+        console.warn('RLS blocked existing user lookup, returning generic success.');
       }
+
+      return { 
+        success: true, 
+        id: existing?.id,
+        name: existing?.name,
+        message: "You're already on the list! Spread the word to get priority access." 
+      };
     }
     
-    console.error('Waitlist submission error:', error);
-    return { error: 'Something went wrong. Please try again.' };
+    console.error('Waitlist submission error:', error, error.code, error.message);
+    return { error: `Submission failed: ${error.message || 'Unknown error'}` };
   }
 
   revalidatePath('/waitlist');
