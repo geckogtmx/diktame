@@ -122,10 +122,14 @@ dotnet test DiktaMe.sln
 ✅ **UI:** WinUI 3 Settings window (10 tabs), Control Panel, First-Run Wizard, Notifications
 ✅ **Website Rebrand:** Comprehensive user docs and marketing on dikta.me
 
-### What's Next (H Stream & Wallet)
+### What's Next (Modular Sprint & Distribution)
 
+⏳ **Connectors & Integrations:** SPEC_015 Native plugins for Slack, Notion, etc.
+⏳ **Meetings & Scribe:** Intelligent transcription and meeting notes.
+⏳ **Vision & See:** Multimodal screen-aware AI capabilities.
+⏳ **Memory Layer:** Strategic contextual persistence.
 ⏳ **Unified Wallet System:** Credits & BYOK prep (`SPEC_008_WALLET.md`)
-⏳ **Installer:** MSIX or Inno Setup (~70MB compressed)
+⏳ **Installer:** Native MSIX or Inno Setup (~30MB target size)
 
 ---
 

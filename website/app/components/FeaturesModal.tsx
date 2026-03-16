@@ -69,10 +69,10 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
                     <strong className="text-white">+Key (Auto-Enter)</strong> — Configurable spacing & keys (Enter/Tab)
                   </li>
                   <li>
-                    <strong className="text-white">Offline Operation</strong> — Zero cloud dependencies
+                    <strong className="text-white">Audio Ducking</strong> — Auto-lowers background music while recording
                   </li>
                   <li>
-                    <strong className="text-white">Smart Fallback</strong> — Never lose a transcription
+                    <strong className="text-white">Sound Feedback</strong> — Audible cues for pipeline states
                   </li>
                   <li>
                     <strong className="text-white">Oops Mode</strong> — Re-inject last dictation (Ctrl+Alt+V)
@@ -94,7 +94,7 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
                     <strong className="text-white">Prompt Mode</strong> — AI instruction processing
                   </li>
                   <li>
-                    <strong className="text-white">RAW Mode</strong> — Unfiltered stream for maximum speed
+                    <strong className="text-white">Quick Chat (Ctrl+Alt+C)</strong> — Floating LLM overlay
                   </li>
                   <li>
                     <strong className="text-white">Ask Mode (Ctrl+Alt+A)</strong> — Query local LLM instantly
@@ -106,7 +106,7 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
                     <strong className="text-white">Translate Mode (Ctrl+Alt+T)</strong> — Real-time ES ↔ EN
                   </li>
                   <li>
-                    <strong className="text-white">Structured Notes (Ctrl+Alt+N)</strong> — Timestamped capture
+                    <strong className="text-white">Voice Snippets</strong> — Phrase-triggered text expansion
                   </li>
                 </ul>
               </section>
@@ -116,7 +116,7 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
                 <h4 className="text-[#2563eb] font-mono text-xs uppercase tracking-widest mb-4">AI Intelligence</h4>
                 <ul className="space-y-2 text-sm text-[#94a3b8]">
                   <li>
-                    <strong className="text-white">Local Model Brain</strong> — Gemma 3 4B integrated
+                    <strong className="text-white">Local Model Brain</strong> — Gemma 3 / Llama 3 support
                   </li>
                   <li>
                     <strong className="text-white">Cloud Bridge</strong> — Seamless Google OAuth for Gemini 2.0
@@ -144,7 +144,7 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
                     <strong className="text-white">100% Air-Gapped</strong> — No telemetry, no tracking
                   </li>
                   <li>
-                    <strong className="text-white">PII Scrubbing</strong> — Automatic sensitive data removal from logs
+                    <strong className="text-white">PII Scrubbing</strong> — Automatic sensitive data removal
                   </li>
                   <li>
                     <strong className="text-white">Encrypted Storage</strong> — OS-level AES-256 for API keys
@@ -158,40 +158,21 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
                 </ul>
               </section>
 
-              {/* Translation */}
-              <section>
-                <h4 className="text-[#2563eb] font-mono text-xs uppercase tracking-widest mb-4">Translation</h4>
-                <ul className="space-y-2 text-sm text-[#94a3b8]">
-                  <li>
-                    <strong className="text-white">Bilingual Engine</strong> — English ↔ Spanish real-time
-                  </li>
-                  <li>
-                    <strong className="text-white">No API Keys</strong> — Translation runs locally
-                  </li>
-                  <li>
-                    <strong className="text-white">Context-Aware</strong> — Understands idioms and phrases
-                  </li>
-                  <li>
-                    <strong className="text-white">Zero-Latency</strong> — Model-level integration
-                  </li>
-                </ul>
-              </section>
-
               {/* Technical */}
               <section>
                 <h4 className="text-[#2563eb] font-mono text-xs uppercase tracking-widest mb-4">Technical</h4>
                 <ul className="space-y-2 text-sm text-[#94a3b8]">
                   <li>
-                    <strong className="text-white">Self-Contained Binary</strong> — 150MB portable .exe
+                    <strong className="text-white">Self-Contained Binary</strong> — ~30MB portable .exe
                   </li>
                   <li>
-                    <strong className="text-white">Embedded Ollama</strong> — Python runtime included
+                    <strong className="text-white">Native Performance</strong> — Built with C# and WinUI 3
                   </li>
                   <li>
                     <strong className="text-white">Floating Pill UI</strong> — Minimal, unobtrusive overlay
                   </li>
                   <li>
-                    <strong className="text-white">Hackable Core</strong> — Built on ZeroMQ, plugin-ready
+                    <strong className="text-white">Hackable Core</strong> — Plugin-ready architecture
                   </li>
                   <li>
                     <strong className="text-white">Source-Available</strong> — Full code access (Power tier)
@@ -199,18 +180,27 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
                 </ul>
               </section>
 
-              {/* Future */}
+              {/* Future Roadmap */}
               <section>
                 <h4 className="text-[#2563eb] font-mono text-xs uppercase tracking-widest mb-4">Coming Soon</h4>
                 <ul className="space-y-2 text-sm text-[#94a3b8]">
                   <li>
-                    <strong className="text-white">Voice Macros (v2.0)</strong> — Programmable snippets
+                    <strong className="text-white">Connectors</strong> — Integration with Slack, Notion, etc.
                   </li>
                   <li>
-                    <strong className="text-white">More Languages</strong> — French, German, etc.
+                    <strong className="text-white">Meetings & Scribe</strong> — Intelligent meeting transcription
                   </li>
                   <li>
-                    <strong className="text-white">macOS & Linux</strong> — Cross-platform support
+                    <strong className="text-white">Vision & See</strong> — Screen-aware contextual AI
+                  </li>
+                  <li>
+                    <strong className="text-white">Memory Layer</strong> — Persistent memory for your workflow
+                  </li>
+                  <li>
+                    <strong className="text-white">Stream Deck</strong> — Native Elgato plugin support
+                  </li>
+                  <li>
+                    <strong className="text-white">Cross-Platform</strong> — MacOS and Linux support
                   </li>
                 </ul>
               </section>
