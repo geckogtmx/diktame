@@ -38,7 +38,7 @@ export function CoreArsenalSection() {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3">Dictate</h3>
                 <p className="text-sm text-muted leading-relaxed">
-                  The Input. 1,000 WPM local transcription with RAW Mode for instant, unfiltered injection into any
+                  The Input. 1,000 WPM text injection with RAW Mode for instant, unfiltered dictation into any
                   application.
                 </p>
               </div>

@@ -39,8 +39,8 @@ export function VersusSection() {
                     }`}
                 >
                   <td className="py-4 px-6 text-white font-medium">Speed</td>
-                  <td className="py-4 px-6 text-[#94a3b8]">800-1200ms Latency/Inference</td>
-                  <td className="py-4 px-6 text-[#2563eb] font-bold">~400ms (Local GPU Inference - gemma3:1b *)</td>
+                  <td className="py-4 px-6 text-muted">800-1200ms Latency/Inference</td>
+                  <td className="py-4 px-6 text-primary font-bold">~400ms Local Inference *</td>
                 </tr>
                 <tr
                   id="vs-row-3"
@@ -67,7 +67,7 @@ export function VersusSection() {
                 >
                   <td className="py-4 px-6 text-white font-medium">Cost</td>
                   <td className="py-4 px-6 text-muted">$240 / year</td>
-                  <td className="py-4 px-6 text-primary font-bold">$10 - $25 (Once)</td>
+                  <td className="py-4 px-6 text-primary font-bold">$25 (Once)</td>
                 </tr>
                 <tr
                   id="vs-row-6"
@@ -75,8 +75,8 @@ export function VersusSection() {
                     }`}
                 >
                   <td className="py-4 px-6 text-white font-medium">Word Limits</td>
-                  <td className="py-4 px-6 text-[#94a3b8]">Capped</td>
-                  <td className="py-4 px-6 text-[#2563eb] font-bold">Unlimited while on Local</td>
+                  <td className="py-4 px-6 text-muted">Capped</td>
+                  <td className="py-4 px-6 text-primary font-bold">Unlimited while on Local</td>
                 </tr>
                 <tr
                   id="vs-row-7"
@@ -88,6 +88,13 @@ export function VersusSection() {
                   <td className="py-4 px-6 text-primary font-bold">Works in a Bunker</td>
                 </tr>
               </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan={3} className="py-3 px-6 text-xs text-muted/60 italic">
+                    * Measured with gemma3:4b on consumer GPU. Results vary by hardware.
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>

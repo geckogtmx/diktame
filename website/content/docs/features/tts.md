@@ -23,7 +23,7 @@ The TTS pipeline operates quietly and intelligently:
 
 dIKta.me offers multiple engines for generating speech, which you can configure in the [TTS Settings](../settings/tts):
 
-*   **Kokoro (Local):** A completely offline, extremely fast local ONNX model that runs on your CPU or GPU.
+*   **Kokoro (Local):** A completely offline, extremely fast local ONNX model that runs on your CPU.
 *   **Deepgram Aura-2:** A high-quality cloud option utilizing your existing Deepgram API key.
 *   **Inworld & OpenAI:** Premium cloud voices for the highest quality dialogue.
 

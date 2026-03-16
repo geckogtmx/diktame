@@ -1,0 +1,44 @@
+# dIKta.me
+
+> Local, fast, intelligent voice-to-text powered by on-device AI for Windows.
+
+## What is dIKta.me?
+
+dIKta.me is a privacy-first AI voice dictation application for Windows 10+. It runs speech recognition (Whisper V3 Turbo) and language models (Gemma 3, Llama 3) entirely on the user's local GPU — no cloud, no subscriptions, no data leaves the machine.
+
+## Key Features
+
+- Push-to-Talk dictation with global hotkey (Ctrl+Alt+D)
+- Local Whisper V3 Turbo for speech-to-text
+- Local LLM integration via Ollama (Gemma 3 4B default)
+- Text injection at 1,000 WPM into any Windows application
+- Ask Mode (Ctrl+Alt+A) — voice Q&A with local LLM
+- Refine Mode (Ctrl+Alt+R) — AI-powered text editing
+- Translate Mode (Ctrl+Alt+T) — English/Spanish bidirectional
+- Quick Chat (Ctrl+Alt+C) — floating LLM overlay
+- Read Selection (Ctrl+Alt+Q) — text-to-speech via local Kokoro engine
+- Voice Snippets — phrase-triggered text expansion
+- Audio Ducking — auto-lowers background music during recording
+- Streaming Dictation — real-time transcription via cloud (optional)
+- PII scrubbing and encrypted credential storage
+
+## Pricing
+
+- Free Trial: Complimentary cloud credits included
+- Power License: $25 one-time purchase (unlimited local use)
+
+## Technical
+
+- Built with C# and WinUI 3
+- Self-contained .exe (no runtime install required)
+- Windows 10+ only (x64)
+- NVIDIA GPU recommended for local STT/LLM
+
+## Links
+
+- Website: https://dikta.me
+- Features: https://dikta.me/features
+- Pricing: https://dikta.me/pricing
+- Documentation: https://dikta.me/docs
+- Waitlist: https://dikta.me/waitlist
+- GitHub: https://github.com/geckogtmx/diktame

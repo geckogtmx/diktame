@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Pricing - dIKta.me',
-  description: 'Simple, transparent pricing. One-time purchase, no subscriptions, no hidden fees.',
+  description: 'One-time $25 purchase for unlimited local voice dictation. No subscriptions, no word limits, no cloud dependency. Free trial with complimentary credits included.',
 };
 
 export default function PricingPage() {

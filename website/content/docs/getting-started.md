@@ -6,8 +6,8 @@ Welcome! Let's get you set up with **dIKta.me**. Itâ€™s simpler than you thinkâ€
 
 Since V2 is a native Windows app, it just works.
 
-1.  **Download**: Grab the latest `DiktaMe_Setup.exe` from our [Releases page](https://github.com/geckogtmx/diktame/releases).
-2.  **Run**: Double-click the installer.
+1.  **Download**: dIKta.me is currently in early access. [Join the waitlist](https://dikta.me/waitlist) to be notified when downloads are available.
+2.  **Run**: Once available, double-click the installer.
     > *Heads up: Since we're a new app, Windows might ask if you trust us. Click "More info" -> "Run anyway" to proceed.*
 3.  **Done**: dIKta.me will launch automatically and settle into your system tray.
 

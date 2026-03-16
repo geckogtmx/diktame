@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Features - dIKta.me',
-  description: 'Explore all 45+ features that make dIKta.me the most powerful voice dictation tool for Windows.',
+  description: 'Explore 45+ features including local Whisper STT, AI-powered editing, voice snippets, real-time translation, and text-to-speech — all running privately on your Windows PC.',
 };
 
 const featureCategories = [
@@ -32,7 +32,7 @@ const featureCategories = [
     category: 'Privacy & Tech',
     features: [
       { name: '100% Local', description: 'Process everything on your device, air-gapped' },
-      { name: 'Native C# Build', description: 'High-performance ~30MB self-contained executable' },
+      { name: 'Native C# Build', description: 'High-performance self-contained executable — no runtime install needed' },
       { name: 'No Telemetry', description: 'Zero tracking, zero analytics, zero cloud dependencies' },
       { name: 'API Keys Secured', description: 'OS-level encryption for all your credentials' },
     ],
@@ -47,7 +47,7 @@ const featureCategories = [
     ],
   },
   {
-    category: 'Coming Soon',
+    category: 'On the Roadmap',
     features: [
       { name: 'Connectors', description: 'Native integrations with Slack, Notion, and more' },
       { name: 'Meetings & Scribe', description: 'Intelligent, local-first meeting transcription' },
@@ -115,14 +115,14 @@ export default function FeaturesPage() {
               Ready to transform your workflow?
             </h2>
             <p className="text-lg text-gray-400 mb-8">
-              Download dIKta.me today and experience the difference that local AI makes.
+              Join the waitlist and be the first to experience the difference that local AI makes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="#"
+                href="/waitlist"
                 className="px-8 py-3 bg-orange-500 hover:bg-orange-600 rounded-lg font-semibold transition-colors"
               >
-                Download Now
+                Join Waitlist
               </a>
               <a
                 href="/login"

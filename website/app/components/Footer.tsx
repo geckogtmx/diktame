@@ -11,14 +11,8 @@ export function Footer() {
           </div>
         </div>
         <div className="flex gap-6">
-          <a href="#" className="text-muted hover:text-white transition-colors">
-            Twitter
-          </a>
-          <a href="#" className="text-muted hover:text-white transition-colors">
+          <a href="https://github.com/geckogtmx/diktame" className="text-muted hover:text-white transition-colors">
             GitHub
-          </a>
-          <a href="#" className="text-muted hover:text-white transition-colors">
-            Discord
           </a>
         </div>
       </div>

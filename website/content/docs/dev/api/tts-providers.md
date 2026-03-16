@@ -31,7 +31,7 @@ The `TtsResult` encapsulates the synthesized audio along with metadata, includin
 The default local provider utilizes `KokoroSharp`, wrapping the highly efficient Kokoro-ONNX models (82M parameters).
 * **Execution:** Runs in-process with zero external dependencies.
 * **Variants:** Supports `int8` (88 MB), `fp16` (169 MB), and `fp32` (310 MB) precision models via `Microsoft.ML.OnnxRuntime`.
-* **Latency:** Generates speech typically between 25ms (GPU) and 500ms (CPU).
+* **Latency:** Generates speech typically in 300–500ms.
 * **License compliance:** Kokoro's internal consumption of the GPLv3 `eSpeak-NG` phonemizer is isolated to process invocations under "mere aggregation," requiring only attribution.
 
 ### DeepgramTtsProvider (Cloud Default)

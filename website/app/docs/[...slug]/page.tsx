@@ -7,10 +7,37 @@ import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Documentation - dIKta.me',
-  description: 'Learn how to configure and adapt dIKta.me to your workflow.',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string[] }>;
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const slugPath = resolvedParams.slug.join('/');
+  const targetPath = path.join(process.cwd(), 'content', 'docs', `${slugPath}.md`);
+
+  let title = 'Documentation - dIKta.me';
+  let description = 'Learn how to configure and adapt dIKta.me to your workflow.';
+
+  try {
+    if (fs.existsSync(targetPath)) {
+      const content = fs.readFileSync(targetPath, 'utf-8');
+      const h1Match = content.match(/^#\s+(.*)/m);
+      if (h1Match) {
+        title = `${h1Match[1]} - dIKta.me Docs`;
+      }
+      // Extract first non-heading paragraph as description
+      const paraMatch = content.match(/^(?!#)([A-Z].*)/m);
+      if (paraMatch) {
+        description = paraMatch[1].slice(0, 160);
+      }
+    }
+  } catch {
+    // Fall back to defaults
+  }
+
+  return { title, description };
+}
 
 export default async function DocViewPage({
   params,

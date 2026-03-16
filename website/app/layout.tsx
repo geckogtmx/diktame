@@ -34,7 +34,6 @@ export const metadata: Metadata = {
     title: "dIKta.me - Private AI Voice Dictation",
     description: "Local, fast, intelligent voice-to-text powered by on-device AI.",
     images: ["/og-image.png"],
-    creator: "@diktate_app",
   },
 };
 
@@ -50,7 +49,37 @@ export default function RootLayout({
         <meta name="theme-color" content="#020617" />
         <link rel="canonical" href="https://dikta.me" />
       </head>
-      <body className={plusJakarta.className}>{children}</body>
+      <body className={plusJakarta.className}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: "dIKta.me",
+                description:
+                  "Local, fast, intelligent voice-to-text powered by on-device AI. No cloud, no subscriptions, no compromise on privacy.",
+                operatingSystem: "Windows 10+",
+                applicationCategory: "UtilitiesApplication",
+                offers: {
+                  "@type": "Offer",
+                  price: "25.00",
+                  priceCurrency: "USD",
+                },
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "dIKta.me",
+                url: "https://dikta.me",
+                logo: "https://dikta.me/images/app-icon.png",
+              },
+            ]),
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

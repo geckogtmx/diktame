@@ -29,12 +29,12 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
           <div>
             <h3 className="text-2xl font-bold text-white">The Comprehensive Arsenal</h3>
-            <p className="text-sm text-[#94a3b8]">A deep dive into everything dIKta.me can do.</p>
+            <p className="text-sm text-muted">A deep dive into everything dIKta.me can do.</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors group">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="w-6 h-6 text-[#94a3b8] group-hover:text-white"
+              className="w-6 h-6 text-muted group-hover:text-white"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -51,8 +51,8 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
             <div className="space-y-10">
               {/* Core */}
               <section>
-                <h4 className="text-[#2563eb] font-mono text-xs uppercase tracking-widest mb-4">Core Functionality</h4>
-                <ul className="space-y-2 text-sm text-[#94a3b8]">
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">Core Functionality</h4>
+                <ul className="space-y-2 text-sm text-muted">
                   <li>
                     <strong className="text-white">Push-to-Talk</strong> — Global hotkey (Ctrl+Alt+D)
                   </li>
@@ -77,13 +77,19 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
                   <li>
                     <strong className="text-white">Oops Mode</strong> — Re-inject last dictation (Ctrl+Alt+V)
                   </li>
+                  <li>
+                    <strong className="text-white">Text-to-Speech</strong> — Local Kokoro engine reads responses aloud (Ctrl+Alt+Q)
+                  </li>
+                  <li>
+                    <strong className="text-white">Streaming Dictation</strong> — See words appear in real-time via cloud streaming
+                  </li>
                 </ul>
               </section>
 
               {/* Modes */}
               <section>
-                <h4 className="text-[#2563eb] font-mono text-xs uppercase tracking-widest mb-4">Voice Modes</h4>
-                <ul className="space-y-2 text-sm text-[#94a3b8]">
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">Voice Modes</h4>
+                <ul className="space-y-2 text-sm text-muted">
                   <li>
                     <strong className="text-white">Standard Mode</strong> — Direct text injection
                   </li>
@@ -113,8 +119,8 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
 
               {/* Intelligence */}
               <section>
-                <h4 className="text-[#2563eb] font-mono text-xs uppercase tracking-widest mb-4">AI Intelligence</h4>
-                <ul className="space-y-2 text-sm text-[#94a3b8]">
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">AI Intelligence</h4>
+                <ul className="space-y-2 text-sm text-muted">
                   <li>
                     <strong className="text-white">Local Model Brain</strong> — Gemma 3 / Llama 3 support
                   </li>
@@ -135,8 +141,8 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
             <div className="space-y-10">
               {/* Privacy & Security */}
               <section>
-                <h4 className="text-[#2563eb] font-mono text-xs uppercase tracking-widest mb-4">Privacy & Security</h4>
-                <ul className="space-y-2 text-sm text-[#94a3b8]">
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">Privacy & Security</h4>
+                <ul className="space-y-2 text-sm text-muted">
                   <li>
                     <strong className="text-white">100% Air-Gapped</strong> — No telemetry, no tracking
                   </li>
@@ -157,10 +163,10 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
 
               {/* Technical */}
               <section>
-                <h4 className="text-[#2563eb] font-mono text-xs uppercase tracking-widest mb-4">Technical</h4>
-                <ul className="space-y-2 text-sm text-[#94a3b8]">
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">Technical</h4>
+                <ul className="space-y-2 text-sm text-muted">
                   <li>
-                    <strong className="text-white">Self-Contained Binary</strong> — ~30MB portable .exe
+                    <strong className="text-white">Self-Contained Binary</strong> — Lightweight .exe, no runtime install needed
                   </li>
                   <li>
                     <strong className="text-white">Native Performance</strong> — Built with C# and WinUI 3
@@ -169,7 +175,7 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
                     <strong className="text-white">Floating Pill UI</strong> — Minimal, unobtrusive overlay
                   </li>
                   <li>
-                    <strong className="text-white">Hackable Core</strong> — Plugin-ready architecture
+                    <strong className="text-white">Open Architecture</strong> — Source-available with clean extensible interfaces
                   </li>
                   <li>
                     <strong className="text-white">Source-Available</strong> — Full code access (Power tier)
@@ -179,8 +185,8 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
 
               {/* Future Roadmap */}
               <section>
-                <h4 className="text-[#2563eb] font-mono text-xs uppercase tracking-widest mb-4">Coming Soon</h4>
-                <ul className="space-y-2 text-sm text-[#94a3b8]">
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">On the Roadmap</h4>
+                <ul className="space-y-2 text-sm text-muted">
                   <li>
                     <strong className="text-white">Connectors</strong> — Integration with Slack, Notion, etc.
                   </li>

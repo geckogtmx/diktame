@@ -19,7 +19,7 @@ dIKta.me offers multiple TTS providers ranging from local offline inference to u
 * **Status:** Default (Local)
 * **Cost:** Free
 * **Privacy:** 100% Offline
-* The Kokoro provider uses a highly optimized ONNX model downloaded directly to your machine. It requires an initial download (88 MB for the standard variant) and then runs either on your CPU or GPU without ever sending data to the cloud.
+* The Kokoro provider uses a highly optimized ONNX model downloaded directly to your machine. It requires an initial download (88 MB for the standard variant) and then runs on your CPU without ever sending data to the cloud.
 
 ### Deepgram Aura-2 (Cloud)
 * **Status:** Cloud Alternative

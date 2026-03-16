@@ -113,9 +113,9 @@ export default async function DashboardPage() {
 
                 {/* Quick Actions */}
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
-                    <a href="#" className="bg-gray-800/50 backdrop-blur-xl rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-colors">
-                        <h3 className="font-semibold mb-2">Download App</h3>
-                        <p className="text-sm text-gray-400">Get the Windows desktop app</p>
+                    <a href="/waitlist" className="bg-gray-800/50 backdrop-blur-xl rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-colors">
+                        <h3 className="font-semibold mb-2">Get the App</h3>
+                        <p className="text-sm text-gray-400">Join the waitlist for early access</p>
                     </a>
                     <a href="/docs" className="bg-gray-800/50 backdrop-blur-xl rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-colors">
                         <h3 className="font-semibold mb-2">Documentation</h3>

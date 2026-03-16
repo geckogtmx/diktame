@@ -7,28 +7,28 @@ import { Container } from '../components/Container';
 
 export default function WaitlistPage() {
   return (
-    <main className="min-h-screen bg-black text-white selection:bg-[#2563eb]/30">
+    <main className="min-h-screen bg-black text-white selection:bg-primary/30">
       <Navbar />
 
       <div className="relative pt-32 pb-20 overflow-hidden">
         {/* Ambient background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#2563eb]/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
 
         <Container>
           <div className="max-w-3xl mx-auto text-center relative z-10">
             {/* Tag/Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-8 animate-fade-in-up">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#f97316]"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-cta"></span>
               <span className="text-[10px] font-bold text-white/60 uppercase tracking-[0.2em]">
                 V2 Early Access
               </span>
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight animate-fade-in-up animation-delay-100">
-              The wait is <span className="text-[#2563eb]">almost</span> over.
+              The wait is <span className="text-primary">almost</span> over.
             </h1>
 
-            <div className="space-y-6 text-lg md:text-xl text-[#94a3b8] mb-12 animate-fade-in-up animation-delay-200 leading-relaxed italic">
+            <div className="space-y-6 text-lg md:text-xl text-muted mb-12 animate-fade-in-up animation-delay-200 leading-relaxed italic">
               <p>
                 &quot;We&apos;re putting the finishing touches on the most powerful, 
                 privacy-first voice engine for Windows.&quot;
@@ -50,17 +50,17 @@ export default function WaitlistPage() {
                 <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
                     <div className="text-2xl mb-3">🚀</div>
                     <h3 className="text-white font-bold mb-2">First in Line</h3>
-                    <p className="text-sm text-[#94a3b8]">Be notified the second v0.1 drops for public download.</p>
+                    <p className="text-sm text-muted">Be notified the second v0.1 drops for public download.</p>
                 </div>
                 <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
                     <div className="text-2xl mb-3">💎</div>
                     <h3 className="text-white font-bold mb-2">Founder Perks</h3>
-                    <p className="text-sm text-[#94a3b8]">Special pricing considerations for our very first batch of users.</p>
+                    <p className="text-sm text-muted">Special pricing considerations for our very first batch of users.</p>
                 </div>
                 <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
                     <div className="text-2xl mb-3">🛡️</div>
                     <h3 className="text-white font-bold mb-2">Private Updates</h3>
-                    <p className="text-sm text-[#94a3b8]">Get behind-the-scenes progress on local LLM and STT integration.</p>
+                    <p className="text-sm text-muted">Get behind-the-scenes progress on local LLM and STT integration.</p>
                 </div>
             </div>
           </div>

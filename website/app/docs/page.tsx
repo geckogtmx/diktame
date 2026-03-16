@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Documentation - dIKta.me',
-  description: 'Getting started with dIKta.me. Installation, configuration, and troubleshooting guides.',
+  description: 'Complete documentation for dIKta.me — setup guides, core feature walkthroughs, AI engine configuration, hotkey customization, and developer architecture references.',
 };
 
 import Link from 'next/link';
@@ -203,16 +203,16 @@ export default function DocsPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="https://github.com/geckogtmx/diktate"
+                href="https://github.com/geckogtmx/diktame"
                 className="px-8 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold transition-colors"
               >
                 View on GitHub
               </a>
               <a
-                href="#contact"
+                href="https://github.com/geckogtmx/diktame/issues"
                 className="px-8 py-3 border border-blue-500/20 text-blue-400 hover:bg-blue-500/10 rounded-lg font-semibold transition-colors"
               >
-                Contact Support
+                Report an Issue
               </a>
             </div>
           </div>

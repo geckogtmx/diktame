@@ -1,0 +1,140 @@
+# dIKta.me — Full Product Reference
+
+> Local, fast, intelligent voice-to-text powered by on-device AI for Windows.
+
+## Product Overview
+
+dIKta.me is a privacy-first AI voice dictation application for Windows 10+. All speech recognition and language model processing runs locally on the user's hardware. No audio or text data ever leaves the machine in default local mode. An optional cloud mode provides streaming dictation and wallet-based credits for users without powerful GPUs.
+
+## Core Functionality
+
+### Push-to-Talk Dictation
+- Global hotkey: Ctrl+Alt+D (configurable)
+- Records audio via system microphone
+- Transcribes using local Whisper V3 Turbo (ONNX, GPU-accelerated)
+- Injects text directly into the active window at ~1,000 WPM
+- Supports configurable post-injection keys (Enter, Tab, Space)
+
+### Voice Modes
+1. **Standard Mode** — Direct transcription to text injection
+2. **Professional Mode** — LLM-polished output with formatting
+3. **Prompt Mode** — AI instruction processing (voice as prompt)
+4. **Ask Mode** (Ctrl+Alt+A) — Query local LLM for definitions, math, facts
+5. **Refine Mode** (Ctrl+Alt+R) — Select text, describe changes by voice, AI edits
+6. **Translate Mode** (Ctrl+Alt+T) — Bidirectional English ↔ Spanish translation
+7. **Quick Chat** (Ctrl+Alt+C) — Floating LLM chat overlay window
+8. **Structured Notes** (Ctrl+Alt+N) — Timestamped voice note capture
+9. **Oops Mode** (Ctrl+Alt+V) — Re-inject or fix last dictation
+
+### Text-to-Speech
+- Local Kokoro ONNX engine (CPU-based)
+- Read Selection aloud (Ctrl+Alt+Q)
+- Automatic TTS for Ask, Translate, and Read Selection responses
+- Notification TTS for toast messages
+
+### Voice Snippets
+- Phrase-triggered text expansion
+- Define trigger phrases that expand to full text blocks
+- Useful for signatures, boilerplate, and common responses
+
+### Audio Ducking
+- Automatically reduces volume of other applications during recording
+- Restores volume when recording stops
+
+### Streaming Dictation
+- Real-time word-by-word transcription via Deepgram WebSocket (cloud)
+- Requires wallet credits or active subscription
+- Words appear as you speak
+
+## AI Intelligence
+
+### Speech-to-Text
+- **Local**: Whisper V3 Turbo via ONNX Runtime (GPU-accelerated)
+- **Cloud**: Deepgram streaming (wallet credits)
+- Automatic language detection
+
+### Language Models
+- **Local**: Ollama integration (Gemma 3 4B default, also supports Llama 3, Mistral)
+- **Cloud APIs**: OpenAI, Anthropic, DeepSeek (BYO API keys, no markup)
+- **Wallet**: Gemini Flash via Supabase Edge Functions
+- Model-agnostic architecture — switch freely between providers
+
+### Context Awareness
+- Maintains dictation history for contextual understanding
+- LLM uses previous dictations to improve formatting decisions
+
+## Privacy & Security
+
+- 100% air-gapped local processing (default mode)
+- Automatic PII scrubbing from all logs
+- API keys encrypted via OS-level AES-256 (Windows DPAPI)
+- Zero telemetry, zero tracking, zero analytics
+- No cloud dependencies for core functionality
+
+## Technical Specifications
+
+- **Language**: C# (.NET 8)
+- **UI Framework**: WinUI 3 (Windows App SDK 1.6)
+- **Packaging**: Self-contained x64 executable (~70MB compressed)
+- **OS**: Windows 10 version 19041+ (x64 only)
+- **GPU**: NVIDIA recommended for local Whisper + Ollama
+- **STT Latency**: ~400ms local inference (gemma3:4b, consumer GPU)
+- **LLM Latency**: ~550ms with connection pooling
+- **Injection Speed**: ~1,000 WPM via native window emulation
+
+## Pricing
+
+### Free Trial
+- Complimentary cloud credits included on signup
+- Access to streaming dictation and cloud LLM via wallet
+- No credit card required
+
+### Power License — $25 (One-Time)
+- Unlimited local dictation (no word limits)
+- All voice modes and features
+- Source-available codebase access
+- Lifetime updates
+
+## Hotkeys Reference
+
+| Hotkey | Action |
+|--------|--------|
+| Ctrl+Alt+D | Dictate |
+| Ctrl+Alt+A | Ask |
+| Ctrl+Alt+R | Refine |
+| Ctrl+Alt+T | Translate |
+| Ctrl+Alt+N | Structured Notes |
+| Ctrl+Alt+C | Quick Chat |
+| Ctrl+Alt+Q | Read Selection (TTS) |
+| Ctrl+Alt+V | Oops (Re-inject Last) |
+
+## Documentation Index
+
+- Getting Started: https://dikta.me/docs/getting-started
+- Dictation: https://dikta.me/docs/features/dictation
+- Ask Mode: https://dikta.me/docs/features/ask
+- Refine Mode: https://dikta.me/docs/features/refine
+- Translate: https://dikta.me/docs/features/translate
+- Quick Chat: https://dikta.me/docs/features/quick-chat
+- Text-to-Speech: https://dikta.me/docs/features/tts
+- Settings: https://dikta.me/docs/settings/general
+- AI Engine: https://dikta.me/docs/settings/ai-engine
+- Hotkeys: https://dikta.me/docs/settings/hotkeys
+
+## On the Roadmap
+
+- Connectors (Slack, Notion integration)
+- Meetings & Scribe (intelligent meeting transcription)
+- Vision & See (screen-aware contextual AI)
+- Memory Layer (persistent workflow memory)
+- Stream Deck (Elgato plugin)
+- Cross-Platform (macOS and Linux)
+
+## Links
+
+- Website: https://dikta.me
+- Features: https://dikta.me/features
+- Pricing: https://dikta.me/pricing
+- Documentation: https://dikta.me/docs
+- Waitlist: https://dikta.me/waitlist
+- GitHub: https://github.com/geckogtmx/diktame

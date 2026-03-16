@@ -48,8 +48,11 @@ export function SpecsSection() {
                 <div className="text-xs text-muted leading-relaxed space-y-1">
                   <p>Ctrl+Alt+D (Dictate)</p>
                   <p>Ctrl+Alt+A (Ask)</p>
-                  <p>Ctrl+Alt+R (Refine Auto & Freeform)</p>
+                  <p>Ctrl+Alt+R (Refine)</p>
                   <p>Ctrl+Alt+T (Translate)</p>
+                  <p>Ctrl+Alt+N (Notes)</p>
+                  <p>Ctrl+Alt+C (Quick Chat)</p>
+                  <p>Ctrl+Alt+Q (Read Selection)</p>
                   <p>Ctrl+Alt+V (Re-inject Last)</p>
                 </div>
               </div>
@@ -123,7 +126,7 @@ export function SpecsSection() {
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Deploy</div>
                 <h3 className="text-lg font-bold text-text mb-2 text-white">Self-Contained Binary</h3>
                 <p className="text-sm text-muted">
-                  High-performance ~30MB portable .exe built with native C# and WinUI 3. Zero dependencies.
+                  Lightweight self-contained .exe built with native C# and WinUI 3. No external runtime required.
                 </p>
               </div>
               <div className="card p-6">
@@ -144,9 +147,9 @@ export function SpecsSection() {
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Architecture</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Hackable Core</h3>
-                <p className="text-sm text-muted">Built on ZeroMQ. Exposes a plugin stream.</p>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Voice</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">Text-to-Speech</h3>
+                <p className="text-sm text-muted">Hear AI responses, read selections aloud, or listen to translations. Fully local via Kokoro ONNX.</p>
               </div>
             </div>
           </div>

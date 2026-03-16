@@ -25,10 +25,10 @@ export function BilingualSection() {
             </p>
             <ul className="space-y-4 text-muted">
               <li className="flex items-center gap-3">
-                <span className="text-green-400">✓</span> No API keys required
+                <span className="text-green-400">✓</span> No extra API keys required
               </li>
               <li className="flex items-center gap-3">
-                <span className="text-green-400">✓</span> English → Spanish supported
+                <span className="text-green-400">✓</span> English ↔ Spanish (bidirectional)
               </li>
               <li className="flex items-center gap-3">
                 <span className="text-green-400">✓</span> Context-aware translation

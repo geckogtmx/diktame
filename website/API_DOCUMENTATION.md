@@ -611,7 +611,7 @@ For API issues:
 4. Review RLS policies in Supabase SQL Editor
 
 For documentation updates or bug reports:
-- GitHub: `geckogtmx/diktate`
+- GitHub: `geckogtmx/diktame`
 - Email: support@dikta.me (coming soon)
 
 ---

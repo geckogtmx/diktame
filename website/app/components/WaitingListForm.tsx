@@ -60,7 +60,7 @@ export function WaitingListForm() {
       {!message || message.type === 'error' ? (
         <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-[#94a3b8] mb-1.5 ml-1">
+            <label htmlFor="name" className="block text-sm font-medium text-muted mb-1.5 ml-1">
               What&apos;s your name?
             </label>
             <input
@@ -70,12 +70,12 @@ export function WaitingListForm() {
               required
               disabled={isPending}
               placeholder="e.g. John Doe"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 focus:border-[#2563eb] transition-all disabled:opacity-50"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all disabled:opacity-50"
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-[#94a3b8] mb-1.5 ml-1">
+            <label htmlFor="email" className="block text-sm font-medium text-muted mb-1.5 ml-1">
               Email Address
             </label>
             <input
@@ -85,14 +85,14 @@ export function WaitingListForm() {
               required
               disabled={isPending}
               placeholder="john@example.com"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 focus:border-[#2563eb] transition-all disabled:opacity-50"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all disabled:opacity-50"
             />
           </div>
 
           <button
             type="submit"
             disabled={isPending}
-            className="w-full py-4 rounded-xl bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] transition-all shadow-glow hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-xl bg-primary text-white font-bold hover:bg-primary/80 transition-all shadow-glow hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
           >
             {isPending ? (
               <>

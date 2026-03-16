@@ -1,4 +1,4 @@
-# dIKtate SEO robots.txt
+# dIKta.me SEO robots.txt
 User-agent: *
 Allow: /
 Disallow: /api/

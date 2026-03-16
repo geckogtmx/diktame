@@ -111,28 +111,28 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020617] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-background text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563eb] mx-auto mb-4"></div>
-          <p className="text-[#94a3b8]">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white">
+    <div className="min-h-screen bg-background text-white">
       {/* Header */}
       <div className="border-b border-white/10 bg-black/20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <button
             onClick={() => router.push('/dashboard')}
-            className="text-[#2563eb] hover:text-white mb-4 flex items-center gap-2"
+            className="text-primary hover:text-white mb-4 flex items-center gap-2"
           >
             ← Back to Dashboard
           </button>
           <h1 className="text-3xl font-bold">Profile Settings</h1>
-          <p className="text-[#94a3b8] mt-2">Manage your account and API keys</p>
+          <p className="text-muted mt-2">Manage your account and API keys</p>
         </div>
       </div>
 
@@ -155,29 +155,29 @@ export default function ProfilePage() {
           <h2 className="text-xl font-bold mb-4">Account Information</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[#94a3b8] mb-2">Email</label>
+              <label className="block text-sm font-medium text-muted mb-2">Email</label>
               <input
                 type="email"
                 value={profile?.email || ''}
                 disabled
                 className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white/50 cursor-not-allowed"
               />
-              <p className="text-xs text-[#94a3b8] mt-1">Email cannot be changed</p>
+              <p className="text-xs text-muted mt-1">Email cannot be changed</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#94a3b8] mb-2">Name</label>
+              <label className="block text-sm font-medium text-muted mb-2">Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
-                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#2563eb]"
+                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#94a3b8] mb-2">Account Created</label>
+              <label className="block text-sm font-medium text-muted mb-2">Account Created</label>
               <input
                 type="text"
                 value={profile ? new Date(profile.createdAt).toLocaleDateString() : ''}
@@ -191,7 +191,7 @@ export default function ProfilePage() {
         {/* API Key Management */}
         <div className="card p-6 mb-6">
           <h2 className="text-xl font-bold mb-4">Custom Gemini API Key</h2>
-          <p className="text-[#94a3b8] mb-4">
+          <p className="text-muted mb-4">
             Add your own Gemini API key to bypass trial limits. Your key is encrypted and never shared.
           </p>
 
@@ -202,7 +202,7 @@ export default function ProfilePage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-[#94a3b8] mb-2">
+            <label className="block text-sm font-medium text-muted mb-2">
               Gemini API Key
             </label>
             <input
@@ -210,9 +210,9 @@ export default function ProfilePage() {
               value={customGeminiKey}
               onChange={(e) => setCustomGeminiKey(e.target.value)}
               placeholder={profile?.hasCustomGeminiKey ? '••••••••••••••••' : 'Enter your Gemini API key'}
-              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#2563eb] font-mono text-sm"
+              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary font-mono text-sm"
             />
-            <p className="text-xs text-[#94a3b8] mt-1">
+            <p className="text-xs text-muted mt-1">
               Leave blank to use managed trial credits. Enter a new key to update.
             </p>
           </div>
@@ -222,7 +222,7 @@ export default function ProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-3 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+          className="w-full py-3 bg-primary hover:bg-primary/80 text-white font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-6"
         >
           {saving ? 'Saving...' : 'Save Changes'}
         </button>
@@ -230,7 +230,7 @@ export default function ProfilePage() {
         {/* Danger Zone */}
         <div className="card p-6 border-2 border-red-500/20">
           <h2 className="text-xl font-bold text-red-400 mb-4">Danger Zone</h2>
-          <p className="text-[#94a3b8] mb-4">
+          <p className="text-muted mb-4">
             Once you delete your account, there is no going back. All your data will be permanently deleted.
           </p>
 
