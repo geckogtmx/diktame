@@ -26,19 +26,23 @@ export async function submitWaitlist(formData: FormData) {
 
   if (error) {
     if (error.code === '23505') {
-      // If they already exist, we still want to show them the viral card
-      const { data: existing } = await supabase
-        .from('waiting_list')
-        .select('id, name')
-        .eq('email', email)
-        .single();
-        
-      return { 
-        success: true, 
-        id: existing?.id,
-        name: existing?.name,
-        message: "You're already on the list! Spread the word to get priority access." 
-      };
+      // If they already exist, try to get their ID for the viral card, but don't fail if we can't
+      try {
+        const { data: existing } = await supabase
+          .from('waiting_list')
+          .select('id, name')
+          .eq('email', email)
+          .maybeSingle();
+          
+        return { 
+          success: true, 
+          id: existing?.id,
+          name: existing?.name,
+          message: "You're already on the list! Spread the word to get priority access." 
+        };
+      } catch (e) {
+        return { success: true, message: "You're already on the list! We'll stay in touch." };
+      }
     }
     
     console.error('Waitlist submission error:', error);
