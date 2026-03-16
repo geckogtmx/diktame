@@ -50,36 +50,48 @@
             <StackPanel Spacing="20" MaxWidth="600">
 
                 <!-- ══════════════════════════════════════════════════════════ -->
-                <!-- Dictation Behaviors                                       -->
+                <!-- Speak (TTS) — per-pipeline speak toggles                  -->
                 <!-- ══════════════════════════════════════════════════════════ -->
-                <StackPanel Spacing="20" Visibility="{x:Bind ViewModel.IsDictationBehaviorsSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <StackPanel Spacing="20" Visibility="{x:Bind ViewModel.IsSpeakSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
-                    <!-- Trailing Space -->
+                    <TextBlock Text="Speak (TTS)" FontSize="28" FontWeight="SemiBold"
+                               Foreground="{StaticResource V1TextPrimaryBrush}"
+                               Margin="0,0,0,12"/>
+
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.TrailingSpace, Mode=TwoWay}"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakAsk_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakAsk_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakAskResponses, Mode=TwoWay}"/>
                     </StackPanel>
 
-                    <!-- Additional Key (Enable/Disable — key is selected from Control Panel) -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_General_AdditionalKey_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_General_AdditionalKey_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.AdditionalKeyEnabled, Mode=TwoWay}"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakChat_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakChat_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakChatResponses, Mode=TwoWay}"/>
                     </StackPanel>
 
-                    <!-- Raw Mode Override -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Workflows_RawModeOverride_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Workflows_RawModeOverride_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.RawModeOverride, Mode=TwoWay}"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakTranslate_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakTranslate_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakTranslations, Mode=TwoWay}"/>
                     </StackPanel>
 
-                    <!-- Refine Voice Mode -->
                     <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Workflows_RefineVoiceMode_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Workflows_RefineVoiceMode_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.RefineVoiceMode, Mode=TwoWay}"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakNotifications_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakNotifications_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakNotifications, Mode=TwoWay}"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_Tts_DuckOtherApps_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_DuckOtherApps_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.DuckDuringPlayback, Mode=TwoWay}"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_Tts_ReadSelection_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_ReadSelection_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                        <TextBlock Text="{x:Bind ViewModel.Tts.ReadSelectionHotkey}" FontSize="14" FontWeight="Medium" Opacity="0.8"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -149,20 +161,6 @@
                     <!-- ── Local tab content ─────────────────────────────── -->
                     <StackPanel Spacing="20"
                                 Visibility="{x:Bind ViewModel.UtilityPipelines.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_Modes_LocalModel_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_Modes_LocalModel_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <Grid ColumnSpacing="8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <ComboBox ItemsSource="{x:Bind ViewModel.UtilityPipelines.LocalModelNames}"
-                                          SelectedIndex="{x:Bind ViewModel.UtilityPipelines.SelectedLocalModelIndex, Mode=TwoWay}"
-                                          HorizontalAlignment="Stretch"/>
-                                <Button l:Uids.Uid="Settings_Modes_LocalRefreshButton" Grid.Column="1" Command="{x:Bind ViewModel.UtilityPipelines.RefreshModelsCommand}"/>
-                            </Grid>
-                        </StackPanel>
 
                         <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.UtilityPipelines.ShowPromptFields, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                             <TextBlock l:Uids.Uid="Settings_Modes_LocalPrompt_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>

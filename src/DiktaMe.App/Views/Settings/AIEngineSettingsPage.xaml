@@ -724,14 +724,8 @@
                         Visibility="{x:Bind ViewModel.IsTtsSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                 <TextBlock l:Uids.Uid="Settings_Tts_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
 
-                <!-- When to Speak / Cloud / Local tab bar -->
+                <!-- Cloud / Local tab bar -->
                 <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
-                    <StackPanel>
-                        <Button Content="When to Speak" Command="{x:Bind ViewModel.SelectTtsWhenToSpeakCommand}"
-                                Style="{StaticResource TabButtonStyle}"/>
-                        <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                Visibility="{x:Bind ViewModel.IsTtsWhenToSpeakTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                    </StackPanel>
                     <StackPanel>
                         <Button Content="Cloud" Command="{x:Bind ViewModel.SelectTtsCloudCommand}"
                                 Style="{StaticResource TabButtonStyle}"/>
@@ -742,52 +736,11 @@
                         <Button Content="Local" Command="{x:Bind ViewModel.SelectTtsLocalCommand}"
                                 Style="{StaticResource TabButtonStyle}"/>
                         <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                Visibility="{x:Bind ViewModel.IsTtsLocalTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                                Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
                     </StackPanel>
                 </StackPanel>
 
-                <!-- ══ Tab 0: When to Speak ══════════════════════════════ -->
-                <StackPanel Spacing="24"
-                            Visibility="{x:Bind ViewModel.IsTtsWhenToSpeakTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
-
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakAsk_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakAsk_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakAskResponses, Mode=TwoWay}"/>
-                    </StackPanel>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakChat_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakChat_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakChatResponses, Mode=TwoWay}"/>
-                    </StackPanel>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakTranslate_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakTranslate_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakTranslations, Mode=TwoWay}"/>
-                    </StackPanel>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakNotifications_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_SpeakNotifications_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.SpeakNotifications, Mode=TwoWay}"/>
-                    </StackPanel>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_DuckOtherApps_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_DuckOtherApps_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.Tts.DuckDuringPlayback, Mode=TwoWay}"/>
-                    </StackPanel>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_ReadSelection_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_ReadSelection_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <TextBlock Text="{x:Bind ViewModel.Tts.ReadSelectionHotkey}" FontSize="14" FontWeight="Medium" Opacity="0.8"/>
-                    </StackPanel>
-                </StackPanel>
-
-                <!-- ══ Tab 1: Cloud ══════════════════════════════════════ -->
+                <!-- ══ Cloud ═════════════════════════════════════════════ -->
                 <StackPanel Spacing="24"
                             Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
 
@@ -809,8 +762,19 @@
                                   HorizontalAlignment="Stretch"/>
                     </StackPanel>
 
-                    <!-- Speed Slider -->
-                    <StackPanel Spacing="4">
+                    <!-- Speech Prompt (Gemini only — natural language style control) -->
+                    <StackPanel Spacing="4"
+                                Visibility="{x:Bind ViewModel.Tts.ShowSpeechPrompt, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                        <TextBlock l:Uids.Uid="Settings_Tts_SpeechPrompt_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Tts_SpeechPrompt_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                        <TextBox Text="{x:Bind ViewModel.Tts.SpeechPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="e.g. Speak cheerfully and warmly"
+                                 AcceptsReturn="False" MaxLength="200"/>
+                    </StackPanel>
+
+                    <!-- Speed Slider (OpenAI only on Cloud tab) -->
+                    <StackPanel Spacing="4"
+                                Visibility="{x:Bind ViewModel.Tts.ShowSpeed, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
                         <TextBlock l:Uids.Uid="Settings_Tts_Speed_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
                         <StackPanel Orientation="Horizontal" Spacing="0">
                             <TextBlock l:Uids.Uid="Settings_Tts_Speed_Prefix" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
@@ -860,9 +824,9 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- ══ Tab 2: Local ══════════════════════════════════════ -->
+                <!-- ══ Local ═════════════════════════════════════════════ -->
                 <StackPanel Spacing="24"
-                            Visibility="{x:Bind ViewModel.IsTtsLocalTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                            Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
 
                     <!-- Kokoro Model -->
                     <StackPanel Spacing="4">

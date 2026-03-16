@@ -44,4 +44,7 @@ public sealed record DictationProfile
 
     /// <summary>Hotkey string (e.g., "Ctrl+Alt+D"). Null = no hotkey assigned.</summary>
     public string? Hotkey { get; init; }
+
+    /// <summary>Add a trailing space after injected text (default true).</summary>
+    public bool TrailingSpace { get; init; } = true;
 }

@@ -390,6 +390,12 @@ public sealed record TtsSettings
     /// <summary>Speak app notifications aloud (errors, warnings, status).</summary>
     public bool SpeakNotifications { get; init; } = false;
 
+    /// <summary>
+    /// Speech style prompt for Gemini TTS (e.g. "Speak cheerfully and warmly").
+    /// Prepended to the text content when using Gemini provider. Empty = no style.
+    /// </summary>
+    public string SpeechPrompt { get; init; } = string.Empty;
+
     /// <summary>Kokoro model variant: "gpu", "int8", "fp16", "fp32".</summary>
     public string KokoroModelVariant { get; init; } = "gpu";
 

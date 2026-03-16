@@ -43,7 +43,7 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
     private string _cloudSystemPrompt = "";
 
     [ObservableProperty]
-    private bool _cloudUseLlm = true;
+    private bool _cloudTrailingSpace = true;
 
     [ObservableProperty]
     private int _selectedCloudModelIndex;
@@ -54,7 +54,7 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
     private string _localSystemPrompt = "";
 
     [ObservableProperty]
-    private bool _localUseLlm = true;
+    private bool _localTrailingSpace = true;
 
     // ── Model list ─────────────────────────────────────────────────────────
 
@@ -229,12 +229,12 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
 
         // Cloud profile
         CloudSystemPrompt = mode.CloudProfile.SystemPrompt ?? "";
-        CloudUseLlm = mode.CloudProfile.UseLlm;
+        CloudTrailingSpace = mode.CloudProfile.TrailingSpace;
         SelectedCloudModelIndex = FindModelIndex(mode.CloudProfile.ModelName);
 
         // Local profile
         LocalSystemPrompt = mode.LocalProfile.SystemPrompt ?? "";
-        LocalUseLlm = mode.LocalProfile.UseLlm;
+        LocalTrailingSpace = mode.LocalProfile.TrailingSpace;
     }
 
 
@@ -286,6 +286,9 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
 
     private async Task SaveDictationModeAsync(string modeId)
     {
+        // Preserve existing UseLlm values (no longer editable from UI, still used by pipeline)
+        var existing = _modeManager.GetModeById(modeId);
+
         string? cloudModel = SelectedCloudModelIndex > 0 && SelectedCloudModelIndex < _cloudModelIds.Count
             ? _cloudModelIds[SelectedCloudModelIndex]
             : null;
@@ -293,17 +296,19 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
         var cloudProfile = new DictationProfile
         {
             SystemPrompt = string.IsNullOrWhiteSpace(CloudSystemPrompt) ? null : CloudSystemPrompt,
-            UseLlm = CloudUseLlm,
+            UseLlm = existing?.CloudProfile.UseLlm ?? true,
             ModelName = cloudModel,
             Hotkey = null,
+            TrailingSpace = CloudTrailingSpace,
         };
 
         var localProfile = new DictationProfile
         {
             SystemPrompt = string.IsNullOrWhiteSpace(LocalSystemPrompt) ? null : LocalSystemPrompt,
-            UseLlm = LocalUseLlm,
+            UseLlm = existing?.LocalProfile.UseLlm ?? true,
             ModelName = null, // Local always uses global Ollama model
             Hotkey = null,
+            TrailingSpace = LocalTrailingSpace,
         };
 
         await _modeManager.UpdateModeAsync(modeId, Title, cloudProfile, localProfile).ConfigureAwait(false);
@@ -323,6 +328,7 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
                 UseLlm = true,
                 ModelName = null,
                 Hotkey = null,
+                TrailingSpace = true,
             };
 
             var localProfile = new DictationProfile
@@ -331,6 +337,7 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
                 UseLlm = true,
                 ModelName = null,
                 Hotkey = null,
+                TrailingSpace = true,
             };
 
             var newMode = await _modeManager.CreateModeAsync(_loc.GetString("Settings_DictationModes_DefaultTitle"), cloudProfile, localProfile)

@@ -127,6 +127,9 @@
   <data name="Settings_Workflows_RefineVoiceMode_Description.Text" xml:space="preserve">
     <value>When enabled, Refine uses voice instruction; when disabled, uses text-selection auto mode</value>
   </data>
+  <data name="Settings_Workflows_Speak" xml:space="preserve">
+    <value>Speak (TTS)</value>
+  </data>
   <data name="Settings_Chat_AlwaysOnTop_Label.Text" xml:space="preserve">
     <value>Always on Top</value>
   </data>
@@ -742,6 +745,9 @@
   <data name="Settings_Tts_Provider_OpenAI" xml:space="preserve">
     <value>OpenAI TTS</value>
   </data>
+  <data name="Settings_Tts_Provider_Gemini" xml:space="preserve">
+    <value>Gemini (Google)</value>
+  </data>
   <!-- Voice -->
   <data name="Settings_Tts_Voice_Label.Text" xml:space="preserve">
     <value>Voice</value>
@@ -775,6 +781,13 @@
   </data>
   <data name="Settings_Tts_MaxWords_Description.Text" xml:space="preserve">
     <value>Maximum number of words to speak before truncating. 0 = unlimited.</value>
+  </data>
+  <!-- Speech Prompt (Gemini) -->
+  <data name="Settings_Tts_SpeechPrompt_Label.Text" xml:space="preserve">
+    <value>Speech Style</value>
+  </data>
+  <data name="Settings_Tts_SpeechPrompt_Description.Text" xml:space="preserve">
+    <value>Natural language instructions for tone, pace, and style (Gemini only).</value>
   </data>
   <!-- Test Voice -->
   <data name="Settings_Tts_TestVoice.Content" xml:space="preserve">
@@ -1953,6 +1966,43 @@
   </data>
   <data name="ReadSelection_NoSelection_Message" xml:space="preserve">
     <value>Select text in any application, then press the hotkey.</value>
+  </data>
+
+  <!-- ── Spoken TTS Variants (conversational phrasing for text-to-speech) ── -->
+  <data name="Loading_WhisperFailed_Spoken" xml:space="preserve">
+    <value>The speech recognition model couldn't be downloaded. Please check your internet connection and restart the app.</value>
+  </data>
+  <data name="Loading_HotkeyConflict_Spoken" xml:space="preserve">
+    <value>The {0} hotkey is already being used by another program.</value>
+  </data>
+  <data name="Loading_RecordingFailed_Spoken" xml:space="preserve">
+    <value>The recording didn't work. Please try again.</value>
+  </data>
+  <data name="Loading_NoModesConfigured_Spoken" xml:space="preserve">
+    <value>No dictation modes are set up yet. Please add at least one in the settings.</value>
+  </data>
+  <data name="Loading_NoteSaved_Spoken" xml:space="preserve">
+    <value>Your note has been saved.</value>
+  </data>
+  <data name="ReadSelection_NoSelection_Spoken" xml:space="preserve">
+    <value>No text is selected. Highlight some text first, then press the hotkey.</value>
+  </data>
+  <data name="Spoken_Error_Generic" xml:space="preserve">
+    <value>Something went wrong.</value>
+  </data>
+  <data name="Spoken_Warning_Generic" xml:space="preserve">
+    <value>Just a heads up.</value>
+  </data>
+
+  <!-- ── Mute Detection ───────────────────────────────────────────────────── -->
+  <data name="Recording_MicMuted_Title" xml:space="preserve">
+    <value>Microphone Muted</value>
+  </data>
+  <data name="Recording_MicMuted_Message" xml:space="preserve">
+    <value>Your microphone is muted. Unmute it to record.</value>
+  </data>
+  <data name="Recording_MicMuted_Spoken" xml:space="preserve">
+    <value>Your microphone is muted.</value>
   </data>
 
 </root>

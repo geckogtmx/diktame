@@ -219,4 +219,10 @@ public sealed record NoteOptions
     /// Used to populate PipelineResult.RecordingMs for telemetry.
     /// </summary>
     public long RecordingDurationMs { get; init; }
+
+    /// <summary>
+    /// Pre-captured selected text from the active window (context for the note).
+    /// When non-null, included as a blockquote in the saved note entry.
+    /// </summary>
+    public string? PreCapturedContext { get; init; }
 }

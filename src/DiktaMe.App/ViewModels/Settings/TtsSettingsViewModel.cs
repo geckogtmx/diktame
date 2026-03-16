@@ -22,8 +22,8 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
 
     // ── Provider / Voice data ────────────────────────────────────────────────
 
-    public static readonly string[] ProviderKeys = ["kokoro", "deepgram", "inworld", "openai"];
-    public static readonly string[] CloudProviderKeys = ["deepgram", "inworld", "openai"];
+    public static readonly string[] ProviderKeys = ["kokoro", "deepgram", "inworld", "openai", "gemini"];
+    public static readonly string[] CloudProviderKeys = ["deepgram", "inworld", "openai", "gemini"];
 
     public string[] ProviderLabels { get; }
     public string[] CloudProviderLabels { get; }
@@ -61,6 +61,15 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
         [
             "alloy", "ash", "ballad", "coral", "echo",
             "fable", "fern", "nova", "onyx", "sage", "shimmer",
+        ],
+        ["gemini"] =
+        [
+            "Kore", "Zephyr", "Puck", "Charon", "Fenrir",
+            "Leda", "Orus", "Aoede", "Callirrhoe", "Autonoe",
+            "Enceladus", "Iapetus", "Umbriel", "Algieba", "Despina",
+            "Erinome", "Algenib", "Rasalgethi", "Laomedeia", "Achernar",
+            "Alnilam", "Schedar", "Gacrux", "Pulcherrima", "Achird",
+            "Zubenelgenubi", "Vindemiatrix", "Sadachbia", "Sadaltager", "Sulafat",
         ],
     };
 
@@ -106,6 +115,11 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _duckDuringPlayback = true;
 
+    // ── Gemini speech prompt ──────────────────────────────────────────────────
+
+    [ObservableProperty]
+    private string _speechPrompt = "";
+
     // ── Kokoro model ─────────────────────────────────────────────────────────
 
     [ObservableProperty]
@@ -131,9 +145,21 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _testStatusText = "";
 
-    // ── Computed ──────────────────────────────────────────────────────────────
+    // ── Computed / per-provider visibility ────────────────────────────────────
 
     public bool IsKokoroSelected => SelectedProviderIndex == 0;
+
+    /// <summary>Speed slider: only OpenAI and Kokoro support speed control.</summary>
+    public bool ShowSpeed => CurrentProviderKey is "kokoro" or "openai";
+
+    /// <summary>Speech prompt: only Gemini supports natural-language style instructions.</summary>
+    public bool ShowSpeechPrompt => CurrentProviderKey is "gemini";
+
+    /// <summary>Current provider key based on SelectedProviderIndex.</summary>
+    private string CurrentProviderKey =>
+        SelectedProviderIndex >= 0 && SelectedProviderIndex < ProviderKeys.Length
+            ? ProviderKeys[SelectedProviderIndex]
+            : "kokoro";
 
     public string ReadSelectionHotkey => _settings.Current.Hotkeys.ReadSelection;
 
@@ -159,6 +185,7 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
             _loc.GetString("Settings_Tts_Provider_Deepgram"),
             _loc.GetString("Settings_Tts_Provider_Inworld"),
             _loc.GetString("Settings_Tts_Provider_OpenAI"),
+            _loc.GetString("Settings_Tts_Provider_Gemini"),
         ];
 
         CloudProviderLabels =
@@ -166,6 +193,7 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
             _loc.GetString("Settings_Tts_Provider_Deepgram"),
             _loc.GetString("Settings_Tts_Provider_Inworld"),
             _loc.GetString("Settings_Tts_Provider_OpenAI"),
+            _loc.GetString("Settings_Tts_Provider_Gemini"),
         ];
 
         try
@@ -190,6 +218,7 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
         Speed = tts.Speed;
         VolumePercent = tts.VolumePercent;
         MaxSpeechWords = tts.MaxSpeechWords;
+        SpeechPrompt = tts.SpeechPrompt;
         SpeakAskResponses = tts.SpeakAskResponses;
         SpeakChatResponses = tts.SpeakChatResponses;
         SpeakTranslations = tts.SpeakTranslations;
@@ -282,6 +311,8 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(IsKokoroSelected));
+        OnPropertyChanged(nameof(ShowSpeed));
+        OnPropertyChanged(nameof(ShowSpeechPrompt));
         Save();
     }
 
@@ -300,6 +331,7 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
     partial void OnSpeedChanged(double value) => Save();
     partial void OnVolumePercentChanged(double value) => Save();
     partial void OnMaxSpeechWordsChanged(int value) => Save();
+    partial void OnSpeechPromptChanged(string value) => Save();
     partial void OnSpeakAskResponsesChanged(bool value) => Save();
     partial void OnSpeakChatResponsesChanged(bool value) => Save();
     partial void OnSpeakTranslationsChanged(bool value) => Save();
@@ -336,6 +368,7 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
                 Speed = Speed,
                 VolumePercent = (int)VolumePercent,
                 MaxSpeechWords = MaxSpeechWords,
+                SpeechPrompt = SpeechPrompt,
                 SpeakAskResponses = SpeakAskResponses,
                 SpeakChatResponses = SpeakChatResponses,
                 SpeakTranslations = SpeakTranslations,
@@ -386,6 +419,13 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
             Log.Information("TTS test: provider={Provider}, variant={Variant}, voice={Voice}", provider, effectiveVariant ?? "(auto)", voiceId);
             ITTSProvider ttsProvider = _ttsFactory.CreateProvider(provider, effectiveVariant);
             string sampleText = _loc.GetString("Settings_Tts_TestVoice_SampleText");
+
+            // Gemini TTS: prepend speech prompt if configured
+            if (string.Equals(provider, "gemini", StringComparison.Ordinal)
+                && !string.IsNullOrWhiteSpace(SpeechPrompt))
+            {
+                sampleText = $"{SpeechPrompt}: {sampleText}";
+            }
 
             TtsResult result = await ttsProvider.SynthesizeAsync(sampleText, voiceId);
 

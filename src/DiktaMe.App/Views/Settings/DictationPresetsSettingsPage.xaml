@@ -135,9 +135,11 @@
 
                     <StackPanel Spacing="4"
                                 Visibility="{x:Bind ViewModel.IsDictationMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                        <TextBlock l:Uids.Uid="Settings_DictationModes_CloudUseLlm_Label" FontWeight="SemiBold"
+                        <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold"
                                    Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.CloudUseLlm, Mode=TwoWay}"/>
+                        <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.CloudTrailingSpace, Mode=TwoWay}"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -155,9 +157,11 @@
 
                     <StackPanel Spacing="4"
                                 Visibility="{x:Bind ViewModel.IsDictationMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                        <TextBlock l:Uids.Uid="Settings_DictationModes_LocalUseLlm_Label" FontWeight="SemiBold"
+                        <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold"
                                    Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.LocalUseLlm, Mode=TwoWay}"/>
+                        <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12"
+                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.LocalTrailingSpace, Mode=TwoWay}"/>
                     </StackPanel>
                 </StackPanel>
 

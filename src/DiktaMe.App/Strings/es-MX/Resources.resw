@@ -62,6 +62,7 @@
   <data name="Settings_Workflows_RawModeOverride_Description.Text" xml:space="preserve"><value>Omitir LLM para todos los modos de dictado — solo salida de transcripci&#243;n STT</value></data>
   <data name="Settings_Workflows_RefineVoiceMode_Label.Text" xml:space="preserve"><value>Modo de Voz de Refinamiento</value></data>
   <data name="Settings_Workflows_RefineVoiceMode_Description.Text" xml:space="preserve"><value>Cuando est&#225; habilitado, Refine usa instrucci&#243;n de voz; cuando est&#225; deshabilitado, usa modo de selecci&#243;n de texto autom&#225;tico</value></data>
+  <data name="Settings_Workflows_Speak" xml:space="preserve"><value>Hablar (TTS)</value></data>
   <data name="Settings_Chat_AlwaysOnTop_Label.Text" xml:space="preserve"><value>Siempre Encima</value></data>
   <data name="Settings_Chat_AlwaysOnTop_Description.Text" xml:space="preserve"><value>Mantener la ventana de chat encima de otras ventanas</value></data>
   <data name="Settings_Chat_DefaultModel_Label.Text" xml:space="preserve"><value>Modelo Predeterminado</value></data>
@@ -282,6 +283,7 @@
   <data name="Settings_Tts_Provider_Deepgram" xml:space="preserve"><value>Deepgram (Nube)</value></data>
   <data name="Settings_Tts_Provider_Inworld" xml:space="preserve"><value>Inworld (Nube)</value></data>
   <data name="Settings_Tts_Provider_OpenAI" xml:space="preserve"><value>OpenAI (Nube)</value></data>
+  <data name="Settings_Tts_Provider_Gemini" xml:space="preserve"><value>Gemini (Google)</value></data>
 
   <data name="Settings_Tts_Voice_Label.Text" xml:space="preserve"><value>Voz</value></data>
   <data name="Settings_Tts_Voice_Description.Text" xml:space="preserve"><value>Seleccionar voz para la s&#237;ntesis</value></data>
@@ -296,6 +298,9 @@
 
   <data name="Settings_Tts_MaxWords_Label.Text" xml:space="preserve"><value>M&#225;ximo de Palabras</value></data>
   <data name="Settings_Tts_MaxWords_Description.Text" xml:space="preserve"><value>L&#237;mite de palabras para la s&#237;ntesis (0 = sin l&#237;mite)</value></data>
+
+  <data name="Settings_Tts_SpeechPrompt_Label.Text" xml:space="preserve"><value>Estilo de Habla</value></data>
+  <data name="Settings_Tts_SpeechPrompt_Description.Text" xml:space="preserve"><value>Instrucciones en lenguaje natural para tono, ritmo y estilo (solo Gemini).</value></data>
 
   <data name="Settings_Tts_TestVoice.Content" xml:space="preserve"><value>Probar Voz</value></data>
   <data name="Settings_Tts_TestVoice_SampleText" xml:space="preserve"><value>Hola, esta es una prueba del sistema de texto a voz de dIKta.me.</value></data>
@@ -723,5 +728,20 @@
   <data name="ReadSelection_Disabled_Message" xml:space="preserve"><value>Activa Texto a Voz en Configuraci&#243;n para usar Leer Selecci&#243;n.</value></data>
   <data name="ReadSelection_NoSelection_Title" xml:space="preserve"><value>Sin Selecci&#243;n</value></data>
   <data name="ReadSelection_NoSelection_Message" xml:space="preserve"><value>Selecciona texto en cualquier aplicaci&#243;n y presiona el atajo.</value></data>
+
+  <!-- ── Variantes habladas para TTS (frases conversacionales) ── -->
+  <data name="Loading_WhisperFailed_Spoken" xml:space="preserve"><value>No se pudo descargar el modelo de reconocimiento de voz. Revisa tu conexi&#243;n a internet y reinicia la aplicaci&#243;n.</value></data>
+  <data name="Loading_HotkeyConflict_Spoken" xml:space="preserve"><value>El atajo de {0} ya est&#225; siendo usado por otro programa.</value></data>
+  <data name="Loading_RecordingFailed_Spoken" xml:space="preserve"><value>La grabaci&#243;n no funcion&#243;. Int&#233;ntalo de nuevo.</value></data>
+  <data name="Loading_NoModesConfigured_Spoken" xml:space="preserve"><value>No hay modos de dictado configurados. Agrega al menos uno en los ajustes.</value></data>
+  <data name="Loading_NoteSaved_Spoken" xml:space="preserve"><value>Tu nota ha sido guardada.</value></data>
+  <data name="ReadSelection_NoSelection_Spoken" xml:space="preserve"><value>No hay texto seleccionado. Selecciona algo primero y luego presiona el atajo.</value></data>
+  <data name="Spoken_Error_Generic" xml:space="preserve"><value>Algo sali&#243; mal.</value></data>
+  <data name="Spoken_Warning_Generic" xml:space="preserve"><value>Solo un aviso.</value></data>
+
+  <!-- ── Detecci&#243;n de silencio ──────────────────────────────────────────── -->
+  <data name="Recording_MicMuted_Title" xml:space="preserve"><value>Micr&#243;fono silenciado</value></data>
+  <data name="Recording_MicMuted_Message" xml:space="preserve"><value>Tu micr&#243;fono est&#225; silenciado. Act&#237;valo para grabar.</value></data>
+  <data name="Recording_MicMuted_Spoken" xml:space="preserve"><value>Tu micr&#243;fono est&#225; silenciado.</value></data>
 
 </root>

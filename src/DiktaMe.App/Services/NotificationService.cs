@@ -1,4 +1,5 @@
 
+using System.Globalization;
 using System.Text.RegularExpressions;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.TTS;
@@ -25,22 +26,31 @@ public sealed partial class NotificationService
 {
     private readonly SettingsManager _settings;
     private readonly TtsSpeaker _ttsSpeaker;
+    private readonly LocalizationService _loc;
     private static readonly string SoundsDirectory = Path.Combine(AppContext.BaseDirectory, "Assets", "Sounds");
 
     [GeneratedRegex(@"^[a-zA-Z0-9_-]+$")]
     private static partial Regex SafeStemPattern();
 
-    public NotificationService(SettingsManager settings, TtsSpeaker ttsSpeaker)
+    public NotificationService(SettingsManager settings, TtsSpeaker ttsSpeaker, LocalizationService loc)
     {
         _settings = settings;
         _ttsSpeaker = ttsSpeaker;
+        _loc = loc;
     }
 
     /// <summary>
     /// Shows a silent Windows toast notification (visual only, no sound).
     /// </summary>
     /// <param name="suppressTts">Skip TTS for this toast (e.g. when the caller already spoke the content).</param>
-    public void ShowToast(string title, string message, NotificationType type = NotificationType.Info, bool suppressTts = false)
+    /// <param name="spokenKey">Resource key base for a conversational TTS variant (looks up "{spokenKey}_Spoken").</param>
+    /// <param name="spokenArgs">Format arguments for the spoken resource string (e.g. hotkey name).</param>
+    public void ShowToast(
+        string title, string message,
+        NotificationType type = NotificationType.Info,
+        bool suppressTts = false,
+        string? spokenKey = null,
+        object[]? spokenArgs = null)
     {
         try
         {
@@ -53,13 +63,51 @@ public sealed partial class NotificationService
             // TTS: speak notification aloud if enabled (fire-and-forget, errors handled internally)
             if (!suppressTts)
             {
-                _ = _ttsSpeaker.SpeakIfEnabledAsync($"{title}. {message}", "notification");
+                _ = _ttsSpeaker.SpeakIfEnabledAsync(ResolveSpokenText(title, message, type, spokenKey, spokenArgs), "notification");
             }
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to show toast notification");
         }
+    }
+
+    /// <summary>
+    /// Resolves conversational spoken text for TTS from a resource key,
+    /// falling back to generic type-based phrases or "{title}. {message}".
+    /// </summary>
+    private string ResolveSpokenText(
+        string title, string message,
+        NotificationType type,
+        string? spokenKey,
+        object[]? spokenArgs)
+    {
+        if (spokenKey is not null)
+        {
+            string raw = _loc.GetString(spokenKey + "_Spoken");
+            if (!string.IsNullOrEmpty(raw))
+            {
+                return spokenArgs is { Length: > 0 }
+                    ? string.Format(CultureInfo.CurrentCulture, raw, spokenArgs)
+                    : raw;
+            }
+        }
+        else
+        {
+            // Generic spoken prefix for dynamic error/warning messages
+            string generic = type switch
+            {
+                NotificationType.Error => _loc.GetString("Spoken_Error_Generic"),
+                NotificationType.Warning => _loc.GetString("Spoken_Warning_Generic"),
+                _ => string.Empty,
+            };
+            if (!string.IsNullOrEmpty(generic))
+            {
+                return generic;
+            }
+        }
+
+        return $"{title}. {message}";
     }
 
     /// <summary>

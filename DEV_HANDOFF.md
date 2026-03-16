@@ -27,6 +27,7 @@
 | **DOCS_V2** | Exhaustive User documentation (Features & Settings), integrated natively into the Next.js Website via Markdown |
 | **SPEC_003 A–G** | TTS: Core infra, Kokoro local, Read Selection hotkey, pipeline hooks, cloud providers, Settings UI + Control Panel toggle, Phase G polish + E2E bugfixes. 282 new tests. **All 40 tasks complete. E2E verified.** |
 | **SPEC_KOKORO_GPU** | **BLOCKED** — DirectML ConvTranspose incompatibility (ONNX Runtime 1.22.0). GPU variant + UI variant reorder kept. NuGet reverted to KokoroSharp.CPU. 5 new tests. |
+| **Settings Rework** | Gemini TTS, per-preset trailing space, "When to Speak" relocation, local model selector removal, mute detection, conversational TTS notifications, note context capture. 8 features in one session. |
 
 ## Open Bugs (Stream K)
 
@@ -74,6 +75,143 @@
 
 **No active spec.** Ready for next task.
 
+## Recent Session: Settings Rework + Gemini TTS + UX Improvements (2026-03-15)
+
+### Feature 1: Gemini TTS Cloud Provider
+
+Added Google Gemini as a 5th TTS provider (alongside Kokoro, Deepgram, Inworld, OpenAI).
+
+**New file:** `src/DiktaMe.Core/TTS/GeminiTtsProvider.cs` (271 lines)
+- Endpoint: `generativelanguage.googleapis.com/v1beta/models/{model}:generateContent` with `responseModalities: ["AUDIO"]`
+- Output: base64-encoded PCM (s16le, 24kHz, mono) — identical format to all other providers
+- Auth: API key via `?key=` query param, or OAuth Bearer token detection (`ya29.*`)
+- Models: `gemini-2.5-flash-preview-tts` (default), `gemini-2.5-pro-preview-tts`
+- 30 voices: Kore (default), Zephyr, Puck, Charon, Fenrir, Leda, Orus, Aoede, etc.
+- 60s timeout, 3 retries with exponential backoff on 429/network errors
+- Reuses existing Gemini API key from SecureStorage (no new key setup needed)
+
+**Modified files:**
+- `TTSProviderFactory.cs` — added `"gemini"` to `ResolveVariant()` and `CreateProviderCore()` switches
+- `TtsSettingsViewModel.cs` — added `"gemini"` to `ProviderKeys`, `CloudProviderKeys`, `VoiceLists`, labels
+- `AppSettings.cs` — added `SpeechPrompt` property to `TtsSettings`
+- `TtsSpeaker.cs` — prepends speech prompt for Gemini before synthesis
+- Resource strings: `Settings_Tts_Provider_Gemini` in en + es-MX
+
+### Feature 2: Per-Provider TTS Controls
+
+Each TTS provider now only shows controls it actually supports:
+- **Speed slider**: visible only for OpenAI (Cloud tab) and Kokoro (Local tab)
+- **Speech Style prompt**: visible only for Gemini — free-text field for tone/pace/style instructions (max 200 chars)
+- **Voice/Volume/MaxWords/TestVoice**: shown for all providers
+
+**Implementation:** Added `ShowSpeed`, `ShowSpeechPrompt`, and `CurrentProviderKey` computed properties to `TtsSettingsViewModel`. XAML uses `BoolToVisibilityConverter` on these properties.
+
+**How Gemini speech prompts work:** The prompt is prepended to the text content (e.g. `"Say cheerfully: Hello world"`), not a separate API field. This means no changes to `ITTSProvider` interface. Prepending happens in both `TtsSpeaker.SpeakAsync()` (production) and `TtsSettingsViewModel.TestVoiceAsync()` (test voice button).
+
+### Feature 3: Move "When to Speak" to Pipelines > Speak (TTS)
+
+The "When to Speak" toggles (Speak Ask Responses, Speak Chat, Speak Translations, Speak Notifications, Duck Other Apps, Read Selection hotkey) moved from **AI Engine > TTS > "When to Speak" tab** to **Pipelines > "Speak (TTS)"** sub-item.
+
+**Rationale:** TTS behavior toggles are workflow config, not engine config. TTS engine page now has only Cloud/Local tabs.
+
+**Changes:**
+- `AIEngineSettingsPage.xaml` — removed "When to Speak" tab, simplified TTS to Cloud/Local bool toggle (`IsTtsCloudTab`)
+- `AIEngineSettingsViewModel.cs` — replaced 3-tab `TtsTabIndex` int with `IsTtsCloudTab` bool
+- `WorkflowsSettingsPage.xaml` — added Speak (TTS) section with all 6 toggles
+- `WorkflowsSettingsViewModel.cs` — removed "Dictation Behaviors" section, added `Tts` property, replaced `IsDictationBehaviorsSelected` with `IsSpeakSelected`
+
+### Feature 4: Per-Preset Trailing Space + Remove Use LLM Toggle
+
+Trailing space moved from global `GeneralSettings.TrailingSpace` to per-preset `DictationProfile.TrailingSpace`.
+
+**Changes:**
+- `DictationMode.cs` — added `TrailingSpace` property to `DictationProfile` (default `true`)
+- `DictationModesSettingsViewModel.cs` — replaced `CloudUseLlm`/`LocalUseLlm` with `CloudTrailingSpace`/`LocalTrailingSpace`
+- `DictationPresetsSettingsPage.xaml` — replaced "Use LLM" toggle with "Trailing Space" toggle (with description)
+- `LoadingViewModel.cs` — dictation pipeline now reads `profile.TrailingSpace` instead of `_settings.Current.General.TrailingSpace`
+- `WorkflowsSettingsViewModel.cs` — removed all "Dictation Behaviors" fields (TrailingSpace, AdditionalKeyEnabled, RawModeOverride, RefineVoiceMode) since they were either moved or removed
+
+**Note:** `UseLlm` is preserved in `DictationProfile` for pipeline use but no longer editable from UI — existing values are carried forward via `existing?.CloudProfile.UseLlm ?? true`.
+
+### Feature 5: Remove Per-Pipeline Local Model Selector
+
+Removed the Local Model ComboBox from Pipelines settings to prevent GPU overload from multiple Ollama models loading simultaneously.
+
+**Changes:**
+- `WorkflowsSettingsPage.xaml` — removed Local Model ComboBox + Refresh button from Local tab
+- `ModesSettingsViewModel.cs` — removed `SelectedLocalModelIndex`, `LocalModelNames`, `_localModelIds`, local model population, and sync. `SaveAsync()` now always sets `LocalProfile.ModelName = null` (uses global Ollama model).
+
+### Feature 6: Conversational Spoken TTS Variants
+
+Notification TTS now speaks natural, conversational phrases instead of raw UI text.
+
+**How it works:**
+- `NotificationService.ShowToast()` accepts optional `spokenKey` and `spokenArgs` parameters
+- `ResolveSpokenText()` looks up `{spokenKey}_Spoken` from resources for a natural phrasing
+- Falls back to generic `Spoken_Error_Generic` / `Spoken_Warning_Generic` for unkeyed error/warning toasts
+- Final fallback: original `"{title}. {message}"` concatenation
+
+**Spoken variants added (en + es-MX):**
+- `Loading_WhisperFailed_Spoken` — "The speech recognition model couldn't be downloaded..."
+- `Loading_HotkeyConflict_Spoken` — "The {0} hotkey is already being used..."
+- `Loading_RecordingFailed_Spoken` — "The recording didn't work..."
+- `Loading_NoModesConfigured_Spoken` — "No dictation modes are set up yet..."
+- `Loading_NoteSaved_Spoken` — "Your note has been saved."
+- `ReadSelection_NoSelection_Spoken` — "No text is selected..."
+- `Spoken_Error_Generic` — "Something went wrong."
+- `Spoken_Warning_Generic` — "Just a heads up."
+
+### Feature 7: Microphone Mute Detection
+
+Detects when the user's microphone is muted during recording and shows a toast + spoken notification.
+
+**Changes:**
+- `LoadingViewModel.cs` — added `MuteDetector` dependency, `OnMuteStateChanged` handler
+- Both `RecordAudioAsync` (utility pipelines) and streaming dictation: call `_muteDetector.UpdateDeviceLabel()`, check immediately with `CheckMuteState()`, subscribe to `MuteStateChanged`, start monitoring. Cleanup on stop.
+- Resource strings: `Recording_MicMuted_Title`, `Recording_MicMuted_Message`, `Recording_MicMuted_Spoken` (en + es-MX)
+
+### Feature 8: Note Pipeline Context Capture
+
+Notes now capture the currently selected text as context before recording, embedding it as a blockquote in the saved note.
+
+**Changes:**
+- `PipelineOptions.cs` — added `PreCapturedContext` property to `NoteOptions`
+- `NotePipeline.cs` — builds note entry with optional `> {context}` blockquote between timestamp and note text
+- `LoadingViewModel.cs` — `RunNotePipelineAsync` now receives `sourceWindow` HWND, calls `CaptureSelection()` before recording, passes `PreCapturedContext` to pipeline options
+
+**Output format:**
+```
+## 2026-03-15 19:30:00
+
+> Selected text from the active window
+
+Transcribed note content here
+```
+
+### Files Changed Summary
+
+| File | Change Type |
+|------|------------|
+| `GeminiTtsProvider.cs` | **NEW** — Gemini TTS provider (271 lines) |
+| `TTSProviderFactory.cs` | Register Gemini provider |
+| `AppSettings.cs` | Add `SpeechPrompt` to TtsSettings |
+| `DictationMode.cs` | Add `TrailingSpace` to DictationProfile |
+| `TtsSpeaker.cs` | Gemini speech prompt prepending |
+| `PipelineOptions.cs` | Add `PreCapturedContext` to NoteOptions |
+| `NotePipeline.cs` | Context blockquote in saved notes |
+| `NotificationService.cs` | Conversational spoken TTS with resource keys |
+| `LoadingViewModel.cs` | Mute detection, per-preset trailing space, note context capture, spoken keys |
+| `TtsSettingsViewModel.cs` | Gemini provider + per-provider visibility + SpeechPrompt |
+| `AIEngineSettingsViewModel.cs` | Simplify TTS tabs to Cloud/Local bool |
+| `ModesSettingsViewModel.cs` | Remove local model selector |
+| `DictationModesSettingsViewModel.cs` | TrailingSpace replaces UseLlm toggle |
+| `WorkflowsSettingsViewModel.cs` | Remove Dictation Behaviors, add Speak (TTS) + Tts VM |
+| `AIEngineSettingsPage.xaml` | Remove "When to Speak" tab, add Speech Prompt + ShowSpeed visibility |
+| `WorkflowsSettingsPage.xaml` | Add Speak (TTS) section, remove Local Model selector |
+| `DictationPresetsSettingsPage.xaml` | Replace UseLlm with TrailingSpace toggle |
+| `en/Resources.resw` | Gemini label, SpeechPrompt, spoken variants, mute detection strings |
+| `es-MX/Resources.resw` | Same as en (translated) |
+
 ### Recently Blocked: SPEC_KOKORO_GPU — Kokoro TTS DirectML GPU Acceleration
 
 | Detail | Value |
@@ -104,7 +242,7 @@
 | **Spec** | `plans/SPEC_003_TTS_V2.md` |
 | **Phases** | A–G (40 tasks, all complete, E2E verified) |
 | **Local TTS** | Kokoro-ONNX via `KokoroSharp.CPU` NuGet (82M params, 88MB int8 model) |
-| **Cloud TTS** | Deepgram Aura-2, Inworld TTS-1.5, OpenAI (all working after variant routing fix) |
+| **Cloud TTS** | Deepgram Aura-2, Inworld TTS-1.5, OpenAI, Gemini (all working after variant routing fix) |
 | **Key hotkey** | `Ctrl+Alt+Q` = "Read Selection" (select text anywhere → hear it) |
 | **Tests** | 282 new tests (944 total) |
 

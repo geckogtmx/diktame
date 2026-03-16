@@ -60,9 +60,17 @@ public sealed class TtsSpeaker
                 ? tts.KokoroModelVariant : null;
             ITTSProvider provider = _factory.CreateProvider(tts.Provider, variant);
 
+            // Gemini TTS supports natural-language style prompts prepended to the text
+            string synthesisText = cleaned;
+            if (string.Equals(tts.Provider, "gemini", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(tts.SpeechPrompt))
+            {
+                synthesisText = $"{tts.SpeechPrompt}: {cleaned}";
+            }
+
             var sw = Stopwatch.StartNew();
             TtsResult result = await provider
-                .SynthesizeAsync(cleaned, voiceId, ct)
+                .SynthesizeAsync(synthesisText, voiceId, ct)
                 .ConfigureAwait(false);
 
             if (!result.IsSuccess)

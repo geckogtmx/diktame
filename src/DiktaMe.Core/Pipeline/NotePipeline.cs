@@ -1,5 +1,6 @@
 
 using System.Diagnostics;
+using System.Text;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
@@ -115,7 +116,19 @@ public sealed class NotePipeline
             Log.Information("NotePipeline: saving note to '{Path}'", options.NotesFilePath);
 
             string timestamp = DateTime.Now.ToString(options.TimestampFormat, System.Globalization.CultureInfo.InvariantCulture);
-            string entry = $"\n## {timestamp}\n\n{noteText}\n";
+
+            // Build entry with optional context blockquote (V1 parity)
+            var sb = new StringBuilder();
+            sb.AppendLine();
+            sb.AppendLine($"## {timestamp}");
+            sb.AppendLine();
+            if (!string.IsNullOrWhiteSpace(options.PreCapturedContext))
+            {
+                sb.AppendLine($"> {options.PreCapturedContext.Trim()}");
+                sb.AppendLine();
+            }
+            sb.AppendLine(noteText);
+            string entry = sb.ToString();
 
             string directory = Path.GetDirectoryName(options.NotesFilePath) ?? string.Empty;
             if (!string.IsNullOrEmpty(directory))

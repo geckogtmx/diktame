@@ -63,6 +63,7 @@ public sealed class TTSProviderFactory : ITTSProviderFactory, IDisposable
             "deepgram" => "aura-asteria-en",
             "inworld" => "inworld-tts-1.5-max",
             "openai" => "tts-1",
+            "gemini" => "gemini-2.5-flash-preview-tts",
             _ => string.Empty,
         };
     }
@@ -86,6 +87,10 @@ public sealed class TTSProviderFactory : ITTSProviderFactory, IDisposable
             "openai" => CreateCloudProvider(
                 "openai",
                 key => new OpenAITtsProvider(key, model: variant, speed: _settings.Current.Tts.Speed)),
+
+            "gemini" => CreateCloudProvider(
+                "gemini",
+                key => new GeminiTtsProvider(key, model: variant)),
 
             _ => throw new NotSupportedException($"Unknown TTS provider type: '{type}'."),
         };

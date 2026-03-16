@@ -43,9 +43,6 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _selectedCloudModelIndex;
 
-    [ObservableProperty]
-    private int _selectedLocalModelIndex;
-
     // ── Model lists ────────────────────────────────────────────────────────
 
     /// <summary>Display names for Cloud model ComboBox (no Ollama models).</summary>
@@ -53,12 +50,6 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
 
     /// <summary>Backing model IDs for Cloud models (parallel to CloudModelNames).</summary>
     private readonly List<string> _cloudModelIds = [];
-
-    /// <summary>Display names for Local model ComboBox (Ollama only).</summary>
-    public ObservableCollection<string> LocalModelNames { get; } = [];
-
-    /// <summary>Backing model IDs for Local models (parallel to LocalModelNames).</summary>
-    private readonly List<string> _localModelIds = [];
 
     [ObservableProperty]
     private bool _isLoadingModels;
@@ -308,19 +299,6 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
             _cloudModelIds.Add(m.ModelId);
         }
 
-        // Local models (Ollama only)
-        LocalModelNames.Clear();
-        _localModelIds.Clear();
-        LocalModelNames.Add(_loc.GetString("Settings_Modes_ModelDefault_Local"));
-        _localModelIds.Add("");
-
-        var localModels = models.Where(m => string.Equals(m.Provider, "Ollama (Local)", StringComparison.OrdinalIgnoreCase));
-        foreach (var m in localModels)
-        {
-            LocalModelNames.Add(m.DisplayName);
-            _localModelIds.Add(m.ModelId);
-        }
-
         // Chat: combined model list (all providers)
         ChatModelNames.Clear();
         _chatModelIds.Clear();
@@ -402,9 +380,8 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
         CloudSystemPrompt = pipeline.CloudProfile.SystemPrompt ?? "";
         LocalSystemPrompt = pipeline.LocalProfile.SystemPrompt ?? "";
 
-        // Map model names to combo indices
+        // Map cloud model name to combo index
         SelectedCloudModelIndex = FindModelIndex(_cloudModelIds, pipeline.CloudProfile.ModelName);
-        SelectedLocalModelIndex = FindModelIndex(_localModelIds, pipeline.LocalProfile.ModelName);
 
         // Mode-specific fields
         switch (pipelineType)
@@ -477,9 +454,7 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
             var localProfile = new UtilityProfile
             {
                 SystemPrompt = string.IsNullOrWhiteSpace(LocalSystemPrompt) ? null : LocalSystemPrompt,
-                ModelName = SelectedLocalModelIndex >= 0 && SelectedLocalModelIndex < _localModelIds.Count
-                    ? _localModelIds[SelectedLocalModelIndex]
-                    : null,
+                ModelName = null, // Local always uses global Ollama model
             };
 
             await _pipelineManager.UpdatePipelineAsync(pipelineType, cloudProfile, localProfile).ConfigureAwait(false);

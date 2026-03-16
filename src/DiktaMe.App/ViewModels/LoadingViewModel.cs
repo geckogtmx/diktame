@@ -42,6 +42,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly ITtsPlayerService _ttsPlayer;
     private readonly TtsSpeaker _ttsSpeaker;
     private readonly AudioLevelMonitor _levelMonitor;
+    private readonly MuteDetector _muteDetector;
     private readonly WalletGeminiProxy _walletProxy;
 
     [ObservableProperty] private string _statusText = "";
@@ -77,6 +78,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         ITtsPlayerService ttsPlayer,
         TtsSpeaker ttsSpeaker,
         AudioLevelMonitor levelMonitor,
+        MuteDetector muteDetector,
         WalletGeminiProxy walletProxy)
     {
         _settings = settings;
@@ -101,6 +103,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _ttsPlayer = ttsPlayer;
         _ttsSpeaker = ttsSpeaker;
         _levelMonitor = levelMonitor;
+        _muteDetector = muteDetector;
         _walletProxy = walletProxy;
         _statusText = _loc.GetString("Loading_Initializing");
     }
@@ -149,7 +152,8 @@ public sealed partial class LoadingViewModel : ObservableObject
                     _notifications.ShowToast(
                         _loc.GetString("Loading_WhisperFailed_Title"),
                         _loc.GetString("Loading_WhisperFailed_Message"),
-                        NotificationType.Error);
+                        NotificationType.Error,
+                        spokenKey: "Loading_WhisperFailed");
                 }
             }
 
@@ -384,7 +388,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                         break;
 
                     case HotkeyId.Note:
-                        _ = RunNotePipelineAsync();
+                        _ = RunNotePipelineAsync(sourceWindow);
                         break;
 
                     case HotkeyId.Oops:
@@ -416,7 +420,21 @@ public sealed partial class LoadingViewModel : ObservableObject
         _notifications.ShowToast(
             _loc.GetString("Loading_HotkeyConflict_Title"),
             _loc.GetFormatted("Loading_HotkeyConflict_Message", e.Id, e.HotkeyString),
-            NotificationType.Error);
+            NotificationType.Error,
+            spokenKey: "Loading_HotkeyConflict",
+            spokenArgs: [e.Id]);
+    }
+
+    private void OnMuteStateChanged(object? sender, MuteStateChangedEventArgs e)
+    {
+        if (e.IsMuted && _isRecording)
+        {
+            _notifications.ShowToast(
+                _loc.GetString("Recording_MicMuted_Title"),
+                _loc.GetString("Recording_MicMuted_Message"),
+                NotificationType.Warning,
+                spokenKey: "Recording_MicMuted");
+        }
     }
 
     // ── Helper Methods ────────────────────────────────────────────────────────
@@ -689,6 +707,8 @@ public sealed partial class LoadingViewModel : ObservableObject
             _currentRecorder!.RecordingStopped -= stopHandler;
             _isRecording = false;
             _levelMonitor.Stop();
+            _muteDetector.Stop();
+            _muteDetector.MuteStateChanged -= OnMuteStateChanged;
             _notifications.PlayCustomSound(stopSound);
             tcs.TrySetResult((args.FilePath, args.DurationMs));
         };
@@ -717,6 +737,19 @@ public sealed partial class LoadingViewModel : ObservableObject
             maxDurationSeconds: maxDuration);
 
         Log.Information("{Mode}: Recording started (max {MaxSec}s)", mode, maxDuration);
+
+        // Mute detection: sync device label, check immediately, monitor changes
+        _muteDetector.UpdateDeviceLabel(deviceLabel);
+        if (_muteDetector.CheckMuteState() == true)
+        {
+            _notifications.ShowToast(
+                _loc.GetString("Recording_MicMuted_Title"),
+                _loc.GetString("Recording_MicMuted_Message"),
+                NotificationType.Warning,
+                spokenKey: "Recording_MicMuted");
+        }
+        _muteDetector.MuteStateChanged += OnMuteStateChanged;
+        _muteDetector.Start();
 
         // Play start sound (after recording has begun)
         string startSound = isDictate ? soundSettings.StartSound : soundSettings.UtilitySound;
@@ -770,6 +803,12 @@ public sealed partial class LoadingViewModel : ObservableObject
             _currentRecorder.AudioDataAvailable += (_, e) =>
                 _levelMonitor.UpdateLevel(e.PcmData, e.BytesRecorded);
 
+            // Resolve active profile for per-preset TrailingSpace
+            string? activeModeId = _controlPanel.ActiveDictationModeId;
+            DictationProfile? profile = activeModeId is not null
+                ? _dictationModes.GetActiveProfile(activeModeId)
+                : null;
+
             // Build DictationOptions (streaming is always raw mode)
             var options = new DictationOptions
             {
@@ -777,7 +816,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                 Language = _settings.Current.General.Language,
                 Injection = new PipelineInjectionOptions
                 {
-                    TrailingSpace = _settings.Current.General.TrailingSpace,
+                    TrailingSpace = profile?.TrailingSpace ?? true,
                 },
             };
 
@@ -799,6 +838,19 @@ public sealed partial class LoadingViewModel : ObservableObject
                 deviceId: null,
                 maxDurationSeconds: audio.MaxDurationSeconds);
 
+            // Mute detection: sync device label, check immediately, monitor changes
+            _muteDetector.UpdateDeviceLabel(deviceLabel);
+            if (_muteDetector.CheckMuteState() == true)
+            {
+                _notifications.ShowToast(
+                    _loc.GetString("Recording_MicMuted_Title"),
+                    _loc.GetString("Recording_MicMuted_Message"),
+                    NotificationType.Warning,
+                    spokenKey: "Recording_MicMuted");
+            }
+            _muteDetector.MuteStateChanged += OnMuteStateChanged;
+            _muteDetector.Start();
+
             var soundSettings = _settings.Current.Sound ?? new();
             _notifications.PlayCustomSound(soundSettings.StartSound);
 
@@ -809,6 +861,8 @@ public sealed partial class LoadingViewModel : ObservableObject
 
             _isRecording = false;
             _levelMonitor.Stop();
+            _muteDetector.Stop();
+            _muteDetector.MuteStateChanged -= OnMuteStateChanged;
             _notifications.PlayCustomSound(soundSettings.StopSound);
 
             if (result.IsSuccess)
@@ -850,7 +904,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (audioFile == null)
             {
                 Log.Warning("Dictate: No audio file produced");
-                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error, spokenKey: "Loading_RecordingFailed");
                 return;
             }
 
@@ -870,7 +924,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (activeMode == null)
             {
                 Log.Warning("Dictate: No dictation modes configured");
-                _notifications.ShowToast("Error", _loc.GetString("Loading_NoModesConfigured"), NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_NoModesConfigured"), NotificationType.Error, spokenKey: "Loading_NoModesConfigured");
                 return;
             }
 
@@ -886,7 +940,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                 Language = _settings.Current.General.Language,
                 Injection = new PipelineInjectionOptions
                 {
-                    TrailingSpace = _settings.Current.General.TrailingSpace,
+                    TrailingSpace = profile.TrailingSpace,
                     AdditionalKey = string.IsNullOrEmpty(_settings.Current.General.AdditionalKey)
                         ? null
                         : _settings.Current.General.AdditionalKey,
@@ -1019,7 +1073,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (audioFile == null)
             {
                 Log.Warning("Refine: No audio file produced");
-                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error, spokenKey: "Loading_RecordingFailed");
                 return;
             }
 
@@ -1088,7 +1142,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (audioFile == null)
             {
                 Log.Warning("Ask: No audio file produced");
-                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error, spokenKey: "Loading_RecordingFailed");
                 return;
             }
 
@@ -1197,7 +1251,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (audioFile == null)
             {
                 Log.Warning("Translate: No audio file produced");
-                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error, spokenKey: "Loading_RecordingFailed");
                 return;
             }
 
@@ -1269,18 +1323,22 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
     }
 
-    private async Task RunNotePipelineAsync()
+    private async Task RunNotePipelineAsync(IntPtr sourceWindow)
     {
         try
         {
-            Log.Information("Starting Note pipeline...");
+            Log.Information("Starting Note pipeline (sourceHwnd=0x{Hwnd:X})...", sourceWindow);
+
+            // Pre-capture selected text as context (same pattern as RunRefineAutoAsync)
+            string? preCaptured = await Task.Run(() => _textInjector.CaptureSelection(sourceWindow));
+            Log.Information("Note: pre-captured {Chars} chars", preCaptured?.Length ?? 0);
 
             // Record audio (waits for auto-stop event)
             var (audioFile, recordingDurationMs) = await RecordAudioAsync("Note", isDictate: false);
             if (audioFile == null)
             {
                 Log.Warning("Note: No audio file produced");
-                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error);
+                _notifications.ShowToast("Error", _loc.GetString("Loading_RecordingFailed"), NotificationType.Error, spokenKey: "Loading_RecordingFailed");
                 return;
             }
 
@@ -1301,6 +1359,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                 NotesFilePath = _settings.Current.NotesFilePath, // required
                 TimestampFormat = "yyyy-MM-dd HH:mm:ss",
                 RecordingDurationMs = recordingDurationMs,
+                PreCapturedContext = preCaptured,
             };
 
             var pipeline = _pipelineFactory.CreateNotePipeline();
@@ -1315,7 +1374,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             {
                 // result.Text contains the note content that was appended
                 Log.Information("Note: Saved to {FilePath}", options.NotesFilePath);
-                _notifications.ShowToast(_loc.GetString("Loading_NoteSaved_Title"), _loc.GetFormatted("Loading_NoteSaved_Message", System.IO.Path.GetFileName(options.NotesFilePath)), NotificationType.Success);
+                _notifications.ShowToast(_loc.GetString("Loading_NoteSaved_Title"), _loc.GetFormatted("Loading_NoteSaved_Message", System.IO.Path.GetFileName(options.NotesFilePath)), NotificationType.Success, spokenKey: "Loading_NoteSaved");
             }
             else
             {
@@ -1370,7 +1429,8 @@ public sealed partial class LoadingViewModel : ObservableObject
                 _notifications.ShowToast(
                     _loc.GetString("ReadSelection_NoSelection_Title"),
                     _loc.GetString("ReadSelection_NoSelection_Message"),
-                    NotificationType.Warning);
+                    NotificationType.Warning,
+                    spokenKey: "ReadSelection_NoSelection");
                 return;
             }
 

@@ -64,13 +64,8 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLlmCloudTab = true;
 
-    /// <summary>TTS tab index: 0 = When to Speak, 1 = Cloud, 2 = Local.</summary>
     [ObservableProperty]
-    private int _ttsTabIndex;
-
-    public bool IsTtsWhenToSpeakTab => TtsTabIndex == 0;
-    public bool IsTtsCloudTab => TtsTabIndex == 1;
-    public bool IsTtsLocalTab => TtsTabIndex == 2;
+    private bool _isTtsCloudTab = true;
 
     // ── Whisper settings ────────────────────────────────────────────────────
 
@@ -210,22 +205,17 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [RelayCommand] private void SelectSttLocal() => IsSttCloudTab = false;
     [RelayCommand] private void SelectLlmCloud() => IsLlmCloudTab = true;
     [RelayCommand] private void SelectLlmLocal() => IsLlmCloudTab = false;
-    [RelayCommand] private void SelectTtsWhenToSpeak() => TtsTabIndex = 0;
-    [RelayCommand] private void SelectTtsCloud() => TtsTabIndex = 1;
-    [RelayCommand] private void SelectTtsLocal() => TtsTabIndex = 2;
+    [RelayCommand] private void SelectTtsCloud() => IsTtsCloudTab = true;
+    [RelayCommand] private void SelectTtsLocal() => IsTtsCloudTab = false;
 
-    partial void OnTtsTabIndexChanged(int value)
+    partial void OnIsTtsCloudTabChanged(bool value)
     {
-        OnPropertyChanged(nameof(IsTtsWhenToSpeakTab));
-        OnPropertyChanged(nameof(IsTtsCloudTab));
-        OnPropertyChanged(nameof(IsTtsLocalTab));
-
         // Sync active provider with selected tab
-        if (value == 2)
+        if (!value)
         {
-            Tts.SelectedProviderIndex = 0; // kokoro
+            Tts.SelectedProviderIndex = 0; // kokoro (local)
         }
-        else if (value == 1)
+        else
         {
             Tts.SelectedProviderIndex = Tts.SelectedCloudProviderIndex + 1;
         }
