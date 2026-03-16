@@ -57,6 +57,9 @@ export function Navbar() {
           <Link href="/#versus-track" className="text-[#94a3b8] hover:text-white transition-colors">
             vs Others
           </Link>
+          <Link href="/#specs-track" className="text-[#94a3b8] hover:text-white transition-colors">
+            Specs
+          </Link>
           <Link href="/#pricing" className="text-[#94a3b8] hover:text-white transition-colors">
             Pricing
           </Link>
@@ -96,6 +99,9 @@ export function Navbar() {
         </Link>
         <Link href="/#versus-track" className="text-white hover:text-[#2563eb]" onClick={() => setIsMobileMenuOpen(false)}>
           vs Others
+        </Link>
+        <Link href="/#specs-track" className="text-white hover:text-[#2563eb]" onClick={() => setIsMobileMenuOpen(false)}>
+          Specs
         </Link>
         <Link href="/#pricing" className="text-white hover:text-[#2563eb]" onClick={() => setIsMobileMenuOpen(false)}>
           Pricing
