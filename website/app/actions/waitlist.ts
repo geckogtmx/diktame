@@ -46,7 +46,13 @@ export async function submitWaitlist(formData: FormData) {
       };
     }
     
-    console.error('Waitlist submission error:', error, error.code, error.message);
+    console.error('Waitlist submission error:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint
+    });
     return { error: `Submission failed: ${error.message || 'Unknown error'}` };
   }
 
