@@ -119,9 +119,6 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
                     <strong className="text-white">Local Model Brain</strong> — Gemma 3 / Llama 3 support
                   </li>
                   <li>
-                    <strong className="text-white">Cloud Bridge</strong> — Seamless Google OAuth for Gemini 2.0
-                  </li>
-                  <li>
                     <strong className="text-white">API Freedom</strong> — OpenAI, Anthropic, DeepSeek support
                   </li>
                   <li>

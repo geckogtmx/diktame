@@ -67,14 +67,14 @@ export function SpecsSection() {
                   <p>Standard - Direct Injection</p>
                   <p>Professional - Polished Output</p>
                   <p>Prompt - AI Instruction mode</p>
-                  <p>Raw - Unfiltered Stream</p>
+                  <p>Chat - Floating Overlay</p>
                 </div>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Cloud</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Hybrid Cloud Bridge</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Audio</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">Audio Ducking</h3>
                 <p className="text-sm text-muted">
-                  Seamlessly transition from local execution to Gemini 2.0 via one-click Google OAuth.
+                  Automatically reduces background volume from other applications during active recording sessions.
                 </p>
               </div>
               <div className="card p-6">
@@ -123,13 +123,13 @@ export function SpecsSection() {
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Deploy</div>
                 <h3 className="text-lg font-bold text-text mb-2 text-white">Self-Contained Binary</h3>
                 <p className="text-sm text-muted">
-                  Single 150MB portable .exe includes a full Python runtime and embedded Ollama engine.
+                  High-performance ~30MB portable .exe built with native C# and WinUI 3. Zero dependencies.
                 </p>
               </div>
               <div className="card p-6">
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Productivity</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Voice Macros (Coming v2.0)</h3>
-                <p className="text-sm text-muted">Expand snippets and signatures instantly.</p>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">Voice Macros</h3>
+                <p className="text-sm text-muted">Expand snippets and signatures instantly with trigger phrases.</p>
               </div>
               <div className="card p-6">
                 <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Flexibility</div>
