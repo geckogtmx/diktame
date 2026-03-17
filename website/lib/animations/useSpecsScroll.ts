@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 /**
  * Hook for Specs section group toggle animation
- * Toggles between group 1 and group 2 based on scroll progress through 300vh section
+ * Cycles through 3 groups based on scroll progress through 400vh section
  * Extracted from sitex scroll logic
  */
 export function useSpecsScroll() {
@@ -27,17 +27,18 @@ export function useSpecsScroll() {
       }
 
       if (scrollTop > scrollableHeight) {
-        setActiveGroup(2);
+        setActiveGroup(3);
         return;
       }
 
       const progress = scrollTop / scrollableHeight;
 
-      // Toggle at 50% threshold
-      if (progress < 0.5) {
+      if (progress < 0.33) {
         setActiveGroup(1);
-      } else {
+      } else if (progress < 0.66) {
         setActiveGroup(2);
+      } else {
+        setActiveGroup(3);
       }
     };
 

@@ -11,7 +11,7 @@ interface Profile {
   name: string | null;
   trialWordsQuota: number;
   trialExpiresAt: string;
-  hasCustomGeminiKey: boolean;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -26,7 +26,7 @@ export default function ProfilePage() {
 
   // Form state
   const [name, setName] = useState('');
-  const [customGeminiKey, setCustomGeminiKey] = useState('');
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const router = useRouter();
@@ -47,7 +47,6 @@ export default function ProfilePage() {
       const data = await response.json();
       setProfile(data);
       setName(data.name || '');
-      // Don't populate customGeminiKey for security
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
     } finally {
@@ -68,7 +67,6 @@ export default function ProfilePage() {
         },
         body: JSON.stringify({
           name: name.trim() || null,
-          customGeminiKey: customGeminiKey.trim() || undefined,
         }),
       });
 
@@ -79,7 +77,7 @@ export default function ProfilePage() {
       const updatedProfile = await response.json();
       setProfile(updatedProfile);
       setSuccess('Profile updated successfully!');
-      setCustomGeminiKey(''); // Clear the input after saving
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
@@ -132,7 +130,7 @@ export default function ProfilePage() {
             ← Back to Dashboard
           </button>
           <h1 className="text-3xl font-bold">Profile Settings</h1>
-          <p className="text-muted mt-2">Manage your account and API keys</p>
+          <p className="text-muted mt-2">Manage your account</p>
         </div>
       </div>
 
@@ -185,36 +183,6 @@ export default function ProfilePage() {
                 className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white/50 cursor-not-allowed"
               />
             </div>
-          </div>
-        </div>
-
-        {/* API Key Management */}
-        <div className="card p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4">Custom Gemini API Key</h2>
-          <p className="text-muted mb-4">
-            Add your own Gemini API key to bypass trial limits. Your key is encrypted and never shared.
-          </p>
-
-          {profile?.hasCustomGeminiKey && (
-            <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm">
-              ✓ Custom API key is active
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-muted mb-2">
-              Gemini API Key
-            </label>
-            <input
-              type="password"
-              value={customGeminiKey}
-              onChange={(e) => setCustomGeminiKey(e.target.value)}
-              placeholder={profile?.hasCustomGeminiKey ? '••••••••••••••••' : 'Enter your Gemini API key'}
-              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary font-mono text-sm"
-            />
-            <p className="text-xs text-muted mt-1">
-              Leave blank to use managed trial credits. Enter a new key to update.
-            </p>
           </div>
         </div>
 

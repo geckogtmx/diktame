@@ -6,7 +6,7 @@ export function SpecsSection() {
   const { activeGroup } = useSpecsScroll();
 
   return (
-    <div id="specs-track" className="relative h-[300vh]">
+    <div id="specs-track" className="relative h-[400vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 blur-[120px]"></div>
 
@@ -153,6 +153,71 @@ export function SpecsSection() {
                 <p className="text-sm text-muted">Hear AI responses, read selections aloud, or listen to translations. Fully local via Kokoro ONNX.</p>
               </div>
             </div>
+
+            {/* Group 3: Features 17-24 */}
+            <div
+              id="specs-group-3"
+              className={`absolute inset-0 grid md:grid-cols-4 gap-6 transition-all duration-700 ease-out will-change-transform ${
+                activeGroup === 3 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
+              }`}
+            >
+              <div className="card p-6">
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Streaming</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">Real-Time STT</h3>
+                <p className="text-sm text-muted">
+                  Live streaming speech-to-text via Deepgram for instant cloud transcription with sub-second latency.
+                </p>
+              </div>
+              <div className="card p-6">
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Cloud</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">Pay-As-You-Go Wallet</h3>
+                <p className="text-sm text-muted">
+                  No subscriptions. Load credits and use cloud STT + LLM at cost. $5 gets you ~65,000 words.
+                </p>
+              </div>
+              <div className="card p-6">
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Setup</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">First-Run Wizard</h3>
+                <p className="text-sm text-muted">
+                  Guided setup that installs Ollama, downloads models, and configures everything in minutes.
+                </p>
+              </div>
+              <div className="card p-6">
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Performance</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">GPU Acceleration</h3>
+                <p className="text-sm text-muted">
+                  Vulkan-powered Whisper inference for blazing local STT. Falls back to CPU gracefully when needed.
+                </p>
+              </div>
+              <div className="card p-6">
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Customization</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">Custom Modes</h3>
+                <p className="text-sm text-muted">
+                  Create your own dictation modes with custom system prompts, model overrides, and hotkey bindings.
+                </p>
+              </div>
+              <div className="card p-6">
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Data</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">Session History</h3>
+                <p className="text-sm text-muted">
+                  Every dictation logged locally in SQLite — word counts, latency, mode used. Your data, queryable.
+                </p>
+              </div>
+              <div className="card p-6">
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Notifications</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">Spoken Alerts</h3>
+                <p className="text-sm text-muted">
+                  AI responses and translations read aloud via system notifications. Hear answers without looking.
+                </p>
+              </div>
+              <div className="card p-6">
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Transparency</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">Source Available</h3>
+                <p className="text-sm text-muted">
+                  Inspect every line. No black boxes, no telemetry, no hidden network calls. Built in the open.
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="mt-12 flex justify-center gap-2">
@@ -166,6 +231,12 @@ export function SpecsSection() {
               id="specs-dot-2"
               className={`h-1 rounded-full transition-all duration-300 ${
                 activeGroup === 2 ? 'w-16 bg-primary' : 'w-12 bg-white/20'
+              }`}
+            ></div>
+            <div
+              id="specs-dot-3"
+              className={`h-1 rounded-full transition-all duration-300 ${
+                activeGroup === 3 ? 'w-16 bg-primary' : 'w-12 bg-white/20'
               }`}
             ></div>
           </div>

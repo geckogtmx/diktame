@@ -19,19 +19,6 @@ export default async function DashboardPage() {
         .eq('id', user.id)
         .single()
 
-    // Trial data (conditional — only shown when trial_expires_at is set)
-    const hasTrial = !!profile?.trial_expires_at
-    const trialExpires = hasTrial ? new Date(profile.trial_expires_at) : null
-    const now = new Date()
-    const daysRemaining = trialExpires
-        ? Math.max(0, Math.ceil((trialExpires.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
-        : 0
-    const wordsUsed = profile?.trial_words_used || 0
-    const wordsQuota = profile?.trial_words_quota || 15000
-    const wordsRemaining = Math.max(0, wordsQuota - wordsUsed)
-    const percentUsed = wordsQuota > 0 ? (wordsUsed / wordsQuota) * 100 : 0
-    const trialActive = hasTrial && daysRemaining > 0 && wordsUsed < wordsQuota
-
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
             <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -64,52 +51,8 @@ export default async function DashboardPage() {
                             <p className="text-gray-400">License tier</p>
                             <p className="font-medium capitalize">{profile?.license_tier || 'Free'}</p>
                         </div>
-                        <div>
-                            <p className="text-gray-400">Custom API key</p>
-                            <p className="font-medium">{profile?.custom_gemini_key ? 'Configured' : 'Not set'}</p>
-                        </div>
                     </div>
                 </div>
-
-                {/* Trial Credits (conditional) */}
-                {hasTrial && (
-                    <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 backdrop-blur-xl rounded-2xl p-8 border border-blue-500/20 mb-6">
-                        <h2 className="text-xl font-semibold mb-4">
-                            {trialActive ? 'Trial Credits' : 'Trial Expired'}
-                        </h2>
-
-                        {/* Progress Bar */}
-                        <div className="mb-4">
-                            <div className="flex justify-between text-sm mb-2">
-                                <span>{wordsUsed.toLocaleString()} / {wordsQuota.toLocaleString()} words used</span>
-                                <span>{wordsRemaining.toLocaleString()} remaining</span>
-                            </div>
-                            <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
-                                <div
-                                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-500"
-                                    style={{ width: `${Math.min(percentUsed, 100)}%` }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-2xl font-bold">{daysRemaining} days left</p>
-                                <p className="text-sm text-gray-400">
-                                    {trialExpires ? `Expires ${trialExpires.toLocaleDateString()}` : ''}
-                                </p>
-                            </div>
-                            {!profile?.custom_gemini_key && (
-                                <a
-                                    href="/dashboard/profile"
-                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-colors"
-                                >
-                                    Add Your Gemini API Key
-                                </a>
-                            )}
-                        </div>
-                    </div>
-                )}
 
                 {/* Quick Actions */}
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
