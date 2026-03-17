@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { submitWaitlist } from '../actions/waitlist';
 import { ViralSuccessCard } from './ViralSuccessCard';
 
 export function WaitingListForm() {
+  const t = useTranslations('WaitingListForm');
   const [isPending, setIsPending] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [userData, setUserData] = useState<{ id: string; name: string } | null>(null);
@@ -27,7 +29,7 @@ export function WaitingListForm() {
       }
       setMessage({ 
         type: 'success', 
-        text: result.message || 'Thank you! You have been added to the waiting list.' 
+        text: result.message || t('defaultSuccess')
       });
       (event.target as HTMLFormElement).reset();
     }
@@ -51,7 +53,7 @@ export function WaitingListForm() {
               onClick={() => setMessage(null)}
               className="block mt-2 text-xs underline opacity-70 hover:opacity-100"
             >
-              Sign up another email
+              {t('signUpAnother')}
             </button>
           )}
         </div>
@@ -61,7 +63,7 @@ export function WaitingListForm() {
         <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-muted mb-1.5 ml-1">
-              What&apos;s your name?
+              {t('nameLabel')}
             </label>
             <input
               type="text"
@@ -69,14 +71,14 @@ export function WaitingListForm() {
               name="name"
               required
               disabled={isPending}
-              placeholder="e.g. John Doe"
+              placeholder={t('namePlaceholder')}
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all disabled:opacity-50"
             />
           </div>
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-muted mb-1.5 ml-1">
-              Email Address
+              {t('emailLabel')}
             </label>
             <input
               type="email"
@@ -84,7 +86,7 @@ export function WaitingListForm() {
               name="email"
               required
               disabled={isPending}
-              placeholder="john@example.com"
+              placeholder={t('emailPlaceholder')}
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all disabled:opacity-50"
             />
           </div>
@@ -97,10 +99,10 @@ export function WaitingListForm() {
             {isPending ? (
               <>
                 <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                Signing you up...
+                {t('submitting')}
               </>
             ) : (
-              'Join the Waiting List'
+              t('submitButton')
             )}
           </button>
         </form>

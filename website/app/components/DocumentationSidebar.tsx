@@ -2,72 +2,74 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const navigation = [
-  {
-    title: 'Overview',
-    links: [
-      { href: '/docs/getting-started', label: 'Getting Started' },
-      { href: '/docs/troubleshooting', label: 'Troubleshooting' },
-    ]
-  },
-  {
-    title: 'Core Features',
-    links: [
-      { href: '/docs/features/dictation', label: 'Dictation' },
-      { href: '/docs/features/refine', label: 'Refine' },
-      { href: '/docs/features/quick-chat', label: 'Quick Chat' },
-    ]
-  },
-  {
-    title: 'Utility Pipelines',
-    links: [
-      { href: '/docs/features/ask', label: 'Ask' },
-      { href: '/docs/features/translate', label: 'Translate' },
-      { href: '/docs/features/note', label: 'Note' },
-      { href: '/docs/features/oops', label: 'Oops' },
-      { href: '/docs/features/tts', label: 'Text-to-Speech' },
-    ]
-  },
-  {
-    title: 'Settings',
-    links: [
-      { href: '/docs/settings/general', label: 'General' },
-      { href: '/docs/settings/account', label: 'Account' },
-      { href: '/docs/settings/ai-engine', label: 'AI Engine' },
-      { href: '/docs/settings/api-keys', label: 'API Keys' },
-      { href: '/docs/settings/audio', label: 'Audio' },
-      { href: '/docs/settings/control-panel', label: 'Control Panel' },
-      { href: '/docs/settings/dictation-modes', label: 'Dictation Modes' },
-      { href: '/docs/settings/hotkeys', label: 'Hotkeys' },
-      { href: '/docs/settings/modes', label: 'Utility Modes' },
-      { href: '/docs/settings/ollama', label: 'Ollama' },
-      { href: '/docs/settings/privacy', label: 'Privacy' },
-      { href: '/docs/settings/snippets', label: 'Snippets' },
-      { href: '/docs/settings/tts', label: 'Text-to-Speech' },
-    ]
-  },
-  {
-    title: 'Developer Guide',
-    links: [
-      { href: '/docs/dev/setup', label: 'Environment Setup' },
-      { href: '/docs/dev/migration/v1-to-v2-guide', label: 'V1 to V2 Migration' },
-      { href: '/docs/dev/architecture/audio-pipeline', label: 'Audio Pipeline' },
-      { href: '/docs/dev/architecture/ui-mvvm', label: 'UI MVVM' },
-      { href: '/docs/dev/architecture/threat-model', label: 'Threat Model' },
-      { href: '/docs/dev/api/stt-providers', label: 'STT Providers API' },
-      { href: '/docs/dev/api/llm-providers', label: 'LLM Providers API' },
-      { href: '/docs/dev/api/tts-providers', label: 'TTS Providers API' },
-    ]
-  }
-];
+import { useTranslations } from 'next-intl';
 
 export function DocumentationSidebar() {
+  const t = useTranslations('DocumentationSidebar');
   const pathname = usePathname();
+
+  const navigation = [
+    {
+      title: t('overview'),
+      links: [
+        { href: '/docs/getting-started', label: t('gettingStarted') },
+        { href: '/docs/troubleshooting', label: t('troubleshooting') },
+      ]
+    },
+    {
+      title: t('coreFeatures'),
+      links: [
+        { href: '/docs/features/dictation', label: t('dictation') },
+        { href: '/docs/features/refine', label: t('refine') },
+        { href: '/docs/features/quick-chat', label: t('quickChat') },
+      ]
+    },
+    {
+      title: t('utilityPipelines'),
+      links: [
+        { href: '/docs/features/ask', label: t('ask') },
+        { href: '/docs/features/translate', label: t('translate') },
+        { href: '/docs/features/note', label: t('note') },
+        { href: '/docs/features/oops', label: t('oops') },
+        { href: '/docs/features/tts', label: t('textToSpeech') },
+      ]
+    },
+    {
+      title: t('settings'),
+      links: [
+        { href: '/docs/settings/general', label: t('general') },
+        { href: '/docs/settings/account', label: t('account') },
+        { href: '/docs/settings/ai-engine', label: t('aiEngine') },
+        { href: '/docs/settings/api-keys', label: t('apiKeys') },
+        { href: '/docs/settings/audio', label: t('audio') },
+        { href: '/docs/settings/control-panel', label: t('controlPanel') },
+        { href: '/docs/settings/dictation-modes', label: t('dictationModes') },
+        { href: '/docs/settings/hotkeys', label: t('hotkeys') },
+        { href: '/docs/settings/modes', label: t('utilityModes') },
+        { href: '/docs/settings/ollama', label: t('ollama') },
+        { href: '/docs/settings/privacy', label: t('privacy') },
+        { href: '/docs/settings/snippets', label: t('snippets') },
+        { href: '/docs/settings/tts', label: t('ttsSettings') },
+      ]
+    },
+    {
+      title: t('developerGuide'),
+      links: [
+        { href: '/docs/dev/setup', label: t('envSetup') },
+        { href: '/docs/dev/migration/v1-to-v2-guide', label: t('v1ToV2Migration') },
+        { href: '/docs/dev/architecture/audio-pipeline', label: t('audioPipeline') },
+        { href: '/docs/dev/architecture/ui-mvvm', label: t('uiMvvm') },
+        { href: '/docs/dev/architecture/threat-model', label: t('threatModel') },
+        { href: '/docs/dev/api/stt-providers', label: t('sttProviders') },
+        { href: '/docs/dev/api/llm-providers', label: t('llmProviders') },
+        { href: '/docs/dev/api/tts-providers', label: t('ttsProviders') },
+      ]
+    }
+  ];
 
   return (
     <nav className="w-full lg:w-64 shrink-0 px-4 lg:px-0 mb-12 lg:mb-0">
-      <div className="sticky top-32 lg:h-[calc(100vh-8rem)] lg:overflow-y-auto pr-6 custom-scrollbar pb-10">
+      <div className="sticky top-32 pr-6 pb-10">
         <div className="space-y-8">
           {navigation.map((section) => (
             <div key={section.title}>
@@ -79,11 +81,11 @@ export function DocumentationSidebar() {
                   const isActive = pathname === link.href;
                   return (
                     <li key={link.href}>
-                      <Link 
+                      <Link
                         href={link.href}
                         className={`block text-sm transition-colors ${
-                          isActive 
-                            ? 'text-blue-400 font-medium' 
+                          isActive
+                            ? 'text-blue-400 font-medium'
                             : 'text-gray-400 hover:text-gray-200'
                         }`}
                       >

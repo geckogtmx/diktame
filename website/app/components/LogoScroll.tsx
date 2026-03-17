@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 const apps = [
   'TERMINAL',
   'CURSOR',
@@ -17,11 +19,13 @@ const apps = [
 ];
 
 export function LogoScroll() {
+  const t = useTranslations('LogoScroll');
+
   return (
     <>
       {/* Header Text */}
       <div className="text-center mt-32 mb-8 text-white/40 font-mono text-xs uppercase tracking-[0.3em] reveal">
-        Use it with...
+        {t('header')}
       </div>
 
       {/* Infinite Scroll Section */}

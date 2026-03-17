@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface FeaturesModalProps {
   isOpen: boolean;
@@ -8,6 +9,8 @@ interface FeaturesModalProps {
 }
 
 export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
+  const t = useTranslations('FeaturesModal');
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -28,8 +31,8 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
         {/* Modal Header */}
         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
           <div>
-            <h3 className="text-2xl font-bold text-white">The Comprehensive Arsenal</h3>
-            <p className="text-sm text-muted">A deep dive into everything dIKta.me can do.</p>
+            <h3 className="text-2xl font-bold text-white">{t('title')}</h3>
+            <p className="text-sm text-muted">{t('subtitle')}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors group">
             <svg
@@ -51,87 +54,87 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
             <div className="space-y-10">
               {/* Core */}
               <section>
-                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">Core Functionality</h4>
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">{t('coreFunctionality')}</h4>
                 <ul className="space-y-2 text-sm text-muted">
                   <li>
-                    <strong className="text-white">Push-to-Talk</strong> — Global hotkey (Ctrl+Alt+D)
+                    <strong className="text-white">{t('corePushToTalk')}</strong> — {t('corePushToTalkDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Whisper V3 Turbo</strong> — 100% Local GPU STT
+                    <strong className="text-white">{t('coreWhisper')}</strong> — {t('coreWhisperDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Local Intelligence</strong> — Integrated Gemma 3 4B
+                    <strong className="text-white">{t('coreLocalIntel')}</strong> — {t('coreLocalIntelDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Auto-Injection</strong> — Directly types into any window
+                    <strong className="text-white">{t('coreAutoInject')}</strong> — {t('coreAutoInjectDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">+Key (Auto-Enter)</strong> — Configurable spacing & keys (Enter/Tab)
+                    <strong className="text-white">{t('coreAutoEnter')}</strong> — {t('coreAutoEnterDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Audio Ducking</strong> — Auto-lowers background music while recording
+                    <strong className="text-white">{t('coreAudioDuck')}</strong> — {t('coreAudioDuckDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Sound Feedback</strong> — Audible cues for pipeline states
+                    <strong className="text-white">{t('coreSoundFeedback')}</strong> — {t('coreSoundFeedbackDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Oops Mode</strong> — Re-inject last dictation (Ctrl+Alt+V)
+                    <strong className="text-white">{t('coreOops')}</strong> — {t('coreOopsDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Text-to-Speech</strong> — Local Kokoro engine reads responses aloud (Ctrl+Alt+Q)
+                    <strong className="text-white">{t('coreTts')}</strong> — {t('coreTtsDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Streaming Dictation</strong> — See words appear in real-time via cloud streaming
+                    <strong className="text-white">{t('coreStreaming')}</strong> — {t('coreStreamingDesc')}
                   </li>
                 </ul>
               </section>
 
               {/* Modes */}
               <section>
-                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">Voice Modes</h4>
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">{t('voiceModes')}</h4>
                 <ul className="space-y-2 text-sm text-muted">
                   <li>
-                    <strong className="text-white">Standard Mode</strong> — Direct text injection
+                    <strong className="text-white">{t('modesStandard')}</strong> — {t('modesStandardDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Professional Mode</strong> — Polished output with formatting
+                    <strong className="text-white">{t('modesProfessional')}</strong> — {t('modesProfessionalDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Prompt Mode</strong> — AI instruction processing
+                    <strong className="text-white">{t('modesPrompt')}</strong> — {t('modesPromptDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Quick Chat (Ctrl+Alt+C)</strong> — Floating LLM overlay
+                    <strong className="text-white">{t('modesQuickChat')}</strong> — {t('modesQuickChatDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Ask Mode (Ctrl+Alt+A)</strong> — Query local LLM instantly
+                    <strong className="text-white">{t('modesAsk')}</strong> — {t('modesAskDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Refine Mode (Ctrl+Alt+R)</strong> — AI-powered editing
+                    <strong className="text-white">{t('modesRefine')}</strong> — {t('modesRefineDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Translate Mode (Ctrl+Alt+T)</strong> — Real-time ES ↔ EN
+                    <strong className="text-white">{t('modesTranslate')}</strong> — {t('modesTranslateDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Voice Snippets</strong> — Phrase-triggered text expansion
+                    <strong className="text-white">{t('modesSnippets')}</strong> — {t('modesSnippetsDesc')}
                   </li>
                 </ul>
               </section>
 
               {/* Intelligence */}
               <section>
-                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">AI Intelligence</h4>
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">{t('aiIntelligence')}</h4>
                 <ul className="space-y-2 text-sm text-muted">
                   <li>
-                    <strong className="text-white">Local Model Brain</strong> — Gemma 3 / Llama 3 support
+                    <strong className="text-white">{t('aiLocalBrain')}</strong> — {t('aiLocalBrainDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">API Freedom</strong> — OpenAI, Anthropic, DeepSeek support
+                    <strong className="text-white">{t('aiFreedom')}</strong> — {t('aiFreedomDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Model Agnostic</strong> — Switch between Llama, Mistral, Gemma
+                    <strong className="text-white">{t('aiModelAgnostic')}</strong> — {t('aiModelAgnosticDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Context-Aware</strong> — Understands previous dictations
+                    <strong className="text-white">{t('aiContextAware')}</strong> — {t('aiContextAwareDesc')}
                   </li>
                 </ul>
               </section>
@@ -141,69 +144,69 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
             <div className="space-y-10">
               {/* Privacy & Security */}
               <section>
-                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">Privacy & Security</h4>
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">{t('privacySecurity')}</h4>
                 <ul className="space-y-2 text-sm text-muted">
                   <li>
-                    <strong className="text-white">100% Air-Gapped</strong> — No telemetry, no tracking
+                    <strong className="text-white">{t('privAirGapped')}</strong> — {t('privAirGappedDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">PII Scrubbing</strong> — Automatic sensitive data removal
+                    <strong className="text-white">{t('privPiiScrub')}</strong> — {t('privPiiScrubDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Encrypted Storage</strong> — OS-level AES-256 for API keys
+                    <strong className="text-white">{t('privEncrypted')}</strong> — {t('privEncryptedDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Zero Cloud Deps</strong> — Works completely offline
+                    <strong className="text-white">{t('privZeroCloud')}</strong> — {t('privZeroCloudDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">No Markup</strong> — BYO API keys, no hidden costs
+                    <strong className="text-white">{t('privNoMarkup')}</strong> — {t('privNoMarkupDesc')}
                   </li>
                 </ul>
               </section>
 
               {/* Technical */}
               <section>
-                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">Technical</h4>
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">{t('technical')}</h4>
                 <ul className="space-y-2 text-sm text-muted">
                   <li>
-                    <strong className="text-white">Self-Contained Binary</strong> — Lightweight .exe, no runtime install needed
+                    <strong className="text-white">{t('techBinary')}</strong> — {t('techBinaryDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Native Performance</strong> — Built with C# and WinUI 3
+                    <strong className="text-white">{t('techNative')}</strong> — {t('techNativeDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Floating Pill UI</strong> — Minimal, unobtrusive overlay
+                    <strong className="text-white">{t('techPill')}</strong> — {t('techPillDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Open Architecture</strong> — Source-available with clean extensible interfaces
+                    <strong className="text-white">{t('techOpen')}</strong> — {t('techOpenDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Source-Available</strong> — Full code access (Power tier)
+                    <strong className="text-white">{t('techSource')}</strong> — {t('techSourceDesc')}
                   </li>
                 </ul>
               </section>
 
               {/* Future Roadmap */}
               <section>
-                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">On the Roadmap</h4>
+                <h4 className="text-primary font-mono text-xs uppercase tracking-widest mb-4">{t('roadmap')}</h4>
                 <ul className="space-y-2 text-sm text-muted">
                   <li>
-                    <strong className="text-white">Connectors</strong> — Integration with Slack, Notion, etc.
+                    <strong className="text-white">{t('roadConnectors')}</strong> — {t('roadConnectorsDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Meetings & Scribe</strong> — Intelligent meeting transcription
+                    <strong className="text-white">{t('roadMeetings')}</strong> — {t('roadMeetingsDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Vision & See</strong> — Screen-aware contextual AI
+                    <strong className="text-white">{t('roadVision')}</strong> — {t('roadVisionDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Memory Layer</strong> — Persistent memory for your workflow
+                    <strong className="text-white">{t('roadMemory')}</strong> — {t('roadMemoryDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Stream Deck</strong> — Native Elgato plugin support
+                    <strong className="text-white">{t('roadStreamDeck')}</strong> — {t('roadStreamDeckDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">Cross-Platform</strong> — MacOS and Linux support
+                    <strong className="text-white">{t('roadCrossPlatform')}</strong> — {t('roadCrossPlatformDesc')}
                   </li>
                 </ul>
               </section>

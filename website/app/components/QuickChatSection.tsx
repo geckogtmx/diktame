@@ -1,11 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useQuickChatScroll } from '@/lib/animations/useQuickChatScroll';
 
-const USER_MSG_1 = 'Who would you consider the most prominent five on AI in the last decade or two?';
-const USER_MSG_2 = 'Tell me more about reinforcement learning.';
-
 export function QuickChatSection() {
+  const t = useTranslations('QuickChatSection');
   const {
     userMsg1Progress,
     aiMsg1Progress,
@@ -13,6 +12,9 @@ export function QuickChatSection() {
     thinkingVisible,
     aiMsg2Progress,
   } = useQuickChatScroll();
+
+  const USER_MSG_1 = t('userMsg1');
+  const USER_MSG_2 = t('userMsg2');
 
   const user1Chars = Math.floor(userMsg1Progress * USER_MSG_1.length);
   const user2Chars = Math.floor(userMsg2Progress * USER_MSG_2.length);
@@ -25,26 +27,23 @@ export function QuickChatSection() {
           {/* Text (Left) */}
           <div>
             <div className="inline-block mb-4 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-white text-[10px] font-mono tracking-widest">
-              QUICK CHAT
+              {t('badge')}
             </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white text-balance">
-              Your AI,
-              <br />
-              Always On Call.
+              {t('title')}
             </h2>
             <p className="text-xl text-muted mb-8">
-              A floating chat overlay powered by any model — local or cloud.
-              Rich Markdown responses, conversation history, and zero context switching.
+              {t('subtitle')}
             </p>
             <ul className="space-y-4 text-muted">
               <li className="flex items-center gap-3">
-                <span className="text-primary">✓</span> <strong>Floating Overlay</strong> — Stays above every app
+                <span className="text-primary">✓</span> <strong>{t('chip1Label')}</strong> — {t('chip1Desc')}
               </li>
               <li className="flex items-center gap-3">
-                <span className="text-primary">✓</span> <strong>Model Agnostic</strong> — GPT, Claude, Gemini, Ollama
+                <span className="text-primary">✓</span> <strong>{t('chip2Label')}</strong> — {t('chip2Desc')}
               </li>
               <li className="flex items-center gap-3">
-                <span className="text-primary">✓</span> <strong>Rich Output</strong> — Markdown, code blocks, links
+                <span className="text-primary">✓</span> <strong>{t('chip3Label')}</strong> — {t('chip3Desc')}
               </li>
             </ul>
           </div>
@@ -56,7 +55,7 @@ export function QuickChatSection() {
               <div className="flex items-center justify-between px-3 py-2 bg-gray-900/80 border-b border-white/10">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center text-[8px] font-bold text-white">K</div>
-                  <span className="text-xs text-white font-medium">Quick Chat</span>
+                  <span className="text-xs text-white font-medium">{t('chatTitle')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-white/40 text-xs">
                   <span>—</span>
@@ -68,7 +67,7 @@ export function QuickChatSection() {
               {/* Toolbar */}
               <div className="flex items-center justify-between px-3 py-1.5 bg-gray-900/60 border-b border-white/10">
                 <div className="flex items-center gap-1 text-[10px] text-white/70 bg-white/5 px-2 py-1 rounded">
-                  <span>gpt-5.2-pro</span>
+                  <span>{t('chatModel')}</span>
                   <span className="text-white/40">▾</span>
                 </div>
                 <div className="flex items-center gap-2 text-white/40 text-[10px]">
@@ -105,17 +104,17 @@ export function QuickChatSection() {
                   }}>
                     <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-white/80 space-y-1.5">
                       <p className="text-white/60 text-[10px] leading-relaxed">
-                        Here&apos;s a list of five prominent AI developments in the last decade or two, considering impact and influence:
+                        {t('aiIntro')}
                       </p>
                       <ol className="list-decimal list-inside space-y-1 text-[10px] leading-relaxed">
-                        <li><strong className="text-white">Deep Learning:</strong> <span className="text-white/60">Revolutionized many fields with neural networks.</span></li>
-                        <li><strong className="text-white">Natural Language Processing (NLP):</strong> <span className="text-white/60">Significant advancements in chatbots, translation, and text analysis.</span></li>
-                        <li><strong className="text-white">Computer Vision:</strong> <span className="text-white/60">Improved image and video recognition.</span></li>
-                        <li><strong className="text-white">Reinforcement Learning:</strong> <span className="text-white/60">Enabled breakthroughs in robotics and game playing.</span></li>
-                        <li><strong className="text-white">Generative AI (Large Language Models):</strong> <span className="text-white/60">Like GPT, creating new content and automating tasks.</span></li>
+                        <li><strong className="text-white">{t('aiItem1')}</strong> <span className="text-white/60">{t('aiItem1Desc')}</span></li>
+                        <li><strong className="text-white">{t('aiItem2')}</strong> <span className="text-white/60">{t('aiItem2Desc')}</span></li>
+                        <li><strong className="text-white">{t('aiItem3')}</strong> <span className="text-white/60">{t('aiItem3Desc')}</span></li>
+                        <li><strong className="text-white">{t('aiItem4')}</strong> <span className="text-white/60">{t('aiItem4Desc')}</span></li>
+                        <li><strong className="text-white">{t('aiItem5')}</strong> <span className="text-white/60">{t('aiItem5Desc')}</span></li>
                       </ol>
                       <p className="text-white/40 text-[10px]">
-                        It&apos;s a complex field, and this is a general consensus based on widespread impact.
+                        {t('aiConclusion')}
                       </p>
                     </div>
                   </div>
@@ -140,7 +139,7 @@ export function QuickChatSection() {
                 {thinkingVisible && (
                   <div className="flex items-center gap-2 text-white/50 text-[10px] py-1 transition-opacity duration-300">
                     <span className="inline-block w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
-                    Thinking...
+                    {t('thinking')}
                   </div>
                 )}
 
@@ -152,16 +151,16 @@ export function QuickChatSection() {
                   }}>
                     <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-white/80 space-y-1.5">
                       <p className="text-[10px] leading-relaxed text-white/60">
-                        Okay, let&apos;s dive into Reinforcement Learning (RL). Here&apos;s a breakdown:
+                        {t('aiRlIntro')}
                       </p>
-                      <p className="text-[10px] font-bold text-white">What is it?</p>
+                      <p className="text-[10px] font-bold text-white">{t('aiRlSection1')}</p>
                       <p className="text-[10px] leading-relaxed text-white/60">
-                        At its core, Reinforcement Learning is a type of machine learning where an <em className="text-white/80">agent</em> learns to make decisions in an <em className="text-white/80">environment</em> to maximize a <em className="text-white/80">reward</em>. Think of it like training a dog — you don&apos;t tell the dog <em className="text-white/80">exactly</em> what to do, you reward it for good behavior and discourage it for bad.
+                        {t('aiRlDesc1')}
                       </p>
-                      <p className="text-[10px] font-bold text-white">Here&apos;s a simplified explanation:</p>
+                      <p className="text-[10px] font-bold text-white">{t('aiRlSection2')}</p>
                       <ol className="list-decimal list-inside space-y-0.5 text-[10px] leading-relaxed text-white/60">
-                        <li><strong className="text-white/80">Agent:</strong> This is the learner — a robot, a program, or even a game-playing AI.</li>
-                        <li><strong className="text-white/80">Environment:</strong> The world the agent interacts with — a game, a robot&apos;s surroundings, or a simulated scenario.</li>
+                        <li><strong className="text-white/80">{t('aiRlItem1')}</strong> {t('aiRlItem1Desc')}</li>
+                        <li><strong className="text-white/80">{t('aiRlItem2')}</strong> {t('aiRlItem2Desc')}</li>
                       </ol>
                     </div>
                     {/* Bottom fade — implies more content below */}
@@ -174,7 +173,7 @@ export function QuickChatSection() {
               <div className="flex items-center gap-2 px-3 py-2 border-t border-white/10 bg-gray-900/40">
                 <span className="text-white/30 text-xs">📎</span>
                 <div className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-[10px] text-white/30">
-                  Type a message...
+                  {t('inputPlaceholder')}
                 </div>
                 <div className="w-6 h-6 bg-sky-500 rounded flex items-center justify-center text-white text-[10px]">
                   ▶

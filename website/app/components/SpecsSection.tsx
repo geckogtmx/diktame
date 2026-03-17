@@ -1,9 +1,11 @@
 'use client';
 
 import { useSpecsScroll } from '@/lib/animations/useSpecsScroll';
+import { useTranslations } from 'next-intl';
 
 export function SpecsSection() {
   const { activeGroup } = useSpecsScroll();
+  const t = useTranslations('SpecsSection');
 
   return (
     <div id="specs-track" className="relative h-[400vh]">
@@ -12,9 +14,9 @@ export function SpecsSection() {
 
         <div className="section-container relative z-10 w-full">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">The Specs.</h2>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">{t('title')}</h2>
             <p className="text-muted max-w-2xl mx-auto">
-              Everything you need to make your voice heard. Nothing you don&apos;t.
+              {t('subtitle')}
             </p>
           </div>
 
@@ -27,66 +29,66 @@ export function SpecsSection() {
               }`}
             >
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Core</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Whisper V3 Turbo</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g1f1Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g1f1Title')}</h3>
                 <p className="text-sm text-muted">
-                  State-of-the-art local STT with natural tolerance for filler words, stutters, and punctuation.
+                  {t('g1f1Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Intelligence</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Local Small Model Brain</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g1f2Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g1f2Title')}</h3>
                 <p className="text-sm text-muted">
-                  Intelligent formatting, filler removal, and general knowledge. All local, all private, all fast.
+                  {t('g1f2Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Speed</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Global Configurable Hotkeys</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g1f3Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g1f3Title')}</h3>
                 <div className="text-xs text-muted leading-relaxed space-y-1">
-                  <p>Ctrl+Alt+D (Dictate)</p>
-                  <p>Ctrl+Alt+A (Ask)</p>
-                  <p>Ctrl+Alt+R (Refine)</p>
-                  <p>Ctrl+Alt+N (Notes)</p>
-                  <p className="text-white/40">More...</p>
+                  <p>{t('g1f3Key1')}</p>
+                  <p>{t('g1f3Key2')}</p>
+                  <p>{t('g1f3Key3')}</p>
+                  <p>{t('g1f3Key4')}</p>
+                  <p className="text-white/40">{t('g1f3Key5')}</p>
                 </div>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Integration</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Precision Injection</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g1f4Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g1f4Title')}</h3>
                 <p className="text-sm text-muted">
-                  Ultra-fast text injection with native window emulation across every application.
+                  {t('g1f4Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Workflow</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Intelligent Modes</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g1f5Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g1f5Title')}</h3>
                 <div className="text-xs text-muted leading-relaxed space-y-1">
-                  <p>Standard - Direct Injection</p>
-                  <p>Professional - Polished Output</p>
-                  <p>Prompt - AI Instruction mode</p>
-                  <p>Chat - Floating Overlay</p>
+                  <p>{t('g1f5Mode1')}</p>
+                  <p>{t('g1f5Mode2')}</p>
+                  <p>{t('g1f5Mode3')}</p>
+                  <p>{t('g1f5Mode4')}</p>
                 </div>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Audio</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Audio Ducking</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g1f6Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g1f6Title')}</h3>
                 <p className="text-sm text-muted">
-                  Automatically reduces background volume from other applications during active recording sessions.
+                  {t('g1f6Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Power User</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">API Freedom</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g1f7Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g1f7Title')}</h3>
                 <p className="text-sm text-muted">
-                  No markup, no middleman. Plug in your own OpenAI, Anthropic, or DeepSeek keys directly.
+                  {t('g1f7Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Translation</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Cross-Lingual Engine</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g1f8Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g1f8Title')}</h3>
                 <p className="text-sm text-muted">
-                  Real-time ES ↔ EN translation integrated at the model level for zero-latency bridging.
+                  {t('g1f8Desc')}
                 </p>
               </div>
             </div>
@@ -99,58 +101,58 @@ export function SpecsSection() {
               }`}
             >
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Privacy</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Local Privacy Guard</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g2f1Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g2f1Title')}</h3>
                 <p className="text-sm text-muted">
-                  100% local processing with automatic PII and sensitive data scrubbing from all logs.
+                  {t('g2f1Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Security</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Encrypted SafeStorage</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g2f2Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g2f2Title')}</h3>
                 <p className="text-sm text-muted">
-                  Secrets and keys are managed via OS-level AES-256 encryption. Never exposed, never raw.
+                  {t('g2f2Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">UI</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Floating Pill</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g2f3Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g2f3Title')}</h3>
                 <p className="text-sm text-muted">
-                  Minimal overlay that stays out of your way. Lives in the system tray when not recording.
+                  {t('g2f3Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Deploy</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Self-Contained Binary</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g2f4Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g2f4Title')}</h3>
                 <p className="text-sm text-muted">
-                  Lightweight self-contained .exe built with native C# and WinUI 3. No external runtime required.
+                  {t('g2f4Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Productivity</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Voice Macros</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g2f5Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g2f5Title')}</h3>
                 <p className="text-sm text-muted">
-                  Define trigger phrases that auto-expand into full snippets, signatures, or templates.
+                  {t('g2f5Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Flexibility</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Model Agnostic</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g2f6Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g2f6Title')}</h3>
                 <p className="text-sm text-muted">
-                  Switch freely between Llama, Mistral, Gemma, or any Ollama-compatible model. No lock-in.
+                  {t('g2f6Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Reliability</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Smart Fallback</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g2f7Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g2f7Title')}</h3>
                 <p className="text-sm text-muted">
-                  Intelligent session recovery—never lose a word of dictation if a model hangs or crashes.
+                  {t('g2f7Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Voice</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Text-to-Speech</h3>
-                <p className="text-sm text-muted">Hear AI responses, read selections aloud, or listen to translations. Fully local via Kokoro ONNX.</p>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g2f8Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g2f8Title')}</h3>
+                <p className="text-sm text-muted">{t('g2f8Desc')}</p>
               </div>
             </div>
 
@@ -162,59 +164,59 @@ export function SpecsSection() {
               }`}
             >
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Streaming</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Real-Time STT</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g3f1Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g3f1Title')}</h3>
                 <p className="text-sm text-muted">
-                  Live streaming speech-to-text via Deepgram for instant cloud transcription with sub-second latency.
+                  {t('g3f1Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Cloud</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Pay-As-You-Go Wallet</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g3f2Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g3f2Title')}</h3>
                 <p className="text-sm text-muted">
-                  No subscriptions. Load credits and use cloud STT + LLM at cost. $5 gets you ~65,000 words.
+                  {t('g3f2Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Setup</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">First-Run Wizard</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g3f3Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g3f3Title')}</h3>
                 <p className="text-sm text-muted">
-                  Guided setup that installs Ollama, downloads models, and configures everything in minutes.
+                  {t('g3f3Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Performance</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">GPU Acceleration</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g3f4Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g3f4Title')}</h3>
                 <p className="text-sm text-muted">
-                  Vulkan-powered Whisper inference for blazing local STT. Falls back to CPU gracefully when needed.
+                  {t('g3f4Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Customization</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Custom Modes</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g3f5Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g3f5Title')}</h3>
                 <p className="text-sm text-muted">
-                  Create your own dictation modes with custom system prompts, model overrides, and hotkey bindings.
+                  {t('g3f5Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Data</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Session History</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g3f6Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g3f6Title')}</h3>
                 <p className="text-sm text-muted">
-                  Every dictation logged locally in SQLite — word counts, latency, mode used. Your data, queryable.
+                  {t('g3f6Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Notifications</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Spoken Alerts</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g3f7Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g3f7Title')}</h3>
                 <p className="text-sm text-muted">
-                  AI responses and translations read aloud via system notifications. Hear answers without looking.
+                  {t('g3f7Desc')}
                 </p>
               </div>
               <div className="card p-6">
-                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">Transparency</div>
-                <h3 className="text-lg font-bold text-text mb-2 text-white">Source Available</h3>
+                <div className="text-primary mb-4 font-mono text-xs uppercase tracking-widest">{t('g3f8Label')}</div>
+                <h3 className="text-lg font-bold text-text mb-2 text-white">{t('g3f8Title')}</h3>
                 <p className="text-sm text-muted">
-                  Inspect every line. No black boxes, no telemetry, no hidden network calls. Built in the open.
+                  {t('g3f8Desc')}
                 </p>
               </div>
             </div>

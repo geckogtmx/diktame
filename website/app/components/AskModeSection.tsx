@@ -1,8 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useAskModeScroll } from '@/lib/animations/useAskModeScroll';
 
 export function AskModeSection() {
+  const t = useTranslations('AskModeSection');
   const { inputWidth, outputWidth, showInputCursor, showOutputCursor } = useAskModeScroll();
 
   return (
@@ -14,8 +16,8 @@ export function AskModeSection() {
           <div className="card border-primary/20 bg-black/50 p-8 font-mono text-sm leading-loose shadow-2xl order-last md:order-first relative overflow-hidden">
             <div className="absolute -top-3 -right-3 w-24 h-24 bg-primary/20 blur-2xl rounded-full"></div>
             <div className="text-muted mb-4 border-b border-white/10 pb-2 flex justify-between">
-              <span>Input (Microphone)</span>
-              <span className="text-xs border border-white/20 px-2 py-0.5 rounded text-muted">Ctrl+Alt+A</span>
+              <span>{t('inputLabel')}</span>
+              <span className="text-xs border border-white/20 px-2 py-0.5 rounded text-muted">{t('inputHotkey')}</span>
             </div>
             <div
               className={`text-secondary mb-8 overflow-hidden whitespace-nowrap ${
@@ -24,9 +26,9 @@ export function AskModeSection() {
               id="ask-input"
               style={{ width: `${inputWidth}%` }}
             >
-              &quot;What is the capital of madagascar and its population&quot;
+              &quot;{t('inputExample')}&quot;
             </div>
-            <div className="text-muted mb-4 border-b border-white/10 pb-2">Output (Clipboard/Type)</div>
+            <div className="text-muted mb-4 border-b border-white/10 pb-2">{t('outputLabel')}</div>
             <div
               className={`text-primary overflow-hidden whitespace-nowrap ${
                 showOutputCursor ? 'border-r-2 border-primary' : ''
@@ -34,33 +36,30 @@ export function AskModeSection() {
               id="ask-output"
               style={{ width: `${outputWidth}%` }}
             >
-              &quot;Antananarivo, 4,413,000 as of early 2026&quot;
+              &quot;{t('outputExample')}&quot;
             </div>
           </div>
 
           {/* Text (Right) */}
           <div>
             <div className="inline-block mb-4 px-3 py-1 bg-primary/10 rounded-full text-primary text-xs font-mono">
-              JUST ADDED
+              {t('badge')}
             </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white text-balance">
-              Don&apos;t Search.
-              <br />
-              Just Ask.
+              {t('title')}
             </h2>
             <p className="text-xl text-muted mb-8">
-              Skip the browser tab. Query your local LLM instantly for definitions, math, or quick facts without ever
-              leaving your flow.
+              {t('subtitle')}
             </p>
             <ul className="space-y-4 text-muted">
               <li className="flex items-center gap-3">
-                <span className="text-primary">✓</span> <strong>Instant Q&A</strong> - Math, quotes, refs
+                <span className="text-primary">✓</span> <strong>{t('chip1Label')}</strong> - {t('chip1Desc')}
               </li>
               <li className="flex items-center gap-3">
-                <span className="text-primary">✓</span> <strong>No Tracking</strong> - Local execution
+                <span className="text-primary">✓</span> <strong>{t('chip2Label')}</strong> - {t('chip2Desc')}
               </li>
               <li className="flex items-center gap-3">
-                <span className="text-primary">✓</span> <strong>Zero Context Switch</strong> - Stay in flow
+                <span className="text-primary">✓</span> <strong>{t('chip3Label')}</strong> - {t('chip3Desc')}
               </li>
             </ul>
           </div>

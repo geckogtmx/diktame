@@ -1,10 +1,12 @@
 'use client';
 
 import { useCoreArsenalScroll } from '@/lib/animations/useCoreArsenalScroll';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 
 export function CoreArsenalSection() {
   const { activePair } = useCoreArsenalScroll();
+  const t = useTranslations('CoreArsenalSection');
 
   return (
     <div id="core-track" className="relative h-[400vh]">
@@ -15,8 +17,8 @@ export function CoreArsenalSection() {
 
         <div className="section-container relative z-10 w-full">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">The Core Arsenal.</h2>
-            <p className="text-muted">Four modes. Infinite productivity. Zero latency.</p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">{t('title')}</h2>
+            <p className="text-muted">{t('subtitle')}</p>
           </div>
 
           <div className="flex flex-col gap-8 max-w-5xl mx-auto px-4">
@@ -33,13 +35,12 @@ export function CoreArsenalSection() {
                   <Image src="/images/app-icon.png" alt="Dictate Mode Icon" width={48} height={48} className="object-cover" />
                 </div>
                 <div className="text-primary mb-2 font-mono text-[10px] uppercase tracking-widest flex justify-between">
-                  <span>Mode 01</span>
-                  <span>Ctrl+Alt+D</span>
+                  <span>{t('mode01Label')}</span>
+                  <span>{t('mode01Hotkey')}</span>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">Dictate</h3>
+                <h3 className="text-xl font-bold text-white mb-3">{t('mode01Title')}</h3>
                 <p className="text-sm text-muted leading-relaxed">
-                  The Input. Ultra-fast text injection with RAW Mode for instant, unfiltered dictation into any
-                  application.
+                  {t('mode01Description')}
                 </p>
               </div>
 
@@ -56,13 +57,12 @@ export function CoreArsenalSection() {
                   </svg>
                 </div>
                 <div className="text-primary mb-2 font-mono text-[10px] uppercase tracking-widest flex justify-between">
-                  <span>Mode 02</span>
-                  <span>Ctrl+Alt+A</span>
+                  <span>{t('mode02Label')}</span>
+                  <span>{t('mode02Hotkey')}</span>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">Ask</h3>
+                <h3 className="text-xl font-bold text-white mb-3">{t('mode02Title')}</h3>
                 <p className="text-sm text-muted leading-relaxed">
-                  The Brain. Query your local LLM instantly for definitions, math, or quick facts without ever leaving
-                  your active window.
+                  {t('mode02Description')}
                 </p>
               </div>
             </div>
@@ -87,13 +87,12 @@ export function CoreArsenalSection() {
                   </svg>
                 </div>
                 <div className="text-primary mb-2 font-mono text-[10px] uppercase tracking-widest flex justify-between">
-                  <span>Mode 03</span>
-                  <span>Ctrl+Alt+R</span>
+                  <span>{t('mode03Label')}</span>
+                  <span>{t('mode03Hotkey')}</span>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">Refine</h3>
+                <h3 className="text-xl font-bold text-white mb-3">{t('mode03Title')}</h3>
                 <p className="text-sm text-muted leading-relaxed">
-                  The Finish. Professional-grade AI editing. Transform rough transcripts into polished emails or
-                  documentation instantly.
+                  {t('mode03Description')}
                 </p>
               </div>
 
@@ -110,13 +109,12 @@ export function CoreArsenalSection() {
                   </svg>
                 </div>
                 <div className="text-primary mb-2 font-mono text-[10px] uppercase tracking-widest flex justify-between">
-                  <span>Mode 04</span>
-                  <span>Ctrl+Alt+N</span>
+                  <span>{t('mode04Label')}</span>
+                  <span>{t('mode04Hotkey')}</span>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">Structured Notes</h3>
+                <h3 className="text-xl font-bold text-white mb-3">{t('mode04Title')}</h3>
                 <p className="text-sm text-muted leading-relaxed">
-                  The Memory. Capture thoughts with automatic timestamps and metatags. Sequential formatting ready for
-                  batch processing.
+                  {t('mode04Description')}
                 </p>
               </div>
             </div>
