@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
@@ -64,7 +65,7 @@ export default function RootLayout({
                 applicationCategory: "UtilitiesApplication",
                 offers: {
                   "@type": "Offer",
-                  price: "25.00",
+                  price: "20.00",
                   priceCurrency: "USD",
                 },
               },
@@ -79,6 +80,7 @@ export default function RootLayout({
           }}
         />
         {children}
+        <Analytics />
       </body>
     </html>
   );
