@@ -70,7 +70,7 @@ export default function DocsPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="pt-32 pb-20 sm:pb-32 relative overflow-hidden">
+      <section className="pt-32 pb-10 sm:pb-12 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-transparent to-transparent" />
         </div>
@@ -88,7 +88,7 @@ export default function DocsPage() {
       </section>
 
       {/* Documentation Grid */}
-      <section className="py-20 sm:py-32">
+      <section className="py-10 sm:py-16">
         <Container>
           {/* User Documentation Section */}
           <div className="mb-12">
@@ -98,7 +98,9 @@ export default function DocsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             {userDocs.map((doc) => (
               <GlassCard key={doc.title}>
-                <h2 className="text-2xl font-bold text-white mb-3">{doc.title}</h2>
+                <Link href={doc.links[0].href} className="text-2xl font-bold text-white mb-3 block hover:text-blue-400 transition">
+                  <h2>{doc.title}</h2>
+                </Link>
                 <p className="text-gray-400 mb-6">{doc.description}</p>
                 <ul className="space-y-2">
                   {doc.links.map((link) => (
@@ -114,15 +116,17 @@ export default function DocsPage() {
             ))}
           </div>
 
-          {/* Developer Documentation Section */}
-          <div className="mb-12 mt-24 border-t border-white/10 pt-16">
+          {/* Developer Documentation + Quick Start */}
+          <div className="mt-24 border-t border-white/10 pt-16">
             <h2 className="text-3xl font-bold text-white mb-4">Developer Documentation</h2>
-            <p className="text-gray-400">Architecture deep dives, plugin APIs, and setup guides for contributors.</p>
+            <p className="text-gray-400 mb-12">Architecture deep dives, plugin APIs, and setup guides for contributors.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             {devDocs.map((doc) => (
               <GlassCard key={doc.title}>
-                <h2 className="text-2xl font-bold text-white mb-3">{doc.title}</h2>
+                <Link href={doc.links[0].href} className="text-2xl font-bold text-white mb-3 block hover:text-blue-400 transition">
+                  <h2>{doc.title}</h2>
+                </Link>
                 <p className="text-gray-400 mb-6">{doc.description}</p>
                 <ul className="space-y-2">
                   {doc.links.map((link) => (
@@ -136,65 +140,63 @@ export default function DocsPage() {
                 </ul>
               </GlassCard>
             ))}
-          </div>
 
-          {/* Quick Start */}
-          <div className="max-w-2xl mx-auto">
-            <GlassCard>
+            {/* Quick Start — distinct card beside Developer Guide */}
+            <div className="rounded-2xl border border-orange-500/20 bg-gradient-to-br from-orange-950/30 to-black/50 p-8 backdrop-blur-sm">
               <h3 className="text-2xl font-bold text-white mb-6">Quick Start</h3>
-              <ol className="space-y-6">
+              <ol className="space-y-5">
                 <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-sm">
                     1
                   </span>
                   <div>
                     <h4 className="font-semibold text-white mb-1">Download dIKta.me</h4>
-                    <p className="text-gray-400">
+                    <p className="text-gray-400 text-sm">
                       Get the latest version from the download page. Supports Windows 10+.
                     </p>
                   </div>
                 </li>
                 <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-sm">
                     2
                   </span>
                   <div>
                     <h4 className="font-semibold text-white mb-1">Run the Installer</h4>
-                    <p className="text-gray-400">
+                    <p className="text-gray-400 text-sm">
                       Extract and run the installer. Choose your preferred installation path.
                     </p>
                   </div>
                 </li>
                 <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-sm">
                     3
                   </span>
                   <div>
                     <h4 className="font-semibold text-white mb-1">Configure Your Model</h4>
-                    <p className="text-gray-400">
+                    <p className="text-gray-400 text-sm">
                       Select a speech recognition model. Local (Whisper) or API key.
                     </p>
                   </div>
                 </li>
                 <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-sm">
                     4
                   </span>
                   <div>
                     <h4 className="font-semibold text-white mb-1">Press Your Hotkey</h4>
-                    <p className="text-gray-400">
+                    <p className="text-gray-400 text-sm">
                       Default hotkey is Ctrl+Alt+D. Try dictating your first text!
                     </p>
                   </div>
                 </li>
               </ol>
-            </GlassCard>
+            </div>
           </div>
         </Container>
       </section>
 
       {/* External Resources */}
-      <section className="py-20 sm:py-32 border-t border-white/10">
+      <section className="py-16 sm:py-20 border-t border-white/10">
         <Container>
           <div className="text-center max-w-2xl mx-auto">
             <h2 className="text-4xl font-bold text-white mb-6">Need More Help?</h2>
