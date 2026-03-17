@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 export function Footer() {
   return (
     <footer className="py-12 border-t border-white/5 bg-surface/30">
@@ -10,8 +12,22 @@ export function Footer() {
             Co-authored by Human & AI (Gemini Studio, Antigravity, Claude Code)
           </div>
         </div>
-        <div className="flex gap-6">
-          <a href="https://github.com/geckogtmx/diktame" className="text-muted hover:text-white transition-colors">
+        <div className="flex gap-6 text-sm">
+          <Link href="/about" className="text-muted hover:text-white transition-colors">
+            About
+          </Link>
+          <Link href="/privacy" className="text-muted hover:text-white transition-colors">
+            Privacy
+          </Link>
+          <Link href="/terms" className="text-muted hover:text-white transition-colors">
+            Terms
+          </Link>
+          <a
+            href="https://github.com/geckogtmx/diktame"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted hover:text-white transition-colors"
+          >
             GitHub
           </a>
         </div>
