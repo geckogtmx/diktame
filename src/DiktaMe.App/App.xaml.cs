@@ -340,7 +340,9 @@ public partial class App : Application
     internal void TrackWindow(Window window)
     {
         if (!_activeWindows.Contains(window))
+        {
             _activeWindows.Add(window);
+        }
     }
 
     /// <summary>

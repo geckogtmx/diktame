@@ -314,7 +314,9 @@ public sealed partial class ControlPanelPage : Page
 
         // Update header bar brush to match new surface color
         if (_headerBarBrush is not null)
+        {
             _headerBarBrush.Color = Color.FromArgb(255, _baseHdrR, _baseHdrG, _baseHdrB);
+        }
 
         static byte Lerp(byte from, byte to) => (byte)(from + (int)((to - from) * 0.6));
     }
