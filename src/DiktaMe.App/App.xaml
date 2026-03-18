@@ -76,6 +76,7 @@
                     <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#FFFFFF1A"/>
                     <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="#FFFFFF22"/>
                     <SolidColorBrush x:Key="ListViewItemForegroundSelected" Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="ListViewItemSelectionIndicatorBrush" Color="#3B82F6"/>
 
                     <!-- ToggleSwitch — track fill -->
                     <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#1E1D38"/>
@@ -105,6 +106,10 @@
                     <SolidColorBrush x:Key="ToggleSwitchContainerBackground" Color="Transparent"/>
                     <SolidColorBrush x:Key="ToggleSwitchContainerBackgroundPointerOver" Color="Transparent"/>
                     <SolidColorBrush x:Key="ToggleSwitchContainerBackgroundPressed" Color="Transparent"/>
+
+                    <!-- ToggleSwitch — content (On/Off label) foreground -->
+                    <SolidColorBrush x:Key="ToggleSwitchOnContentForeground" Color="#FFFFFF99"/>
+                    <SolidColorBrush x:Key="ToggleSwitchOffContentForeground" Color="#FFFFFF99"/>
 
                     <!-- NavigationView -->
                     <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#0A0918"/>
@@ -169,6 +174,7 @@
                     <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#0000001A"/>
                     <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="#00000022"/>
                     <SolidColorBrush x:Key="ListViewItemForegroundSelected" Color="#1A1A2E"/>
+                    <SolidColorBrush x:Key="ListViewItemSelectionIndicatorBrush" Color="#38BDF8"/>
 
                     <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#F2F4FF"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#F2F4FF"/>
@@ -191,6 +197,9 @@
                     <SolidColorBrush x:Key="ToggleSwitchContainerBackground" Color="Transparent"/>
                     <SolidColorBrush x:Key="ToggleSwitchContainerBackgroundPointerOver" Color="Transparent"/>
                     <SolidColorBrush x:Key="ToggleSwitchContainerBackgroundPressed" Color="Transparent"/>
+
+                    <SolidColorBrush x:Key="ToggleSwitchOnContentForeground" Color="#1A1A2E99"/>
+                    <SolidColorBrush x:Key="ToggleSwitchOffContentForeground" Color="#1A1A2E99"/>
 
                     <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#F0F4FF"/>
                     <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent"/>

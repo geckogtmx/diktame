@@ -116,6 +116,7 @@ public sealed class ThemeService
         ("ListViewItemBackgroundSelectedPointerOver", p => p.Border),
         ("ListViewItemBackgroundSelectedPressed", p => p.Border),
         ("ListViewItemForegroundSelected", p => p.Text),
+        ("ListViewItemSelectionIndicatorBrush", p => p.NavActive),
 
         // NavigationView overrides
         ("NavigationViewDefaultPaneBackground", p => p.Background),
@@ -148,6 +149,10 @@ public sealed class ThemeService
         ("ToggleSwitchKnobFillOn", p => p.IsDark ? ColorFrom(0xFF, 0xFF, 0xFF) : ColorFrom(0x1A, 0x1A, 0x2E)),
         ("ToggleSwitchKnobFillOnPointerOver", p => p.IsDark ? ColorFrom(0xFF, 0xFF, 0xFF) : ColorFrom(0x1A, 0x1A, 0x2E)),
         ("ToggleSwitchKnobFillOnPressed", p => p.IsDark ? ColorFrom(0xE0, 0xE0, 0xE0) : ColorFrom(0x33, 0x33, 0x44)),
+
+        // ToggleSwitch content (On/Off label) foreground
+        ("ToggleSwitchOnContentForeground", p => p.TextDim),
+        ("ToggleSwitchOffContentForeground", p => p.TextDim),
     ];
 
     public ThemeService(SettingsManager settings)

@@ -1,8 +1,11 @@
 
+using DiktaMe.App.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Serilog;
+using Windows.UI;
 
 namespace DiktaMe.App.Views;
 /// <summary>
@@ -37,8 +40,36 @@ public sealed partial class SettingsWindow : Window
             NavView.SelectedItem = NavAccountItem;
         };
 
+        // Apply theme-appropriate glassmorphic gradient on theme change
+        var themeService = App.Current.Services.GetRequiredService<ThemeService>();
+        ApplyGlassmorphicGradient(ThemeService.GetPalette(themeService.CurrentTheme));
+        themeService.ThemeChanged += (_, themeName) =>
+        {
+            DispatcherQueue.TryEnqueue(() => ApplyGlassmorphicGradient(ThemeService.GetPalette(themeName)));
+        };
+
         // Select General (first item) on load
         NavView.SelectedItem = NavView.MenuItems[0];
+    }
+
+    private void ApplyGlassmorphicGradient(ThemePalette palette)
+    {
+        if (palette.IsDark)
+        {
+            // Dark themes: purple/magenta sweep
+            GlassStop1.Color = Color.FromArgb(0x00, 0x16, 0x15, 0x30);
+            GlassStop2.Color = Color.FromArgb(0x30, 0x66, 0x33, 0x99);
+            GlassStop3.Color = Color.FromArgb(0x20, 0x99, 0x33, 0x66);
+            GlassStop4.Color = Color.FromArgb(0x00, 0x16, 0x15, 0x30);
+        }
+        else
+        {
+            // Light themes: subtle blue/lavender sweep
+            GlassStop1.Color = Color.FromArgb(0x00, 0xC0, 0xD0, 0xFF);
+            GlassStop2.Color = Color.FromArgb(0x18, 0x80, 0x90, 0xE0);
+            GlassStop3.Color = Color.FromArgb(0x10, 0xA0, 0x80, 0xD0);
+            GlassStop4.Color = Color.FromArgb(0x00, 0xC0, 0xD0, 0xFF);
+        }
     }
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

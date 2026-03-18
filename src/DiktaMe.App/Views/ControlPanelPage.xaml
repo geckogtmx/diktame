@@ -528,14 +528,15 @@
              ═══════════════════════════════════════════════════════════════ -->
 
         <!-- Glassmorphic gradient overlay — subtle purple/magenta diagonal sweep.
-             Placed BELOW shimmer/edge-glow overlays so processing effects render on top. -->
+             Placed BELOW shimmer/edge-glow overlays so processing effects render on top.
+             Gradient stop colors are updated by code-behind on theme change. -->
         <Border Grid.RowSpan="6" IsHitTestVisible="False">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
-                    <GradientStop Color="#00161530" Offset="0.0"/>
-                    <GradientStop Color="#30663399" Offset="0.35"/>
-                    <GradientStop Color="#20993366" Offset="0.6"/>
-                    <GradientStop Color="#00161530" Offset="1.0"/>
+                    <GradientStop x:Name="GlassStop1" Color="#00161530" Offset="0.0"/>
+                    <GradientStop x:Name="GlassStop2" Color="#30663399" Offset="0.35"/>
+                    <GradientStop x:Name="GlassStop3" Color="#20993366" Offset="0.6"/>
+                    <GradientStop x:Name="GlassStop4" Color="#00161530" Offset="1.0"/>
                 </LinearGradientBrush>
             </Border.Background>
         </Border>
