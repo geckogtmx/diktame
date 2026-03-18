@@ -1,0 +1,57 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- SegmentedButton: Pill-shaped Cloud/Local toggle
+         Usage: Apply SegmentedLeftStyle / SegmentedRightStyle to the two buttons,
+         and bind the active button's Tag="Active" to trigger the accent state.
+         The active state is controlled by ButtonBackgroundPressed/PointerOver
+         local resource overrides set at the parent level. -->
+
+    <!-- Shared base style for both left and right segments -->
+    <Style x:Key="SegmentedButtonBase" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource AppSurface2Brush}"/>
+        <Setter Property="Foreground" Value="{StaticResource AppTextDimBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="20,8"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    </Style>
+
+    <!-- Left segment: rounded left corners -->
+    <Style x:Key="SegmentedLeftStyle" TargetType="Button" BasedOn="{StaticResource SegmentedButtonBase}">
+        <Setter Property="CornerRadius" Value="16,0,0,16"/>
+    </Style>
+
+    <!-- Right segment: rounded right corners -->
+    <Style x:Key="SegmentedRightStyle" TargetType="Button" BasedOn="{StaticResource SegmentedButtonBase}">
+        <Setter Property="CornerRadius" Value="0,16,16,0"/>
+    </Style>
+
+    <!-- Active segment: accent background, bright text -->
+    <Style x:Key="SegmentedActiveStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource AppNavActiveBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="20,8"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    </Style>
+
+    <!-- Active left -->
+    <Style x:Key="SegmentedLeftActiveStyle" TargetType="Button" BasedOn="{StaticResource SegmentedActiveStyle}">
+        <Setter Property="CornerRadius" Value="16,0,0,16"/>
+    </Style>
+
+    <!-- Active right -->
+    <Style x:Key="SegmentedRightActiveStyle" TargetType="Button" BasedOn="{StaticResource SegmentedActiveStyle}">
+        <Setter Property="CornerRadius" Value="0,16,16,0"/>
+    </Style>
+
+</ResourceDictionary>

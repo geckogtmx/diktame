@@ -7,82 +7,72 @@
     xmlns:l="using:WinUI3Localizer"
     Title="dIKta.me — Settings">
 
+    <Grid>
     <muxc:NavigationView x:Name="NavView"
                          PaneDisplayMode="Left"
                          IsBackButtonVisible="Collapsed"
                          IsSettingsVisible="False"
+                         IsPaneToggleButtonVisible="False"
                          SelectionChanged="NavView_SelectionChanged"
                          DoubleTapped="NavView_DoubleTapped"
-                         OpenPaneLength="210"
-                         Background="{StaticResource V1BackgroundBrush}">
-        <muxc:NavigationView.Resources>
-            <!-- V1 pane backgrounds -->
-            <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#002029"/>
-            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#002029"/>
-            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="#002a35"/>
-            <!-- Nav item text/icon colors -->
-            <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#e0e0e0"/>
-            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#e0e0e0"/>
-            <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPointerOver" Color="#e0e0e0"/>
-            <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPressed" Color="#e0e0e0"/>
-            <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="#e0e0e0"/>
-            <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="#bbbbbb"/>
-            <!-- Selected indicator + background -->
-            <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#00607a"/>
-            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#00303d"/>
-            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#004052"/>
-            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#003a4d"/>
-            <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#00303d"/>
-            <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#003a4d"/>
-            <!-- Hamburger/toggle button -->
-            <SolidColorBrush x:Key="NavigationViewButtonForegroundPointerOver" Color="#e0e0e0"/>
-            <SolidColorBrush x:Key="NavigationViewButtonForegroundPressed" Color="#bbbbbb"/>
-        </muxc:NavigationView.Resources>
+                         OpenPaneLength="250"
+                         Background="{StaticResource AppBackgroundBrush}"
+                         FontFamily="{StaticResource AppFont}">
+        <muxc:NavigationView.PaneHeader>
+            <StackPanel Orientation="Horizontal" Spacing="8" Padding="16,16,16,8">
+                <Image Source="ms-appx:///Assets/icon.png" Width="28" Height="28"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="dIKta.me" FontSize="16"
+                           FontFamily="{StaticResource AppFontSemiBold}"
+                           Foreground="{StaticResource AppAccentBrush}"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </muxc:NavigationView.PaneHeader>
         <muxc:NavigationView.PaneFooter>
             <settings:UserPaneFooter x:Name="UserFooter"/>
         </muxc:NavigationView.PaneFooter>
         <muxc:NavigationView.MenuItems>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_General" Tag="general">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_General" Tag="general" Margin="16,0,0,0">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE713;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_Hardware" Tag="hardware">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Hardware" Tag="hardware" Margin="16,0,0,0">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE720;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_AIEngine" Tag="aiengine">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_AIEngine" Tag="aiengine" Margin="16,0,0,0">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE774;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_Workflows" Tag="workflows">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Workflows" Tag="workflows" Margin="16,0,0,0">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE762;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_DictationPresets" Tag="presets">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_DictationPresets" Tag="presets" Margin="16,0,0,0">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE71D;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_Snippets" Tag="snippets">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Snippets" Tag="snippets" Margin="16,0,0,0">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE8FD;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_Privacy" Tag="privacy">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_Privacy" Tag="privacy" Margin="16,0,0,0">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE72E;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem x:Name="NavAccountItem" l:Uids.Uid="Nav_Account" Tag="account">
+            <muxc:NavigationViewItem x:Name="NavAccountItem" l:Uids.Uid="Nav_Account" Tag="account" Margin="16,0,0,0">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE77B;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem l:Uids.Uid="Nav_About" Tag="about">
+            <muxc:NavigationViewItem l:Uids.Uid="Nav_About" Tag="about" Margin="16,0,0,0">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE946;"/>
                 </muxc:NavigationViewItem.Icon>
@@ -90,7 +80,22 @@
         </muxc:NavigationView.MenuItems>
 
         <Frame x:Name="ContentFrame"
+               Background="{StaticResource AppSurface2Brush}"
                HorizontalAlignment="Stretch"
                VerticalAlignment="Stretch"/>
     </muxc:NavigationView>
+
+    <!-- Glassmorphic gradient overlay — subtle purple/magenta diagonal sweep.
+         IsHitTestVisible=False lets all input pass through to controls below. -->
+    <Border IsHitTestVisible="False">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                <GradientStop Color="#00161530" Offset="0.0"/>
+                <GradientStop Color="#30663399" Offset="0.35"/>
+                <GradientStop Color="#20993366" Offset="0.6"/>
+                <GradientStop Color="#00161530" Offset="1.0"/>
+            </LinearGradientBrush>
+        </Border.Background>
+    </Border>
+    </Grid>
 </Window>

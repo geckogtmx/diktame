@@ -4,24 +4,15 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:DiktaMe.App.Converters"
-    xmlns:l="using:WinUI3Localizer">
+    xmlns:l="using:WinUI3Localizer"
+    FontFamily="{StaticResource AppFont}">
 
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
         <converters:PipelineStateToColorConverter x:Key="StateToColor"/>
-
-        <!-- V1 Color Palette (from V1 CSS variables) -->
-        <SolidColorBrush x:Key="V1BackgroundBrush" Color="#002029"/>
-        <SolidColorBrush x:Key="V1HeaderBrush" Color="#00303d"/>
-        <SolidColorBrush x:Key="V1BorderBrush" Color="#004052"/>
-        <SolidColorBrush x:Key="V1ActiveModeBrush" Color="#00607a"/>
-        <SolidColorBrush x:Key="V1TextPrimaryBrush" Color="#e0e0e0"/>
-        <SolidColorBrush x:Key="V1TextSecondaryBrush" Color="#888888"/>
-        <SolidColorBrush x:Key="V1PerfGreenBrush" Color="#7aff9e"/>
-
     </Page.Resources>
 
-    <Grid x:Name="RootGrid" VerticalAlignment="Top" Background="{StaticResource V1BackgroundBrush}" Padding="0" RowSpacing="0">
+    <Grid x:Name="RootGrid" VerticalAlignment="Top" Background="{StaticResource AppBackgroundBrush}" Padding="0" RowSpacing="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -34,9 +25,8 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 0: Header Bar — Status dot + text + badges + gear
              ═══════════════════════════════════════════════════════════════ -->
-        <Grid x:Name="HeaderBar" Grid.Row="0" Background="{StaticResource V1HeaderBrush}"
-              Padding="12,4,12,11" BorderBrush="{StaticResource V1BorderBrush}"
-              BorderThickness="0,0,0,1">
+        <Grid x:Name="HeaderBar" Grid.Row="0" Background="{StaticResource AppSurfaceBrush}"
+              Padding="12,4,12,11">
             <!-- Transparent drag surface — SetTitleBar targets this, not the whole grid.
                  This gives buttons full pointer control (hold-click, etc.) -->
             <Border x:Name="DragRegion" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
@@ -47,8 +37,8 @@
                          VerticalAlignment="Center"/>
                 <TextBlock x:Name="StatusTextBlock"
                            Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
-                           FontSize="14" FontWeight="Bold"
-                           Foreground="{StaticResource V1TextPrimaryBrush}"
+                           FontSize="13" FontWeight="Bold"
+                           Foreground="{StaticResource AppTextBrush}"
                            CharacterSpacing="100"
                            VerticalAlignment="Center"
                            RenderTransformOrigin="0,0.5">
@@ -61,15 +51,15 @@
             <StackPanel x:Name="HeaderButtons" Orientation="Horizontal" Spacing="5"
                         HorizontalAlignment="Right" VerticalAlignment="Center">
                 <!-- Wallet balance badge (visible when AuthMode=Wallet) -->
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2"
+                <Border Background="{StaticResource AppBorderBrush}" CornerRadius="3" Padding="6,2"
                         Visibility="{x:Bind ViewModel.ShowWalletBalance, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <TextBlock Text="{x:Bind ViewModel.WalletBalanceFormatted, Mode=OneWay}"
                                FontSize="11" FontWeight="Bold"
-                               Foreground="{StaticResource V1PerfGreenBrush}"
+                               Foreground="{StaticResource AppPerfGreenBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <!-- STT indicator badge -->
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2" Width="36">
+                <Border Background="{StaticResource AppSurface2Brush}" CornerRadius="3" Padding="6,1" Width="36">
                     <ToolTipService.ToolTip>
                         <StackPanel Spacing="2">
                             <TextBlock Text="Speech-to-Text" FontSize="11" FontWeight="SemiBold"
@@ -83,7 +73,7 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <!-- LLM indicator badge -->
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2" Width="36">
+                <Border Background="{StaticResource AppSurface2Brush}" CornerRadius="3" Padding="6,1" Width="36">
                     <ToolTipService.ToolTip>
                         <StackPanel Spacing="2">
                             <TextBlock Text="Language Model" FontSize="11" FontWeight="SemiBold"
@@ -97,7 +87,7 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <!-- TTS indicator badge -->
-                <Border Background="{StaticResource V1BorderBrush}" CornerRadius="3" Padding="6,2" Width="36">
+                <Border Background="{StaticResource AppSurface2Brush}" CornerRadius="3" Padding="6,1" Width="36">
                     <ToolTipService.ToolTip>
                         <StackPanel Spacing="2">
                             <TextBlock Text="Text-to-Speech" FontSize="11" FontWeight="SemiBold"
@@ -114,20 +104,20 @@
                 <Button x:Name="CollapseButton"
                         Content="{x:Bind ViewModel.ExpandCollapseIcon, Mode=OneWay}"
                         FontFamily="Segoe MDL2 Assets"
-                        Background="Transparent" Foreground="{StaticResource V1TextSecondaryBrush}"
-                        BorderThickness="0" Padding="6" FontSize="14"
+                        Background="Transparent" Foreground="{StaticResource AppTextDimBrush}"
+                        BorderThickness="0" Padding="6" FontSize="13"
                         VerticalAlignment="Center" MinWidth="0" MinHeight="0"/>
                 <!-- Settings gear -->
                 <Button Content="&#xE713;" FontFamily="Segoe MDL2 Assets"
                         Command="{x:Bind ViewModel.OpenSettingsCommand}"
-                        Background="Transparent" Foreground="{StaticResource V1TextSecondaryBrush}"
-                        BorderThickness="0" Padding="6" FontSize="14"
+                        Background="Transparent" Foreground="{StaticResource AppTextDimBrush}"
+                        BorderThickness="0" Padding="6" FontSize="13"
                         VerticalAlignment="Center" MinWidth="0" MinHeight="0"/>
                 <!-- Close (hide to tray) -->
                 <Button Content="&#xE10A;" FontFamily="Segoe MDL2 Assets"
                         Command="{x:Bind ViewModel.CloseWindowCommand}"
-                        Background="Transparent" Foreground="{StaticResource V1TextSecondaryBrush}"
-                        BorderThickness="0" Padding="6" FontSize="14"
+                        Background="Transparent" Foreground="{StaticResource AppTextDimBrush}"
+                        BorderThickness="0" Padding="6" FontSize="13"
                         VerticalAlignment="Center" MinWidth="0" MinHeight="0"/>
             </StackPanel>
         </Grid>
@@ -135,7 +125,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 1: Dictation Presets (Dynamic 2×4 Grid)
              ═══════════════════════════════════════════════════════════════ -->
-        <Border x:Name="ModesRow" Grid.Row="1" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
+        <Border x:Name="ModesRow" Grid.Row="1"
                 Visibility="{x:Bind ViewModel.ShowModesRowEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Padding="8,6">
                 <ItemsRepeater ItemsSource="{x:Bind ViewModel.AvailableModes, Mode=OneWay}">
@@ -152,8 +142,7 @@
                         <DataTemplate x:DataType="vm:DictationModeItem" xmlns:vm="using:DiktaMe.App.ViewModels">
                             <Button Command="{Binding ElementName=RootPage, Path=ViewModel.SetModeCommand}"
                                     CommandParameter="{x:Bind Id}"
-                                    BorderBrush="{StaticResource V1BorderBrush}"
-                                    BorderThickness="1"
+                                    BorderThickness="0"
                                     CornerRadius="4"
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Center"
@@ -196,7 +185,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 2: Cycle Buttons (6-column: STT | LLM | TTS | SOUND | +KEY | REFINE)
              ═══════════════════════════════════════════════════════════════ -->
-        <Border x:Name="ActionsRow" Grid.Row="2" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
+        <Border x:Name="ActionsRow" Grid.Row="2"
                 Visibility="{x:Bind ViewModel.ShowActionsRowEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Padding="8,4" ColumnSpacing="4">
                 <Grid.ColumnDefinitions>
@@ -211,9 +200,8 @@
                 <!-- STT -->
                 <Button Grid.Column="0"
                         Command="{x:Bind ViewModel.CycleSttCommand}"
-                        Background="{StaticResource V1HeaderBrush}"
-                        BorderBrush="{StaticResource V1BorderBrush}"
-                        BorderThickness="1" CornerRadius="4"
+                        Background="{StaticResource AppSurfaceBrush}"
+                        BorderThickness="0" CornerRadius="4"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                         Padding="2,4" MinWidth="0" MinHeight="0">
                     <Button.Resources>
@@ -225,7 +213,7 @@
                     <StackPanel HorizontalAlignment="Center" Spacing="1">
                         <TextBlock l:Uids.Uid="ControlPanel_Toggle_Stt"
                                    FontSize="9" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   Foreground="{StaticResource AppTextDimBrush}"
                                    HorizontalAlignment="Center"/>
                         <TextBlock Text="{x:Bind ViewModel.SttStateLabel, Mode=OneWay}"
                                    FontSize="10" FontWeight="Bold"
@@ -237,9 +225,8 @@
                 <!-- LLM -->
                 <Button Grid.Column="1"
                         Command="{x:Bind ViewModel.CycleLlmCommand}"
-                        Background="{StaticResource V1HeaderBrush}"
-                        BorderBrush="{StaticResource V1BorderBrush}"
-                        BorderThickness="1" CornerRadius="4"
+                        Background="{StaticResource AppSurfaceBrush}"
+                        BorderThickness="0" CornerRadius="4"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                         Padding="2,4" MinWidth="0" MinHeight="0">
                     <Button.Resources>
@@ -251,7 +238,7 @@
                     <StackPanel HorizontalAlignment="Center" Spacing="1">
                         <TextBlock l:Uids.Uid="ControlPanel_Toggle_Llm"
                                    FontSize="9" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   Foreground="{StaticResource AppTextDimBrush}"
                                    HorizontalAlignment="Center"/>
                         <TextBlock Text="{x:Bind ViewModel.LlmStateLabel, Mode=OneWay}"
                                    FontSize="10" FontWeight="Bold"
@@ -263,9 +250,8 @@
                 <!-- TTS -->
                 <Button Grid.Column="2"
                         Command="{x:Bind ViewModel.CycleTtsCommand}"
-                        Background="{StaticResource V1HeaderBrush}"
-                        BorderBrush="{StaticResource V1BorderBrush}"
-                        BorderThickness="1" CornerRadius="4"
+                        Background="{StaticResource AppSurfaceBrush}"
+                        BorderThickness="0" CornerRadius="4"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                         Padding="2,4" MinWidth="0" MinHeight="0">
                     <Button.Resources>
@@ -277,7 +263,7 @@
                     <StackPanel HorizontalAlignment="Center" Spacing="1">
                         <TextBlock l:Uids.Uid="ControlPanel_Toggle_Tts"
                                    FontSize="9" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   Foreground="{StaticResource AppTextDimBrush}"
                                    HorizontalAlignment="Center"/>
                         <TextBlock Text="{x:Bind ViewModel.TtsStateLabel, Mode=OneWay}"
                                    FontSize="10" FontWeight="Bold"
@@ -289,9 +275,8 @@
                 <!-- SOUND -->
                 <Button Grid.Column="3"
                         Command="{x:Bind ViewModel.CycleSoundCommand}"
-                        Background="{StaticResource V1HeaderBrush}"
-                        BorderBrush="{StaticResource V1BorderBrush}"
-                        BorderThickness="1" CornerRadius="4"
+                        Background="{StaticResource AppSurfaceBrush}"
+                        BorderThickness="0" CornerRadius="4"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                         Padding="2,4" MinWidth="0" MinHeight="0">
                     <Button.Resources>
@@ -303,7 +288,7 @@
                     <StackPanel HorizontalAlignment="Center" Spacing="1">
                         <TextBlock l:Uids.Uid="ControlPanel_Toggle_Sound"
                                    FontSize="9" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   Foreground="{StaticResource AppTextDimBrush}"
                                    HorizontalAlignment="Center"/>
                         <TextBlock Text="{x:Bind ViewModel.SoundStateLabel, Mode=OneWay}"
                                    FontSize="10" FontWeight="Bold"
@@ -315,9 +300,8 @@
                 <!-- +KEY -->
                 <Button Grid.Column="4"
                         Command="{x:Bind ViewModel.CycleKeyCommand}"
-                        Background="{StaticResource V1HeaderBrush}"
-                        BorderBrush="{StaticResource V1BorderBrush}"
-                        BorderThickness="1" CornerRadius="4"
+                        Background="{StaticResource AppSurfaceBrush}"
+                        BorderThickness="0" CornerRadius="4"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                         Padding="2,4" MinWidth="0" MinHeight="0">
                     <Button.Resources>
@@ -329,7 +313,7 @@
                     <StackPanel HorizontalAlignment="Center" Spacing="1">
                         <TextBlock l:Uids.Uid="ControlPanel_Toggle_Key"
                                    FontSize="9" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   Foreground="{StaticResource AppTextDimBrush}"
                                    HorizontalAlignment="Center"/>
                         <TextBlock Text="{x:Bind ViewModel.KeyStateLabel, Mode=OneWay}"
                                    FontSize="10" FontWeight="Bold"
@@ -341,9 +325,8 @@
                 <!-- REFINE -->
                 <Button Grid.Column="5"
                         Command="{x:Bind ViewModel.CycleRefineCommand}"
-                        Background="{StaticResource V1HeaderBrush}"
-                        BorderBrush="{StaticResource V1BorderBrush}"
-                        BorderThickness="1" CornerRadius="4"
+                        Background="{StaticResource AppSurfaceBrush}"
+                        BorderThickness="0" CornerRadius="4"
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                         Padding="2,4" MinWidth="0" MinHeight="0">
                     <Button.Resources>
@@ -355,7 +338,7 @@
                     <StackPanel HorizontalAlignment="Center" Spacing="1">
                         <TextBlock l:Uids.Uid="ControlPanel_Toggle_Refine"
                                    FontSize="9" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"
+                                   Foreground="{StaticResource AppTextDimBrush}"
                                    HorizontalAlignment="Center"/>
                         <TextBlock Text="{x:Bind ViewModel.RefineStateLabel, Mode=OneWay}"
                                    FontSize="10" FontWeight="Bold"
@@ -369,9 +352,9 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 3: Session Stats (4-column metric grid)
              ═══════════════════════════════════════════════════════════════ -->
-        <Border x:Name="SessionStatsRow" Grid.Row="3" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
+        <Border x:Name="SessionStatsRow" Grid.Row="3"
                 Visibility="{x:Bind ViewModel.ShowSessionStatsEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
-            <Grid Background="{StaticResource V1BorderBrush}" ColumnSpacing="1">
+            <Grid Background="Transparent" ColumnSpacing="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -380,58 +363,58 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- REQ -->
-                <StackPanel Grid.Column="0" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="0" Background="{StaticResource AppSurfaceBrush}"
                             Padding="4,6" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
                             ToolTipService.ToolTip="Requests this session">
                     <TextBlock Text="{x:Bind ViewModel.RequestCount, Mode=OneWay}"
                                FontSize="14" FontWeight="Bold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"
+                               Foreground="{StaticResource AppTextBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock l:Uids.Uid="ControlPanel_Stat_Req" FontSize="8" CharacterSpacing="50"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               Foreground="{StaticResource AppTextDimBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- CHAR -->
-                <StackPanel Grid.Column="1" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="1" Background="{StaticResource AppSurfaceBrush}"
                             Padding="4,6" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
                             ToolTipService.ToolTip="Characters produced">
                     <TextBlock Text="{x:Bind ViewModel.CharCount, Mode=OneWay}"
                                FontSize="14" FontWeight="Bold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"
+                               Foreground="{StaticResource AppTextBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock l:Uids.Uid="ControlPanel_Stat_Char" FontSize="8" CharacterSpacing="50"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               Foreground="{StaticResource AppTextDimBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- WORDS -->
-                <StackPanel Grid.Column="2" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="2" Background="{StaticResource AppSurfaceBrush}"
                             Padding="4,6" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
                             ToolTipService.ToolTip="Words produced">
                     <TextBlock Text="{x:Bind ViewModel.WordCount, Mode=OneWay}"
                                FontSize="14" FontWeight="Bold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"
+                               Foreground="{StaticResource AppTextBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock l:Uids.Uid="ControlPanel_Stat_Words" FontSize="8" CharacterSpacing="50"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               Foreground="{StaticResource AppTextDimBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- WORD/MIN -->
-                <StackPanel Grid.Column="3" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="3" Background="{StaticResource AppSurfaceBrush}"
                             Padding="4,6" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
                             ToolTipService.ToolTip="Words per minute since first request">
                     <TextBlock Text="{x:Bind ViewModel.WordsPerMinuteFormatted, Mode=OneWay}"
                                FontSize="14" FontWeight="Bold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"
+                               Foreground="{StaticResource AppTextBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock l:Uids.Uid="ControlPanel_Stat_WordMin" FontSize="8" CharacterSpacing="50"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               Foreground="{StaticResource AppTextDimBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
             </Grid>
@@ -440,9 +423,9 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 4: Performance Stats (5-column metric grid)
              ═══════════════════════════════════════════════════════════════ -->
-        <Border x:Name="PerfStatsRow" Grid.Row="4" BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,0,1"
+        <Border x:Name="PerfStatsRow" Grid.Row="4"
                 Visibility="{x:Bind ViewModel.ShowPerformanceStatsEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
-            <Grid Background="{StaticResource V1BorderBrush}" ColumnSpacing="1">
+            <Grid Background="Transparent" ColumnSpacing="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -452,77 +435,77 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- REC -->
-                <StackPanel Grid.Column="0" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="0" Background="{StaticResource AppSurfaceBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
                             ToolTipService.ToolTip="Recording duration">
                     <TextBlock Text="{x:Bind ViewModel.LastRecordingFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
-                               FontFamily="Consolas"
-                               Foreground="{StaticResource V1PerfGreenBrush}"
+                               FontFamily="{StaticResource AppFontMono}"
+                               Foreground="{StaticResource AppPerfGreenBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock l:Uids.Uid="ControlPanel_Perf_Rec" FontSize="8" CharacterSpacing="50"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               Foreground="{StaticResource AppTextDimBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- TRNS -->
-                <StackPanel Grid.Column="1" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="1" Background="{StaticResource AppSurfaceBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
                             ToolTipService.ToolTip="Transcription latency">
                     <TextBlock Text="{x:Bind ViewModel.LastTranscriptionFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
-                               FontFamily="Consolas"
-                               Foreground="{StaticResource V1PerfGreenBrush}"
+                               FontFamily="{StaticResource AppFontMono}"
+                               Foreground="{StaticResource AppPerfGreenBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock l:Uids.Uid="ControlPanel_Perf_Trns" FontSize="8" CharacterSpacing="50"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               Foreground="{StaticResource AppTextDimBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- PROC -->
-                <StackPanel Grid.Column="2" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="2" Background="{StaticResource AppSurfaceBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
                             ToolTipService.ToolTip="LLM processing latency">
                     <TextBlock Text="{x:Bind ViewModel.LastProcessingFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
-                               FontFamily="Consolas"
-                               Foreground="{StaticResource V1PerfGreenBrush}"
+                               FontFamily="{StaticResource AppFontMono}"
+                               Foreground="{StaticResource AppPerfGreenBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock l:Uids.Uid="ControlPanel_Perf_Proc" FontSize="8" CharacterSpacing="50"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               Foreground="{StaticResource AppTextDimBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- INJ -->
-                <StackPanel Grid.Column="3" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="3" Background="{StaticResource AppSurfaceBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
                             ToolTipService.ToolTip="Text injection latency">
                     <TextBlock Text="{x:Bind ViewModel.LastInjectionFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
-                               FontFamily="Consolas"
-                               Foreground="{StaticResource V1PerfGreenBrush}"
+                               FontFamily="{StaticResource AppFontMono}"
+                               Foreground="{StaticResource AppPerfGreenBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock l:Uids.Uid="ControlPanel_Perf_Inj" FontSize="8" CharacterSpacing="50"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               Foreground="{StaticResource AppTextDimBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- TOT -->
-                <StackPanel Grid.Column="4" Background="{StaticResource V1HeaderBrush}"
+                <StackPanel Grid.Column="4" Background="{StaticResource AppSurfaceBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
                             ToolTipService.ToolTip="Pipeline latency (excludes recording)">
                     <TextBlock Text="{x:Bind ViewModel.LastTotalFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
-                               FontFamily="Consolas"
-                               Foreground="{StaticResource V1PerfGreenBrush}"
+                               FontFamily="{StaticResource AppFontMono}"
+                               Foreground="{StaticResource AppPerfGreenBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock l:Uids.Uid="ControlPanel_Perf_Tot" FontSize="8" CharacterSpacing="50"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"
+                               Foreground="{StaticResource AppTextDimBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
             </Grid>
@@ -531,7 +514,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 5: Footer — App branding
              ═══════════════════════════════════════════════════════════════ -->
-        <Grid x:Name="FooterRow" Grid.Row="5" Background="{StaticResource V1HeaderBrush}" Padding="10,4,10,16"
+        <Grid x:Name="FooterRow" Grid.Row="5" Background="{StaticResource AppSurfaceBrush}" Padding="10,4,10,16"
               Visibility="{x:Bind ViewModel.ShowFooterEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <TextBlock Text="dIKta.me V2.0" FontSize="10" FontWeight="Medium"
                        Foreground="#666666"
@@ -543,6 +526,19 @@
              Voice glow: background color modulated directly in code-behind.
              Shimmer/edge overlays placed after content rows for higher Z-order.
              ═══════════════════════════════════════════════════════════════ -->
+
+        <!-- Glassmorphic gradient overlay — subtle purple/magenta diagonal sweep.
+             Placed BELOW shimmer/edge-glow overlays so processing effects render on top. -->
+        <Border Grid.RowSpan="6" IsHitTestVisible="False">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                    <GradientStop Color="#00161530" Offset="0.0"/>
+                    <GradientStop Color="#30663399" Offset="0.35"/>
+                    <GradientStop Color="#20993366" Offset="0.6"/>
+                    <GradientStop Color="#00161530" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
 
         <!-- Edge glow highlight (top + side edges) -->
         <Border x:Name="EdgeGlow" Grid.Row="0" Grid.RowSpan="6"

@@ -14,7 +14,7 @@
     <ScrollViewer Padding="24">
         <StackPanel Spacing="16" MaxWidth="600" HorizontalAlignment="Left">
             <TextBlock l:Uids.Uid="Settings_Account_Title" FontSize="28" FontWeight="SemiBold"
-                       Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                       Foreground="{StaticResource AppTextBrush}"/>
 
             <!-- Signed-out state -->
             <InfoBar x:Name="SignInBar" l:Uids.Uid="Settings_Account_SignInBar"
@@ -26,85 +26,91 @@
             </InfoBar>
 
             <!-- Signed-in state -->
-            <StackPanel Spacing="12"
+            <StackPanel Spacing="16"
                         Visibility="{x:Bind ViewModel.IsSignedIn, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
                 <!-- User info -->
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE77B;" FontSize="20" VerticalAlignment="Center"/>
-                    <TextBlock Text="{x:Bind ViewModel.Email, Mode=OneWay}" FontSize="16" FontWeight="SemiBold"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
-
-                <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}" FontSize="13" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE77B;" FontSize="20" VerticalAlignment="Center"/>
+                            <TextBlock Text="{x:Bind ViewModel.Email, Mode=OneWay}" FontSize="16" FontWeight="SemiBold"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}" FontSize="13" Foreground="{StaticResource AppTextDimBrush}"/>
+                    </StackPanel>
+                </Border>
 
                 <!-- Wallet Balance -->
-                <StackPanel Spacing="4" Margin="0,12,0,0">
-                    <TextBlock l:Uids.Uid="Settings_Account_WalletBalance_Title" FontSize="16" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock Text="{x:Bind ViewModel.WalletBalanceFormatted, Mode=OneWay}"
-                               FontSize="28" FontWeight="Bold"/>
-                </StackPanel>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock l:Uids.Uid="Settings_Account_WalletBalance_Title" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{StaticResource AppTextBrush}"/>
+                        <TextBlock Text="{x:Bind ViewModel.WalletBalanceFormatted, Mode=OneWay}"
+                                   FontSize="28" FontWeight="Bold"/>
 
-                <!-- Wallet Proxy toggle (routes STT+LLM through cloud wallet) -->
-                <ToggleSwitch Header="Use Wallet Proxy (Cloud STT + LLM)"
-                              IsOn="{x:Bind ViewModel.UseWalletProxy, Mode=TwoWay}"
-                              Margin="0,8,0,0"
-                              OnContent="Wallet active — all requests use cloud APIs"
-                              OffContent="Off — using local/BYOK providers"/>
+                        <!-- Wallet Proxy toggle -->
+                        <ToggleSwitch Header="Use Wallet Proxy (Cloud STT + LLM)"
+                                      IsOn="{x:Bind ViewModel.UseWalletProxy, Mode=TwoWay}"
+                                      Margin="0,8,0,0"
+                                      OnContent="Wallet active — all requests use cloud APIs"
+                                      OffContent="Off — using local/BYOK providers"/>
 
-                <!-- Action buttons -->
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                    <Button Command="{x:Bind ViewModel.TopUpCommand}" Style="{StaticResource AccentButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE710;" FontSize="14"/>
-                            <TextBlock l:Uids.Uid="Settings_Account_TopUpButton"/>
+                        <!-- Action buttons -->
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                            <Button Command="{x:Bind ViewModel.TopUpCommand}" Style="{StaticResource AccentButtonStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE710;" FontSize="14"/>
+                                    <TextBlock l:Uids.Uid="Settings_Account_TopUpButton"/>
+                                </StackPanel>
+                            </Button>
+                            <HyperlinkButton l:Uids.Uid="Settings_Account_ManageAccountLink" Command="{x:Bind ViewModel.ManageAccountCommand}"/>
                         </StackPanel>
-                    </Button>
-                    <HyperlinkButton l:Uids.Uid="Settings_Account_ManageAccountLink" Command="{x:Bind ViewModel.ManageAccountCommand}"/>
-                </StackPanel>
+                    </StackPanel>
+                </Border>
 
                 <!-- Transaction History -->
-                <StackPanel Spacing="8" Margin="0,16,0,0">
-                    <TextBlock l:Uids.Uid="Settings_Account_TransactionHistory_Title" FontSize="16" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock l:Uids.Uid="Settings_Account_TransactionHistory_Title" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{StaticResource AppTextBrush}"/>
 
-                    <ListView ItemsSource="{x:Bind ViewModel.RecentTransactions, Mode=OneWay}"
-                              SelectionMode="None" IsItemClickEnabled="False"
-                              MaxHeight="300">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="vm:WalletTransactionItem">
-                                <Grid Padding="4,6" ColumnSpacing="8">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="28"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="80"/>
-                                    </Grid.ColumnDefinitions>
+                        <ListView ItemsSource="{x:Bind ViewModel.RecentTransactions, Mode=OneWay}"
+                                  SelectionMode="None" IsItemClickEnabled="False"
+                                  MaxHeight="300">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="vm:WalletTransactionItem">
+                                    <Grid Padding="4,6" ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="28"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="80"/>
+                                        </Grid.ColumnDefinitions>
 
-                                    <FontIcon Grid.Column="0" Glyph="{x:Bind TypeIcon}" FontSize="14"
-                                              VerticalAlignment="Center" Opacity="0.7"/>
+                                        <FontIcon Grid.Column="0" Glyph="{x:Bind TypeIcon}" FontSize="14"
+                                                  VerticalAlignment="Center" Opacity="0.7"/>
 
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind TypeLabel}" FontSize="13" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{x:Bind DateFormatted}" FontSize="11"
-                                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                                    </StackPanel>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind TypeLabel}" FontSize="13" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{x:Bind DateFormatted}" FontSize="11"
+                                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                                        </StackPanel>
 
-                                    <TextBlock Grid.Column="2" Text="{x:Bind AmountFormatted}" FontSize="13"
-                                               FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="{x:Bind AmountFormatted}" FontSize="13"
+                                                   FontWeight="SemiBold" VerticalAlignment="Center"/>
 
-                                    <TextBlock Grid.Column="3" Text="{x:Bind BalanceAfterFormatted}" FontSize="11"
-                                               Foreground="{StaticResource V1TextSecondaryBrush}"
-                                               VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </StackPanel>
+                                        <TextBlock Grid.Column="3" Text="{x:Bind BalanceAfterFormatted}" FontSize="11"
+                                                   Foreground="{StaticResource AppTextDimBrush}"
+                                                   VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
 
-                <Button l:Uids.Uid="Settings_Account_SignOutButton" Command="{x:Bind ViewModel.SignOutCommand}"
-                        Margin="0,16,0,0"/>
+                <Button l:Uids.Uid="Settings_Account_SignOutButton" Command="{x:Bind ViewModel.SignOutCommand}"/>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

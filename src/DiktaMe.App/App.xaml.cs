@@ -50,6 +50,16 @@ public partial class App : Application
     public Window? MainWindow => _window;
 
     /// <summary>
+    /// Tracks all active windows for theme switching (RequestedTheme per-window).
+    /// </summary>
+    private readonly List<Window> _activeWindows = [];
+
+    /// <summary>
+    /// Gets all currently active windows. Used by ThemeService to set RequestedTheme.
+    /// </summary>
+    public IReadOnlyList<Window> ActiveWindows => _activeWindows;
+
+    /// <summary>
     /// Gets the system tray icon view (standalone, created at app startup).
     /// </summary>
     public TrayIconView? TrayIcon => _trayIcon;
@@ -136,6 +146,9 @@ public partial class App : Application
         ConfigureServices(services);
         Services = services.BuildServiceProvider();
 
+        // ── Apply theme from settings (before any UI is created) ─────────────
+        Services.GetRequiredService<Services.ThemeService>().ApplyFromSettings();
+
         // ── Wire deeplink handler ────────────────────────────────────────────
         var dispatcher = DispatcherQueue.GetForCurrentThread();
         _singleInstance.DeepLinkReceived += uri => dispatcher.TryEnqueue(() => HandleDeepLink(uri));
@@ -154,6 +167,8 @@ public partial class App : Application
         // Show loading screen and run async initialization
         var loading = new Views.LoadingWindow();
         _loadingViewModel = loading.ViewModel; // Keep alive — owns hotkey event subscriptions
+        TrackWindow(loading);
+        loading.Closed += (_, _) => UntrackWindow(loading);
         loading.Activate();
         loading.StartLoading();
     }
@@ -320,6 +335,20 @@ public partial class App : Application
     }
 
     /// <summary>
+    /// Registers a window for theme tracking. Called when windows are created.
+    /// </summary>
+    internal void TrackWindow(Window window)
+    {
+        if (!_activeWindows.Contains(window))
+            _activeWindows.Add(window);
+    }
+
+    /// <summary>
+    /// Unregisters a window from theme tracking. Called when windows are destroyed.
+    /// </summary>
+    internal void UntrackWindow(Window window) => _activeWindows.Remove(window);
+
+    /// <summary>
     /// Shows and brings the main window to the foreground.
     /// Creates a new window if it was previously closed.
     /// </summary>
@@ -328,6 +357,7 @@ public partial class App : Application
         if (_window is null)
         {
             _window = new MainWindow();
+            TrackWindow(_window);
             // Intercept close: hide instead of destroying, so the tray icon keeps the app alive.
             _window.AppWindow.Closing += (s, e) =>
             {
@@ -356,7 +386,12 @@ public partial class App : Application
         if (_settingsWindow is null)
         {
             _settingsWindow = new Views.SettingsWindow();
-            _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+            TrackWindow(_settingsWindow);
+            _settingsWindow.Closed += (_, _) =>
+            {
+                UntrackWindow(_settingsWindow!);
+                _settingsWindow = null;
+            };
         }
         _settingsWindow.Activate();
     }
@@ -376,10 +411,12 @@ public partial class App : Application
         }
 
         _quickChatWindow = new Views.QuickChatWindow();
+        TrackWindow(_quickChatWindow);
         _quickChatWindow.AppWindow.Closing += (s, e) =>
         {
             e.Cancel = true;
             _quickChatWindow.AppWindow.Hide();
+            UntrackWindow(_quickChatWindow!);
             _quickChatWindow = null;
         };
         _quickChatWindow.Activate();
@@ -525,6 +562,7 @@ public partial class App : Application
         // ── UI Services (F.5) ──────────────────────────────────────────────────
         services.AddSingleton<Services.LocalizationService>();
         services.AddSingleton<Services.NotificationService>();
+        services.AddSingleton<Services.ThemeService>();
 
         ConfigureViewModels(services);
     }

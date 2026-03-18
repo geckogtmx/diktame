@@ -127,6 +127,9 @@ public sealed record GeneralSettings
 
     /// <summary>When true, Refine uses voice instruction mode; when false, uses auto (text selection only).</summary>
     public bool RefineVoiceMode { get; init; } = false;
+
+    /// <summary>App color theme: "Midnight" (cool dark), "Ember" (warm dark), or "Frost" (light).</summary>
+    public string ThemeName { get; init; } = "Midnight";
 }
 
 /// <summary>

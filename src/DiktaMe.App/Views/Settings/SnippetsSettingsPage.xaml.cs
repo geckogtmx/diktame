@@ -10,8 +10,8 @@ using Microsoft.UI.Xaml.Media;
 namespace DiktaMe.App.Views.Settings;
 public sealed partial class SnippetsSettingsPage : Page
 {
-    private static readonly Brush EvenRowBrush = new SolidColorBrush(ColorHelper.FromArgb(0xFF, 0x00, 0x2a, 0x35)); // V1DetailBrush
-    private static readonly Brush OddRowBrush = new SolidColorBrush(ColorHelper.FromArgb(0xFF, 0x00, 0x30, 0x3d));  // V1HeaderBrush
+    private static readonly Brush EvenRowBrush = new SolidColorBrush(ColorHelper.FromArgb(0xFF, 0x00, 0x2a, 0x35)); // AppSurface2Brush
+    private static readonly Brush OddRowBrush = new SolidColorBrush(ColorHelper.FromArgb(0xFF, 0x00, 0x30, 0x3d));  // AppSurfaceBrush
 
     public SnippetsSettingsViewModel ViewModel { get; }
 

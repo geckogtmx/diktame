@@ -21,17 +21,16 @@
 
     <Grid ColumnSpacing="0">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="224"/>
+            <ColumnDefinition Width="230"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Left: Sub-item list -->
-        <Border Background="{StaticResource V1HeaderBrush}"
-                BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,1,0"
+        <Border Background="{StaticResource AppSurfaceBrush}"
                 Padding="24">
             <StackPanel Spacing="8">
                 <TextBlock l:Uids.Uid="Settings_AIEngine_Title" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"
-                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                           Foreground="{StaticResource AppTextBrush}"/>
                 <ListView ItemsSource="{x:Bind ViewModel.SubItems}"
                           SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}"
                           SelectionMode="Single">
@@ -39,7 +38,7 @@
                         <DataTemplate>
                             <StackPanel Padding="4,6">
                                 <TextBlock Text="{Binding Title}" FontSize="14"
-                                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -56,13 +55,11 @@
                  ═══════════════════════════════════════════════════════════════ -->
             <StackPanel Spacing="16" MaxWidth="600"
                         Visibility="{x:Bind ViewModel.IsApiKeysSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                <TextBlock l:Uids.Uid="Settings_ApiKeys_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                <TextBlock l:Uids.Uid="Settings_ApiKeys_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}" Margin="0,0,0,4"/>
+                <TextBlock l:Uids.Uid="Settings_ApiKeys_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                <TextBlock l:Uids.Uid="Settings_ApiKeys_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" Margin="0,0,0,4"/>
 
                 <!-- OpenAI -->
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="0">
+                <Border Style="{StaticResource SettingsCardStyle}" Padding="0">
                     <Grid>
                         <Border Width="3" HorizontalAlignment="Left" CornerRadius="8,0,0,8"
                                 Background="{x:Bind ViewModel.ApiKeys.OpenAiHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"/>
@@ -76,7 +73,7 @@
                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
                                               Foreground="{x:Bind ViewModel.ApiKeys.OpenAiHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"
                                               Visibility="{x:Bind ViewModel.ApiKeys.OpenAiHasKey, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.OpenAiStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.OpenAiStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                                 </StackPanel>
                             </Grid>
                             <Grid ColumnSpacing="4">
@@ -103,9 +100,7 @@
                 </Border>
 
                 <!-- Anthropic -->
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="0">
+                <Border Style="{StaticResource SettingsCardStyle}" Padding="0">
                     <Grid>
                         <Border Width="3" HorizontalAlignment="Left" CornerRadius="8,0,0,8"
                                 Background="{x:Bind ViewModel.ApiKeys.AnthropicHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"/>
@@ -119,7 +114,7 @@
                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
                                               Foreground="{x:Bind ViewModel.ApiKeys.AnthropicHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"
                                               Visibility="{x:Bind ViewModel.ApiKeys.AnthropicHasKey, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.AnthropicStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.AnthropicStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                                 </StackPanel>
                             </Grid>
                             <Grid ColumnSpacing="4">
@@ -146,9 +141,7 @@
                 </Border>
 
                 <!-- Gemini -->
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="0">
+                <Border Style="{StaticResource SettingsCardStyle}" Padding="0">
                     <Grid>
                         <Border Width="3" HorizontalAlignment="Left" CornerRadius="8,0,0,8"
                                 Background="{x:Bind ViewModel.ApiKeys.GeminiHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"/>
@@ -162,7 +155,7 @@
                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
                                               Foreground="{x:Bind ViewModel.ApiKeys.GeminiHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"
                                               Visibility="{x:Bind ViewModel.ApiKeys.GeminiHasKey, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.GeminiStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.GeminiStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                                 </StackPanel>
                             </Grid>
                             <Grid ColumnSpacing="4">
@@ -189,9 +182,7 @@
                 </Border>
 
                 <!-- Deepgram -->
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="0">
+                <Border Style="{StaticResource SettingsCardStyle}" Padding="0">
                     <Grid>
                         <Border Width="3" HorizontalAlignment="Left" CornerRadius="8,0,0,8"
                                 Background="{x:Bind ViewModel.ApiKeys.DeepgramHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"/>
@@ -205,7 +196,7 @@
                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
                                               Foreground="{x:Bind ViewModel.ApiKeys.DeepgramHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"
                                               Visibility="{x:Bind ViewModel.ApiKeys.DeepgramHasKey, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.DeepgramStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.DeepgramStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                                 </StackPanel>
                             </Grid>
                             <Grid ColumnSpacing="4">
@@ -233,9 +224,7 @@
                 </Border>
 
                 <!-- Inworld -->
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="0">
+                <Border Style="{StaticResource SettingsCardStyle}" Padding="0">
                     <Grid>
                         <Border Width="3" HorizontalAlignment="Left" CornerRadius="8,0,0,8"
                                 Background="{x:Bind ViewModel.ApiKeys.InworldHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"/>
@@ -249,7 +238,7 @@
                                     <FontIcon Glyph="&#xE73E;" FontSize="12"
                                               Foreground="{x:Bind ViewModel.ApiKeys.InworldHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"
                                               Visibility="{x:Bind ViewModel.ApiKeys.InworldHasKey, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.InworldStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.InworldStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                                 </StackPanel>
                             </Grid>
                             <Grid ColumnSpacing="4">
@@ -281,99 +270,109 @@
                  ═══════════════════════════════════════════════════════════════ -->
             <StackPanel Spacing="16" MaxWidth="600"
                         Visibility="{x:Bind ViewModel.IsSttSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                <TextBlock l:Uids.Uid="Settings_AIEngine_STT_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                <TextBlock l:Uids.Uid="Settings_AIEngine_STT_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
 
-                <!-- Cloud / Local tab bar -->
-                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
-                    <StackPanel>
-                        <Button Content="Cloud" Command="{x:Bind ViewModel.SelectSttCloudCommand}"
-                                Style="{StaticResource TabButtonStyle}"/>
-                        <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                Visibility="{x:Bind ViewModel.IsSttCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                    </StackPanel>
-                    <StackPanel>
-                        <Button Content="Local" Command="{x:Bind ViewModel.SelectSttLocalCommand}"
-                                Style="{StaticResource TabButtonStyle}"/>
-                        <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                Visibility="{x:Bind ViewModel.IsSttCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
-                    </StackPanel>
+                <!-- Cloud / Local segmented toggle -->
+                <StackPanel Orientation="Horizontal" Spacing="0" Margin="0,0,0,4">
+                    <Button Content="Cloud" Command="{x:Bind ViewModel.SelectSttCloudCommand}"
+                            Style="{StaticResource SegmentedLeftActiveStyle}"
+                            Visibility="{x:Bind ViewModel.IsSttCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                    <Button Content="Cloud" Command="{x:Bind ViewModel.SelectSttCloudCommand}"
+                            Style="{StaticResource SegmentedLeftStyle}"
+                            Visibility="{x:Bind ViewModel.IsSttCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                    <Button Content="Local" Command="{x:Bind ViewModel.SelectSttLocalCommand}"
+                            Style="{StaticResource SegmentedRightActiveStyle}"
+                            Visibility="{x:Bind ViewModel.IsSttCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                    <Button Content="Local" Command="{x:Bind ViewModel.SelectSttLocalCommand}"
+                            Style="{StaticResource SegmentedRightStyle}"
+                            Visibility="{x:Bind ViewModel.IsSttCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
                 </StackPanel>
 
                 <!-- ── Cloud: Deepgram ─────────────────────────────────── -->
-                <StackPanel Spacing="24"
+                <StackPanel Spacing="16"
                             Visibility="{x:Bind ViewModel.IsSttCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
                     <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Section" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0"/>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.DeepgramModels}"
-                                  SelectedIndex="{x:Bind ViewModel.DeepgramModelIndex, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch"/>
-                    </StackPanel>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Model_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.DeepgramModels}"
+                                      SelectedIndex="{x:Bind ViewModel.DeepgramModelIndex, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </Border>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramPunctuate, Mode=TwoWay}"/>
-                    </StackPanel>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramPunctuate, Mode=TwoWay}"/>
+                            </StackPanel>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramDictation, Mode=TwoWay}"
-                                      IsEnabled="{x:Bind ViewModel.IsDictationEnabled, Mode=OneWay}"/>
-                    </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramDictation, Mode=TwoWay}"
+                                              IsEnabled="{x:Bind ViewModel.IsDictationEnabled, Mode=OneWay}"/>
+                            </StackPanel>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramSmartFormat, Mode=TwoWay}"/>
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Warning"
-                                   FontSize="11" Opacity="0.5" Visibility="{x:Bind ViewModel.DeepgramSmartFormat, Mode=OneWay}"/>
-                    </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramSmartFormat, Mode=TwoWay}"/>
+                                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Warning"
+                                           FontSize="11" Opacity="0.5" Visibility="{x:Bind ViewModel.DeepgramSmartFormat, Mode=OneWay}"/>
+                            </StackPanel>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <TextBox Text="{x:Bind ViewModel.DeepgramReplacements, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                                 AcceptsReturn="True" TextWrapping="Wrap"
-                                 MinHeight="80" MaxHeight="160"
-                                 PlaceholderText="monika:Monica&#x0a;zen desk:Zendesk"/>
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Help"
-                                   FontSize="11" Opacity="0.5"/>
-                    </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramStreaming, Mode=TwoWay}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.DeepgramStreaming, Mode=TwoWay}"/>
-                    </StackPanel>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <TextBox Text="{x:Bind ViewModel.DeepgramReplacements, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                     MinHeight="80" MaxHeight="160"
+                                     PlaceholderText="monika:Monica&#x0a;zen desk:Zendesk"/>
+                            <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Replace_Help"
+                                       FontSize="11" Opacity="0.5"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <!-- ── Local: Whisper ──────────────────────────────────── -->
-                <StackPanel Spacing="24"
+                <StackPanel Spacing="16"
                             Visibility="{x:Bind ViewModel.IsSttCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Section" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                    <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Section" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Model_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Model_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.WhisperModels}"
-                                  SelectedIndex="{x:Bind ViewModel.WhisperModelIndex, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch"/>
-                    </StackPanel>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Model_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_Model_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.WhisperModels}"
+                                      SelectedIndex="{x:Bind ViewModel.WhisperModelIndex, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"/>
 
-                    <StackPanel Spacing="8"
-                                Visibility="{x:Bind ViewModel.IsWhisperDownloading, Mode=OneWay}">
-                        <ProgressBar Minimum="0" Maximum="100"
-                                     Value="{x:Bind ViewModel.WhisperDownloadPercent, Mode=OneWay}"/>
-                        <TextBlock Text="{x:Bind ViewModel.WhisperDownloadStatus, Mode=OneWay}"
-                                   FontSize="12" Opacity="0.7" TextWrapping="Wrap"/>
-                    </StackPanel>
+                            <StackPanel Spacing="8"
+                                        Visibility="{x:Bind ViewModel.IsWhisperDownloading, Mode=OneWay}">
+                                <ProgressBar Minimum="0" Maximum="100"
+                                             Value="{x:Bind ViewModel.WhisperDownloadPercent, Mode=OneWay}"/>
+                                <TextBlock Text="{x:Bind ViewModel.WhisperDownloadStatus, Mode=OneWay}"
+                                           FontSize="12" Opacity="0.7" TextWrapping="Wrap"/>
+                            </StackPanel>
 
-                    <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_AutoDownload_Note"
-                               FontSize="11" Opacity="0.5"/>
+                            <TextBlock l:Uids.Uid="Settings_AIEngine_Whisper_AutoDownload_Note"
+                                       FontSize="11" Opacity="0.5"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </StackPanel>
 
@@ -382,22 +381,22 @@
                  ═══════════════════════════════════════════════════════════════ -->
             <StackPanel Spacing="16" MaxWidth="700"
                         Visibility="{x:Bind ViewModel.IsLlmSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                <TextBlock l:Uids.Uid="Settings_Ollama_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                <TextBlock l:Uids.Uid="Settings_Ollama_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
 
-                <!-- Cloud / Local tab bar -->
-                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
-                    <StackPanel>
-                        <Button Content="Cloud" Command="{x:Bind ViewModel.SelectLlmCloudCommand}"
-                                Style="{StaticResource TabButtonStyle}"/>
-                        <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                Visibility="{x:Bind ViewModel.IsLlmCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                    </StackPanel>
-                    <StackPanel>
-                        <Button Content="Local" Command="{x:Bind ViewModel.SelectLlmLocalCommand}"
-                                Style="{StaticResource TabButtonStyle}"/>
-                        <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                Visibility="{x:Bind ViewModel.IsLlmCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
-                    </StackPanel>
+                <!-- Cloud / Local segmented toggle -->
+                <StackPanel Orientation="Horizontal" Spacing="0" Margin="0,0,0,4">
+                    <Button Content="Cloud" Command="{x:Bind ViewModel.SelectLlmCloudCommand}"
+                            Style="{StaticResource SegmentedLeftActiveStyle}"
+                            Visibility="{x:Bind ViewModel.IsLlmCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                    <Button Content="Cloud" Command="{x:Bind ViewModel.SelectLlmCloudCommand}"
+                            Style="{StaticResource SegmentedLeftStyle}"
+                            Visibility="{x:Bind ViewModel.IsLlmCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                    <Button Content="Local" Command="{x:Bind ViewModel.SelectLlmLocalCommand}"
+                            Style="{StaticResource SegmentedRightActiveStyle}"
+                            Visibility="{x:Bind ViewModel.IsLlmCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                    <Button Content="Local" Command="{x:Bind ViewModel.SelectLlmLocalCommand}"
+                            Style="{StaticResource SegmentedRightStyle}"
+                            Visibility="{x:Bind ViewModel.IsLlmCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
                 </StackPanel>
 
                 <!-- ── Cloud: Model Catalog ────────────────────────────── -->
@@ -405,18 +404,20 @@
                             Visibility="{x:Bind ViewModel.IsLlmCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
 
                     <!-- Status + Refresh -->
-                    <StackPanel Spacing="8">
-                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                            <TextBlock Text="{x:Bind ViewModel.CloudLlm.StatusText, Mode=OneWay}"
-                                       FontSize="14" Foreground="{StaticResource V1TextSecondaryBrush}"
-                                       VerticalAlignment="Center"/>
-                            <Button Content="Refresh" Command="{x:Bind ViewModel.CloudLlm.RefreshModelsCommand}"
-                                    IsEnabled="{x:Bind ViewModel.CloudLlm.IsLoading, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
-                                    VerticalAlignment="Center"/>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind ViewModel.CloudLlm.StatusText, Mode=OneWay}"
+                                           FontSize="14" Foreground="{StaticResource AppTextDimBrush}"
+                                           VerticalAlignment="Center"/>
+                                <Button Content="Refresh" Command="{x:Bind ViewModel.CloudLlm.RefreshModelsCommand}"
+                                        IsEnabled="{x:Bind ViewModel.CloudLlm.IsLoading, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
+                                        VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <ProgressBar IsIndeterminate="True"
+                                         Visibility="{x:Bind ViewModel.CloudLlm.IsLoading, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
                         </StackPanel>
-                        <ProgressBar IsIndeterminate="True"
-                                     Visibility="{x:Bind ViewModel.CloudLlm.IsLoading, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                    </StackPanel>
+                    </Border>
 
                     <!-- Provider-grouped model list -->
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.CloudLlm.ProviderGroups}">
@@ -463,15 +464,14 @@
                     </ItemsRepeater>
 
                     <!-- Usage Summary -->
-                    <Border BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                            BorderThickness="0,1,0,0" Padding="0,16,0,0" Margin="0,8,0,0">
+                    <Border Style="{StaticResource SettingsCardStyle}">
                         <StackPanel Spacing="8">
                             <TextBlock Text="Usage (Today)" FontSize="16" FontWeight="SemiBold"
-                                       Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                                       Foreground="{StaticResource AppTextBrush}"/>
                             <TextBlock Text="{x:Bind ViewModel.CloudLlm.UsageTodayText, Mode=OneWay}"
-                                       FontSize="14" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                       FontSize="14" Foreground="{StaticResource AppTextDimBrush}"/>
                             <TextBlock Text="{x:Bind ViewModel.CloudLlm.UsageBreakdownText, Mode=OneWay}"
-                                       FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"
+                                       FontSize="12" Foreground="{StaticResource AppTextDimBrush}"
                                        Visibility="{x:Bind ViewModel.CloudLlm.HasUsageData, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"
                                        TextWrapping="Wrap"/>
                         </StackPanel>
@@ -483,64 +483,66 @@
                             Visibility="{x:Bind ViewModel.IsLlmCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
 
                     <!-- Service Status -->
-                    <StackPanel Spacing="6" Padding="0,0,0,8">
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <TextBlock Text="{x:Bind ViewModel.Ollama.StatusText, Mode=OneWay}" FontSize="14" FontWeight="SemiBold"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Text="Ollama" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}" VerticalAlignment="Center"/>
-                            <TextBlock Text="{x:Bind ViewModel.Ollama.OllamaVersion, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"
-                                       VerticalAlignment="Center"/>
-                            <TextBlock Text="·" FontSize="12" Opacity="0.4" VerticalAlignment="Center"/>
-                            <TextBlock Text="{x:Bind ViewModel.Ollama.VramSummary, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
-                            <Button l:Uids.Uid="Settings_Ollama_CheckHealth" Command="{x:Bind ViewModel.Ollama.CheckHealthCommand}"
-                                    IsEnabled="{x:Bind ViewModel.Ollama.IsChecking, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"/>
-                            <Button l:Uids.Uid="Settings_Ollama_RestartService" Command="{x:Bind ViewModel.Ollama.RestartServiceCommand}"
-                                    IsEnabled="{x:Bind ViewModel.Ollama.IsChecking, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"/>
-                        </StackPanel>
-
-                        <!-- Install Ollama -->
-                        <StackPanel Spacing="8"
-                                    Visibility="{x:Bind ViewModel.Ollama.ShowInstall, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
-                            <ProgressBar IsIndeterminate="{x:Bind ViewModel.Ollama.IsInstalling, Mode=OneWay}"
-                                         Visibility="{x:Bind ViewModel.Ollama.IsInstalling, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Button Command="{x:Bind ViewModel.Ollama.InstallOllamaCommand}"
-                                        IsEnabled="{x:Bind ViewModel.Ollama.IsInstalling, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}">
-                                    <TextBlock Text="{x:Bind ViewModel.Ollama.InstallButtonText, Mode=OneWay}"/>
-                                </Button>
-                                <HyperlinkButton NavigateUri="https://ollama.com/download"
-                                                 Visibility="{x:Bind ViewModel.Ollama.ShowManualInstallLink, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
-                                    <TextBlock l:Uids.Uid="Settings_Ollama_ManualInstall"/>
-                                </HyperlinkButton>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind ViewModel.Ollama.StatusText, Mode=OneWay}" FontSize="14" FontWeight="SemiBold"
+                                           VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Text="{x:Bind ViewModel.Ollama.InstallError, Mode=OneWay}" FontSize="12"
-                                       Foreground="Red" TextWrapping="Wrap"
-                                       Visibility="{x:Bind ViewModel.Ollama.ShowInstallError, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                        </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="Ollama" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{x:Bind ViewModel.Ollama.OllamaVersion, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Text="·" FontSize="12" Opacity="0.4" VerticalAlignment="Center"/>
+                                <TextBlock Text="{x:Bind ViewModel.Ollama.VramSummary, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                                <Button l:Uids.Uid="Settings_Ollama_CheckHealth" Command="{x:Bind ViewModel.Ollama.CheckHealthCommand}"
+                                        IsEnabled="{x:Bind ViewModel.Ollama.IsChecking, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"/>
+                                <Button l:Uids.Uid="Settings_Ollama_RestartService" Command="{x:Bind ViewModel.Ollama.RestartServiceCommand}"
+                                        IsEnabled="{x:Bind ViewModel.Ollama.IsChecking, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"/>
+                            </StackPanel>
 
-                        <!-- 412 Rescue -->
-                        <InfoBar l:Uids.Uid="Settings_Ollama_RescueInfoBar" IsOpen="{x:Bind ViewModel.Ollama.ShowRescue, Mode=OneWay}"
-                                 Severity="Warning"
-                                 Message="{x:Bind ViewModel.Ollama.RescueMessage, Mode=OneWay}"
-                                 IsClosable="False">
-                            <InfoBar.ActionButton>
-                                <Button l:Uids.Uid="Settings_Ollama_UseFallback" Command="{x:Bind ViewModel.Ollama.UseFallbackCommand}"/>
-                            </InfoBar.ActionButton>
-                        </InfoBar>
-                    </StackPanel>
+                            <!-- Install Ollama -->
+                            <StackPanel Spacing="8"
+                                        Visibility="{x:Bind ViewModel.Ollama.ShowInstall, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                                <ProgressBar IsIndeterminate="{x:Bind ViewModel.Ollama.IsInstalling, Mode=OneWay}"
+                                             Visibility="{x:Bind ViewModel.Ollama.IsInstalling, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Command="{x:Bind ViewModel.Ollama.InstallOllamaCommand}"
+                                            IsEnabled="{x:Bind ViewModel.Ollama.IsInstalling, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}">
+                                        <TextBlock Text="{x:Bind ViewModel.Ollama.InstallButtonText, Mode=OneWay}"/>
+                                    </Button>
+                                    <HyperlinkButton NavigateUri="https://ollama.com/download"
+                                                     Visibility="{x:Bind ViewModel.Ollama.ShowManualInstallLink, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                                        <TextBlock l:Uids.Uid="Settings_Ollama_ManualInstall"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                                <TextBlock Text="{x:Bind ViewModel.Ollama.InstallError, Mode=OneWay}" FontSize="12"
+                                           Foreground="Red" TextWrapping="Wrap"
+                                           Visibility="{x:Bind ViewModel.Ollama.ShowInstallError, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                            </StackPanel>
+
+                            <!-- 412 Rescue -->
+                            <InfoBar l:Uids.Uid="Settings_Ollama_RescueInfoBar" IsOpen="{x:Bind ViewModel.Ollama.ShowRescue, Mode=OneWay}"
+                                     Severity="Warning"
+                                     Message="{x:Bind ViewModel.Ollama.RescueMessage, Mode=OneWay}"
+                                     IsClosable="False">
+                                <InfoBar.ActionButton>
+                                    <Button l:Uids.Uid="Settings_Ollama_UseFallback" Command="{x:Bind ViewModel.Ollama.UseFallbackCommand}"/>
+                                </InfoBar.ActionButton>
+                            </InfoBar>
+                        </StackPanel>
+                    </Border>
 
                     <!-- Default Model -->
                     <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" IsExpanded="True">
                         <Expander.Header>
-                            <TextBlock l:Uids.Uid="Settings_Ollama_DefaultModel_Header" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Ollama_DefaultModel_Header" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
                         </Expander.Header>
                         <StackPanel Spacing="8" Padding="0,8">
-                            <TextBlock l:Uids.Uid="Settings_Ollama_DefaultModel_Hint" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Ollama_DefaultModel_Hint" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <ComboBox ItemsSource="{x:Bind ViewModel.Ollama.InstalledModels, Mode=OneWay}"
                                           SelectedIndex="{x:Bind ViewModel.Ollama.SelectedModelIndex, Mode=TwoWay}"
@@ -552,7 +554,7 @@
                             </StackPanel>
                             <StackPanel Spacing="4" Margin="0,4,0,0">
                                 <TextBlock Text="Keep-alive" FontWeight="SemiBold" FontSize="13"/>
-                                <TextBlock Text="How long the model stays loaded in VRAM after use." FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                <TextBlock Text="How long the model stays loaded in VRAM after use." FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                                 <ComboBox SelectedIndex="{x:Bind ViewModel.Ollama.KeepAliveIndex, Mode=TwoWay}" MinWidth="200">
                                     <ComboBoxItem Content="5 minutes"/>
                                     <ComboBoxItem Content="10 minutes"/>
@@ -568,8 +570,8 @@
                     <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" IsExpanded="True">
                         <Expander.Header>
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock l:Uids.Uid="Settings_Ollama_InstalledModels_Header" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                                <TextBlock Text="{x:Bind ViewModel.Ollama.TotalDiskUsage, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"
+                                <TextBlock l:Uids.Uid="Settings_Ollama_InstalledModels_Header" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="{x:Bind ViewModel.Ollama.TotalDiskUsage, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
                         </Expander.Header>
@@ -586,11 +588,11 @@
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="14"/>
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                                    <TextBlock Text="{x:Bind ParameterSize}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                                    <TextBlock Text="{x:Bind ParameterSize}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                                                     <TextBlock Text="·" FontSize="12" Opacity="0.4"/>
-                                                    <TextBlock Text="{x:Bind QuantizationLevel}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                                    <TextBlock Text="{x:Bind QuantizationLevel}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                                                     <TextBlock Text="·" FontSize="12" Opacity="0.4"/>
-                                                    <TextBlock Text="{x:Bind Family}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                                    <TextBlock Text="{x:Bind Family}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                                                 </StackPanel>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
@@ -626,10 +628,10 @@
                     <!-- Model Library (Live Search) -->
                     <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
                         <Expander.Header>
-                            <TextBlock l:Uids.Uid="Settings_Ollama_ModelLibrary_Header" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Ollama_ModelLibrary_Header" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
                         </Expander.Header>
                         <StackPanel Spacing="8" Padding="0,8">
-                            <TextBlock l:Uids.Uid="Settings_Ollama_ModelLibrary_Hint" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Ollama_ModelLibrary_Hint" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBox Text="{x:Bind ViewModel.Ollama.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          PlaceholderText="Search models..." MinWidth="300"/>
@@ -638,7 +640,7 @@
                             </StackPanel>
                             <ProgressBar IsIndeterminate="True"
                                          Visibility="{x:Bind ViewModel.Ollama.IsSearching, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                            <TextBlock Text="{x:Bind ViewModel.Ollama.SearchStatusText, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                            <TextBlock Text="{x:Bind ViewModel.Ollama.SearchStatusText, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
 
                             <ListView ItemsSource="{x:Bind ViewModel.Ollama.SearchResults, Mode=OneWay}"
                                       SelectionMode="None" MaxHeight="400">
@@ -671,12 +673,12 @@
                     <!-- Advanced Settings -->
                     <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
                         <Expander.Header>
-                            <TextBlock l:Uids.Uid="Settings_Ollama_Advanced_Header" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Ollama_Advanced_Header" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
                         </Expander.Header>
                         <StackPanel Spacing="12" Padding="0,8">
                             <StackPanel Spacing="4">
                                 <TextBlock l:Uids.Uid="Settings_Ollama_BaseUrl_Label" FontWeight="SemiBold" FontSize="13"/>
-                                <TextBlock l:Uids.Uid="Settings_Ollama_BaseUrl_Hint" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Ollama_BaseUrl_Hint" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
                                 <TextBox Text="{x:Bind ViewModel.Ollama.OllamaBaseUrl, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                                          PlaceholderText="http://localhost:11434" MinWidth="350"/>
                             </StackPanel>
@@ -722,94 +724,102 @@
                  ═══════════════════════════════════════════════════════════════ -->
             <StackPanel Spacing="16" MaxWidth="600"
                         Visibility="{x:Bind ViewModel.IsTtsSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                <TextBlock l:Uids.Uid="Settings_Tts_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                <TextBlock l:Uids.Uid="Settings_Tts_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
 
-                <!-- Cloud / Local tab bar -->
-                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
-                    <StackPanel>
-                        <Button Content="Cloud" Command="{x:Bind ViewModel.SelectTtsCloudCommand}"
-                                Style="{StaticResource TabButtonStyle}"/>
-                        <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                    </StackPanel>
-                    <StackPanel>
-                        <Button Content="Local" Command="{x:Bind ViewModel.SelectTtsLocalCommand}"
-                                Style="{StaticResource TabButtonStyle}"/>
-                        <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
-                    </StackPanel>
+                <!-- Cloud / Local segmented toggle -->
+                <StackPanel Orientation="Horizontal" Spacing="0" Margin="0,0,0,4">
+                    <Button Content="Cloud" Command="{x:Bind ViewModel.SelectTtsCloudCommand}"
+                            Style="{StaticResource SegmentedLeftActiveStyle}"
+                            Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                    <Button Content="Cloud" Command="{x:Bind ViewModel.SelectTtsCloudCommand}"
+                            Style="{StaticResource SegmentedLeftStyle}"
+                            Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                    <Button Content="Local" Command="{x:Bind ViewModel.SelectTtsLocalCommand}"
+                            Style="{StaticResource SegmentedRightActiveStyle}"
+                            Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                    <Button Content="Local" Command="{x:Bind ViewModel.SelectTtsLocalCommand}"
+                            Style="{StaticResource SegmentedRightStyle}"
+                            Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
                 </StackPanel>
 
                 <!-- ══ Cloud ═════════════════════════════════════════════ -->
-                <StackPanel Spacing="24"
+                <StackPanel Spacing="16"
                             Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
 
-                    <!-- Cloud Provider Selection -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_Provider_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_Provider_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.Tts.CloudProviderLabels}"
-                                  SelectedIndex="{x:Bind ViewModel.Tts.SelectedCloudProviderIndex, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch"/>
-                    </StackPanel>
+                    <!-- Provider + Voice -->
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Tts_Provider_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Tts_Provider_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.Tts.CloudProviderLabels}"
+                                          SelectedIndex="{x:Bind ViewModel.Tts.SelectedCloudProviderIndex, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
 
-                    <!-- Voice Selection -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_Voice_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_Voice_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.Tts.AvailableVoices, Mode=OneWay}"
-                                  SelectedIndex="{x:Bind ViewModel.Tts.SelectedVoiceIndex, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch"/>
-                    </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Tts_Voice_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Tts_Voice_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.Tts.AvailableVoices, Mode=OneWay}"
+                                          SelectedIndex="{x:Bind ViewModel.Tts.SelectedVoiceIndex, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
 
-                    <!-- Speech Prompt (Gemini only — natural language style control) -->
-                    <StackPanel Spacing="4"
-                                Visibility="{x:Bind ViewModel.Tts.ShowSpeechPrompt, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
-                        <TextBlock l:Uids.Uid="Settings_Tts_SpeechPrompt_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_SpeechPrompt_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <TextBox Text="{x:Bind ViewModel.Tts.SpeechPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="e.g. Speak cheerfully and warmly"
-                                 AcceptsReturn="False" MaxLength="200"/>
-                    </StackPanel>
-
-                    <!-- Speed Slider (OpenAI only on Cloud tab) -->
-                    <StackPanel Spacing="4"
-                                Visibility="{x:Bind ViewModel.Tts.ShowSpeed, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
-                        <TextBlock l:Uids.Uid="Settings_Tts_Speed_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="0">
-                            <TextBlock l:Uids.Uid="Settings_Tts_Speed_Prefix" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock Text="{x:Bind ViewModel.Tts.Speed, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_Tts_Speed_Suffix" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                            <!-- Speech Prompt (Gemini only) -->
+                            <StackPanel Spacing="4"
+                                        Visibility="{x:Bind ViewModel.Tts.ShowSpeechPrompt, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                                <TextBlock l:Uids.Uid="Settings_Tts_SpeechPrompt_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Tts_SpeechPrompt_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <TextBox Text="{x:Bind ViewModel.Tts.SpeechPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="e.g. Speak cheerfully and warmly"
+                                         AcceptsReturn="False" MaxLength="200"/>
+                            </StackPanel>
                         </StackPanel>
-                        <Slider Minimum="0.5" Maximum="2.0" StepFrequency="0.1"
-                                Value="{x:Bind ViewModel.Tts.Speed, Mode=TwoWay}"/>
-                    </StackPanel>
+                    </Border>
 
-                    <!-- Volume Slider -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_Volume_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="0">
-                            <TextBlock l:Uids.Uid="Settings_Tts_Volume_Prefix" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock Text="{x:Bind ViewModel.Tts.VolumePercent, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_Tts_Volume_Suffix" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                    <!-- Playback controls -->
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="16">
+                            <!-- Speed Slider (OpenAI only) -->
+                            <StackPanel Spacing="4"
+                                        Visibility="{x:Bind ViewModel.Tts.ShowSpeed, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                                <TextBlock l:Uids.Uid="Settings_Tts_Speed_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="0">
+                                    <TextBlock l:Uids.Uid="Settings_Tts_Speed_Prefix" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.Tts.Speed, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_Speed_Suffix" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                </StackPanel>
+                                <Slider Minimum="0.5" Maximum="2.0" StepFrequency="0.1"
+                                        Value="{x:Bind ViewModel.Tts.Speed, Mode=TwoWay}"/>
+                            </StackPanel>
+
+                            <!-- Volume -->
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Tts_Volume_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="0">
+                                    <TextBlock l:Uids.Uid="Settings_Tts_Volume_Prefix" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.Tts.VolumePercent, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_Volume_Suffix" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                </StackPanel>
+                                <Slider Minimum="0" Maximum="100" StepFrequency="5"
+                                        Value="{x:Bind ViewModel.Tts.VolumePercent, Mode=TwoWay}"/>
+                            </StackPanel>
+
+                            <!-- Max Words -->
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Tts_MaxWords_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Tts_MaxWords_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <NumberBox Value="{x:Bind ViewModel.Tts.MaxSpeechWords, Mode=TwoWay}"
+                                           Minimum="0" Maximum="10000"
+                                           SpinButtonPlacementMode="Compact"
+                                           SmallChange="50" LargeChange="100"
+                                           HorizontalAlignment="Left" MinWidth="150"/>
+                            </StackPanel>
                         </StackPanel>
-                        <Slider Minimum="0" Maximum="100" StepFrequency="5"
-                                Value="{x:Bind ViewModel.Tts.VolumePercent, Mode=TwoWay}"/>
-                    </StackPanel>
-
-                    <!-- Max Words -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_MaxWords_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_MaxWords_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <NumberBox Value="{x:Bind ViewModel.Tts.MaxSpeechWords, Mode=TwoWay}"
-                                   Minimum="0" Maximum="10000"
-                                   SpinButtonPlacementMode="Compact"
-                                   SmallChange="50" LargeChange="100"
-                                   HorizontalAlignment="Left" MinWidth="150"/>
-                    </StackPanel>
+                    </Border>
 
                     <!-- Test Voice -->
-                    <StackPanel Spacing="4">
+                    <Border Style="{StaticResource SettingsCardStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button Command="{x:Bind ViewModel.Tts.TestVoiceCommand}"
                                     IsEnabled="{x:Bind ViewModel.Tts.IsTestPlaying, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}">
@@ -821,86 +831,87 @@
                             <TextBlock Text="{x:Bind ViewModel.Tts.TestStatusText, Mode=OneWay}"
                                        FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
                         </StackPanel>
-                    </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <!-- ══ Local ═════════════════════════════════════════════ -->
-                <StackPanel Spacing="24"
+                <StackPanel Spacing="16"
                             Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
 
                     <!-- Kokoro Model -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_Kokoro_Variant_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_Kokoro_Variant_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.Tts.KokoroVariantLabels}"
-                                  SelectedIndex="{x:Bind ViewModel.Tts.SelectedKokoroVariantIndex, Mode=TwoWay}"
-                                  MinWidth="280"/>
-                    </StackPanel>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock l:Uids.Uid="Settings_Tts_Kokoro_Variant_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Tts_Kokoro_Variant_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.Tts.KokoroVariantLabels}"
+                                      SelectedIndex="{x:Bind ViewModel.Tts.SelectedKokoroVariantIndex, Mode=TwoWay}"
+                                      MinWidth="280"/>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="{x:Bind ViewModel.Tts.DownloadStatusText, Mode=OneWay}"
-                                   FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="{x:Bind ViewModel.Tts.DownloadStatusText, Mode=OneWay}"
+                                       FontSize="12" Opacity="0.7"/>
 
-                        <Button Command="{x:Bind ViewModel.Tts.DownloadKokoroModelCommand}"
-                                IsEnabled="{x:Bind ViewModel.Tts.IsDownloading, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
-                                Visibility="{x:Bind ViewModel.Tts.IsKokoroModelDownloaded, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE896;" FontSize="14"/>
-                                <TextBlock l:Uids.Uid="Settings_Tts_Kokoro_Download"/>
+                            <Button Command="{x:Bind ViewModel.Tts.DownloadKokoroModelCommand}"
+                                    IsEnabled="{x:Bind ViewModel.Tts.IsDownloading, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
+                                    Visibility="{x:Bind ViewModel.Tts.IsKokoroModelDownloaded, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE896;" FontSize="14"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_Kokoro_Download"/>
+                                </StackPanel>
+                            </Button>
+
+                            <ProgressBar Value="{x:Bind ViewModel.Tts.DownloadProgress, Mode=OneWay}"
+                                         Maximum="100"
+                                         Visibility="{x:Bind ViewModel.Tts.IsDownloading, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Voice + Playback -->
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Tts_Voice_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Tts_Voice_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.Tts.AvailableVoices, Mode=OneWay}"
+                                          SelectedIndex="{x:Bind ViewModel.Tts.SelectedVoiceIndex, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
                             </StackPanel>
-                        </Button>
 
-                        <ProgressBar Value="{x:Bind ViewModel.Tts.DownloadProgress, Mode=OneWay}"
-                                     Maximum="100"
-                                     Visibility="{x:Bind ViewModel.Tts.IsDownloading, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                    </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Tts_Speed_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="0">
+                                    <TextBlock l:Uids.Uid="Settings_Tts_Speed_Prefix" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.Tts.Speed, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_Speed_Suffix" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                </StackPanel>
+                                <Slider Minimum="0.5" Maximum="2.0" StepFrequency="0.1"
+                                        Value="{x:Bind ViewModel.Tts.Speed, Mode=TwoWay}"/>
+                            </StackPanel>
 
-                    <!-- Voice Selection -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_Voice_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_Voice_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.Tts.AvailableVoices, Mode=OneWay}"
-                                  SelectedIndex="{x:Bind ViewModel.Tts.SelectedVoiceIndex, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch"/>
-                    </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Tts_Volume_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="0">
+                                    <TextBlock l:Uids.Uid="Settings_Tts_Volume_Prefix" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.Tts.VolumePercent, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_Volume_Suffix" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                </StackPanel>
+                                <Slider Minimum="0" Maximum="100" StepFrequency="5"
+                                        Value="{x:Bind ViewModel.Tts.VolumePercent, Mode=TwoWay}"/>
+                            </StackPanel>
 
-                    <!-- Speed Slider -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_Speed_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="0">
-                            <TextBlock l:Uids.Uid="Settings_Tts_Speed_Prefix" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock Text="{x:Bind ViewModel.Tts.Speed, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_Tts_Speed_Suffix" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Tts_MaxWords_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Tts_MaxWords_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <NumberBox Value="{x:Bind ViewModel.Tts.MaxSpeechWords, Mode=TwoWay}"
+                                           Minimum="0" Maximum="10000"
+                                           SpinButtonPlacementMode="Compact"
+                                           SmallChange="50" LargeChange="100"
+                                           HorizontalAlignment="Left" MinWidth="150"/>
+                            </StackPanel>
                         </StackPanel>
-                        <Slider Minimum="0.5" Maximum="2.0" StepFrequency="0.1"
-                                Value="{x:Bind ViewModel.Tts.Speed, Mode=TwoWay}"/>
-                    </StackPanel>
-
-                    <!-- Volume Slider -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_Volume_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="0">
-                            <TextBlock l:Uids.Uid="Settings_Tts_Volume_Prefix" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock Text="{x:Bind ViewModel.Tts.VolumePercent, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_Tts_Volume_Suffix" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <Slider Minimum="0" Maximum="100" StepFrequency="5"
-                                Value="{x:Bind ViewModel.Tts.VolumePercent, Mode=TwoWay}"/>
-                    </StackPanel>
-
-                    <!-- Max Words -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Tts_MaxWords_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Tts_MaxWords_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <NumberBox Value="{x:Bind ViewModel.Tts.MaxSpeechWords, Mode=TwoWay}"
-                                   Minimum="0" Maximum="10000"
-                                   SpinButtonPlacementMode="Compact"
-                                   SmallChange="50" LargeChange="100"
-                                   HorizontalAlignment="Left" MinWidth="150"/>
-                    </StackPanel>
+                    </Border>
 
                     <!-- Test Voice -->
-                    <StackPanel Spacing="4">
+                    <Border Style="{StaticResource SettingsCardStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button Command="{x:Bind ViewModel.Tts.TestVoiceCommand}"
                                     IsEnabled="{x:Bind ViewModel.Tts.IsTestPlaying, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}">
@@ -912,129 +923,127 @@
                             <TextBlock Text="{x:Bind ViewModel.Tts.TestStatusText, Mode=OneWay}"
                                        FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
                         </StackPanel>
-                    </StackPanel>
+                    </Border>
                 </StackPanel>
             </StackPanel>
 
             <!-- ═══════════════════════════════════════════════════════════════
                  Chat
                  ═══════════════════════════════════════════════════════════════ -->
-            <StackPanel Spacing="20" MaxWidth="600"
+            <StackPanel Spacing="16" MaxWidth="600"
                         Visibility="{x:Bind ViewModel.IsChatSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Chat" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                <TextBlock Text="Chat" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
 
-                <!-- Font Size -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Chat_FontSize_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Chat_FontSize_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Slider Value="{x:Bind ViewModel.Pipelines.ChatFontSize, Mode=TwoWay}"
-                                Minimum="10" Maximum="24" StepFrequency="1"
-                                Width="300"/>
-                        <TextBlock Text="{x:Bind ViewModel.Pipelines.ChatFontSize, Mode=OneWay}"
-                                   VerticalAlignment="Center"/>
-                        <TextBlock Text="pt" Opacity="0.6" VerticalAlignment="Center"/>
+                <!-- Appearance -->
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Chat_FontSize_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Chat_FontSize_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Slider Value="{x:Bind ViewModel.Pipelines.ChatFontSize, Mode=TwoWay}"
+                                        Minimum="10" Maximum="24" StepFrequency="1"
+                                        Width="300"/>
+                                <TextBlock Text="{x:Bind ViewModel.Pipelines.ChatFontSize, Mode=OneWay}"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Text="pt" Opacity="0.6" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Chat_WindowOpacity_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Chat_WindowOpacity_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Slider Value="{x:Bind ViewModel.Pipelines.ChatWindowOpacity, Mode=TwoWay}"
+                                        Minimum="0.5" Maximum="1.0" StepFrequency="0.05"
+                                        Width="300"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Chat_Theme_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Chat_Theme_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.Pipelines.ChatThemeOptions}"
+                                      SelectedIndex="{x:Bind ViewModel.Pipelines.ChatSelectedThemeIndex, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Chat_AlwaysOnTop_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Chat_AlwaysOnTop_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.Pipelines.ChatAlwaysOnTop, Mode=TwoWay}"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                </Border>
 
-                <!-- Window Opacity -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Chat_WindowOpacity_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Chat_WindowOpacity_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Slider Value="{x:Bind ViewModel.Pipelines.ChatWindowOpacity, Mode=TwoWay}"
-                                Minimum="0.5" Maximum="1.0" StepFrequency="0.05"
-                                Width="300"/>
+                <!-- Model + Prompt -->
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Chat_DefaultModel_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Chat_DefaultModel_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.Pipelines.ChatModelNames}"
+                                          SelectedIndex="{x:Bind ViewModel.Pipelines.SelectedChatModelIndex, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
+                                <Button Grid.Column="1" Command="{x:Bind ViewModel.Pipelines.RefreshModelsCommand}">
+                                    <FontIcon Glyph="&#xE72C;" FontSize="14"/>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Chat_DefaultSystemPrompt_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Chat_DefaultSystemPrompt_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <TextBox Text="{x:Bind ViewModel.Pipelines.ChatDefaultSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                     MinHeight="100" MaxHeight="200"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Chat_WebSearch_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Chat_WebSearch_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.Pipelines.ChatWebSearchEnabled, Mode=TwoWay}"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                </Border>
 
-                <!-- Theme -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Chat_Theme_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Chat_Theme_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ComboBox ItemsSource="{x:Bind ViewModel.Pipelines.ChatThemeOptions}"
-                              SelectedIndex="{x:Bind ViewModel.Pipelines.ChatSelectedThemeIndex, Mode=TwoWay}"
-                              HorizontalAlignment="Stretch"/>
-                </StackPanel>
+                <!-- Behavior -->
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Chat_ForgetOnClose_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Chat_ForgetOnClose_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.Pipelines.ChatForgetOnClose, Mode=TwoWay}"/>
+                        </StackPanel>
 
-                <!-- Always on Top -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Chat_AlwaysOnTop_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Chat_AlwaysOnTop_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.Pipelines.ChatAlwaysOnTop, Mode=TwoWay}"/>
-                </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Chat_MaxHistory_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Chat_MaxHistory_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <NumberBox Value="{x:Bind ViewModel.Pipelines.ChatMaxHistoryMessages, Mode=TwoWay}"
+                                       Minimum="0" Maximum="500"
+                                       SpinButtonPlacementMode="Compact"
+                                       HorizontalAlignment="Left" MinWidth="150"/>
+                        </StackPanel>
 
-                <Border BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                        BorderThickness="0,0,0,1" Padding="0,0,0,12"/>
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Chat_Timestamps_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Chat_Timestamps_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.Pipelines.ChatShowTimestamps, Mode=TwoWay}"/>
+                        </StackPanel>
 
-                <!-- Default Model -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Chat_DefaultModel_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Chat_DefaultModel_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.Pipelines.ChatModelNames}"
-                                  SelectedIndex="{x:Bind ViewModel.Pipelines.SelectedChatModelIndex, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch"/>
-                        <Button Grid.Column="1" Command="{x:Bind ViewModel.Pipelines.RefreshModelsCommand}">
-                            <FontIcon Glyph="&#xE72C;" FontSize="14"/>
-                        </Button>
-                    </Grid>
-                </StackPanel>
-
-                <!-- Default System Prompt -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Chat_DefaultSystemPrompt_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Chat_DefaultSystemPrompt_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <TextBox Text="{x:Bind ViewModel.Pipelines.ChatDefaultSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True" TextWrapping="Wrap"
-                             MinHeight="100" MaxHeight="200"
-                             ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-                </StackPanel>
-
-                <!-- Web Search -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Chat_WebSearch_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Chat_WebSearch_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.Pipelines.ChatWebSearchEnabled, Mode=TwoWay}"/>
-                </StackPanel>
-
-                <Border BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                        BorderThickness="0,0,0,1" Padding="0,0,0,12"/>
-
-                <!-- Forget on Close -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Chat_ForgetOnClose_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Chat_ForgetOnClose_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.Pipelines.ChatForgetOnClose, Mode=TwoWay}"/>
-                </StackPanel>
-
-                <!-- Max History Messages -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Chat_MaxHistory_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Chat_MaxHistory_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <NumberBox Value="{x:Bind ViewModel.Pipelines.ChatMaxHistoryMessages, Mode=TwoWay}"
-                               Minimum="0" Maximum="500"
-                               SpinButtonPlacementMode="Compact"
-                               HorizontalAlignment="Left" MinWidth="150"/>
-                </StackPanel>
-
-                <!-- Show Timestamps -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Chat_Timestamps_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Chat_Timestamps_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.Pipelines.ChatShowTimestamps, Mode=TwoWay}"/>
-                </StackPanel>
-
-                <!-- Enable Markdown -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Chat_Markdown_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Chat_Markdown_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.Pipelines.ChatEnableMarkdown, Mode=TwoWay}"/>
-                </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Chat_Markdown_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Chat_Markdown_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.Pipelines.ChatEnableMarkdown, Mode=TwoWay}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
 
                 <!-- Save + Reset -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
@@ -1050,70 +1059,75 @@
                  ═══════════════════════════════════════════════════════════════ -->
             <StackPanel Spacing="16" MaxWidth="700"
                         Visibility="{x:Bind ViewModel.IsSystemMonitorSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                <TextBlock l:Uids.Uid="Settings_Monitor_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                <TextBlock l:Uids.Uid="Settings_Monitor_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
 
                 <!-- Active Providers -->
-                <StackPanel Spacing="8" Padding="0,0,0,8">
-                    <TextBlock l:Uids.Uid="Settings_Monitor_ActiveProviders" FontWeight="SemiBold" FontSize="14"/>
-
-                    <Grid ColumnSpacing="12" RowSpacing="6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Text="STT:" FontWeight="SemiBold" FontSize="13" Grid.Row="0" Grid.Column="0"/>
-                        <TextBlock Text="{x:Bind ViewModel.ActiveSttInfo, Mode=OneWay}" FontSize="13" Grid.Row="0" Grid.Column="1"/>
-
-                        <TextBlock Text="TTS:" FontWeight="SemiBold" FontSize="13" Grid.Row="1" Grid.Column="0"/>
-                        <TextBlock Text="{x:Bind ViewModel.ActiveTtsInfo, Mode=OneWay}" FontSize="13" Grid.Row="1" Grid.Column="1"/>
-                    </Grid>
-                </StackPanel>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock l:Uids.Uid="Settings_Monitor_ActiveProviders" FontWeight="SemiBold" FontSize="14"/>
+                        <Grid ColumnSpacing="12" RowSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="STT:" FontWeight="SemiBold" FontSize="13" Grid.Row="0" Grid.Column="0"/>
+                            <TextBlock Text="{x:Bind ViewModel.ActiveSttInfo, Mode=OneWay}" FontSize="13" Grid.Row="0" Grid.Column="1"/>
+                            <TextBlock Text="TTS:" FontWeight="SemiBold" FontSize="13" Grid.Row="1" Grid.Column="0"/>
+                            <TextBlock Text="{x:Bind ViewModel.ActiveTtsInfo, Mode=OneWay}" FontSize="13" Grid.Row="1" Grid.Column="1"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
 
                 <!-- GPU + VRAM -->
-                <StackPanel Spacing="8">
-                    <TextBlock Text="{x:Bind ViewModel.Ollama.GpuName, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock FontSize="13">
-                            <Run Text="VRAM:"/>
-                            <Run Text="{x:Bind ViewModel.Ollama.VramUsedGB, Mode=OneWay}"/>
-                            <Run Text="/"/>
-                            <Run Text="{x:Bind ViewModel.Ollama.VramTotalGB, Mode=OneWay}"/>
-                            <Run Text="GB"/>
-                        </TextBlock>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.GpuName, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock FontSize="13">
+                                <Run Text="VRAM:"/>
+                                <Run Text="{x:Bind ViewModel.Ollama.VramUsedGB, Mode=OneWay}"/>
+                                <Run Text="/"/>
+                                <Run Text="{x:Bind ViewModel.Ollama.VramTotalGB, Mode=OneWay}"/>
+                                <Run Text="GB"/>
+                            </TextBlock>
+                        </StackPanel>
+                        <ProgressBar Value="{x:Bind ViewModel.Ollama.VramPercent, Mode=OneWay}" Maximum="100"/>
                     </StackPanel>
-                    <ProgressBar Value="{x:Bind ViewModel.Ollama.VramPercent, Mode=OneWay}" Maximum="100"/>
-                </StackPanel>
+                </Border>
 
                 <!-- Loaded LLM Models -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Ollama_LoadedModels" FontWeight="SemiBold" FontSize="13"/>
-                    <ListView ItemsSource="{x:Bind ViewModel.Ollama.RunningModels, Mode=OneWay}"
-                              SelectionMode="None" MaxHeight="150">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="sys:OllamaRunningModel">
-                                <StackPanel Orientation="Horizontal" Spacing="8" Padding="4,2">
-                                    <TextBlock Text="{x:Bind Name}" FontSize="13"/>
-                                    <TextBlock Text="·" FontSize="13" Opacity="0.4"/>
-                                    <TextBlock Text="{x:Bind ParameterSize}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </StackPanel>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_Ollama_LoadedModels" FontWeight="SemiBold" FontSize="13"/>
+                        <ListView ItemsSource="{x:Bind ViewModel.Ollama.RunningModels, Mode=OneWay}"
+                                  SelectionMode="None" MaxHeight="150">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="sys:OllamaRunningModel">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Padding="4,2">
+                                        <TextBlock Text="{x:Bind Name}" FontSize="13"/>
+                                        <TextBlock Text="·" FontSize="13" Opacity="0.4"/>
+                                        <TextBlock Text="{x:Bind ParameterSize}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
 
                 <!-- System RAM + Inference -->
-                <StackPanel Spacing="4">
-                    <TextBlock FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}">
-                        <Run Text="System RAM:"/>
-                        <Run Text="{x:Bind ViewModel.Ollama.RamSummary, Mode=OneWay}"/>
-                    </TextBlock>
-                    <TextBlock Text="{x:Bind ViewModel.Ollama.LastInferenceSpeed, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                </StackPanel>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="4">
+                        <TextBlock FontSize="12" Foreground="{StaticResource AppTextDimBrush}">
+                            <Run Text="System RAM:"/>
+                            <Run Text="{x:Bind ViewModel.Ollama.RamSummary, Mode=OneWay}"/>
+                        </TextBlock>
+                        <TextBlock Text="{x:Bind ViewModel.Ollama.LastInferenceSpeed, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                    </StackPanel>
+                </Border>
 
                 <!-- Refresh -->
                 <Button l:Uids.Uid="Settings_Ollama_CheckHealth" Command="{x:Bind ViewModel.Ollama.CheckHealthCommand}"

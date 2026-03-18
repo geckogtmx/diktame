@@ -13,6 +13,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
     private readonly LocalizationService _loc;
+    private readonly ThemeService _themeService;
     private bool _isLoading;
 
     // ── Inner list ───────────────────────────────────────────────────────
@@ -88,10 +89,18 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _selectedLanguageIndex;
 
-    public GeneralSettingsViewModel(SettingsManager settings, LocalizationService loc)
+    // ── Theme field ────────────────────────────────────────────────────
+
+    [ObservableProperty]
+    private int _selectedThemeIndex; // 0=Midnight, 1=Ember, 2=Frost
+
+    public string[] ThemeNames => ThemeService.AvailableThemes;
+
+    public GeneralSettingsViewModel(SettingsManager settings, LocalizationService loc, ThemeService themeService)
     {
         _settings = settings;
         _loc = loc;
+        _themeService = themeService;
 
         LoadSubItems();
         LoadFromSettings();
@@ -156,6 +165,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         SelectedUiLanguageIndex = Array.IndexOf(UiLanguageCodes, g.UiLanguage) is var ui and >= 0 ? ui : 0;
         SelectedLanguageIndex = Array.IndexOf(LanguageCodes, g.Language) is var i and >= 0 ? i : 0;
         AutoStart = g.AutoStart;
+        SelectedThemeIndex = Array.IndexOf(ThemeNames, g.ThemeName) is var ti and >= 0 ? ti : 0;
         ShowRestartWarning = false;
 
         var cp = _settings.Current.ControlPanel;
@@ -196,6 +206,14 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     partial void OnVisualEffectsIntensityPercentChanged(double value) => Save();
     partial void OnAutoHideEnabledChanged(bool value) => Save();
     partial void OnAutoHideDelayIndexChanged(int value) => Save();
+
+    partial void OnSelectedThemeIndexChanged(int value)
+    {
+        if (!_isLoading && value >= 0 && value < ThemeNames.Length)
+        {
+            _ = _themeService.ApplyAndSaveAsync(ThemeNames[value]);
+        }
+    }
 
     private void Save()
     {

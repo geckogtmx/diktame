@@ -41,42 +41,32 @@ public sealed partial class ControlPanelPage : Page
     private int _tickCount; // debug: throttled logging counter
     private bool _wasMonitorActive; // edge detection for recording state transitions
 
-    // Cached brush references from Page.Resources — mutating .Color updates ALL elements
-    private SolidColorBrush? _bgBrush;       // V1BackgroundBrush    #002029
-    private SolidColorBrush? _hdrBrush;      // V1HeaderBrush        #00303d
-    private SolidColorBrush? _borderBrush;   // V1BorderBrush        #004052
-    private SolidColorBrush? _textPrimary;   // V1TextPrimaryBrush   #e0e0e0
-    private SolidColorBrush? _textSecondary; // V1TextSecondaryBrush #888888
-    private SolidColorBrush? _perfGreen;     // V1PerfGreenBrush     #7aff9e
+    // Cached brush references from Application.Resources — mutating .Color updates ALL elements
+    private SolidColorBrush? _bgBrush;       // AppBackgroundBrush
+    private SolidColorBrush? _hdrBrush;      // AppSurfaceBrush
+    private SolidColorBrush? _borderBrush;   // AppBorderBrush
+    private SolidColorBrush? _textPrimary;   // AppTextBrush
+    private SolidColorBrush? _textSecondary; // AppTextDimBrush
+    private SolidColorBrush? _perfGreen;     // AppPerfGreenBrush
 
-    // Dedicated brush for header-only glow — V1HeaderBrush is shared across all rows,
+    // Dedicated brush for header-only glow — AppSurfaceBrush is shared across all rows,
     // so "Top Bar Only" needs a separate brush applied directly to HeaderBar.Background
     private SolidColorBrush? _headerBarBrush;
+    private Services.ThemeService? _themeService;
 
-    // Base colors (idle) → Bright colors (max glow)
-    // V1BackgroundBrush: #002029 → #00A0C0 (dark teal → bright cyan)
-    private const byte BaseBgR = 0, BaseBgG = 32, BaseBgB = 41;
-    private const byte BrightBgR = 0, BrightBgG = 160, BrightBgB = 192;
-
-    // V1HeaderBrush: #00303d → #00B8D8 (dark teal → vivid cyan)
-    private const byte BaseHdrR = 0, BaseHdrG = 48, BaseHdrB = 61;
-    private const byte BrightHdrR = 0, BrightHdrG = 184, BrightHdrB = 216;
-
-    // V1BorderBrush: #004052 → #00D0F0 (medium teal → near-white cyan)
-    private const byte BaseBrdR = 0, BaseBrdG = 64, BaseBrdB = 82;
-    private const byte BrightBrdR = 0, BrightBrdG = 208, BrightBrdB = 240;
-
-    // V1TextPrimaryBrush: #e0e0e0 → #ffffff (stays the same — already near white)
-    private const byte BaseTxtR = 224, BaseTxtG = 224, BaseTxtB = 224;
-    private const byte BrightTxtR = 255, BrightTxtG = 255, BrightTxtB = 255;
-
-    // V1TextSecondaryBrush: #888888 → #ffffff (dim gray → full white)
-    private const byte BaseTxt2R = 136, BaseTxt2G = 136, BaseTxt2B = 136;
-    private const byte BrightTxt2R = 255, BrightTxt2G = 255, BrightTxt2B = 255;
-
-    // V1PerfGreenBrush: #7aff9e → #ffffff (green → white-hot at peak)
-    private const byte BaseGrnR = 122, BaseGrnG = 255, BaseGrnB = 158;
-    private const byte BrightGrnR = 255, BrightGrnG = 255, BrightGrnB = 255;
+    // Base colors (idle) → Bright colors (max glow) — derived from current theme palette
+    private byte _baseBgR, _baseBgG, _baseBgB;
+    private byte _brightBgR, _brightBgG, _brightBgB;
+    private byte _baseHdrR, _baseHdrG, _baseHdrB;
+    private byte _brightHdrR, _brightHdrG, _brightHdrB;
+    private byte _baseBrdR, _baseBrdG, _baseBrdB;
+    private byte _brightBrdR, _brightBrdG, _brightBrdB;
+    private byte _baseTxtR, _baseTxtG, _baseTxtB;
+    private byte _brightTxtR, _brightTxtG, _brightTxtB;
+    private byte _baseTxt2R, _baseTxt2G, _baseTxt2B;
+    private byte _brightTxt2R, _brightTxt2G, _brightTxt2B;
+    private byte _baseGrnR, _baseGrnG, _baseGrnB;
+    private byte _brightGrnR, _brightGrnG, _brightGrnB;
 
     public ControlPanelPage()
     {
@@ -257,16 +247,22 @@ public sealed partial class ControlPanelPage : Page
         _levelMonitor = App.Current.Services.GetRequiredService<AudioLevelMonitor>();
         _loc = App.Current.Services.GetRequiredService<LocalizationService>();
 
-        // Cache brush references — changing .Color on these updates every element that uses them
-        _bgBrush = (SolidColorBrush)this.Resources["V1BackgroundBrush"];
-        _hdrBrush = (SolidColorBrush)this.Resources["V1HeaderBrush"];
-        _borderBrush = (SolidColorBrush)this.Resources["V1BorderBrush"];
-        _textPrimary = (SolidColorBrush)this.Resources["V1TextPrimaryBrush"];
-        _textSecondary = (SolidColorBrush)this.Resources["V1TextSecondaryBrush"];
-        _perfGreen = (SolidColorBrush)this.Resources["V1PerfGreenBrush"];
+        // Cache brush references from App-level resources — changing .Color updates every element
+        var res = Application.Current.Resources;
+        _bgBrush = (SolidColorBrush)res["AppBackgroundBrush"];
+        _hdrBrush = (SolidColorBrush)res["AppSurfaceBrush"];
+        _borderBrush = (SolidColorBrush)res["AppBorderBrush"];
+        _textPrimary = (SolidColorBrush)res["AppTextBrush"];
+        _textSecondary = (SolidColorBrush)res["AppTextDimBrush"];
+        _perfGreen = (SolidColorBrush)res["AppPerfGreenBrush"];
 
-        // Dedicated brush for header-only glow (starts at same color as V1HeaderBrush)
-        _headerBarBrush = new SolidColorBrush(Color.FromArgb(255, BaseHdrR, BaseHdrG, BaseHdrB));
+        // Subscribe to theme changes to re-derive glow colors
+        _themeService = App.Current.Services.GetRequiredService<Services.ThemeService>();
+        _themeService.ThemeChanged += (_, _) => DispatcherQueue.TryEnqueue(LoadThemeColors);
+        LoadThemeColors();
+
+        // Dedicated brush for header-only glow (starts at same color as AppSurfaceBrush)
+        _headerBarBrush = new SolidColorBrush(Color.FromArgb(255, _baseHdrR, _baseHdrG, _baseHdrB));
 
         _effectTimer = DispatcherQueue.CreateTimer();
         _effectTimer.Interval = TimeSpan.FromMilliseconds(33); // ~30fps
@@ -287,6 +283,40 @@ public sealed partial class ControlPanelPage : Page
                 DispatcherQueue.TryEnqueue(() => RestoreOpacity());
             };
         }
+    }
+
+    /// <summary>
+    /// Derives base/bright glow colors from the current theme palette.
+    /// Called on init and whenever ThemeService applies a new theme.
+    /// Bright colors are computed by lerping each base color 60% toward the accent color.
+    /// </summary>
+    private void LoadThemeColors()
+    {
+        var palette = Services.ThemeService.GetPalette(_themeService?.CurrentTheme ?? "Midnight");
+
+        // Base colors from palette
+        _baseBgR = palette.Background.R; _baseBgG = palette.Background.G; _baseBgB = palette.Background.B;
+        _baseHdrR = palette.Surface.R; _baseHdrG = palette.Surface.G; _baseHdrB = palette.Surface.B;
+        _baseBrdR = palette.Border.R; _baseBrdG = palette.Border.G; _baseBrdB = palette.Border.B;
+        _baseTxtR = palette.Text.R; _baseTxtG = palette.Text.G; _baseTxtB = palette.Text.B;
+        _baseTxt2R = palette.TextDim.R; _baseTxt2G = palette.TextDim.G; _baseTxt2B = palette.TextDim.B;
+        _baseGrnR = palette.PerfGreen.R; _baseGrnG = palette.PerfGreen.G; _baseGrnB = palette.PerfGreen.B;
+
+        // Bright colors: lerp 60% toward accent color for glow effect
+        var a = palette.Accent;
+        _brightBgR = Lerp(_baseBgR, a.R); _brightBgG = Lerp(_baseBgG, a.G); _brightBgB = Lerp(_baseBgB, a.B);
+        _brightHdrR = Lerp(_baseHdrR, a.R); _brightHdrG = Lerp(_baseHdrG, a.G); _brightHdrB = Lerp(_baseHdrB, a.B);
+        _brightBrdR = Lerp(_baseBrdR, a.R); _brightBrdG = Lerp(_baseBrdG, a.G); _brightBrdB = Lerp(_baseBrdB, a.B);
+        // Text brightens toward white
+        _brightTxtR = 255; _brightTxtG = 255; _brightTxtB = 255;
+        _brightTxt2R = 255; _brightTxt2G = 255; _brightTxt2B = 255;
+        _brightGrnR = 255; _brightGrnG = 255; _brightGrnB = 255;
+
+        // Update header bar brush to match new surface color
+        if (_headerBarBrush is not null)
+            _headerBarBrush.Color = Color.FromArgb(255, _baseHdrR, _baseHdrG, _baseHdrB);
+
+        static byte Lerp(byte from, byte to) => (byte)(from + (int)((to - from) * 0.6));
     }
 
     private void OnEffectTimerTick(DispatcherQueueTimer sender, object args)
@@ -451,15 +481,15 @@ public sealed partial class ControlPanelPage : Page
         // Always modulate text brightness — text reacts regardless of scope
         if (_textPrimary is not null)
         {
-            _textPrimary.Color = LerpColor(BaseTxtR, BaseTxtG, BaseTxtB, BrightTxtR, BrightTxtG, BrightTxtB, t);
+            _textPrimary.Color = LerpColor(_baseTxtR, _baseTxtG, _baseTxtB, _brightTxtR, _brightTxtG, _brightTxtB, t);
         }
         if (_textSecondary is not null)
         {
-            _textSecondary.Color = LerpColor(BaseTxt2R, BaseTxt2G, BaseTxt2B, BrightTxt2R, BrightTxt2G, BrightTxt2B, t);
+            _textSecondary.Color = LerpColor(_baseTxt2R, _baseTxt2G, _baseTxt2B, _brightTxt2R, _brightTxt2G, _brightTxt2B, t);
         }
         if (_perfGreen is not null)
         {
-            _perfGreen.Color = LerpColor(BaseGrnR, BaseGrnG, BaseGrnB, BrightGrnR, BrightGrnG, BrightGrnB, t);
+            _perfGreen.Color = LerpColor(_baseGrnR, _baseGrnG, _baseGrnB, _brightGrnR, _brightGrnG, _brightGrnB, t);
         }
 
         if (wholeApp)
@@ -467,15 +497,15 @@ public sealed partial class ControlPanelPage : Page
             // Modulate all three teal tones — every element using these brushes updates automatically
             if (_bgBrush is not null)
             {
-                _bgBrush.Color = LerpColor(BaseBgR, BaseBgG, BaseBgB, BrightBgR, BrightBgG, BrightBgB, t);
+                _bgBrush.Color = LerpColor(_baseBgR, _baseBgG, _baseBgB, _brightBgR, _brightBgG, _brightBgB, t);
             }
             if (_hdrBrush is not null)
             {
-                _hdrBrush.Color = LerpColor(BaseHdrR, BaseHdrG, BaseHdrB, BrightHdrR, BrightHdrG, BrightHdrB, t);
+                _hdrBrush.Color = LerpColor(_baseHdrR, _baseHdrG, _baseHdrB, _brightHdrR, _brightHdrG, _brightHdrB, t);
             }
             if (_borderBrush is not null)
             {
-                _borderBrush.Color = LerpColor(BaseBrdR, BaseBrdG, BaseBrdB, BrightBrdR, BrightBrdG, BrightBrdB, t);
+                _borderBrush.Color = LerpColor(_baseBrdR, _baseBrdG, _baseBrdB, _brightBrdR, _brightBrdG, _brightBrdB, t);
             }
             // Ensure HeaderBar uses the shared brush in whole-app mode
             HeaderBar.Background = _hdrBrush;
@@ -486,20 +516,20 @@ public sealed partial class ControlPanelPage : Page
             // use dedicated brush for HeaderBar to glow only the top bar
             if (_bgBrush is not null)
             {
-                _bgBrush.Color = Color.FromArgb(255, BaseBgR, BaseBgG, BaseBgB);
+                _bgBrush.Color = Color.FromArgb(255, _baseBgR, _baseBgG, _baseBgB);
             }
             if (_hdrBrush is not null)
             {
-                _hdrBrush.Color = Color.FromArgb(255, BaseHdrR, BaseHdrG, BaseHdrB);
+                _hdrBrush.Color = Color.FromArgb(255, _baseHdrR, _baseHdrG, _baseHdrB);
             }
             if (_borderBrush is not null)
             {
-                _borderBrush.Color = Color.FromArgb(255, BaseBrdR, BaseBrdG, BaseBrdB);
+                _borderBrush.Color = Color.FromArgb(255, _baseBrdR, _baseBrdG, _baseBrdB);
             }
             // Modulate the dedicated header brush — only HeaderBar glows
             if (_headerBarBrush is not null)
             {
-                _headerBarBrush.Color = LerpColor(BaseHdrR, BaseHdrG, BaseHdrB, BrightHdrR, BrightHdrG, BrightHdrB, t);
+                _headerBarBrush.Color = LerpColor(_baseHdrR, _baseHdrG, _baseHdrB, _brightHdrR, _brightHdrG, _brightHdrB, t);
                 HeaderBar.Background = _headerBarBrush;
             }
         }
@@ -546,27 +576,27 @@ public sealed partial class ControlPanelPage : Page
         _currentGlowLevel = 0;
         if (_bgBrush is not null)
         {
-            _bgBrush.Color = Color.FromArgb(255, BaseBgR, BaseBgG, BaseBgB);
+            _bgBrush.Color = Color.FromArgb(255, _baseBgR, _baseBgG, _baseBgB);
         }
         if (_hdrBrush is not null)
         {
-            _hdrBrush.Color = Color.FromArgb(255, BaseHdrR, BaseHdrG, BaseHdrB);
+            _hdrBrush.Color = Color.FromArgb(255, _baseHdrR, _baseHdrG, _baseHdrB);
         }
         if (_borderBrush is not null)
         {
-            _borderBrush.Color = Color.FromArgb(255, BaseBrdR, BaseBrdG, BaseBrdB);
+            _borderBrush.Color = Color.FromArgb(255, _baseBrdR, _baseBrdG, _baseBrdB);
         }
         if (_textPrimary is not null)
         {
-            _textPrimary.Color = Color.FromArgb(255, BaseTxtR, BaseTxtG, BaseTxtB);
+            _textPrimary.Color = Color.FromArgb(255, _baseTxtR, _baseTxtG, _baseTxtB);
         }
         if (_textSecondary is not null)
         {
-            _textSecondary.Color = Color.FromArgb(255, BaseTxt2R, BaseTxt2G, BaseTxt2B);
+            _textSecondary.Color = Color.FromArgb(255, _baseTxt2R, _baseTxt2G, _baseTxt2B);
         }
         if (_perfGreen is not null)
         {
-            _perfGreen.Color = Color.FromArgb(255, BaseGrnR, BaseGrnG, BaseGrnB);
+            _perfGreen.Color = Color.FromArgb(255, _baseGrnR, _baseGrnG, _baseGrnB);
         }
         // Restore header to shared brush
         HeaderBar.Background = _hdrBrush;

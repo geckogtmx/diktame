@@ -5,48 +5,56 @@
       Background="Transparent">
 
     <ScrollViewer Padding="24,24,24,32">
-        <StackPanel Spacing="24" MaxWidth="600">
+        <StackPanel Spacing="16" MaxWidth="600">
             <TextBlock l:Uids.Uid="Settings_Privacy_Title" FontSize="24" FontWeight="SemiBold"
-                       Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                       Foreground="{StaticResource AppTextBrush}"/>
 
             <!-- Logging Intensity -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_Privacy_LoggingIntensity_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                <TextBlock Text="{x:Bind ViewModel.PrivacyLevelLabel, Mode=OneWay}" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                <Slider Minimum="0" Maximum="3" StepFrequency="1"
-                        SnapsTo="StepValues"
-                        Value="{x:Bind ViewModel.PrivacyLevel, Mode=TwoWay}"/>
-                <Grid>
-                    <TextBlock l:Uids.Uid="Settings_Privacy_Slider_Ghost" FontSize="11" Opacity="0.4" HorizontalAlignment="Left"/>
-                    <TextBlock l:Uids.Uid="Settings_Privacy_Slider_Full" FontSize="11" Opacity="0.4" HorizontalAlignment="Right"/>
-                </Grid>
-            </StackPanel>
+            <Border Style="{StaticResource SettingsCardStyle}">
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Privacy_LoggingIntensity_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                    <TextBlock Text="{x:Bind ViewModel.PrivacyLevelLabel, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                    <Slider Minimum="0" Maximum="3" StepFrequency="1"
+                            SnapsTo="StepValues"
+                            Value="{x:Bind ViewModel.PrivacyLevel, Mode=TwoWay}"/>
+                    <Grid>
+                        <TextBlock l:Uids.Uid="Settings_Privacy_Slider_Ghost" FontSize="11" Opacity="0.4" HorizontalAlignment="Left"/>
+                        <TextBlock l:Uids.Uid="Settings_Privacy_Slider_Full" FontSize="11" Opacity="0.4" HorizontalAlignment="Right"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
 
             <!-- PII Scrubber -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                <ToggleSwitch IsOn="{x:Bind ViewModel.PiiScrubEnabled, Mode=TwoWay}"/>
-            </StackPanel>
+            <Border Style="{StaticResource SettingsCardStyle}">
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                    <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                    <ToggleSwitch IsOn="{x:Bind ViewModel.PiiScrubEnabled, Mode=TwoWay}"/>
+                </StackPanel>
+            </Border>
 
             <!-- History Retention -->
-            <StackPanel Spacing="4">
-                <TextBlock l:Uids.Uid="Settings_Privacy_HistoryRetention_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                <TextBlock l:Uids.Uid="Settings_Privacy_HistoryRetention_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                <NumberBox Value="{x:Bind ViewModel.HistoryRetentionDays, Mode=TwoWay}"
-                           Minimum="1" Maximum="365" SpinButtonPlacementMode="Compact"
-                           HorizontalAlignment="Left" MinWidth="180"/>
-            </StackPanel>
+            <Border Style="{StaticResource SettingsCardStyle}">
+                <StackPanel Spacing="4">
+                    <TextBlock l:Uids.Uid="Settings_Privacy_HistoryRetention_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                    <TextBlock l:Uids.Uid="Settings_Privacy_HistoryRetention_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                    <NumberBox Value="{x:Bind ViewModel.HistoryRetentionDays, Mode=TwoWay}"
+                               Minimum="1" Maximum="365" SpinButtonPlacementMode="Compact"
+                               HorizontalAlignment="Left" MinWidth="180"/>
+                </StackPanel>
+            </Border>
 
             <!-- Wipe Data -->
-            <StackPanel Spacing="8" Margin="0,16,0,0">
-                <TextBlock l:Uids.Uid="Settings_Privacy_DataManagement_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                <TextBlock l:Uids.Uid="Settings_Privacy_DataManagement_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                <Button l:Uids.Uid="Settings_Privacy_WipeAllData"
-                        Command="{x:Bind ViewModel.WipeAllDataCommand}"
-                        Style="{ThemeResource AccentButtonStyle}"
-                        Background="#DC2626"/>
-            </StackPanel>
+            <Border Style="{StaticResource SettingsCardStyle}">
+                <StackPanel Spacing="8">
+                    <TextBlock l:Uids.Uid="Settings_Privacy_DataManagement_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                    <TextBlock l:Uids.Uid="Settings_Privacy_DataManagement_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                    <Button l:Uids.Uid="Settings_Privacy_WipeAllData"
+                            Command="{x:Bind ViewModel.WipeAllDataCommand}"
+                            Style="{ThemeResource AccentButtonStyle}"
+                            Background="#DC2626"/>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </Page>

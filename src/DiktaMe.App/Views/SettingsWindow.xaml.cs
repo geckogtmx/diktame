@@ -17,8 +17,12 @@ public sealed partial class SettingsWindow : Window
     public SettingsWindow()
     {
         this.InitializeComponent();
-        AppWindow.Resize(new Windows.Graphics.SizeInt32(900, 700));
+        AppWindow.Resize(new Windows.Graphics.SizeInt32(1000, 700));
         AppWindow.Title = "dIKta.me — Settings";
+
+        // Extend content into title bar (caption buttons float over content)
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(new Grid { Height = 32, Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent) });
 
         // Set window icon
         var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "tray-icon.ico");

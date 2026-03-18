@@ -1,0 +1,8 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Placeholder — Slider colors are controlled via ThemeResource overrides
+         in SharedResources.xaml (SliderTrackValueFill, SliderThumbBackground, etc.) -->
+
+</ResourceDictionary>

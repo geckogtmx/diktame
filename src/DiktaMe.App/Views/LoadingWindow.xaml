@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="dIKta.me">
 
-    <Grid Background="#002029" Padding="0,32,0,40">
+    <ContentControl FontFamily="{StaticResource AppFont}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+    <Grid Background="{StaticResource AppBackgroundBrush}" Padding="0,32,0,40">
         <Grid VerticalAlignment="Center" HorizontalAlignment="Center" RowSpacing="8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -21,7 +22,7 @@
 
             <!-- Version number below logo -->
             <TextBlock Grid.Row="1" x:Name="VersionText"
-                       FontSize="11" Foreground="#667788"
+                       FontSize="11" Foreground="{StaticResource AppTextDimBrush}"
                        HorizontalAlignment="Center"/>
 
             <!-- Spacer row 2 -->
@@ -30,23 +31,24 @@
             <TextBlock Grid.Row="3" x:Name="StatusHeading"
                        Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
                        FontSize="22" FontWeight="Bold"
-                       Foreground="#e0e0e0" CharacterSpacing="80"
+                       Foreground="{StaticResource AppTextBrush}" CharacterSpacing="80"
                        HorizontalAlignment="Center"
                        TextAlignment="Center"/>
 
             <!-- Subtitle description -->
             <TextBlock Grid.Row="4" x:Name="StatusSubtitle"
-                       FontSize="12" Foreground="#667788"
+                       FontSize="12" Foreground="{StaticResource AppTextDimBrush}"
                        HorizontalAlignment="Center"
                        TextAlignment="Center"/>
 
             <!-- Spacer row 5 -->
 
-            <!-- Subtle progress bar (thin, teal accent) -->
+            <!-- Subtle progress bar -->
             <ProgressBar Grid.Row="6" Width="280" Height="3"
                          Minimum="0" Maximum="100"
                          Value="{x:Bind ViewModel.Progress, Mode=OneWay}"
-                         Foreground="#00AACC" Background="#003040"/>
+                         Foreground="{StaticResource AppAccentBrush}" Background="{StaticResource AppSurface2Brush}"/>
         </Grid>
     </Grid>
+    </ContentControl>
 </Window>

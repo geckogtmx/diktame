@@ -7,6 +7,7 @@
         xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
         Title="Quick Chat">
 
+    <ContentControl FontFamily="{StaticResource AppFont}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
     <Grid RowSpacing="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -276,4 +277,5 @@
                        HorizontalAlignment="Right" Margin="0,2,0,0"/>
         </Grid>
     </Grid>
+    </ContentControl>
 </Window>

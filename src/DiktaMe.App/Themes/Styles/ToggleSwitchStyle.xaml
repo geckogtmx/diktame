@@ -1,0 +1,15 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Modern ToggleSwitch — compact sizing, theme-aware colors.
+         Color customization is via ThemeResource key overrides in SharedResources.xaml
+         (ToggleSwitchFillOn, ToggleSwitchKnobFillOff, etc.), mutated by ThemeService.
+         The default WinUI 3 ControlTemplate is preserved. -->
+
+    <Style TargetType="ToggleSwitch">
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="MinHeight" Value="0"/>
+    </Style>
+
+</ResourceDictionary>

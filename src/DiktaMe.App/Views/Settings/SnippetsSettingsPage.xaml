@@ -30,9 +30,9 @@
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <TextBlock l:Uids.Uid="Settings_Snippets_Title" FontSize="24" FontWeight="SemiBold"
-                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                           Foreground="{StaticResource AppTextBrush}"/>
                 <TextBlock Text="{x:Bind ViewModel.CountText, Mode=OneWay}"
-                           FontSize="13" Foreground="{StaticResource V1TextSecondaryBrush}" VerticalAlignment="Center"/>
+                           FontSize="13" Foreground="{StaticResource AppTextDimBrush}" VerticalAlignment="Center"/>
             </StackPanel>
             <Button Grid.Column="1" Command="{x:Bind ViewModel.AddSnippetCommand}"
                     VerticalAlignment="Center" Padding="12,8">
@@ -59,7 +59,7 @@
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="config:Snippet">
                     <Border CornerRadius="6" Padding="16,12" MinHeight="52"
-                            BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="1">
+                            BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="1">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -68,14 +68,14 @@
 
                             <!-- Trigger + Content -->
                             <StackPanel Spacing="4" VerticalAlignment="Center">
-                                <Border Background="{StaticResource V1ActiveModeBrush}"
+                                <Border Background="{StaticResource AppNavActiveBrush}"
                                         CornerRadius="4" Padding="8,3"
                                         HorizontalAlignment="Left">
                                     <TextBlock Text="{x:Bind Trigger}" FontSize="13" FontWeight="SemiBold"
-                                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                                               Foreground="{StaticResource AppTextBrush}"/>
                                 </Border>
                                 <TextBlock Text="{x:Bind Content}" FontSize="12"
-                                           Foreground="{StaticResource V1TextSecondaryBrush}"
+                                           Foreground="{StaticResource AppTextDimBrush}"
                                            TextTrimming="CharacterEllipsis" MaxLines="2"
                                            TextWrapping="Wrap" Margin="0,2,0,0"/>
                             </StackPanel>
@@ -88,14 +88,14 @@
                                         Width="32" Height="32" Padding="0"
                                         Background="Transparent" BorderThickness="0">
                                     <FontIcon Glyph="&#xE70F;" FontSize="14"
-                                              Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                              Foreground="{StaticResource AppTextDimBrush}"/>
                                 </Button>
                                 <Button ToolTipService.ToolTip="Delete" Tag="{Binding}"
                                         Click="DeleteButton_Click"
                                         Width="32" Height="32" Padding="0"
                                         Background="Transparent" BorderThickness="0">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"
-                                              Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                                              Foreground="{StaticResource AppTextDimBrush}"/>
                                 </Button>
                             </StackPanel>
                         </Grid>
@@ -107,12 +107,10 @@
         <!-- Edit panel -->
         <Border Grid.Row="2"
                 Visibility="{x:Bind ViewModel.IsEditing, Converter={StaticResource BoolToVis}, Mode=OneWay}"
-                Background="{StaticResource V1HeaderBrush}"
-                BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="1"
-                CornerRadius="8" Padding="20,16">
+                Style="{StaticResource SettingsCardStyle}">
             <StackPanel Spacing="12" MaxWidth="500">
                 <TextBlock Text="{x:Bind ViewModel.EditPanelTitle, Mode=OneWay}" FontSize="16" FontWeight="SemiBold"
-                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                           Foreground="{StaticResource AppTextBrush}"/>
                 <TextBox l:Uids.Uid="Settings_Snippets_TriggerInput"
                          Text="{x:Bind ViewModel.EditTrigger, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBox l:Uids.Uid="Settings_Snippets_ContentInput"

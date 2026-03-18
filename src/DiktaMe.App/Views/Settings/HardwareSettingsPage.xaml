@@ -14,17 +14,16 @@
 
     <Grid ColumnSpacing="0">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="224"/>
+            <ColumnDefinition Width="230"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Left: Sub-item list -->
-        <Border Background="{StaticResource V1HeaderBrush}"
-                BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,1,0"
+        <Border Background="{StaticResource AppSurfaceBrush}"
                 Padding="24">
             <StackPanel Spacing="8">
                 <TextBlock l:Uids.Uid="Settings_Hardware_Title" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"
-                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                           Foreground="{StaticResource AppTextBrush}"/>
                 <ListView ItemsSource="{x:Bind ViewModel.SubItems}"
                           SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}"
                           SelectionMode="Single">
@@ -32,7 +31,7 @@
                         <DataTemplate>
                             <StackPanel Padding="4,6">
                                 <TextBlock Text="{Binding Title}" FontSize="14"
-                                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -43,380 +42,310 @@
         <!-- Right: Detail pane -->
         <ScrollViewer Grid.Column="1" Padding="24,24,16,32"
                       Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-            <StackPanel Spacing="20" MaxWidth="600">
+            <StackPanel Spacing="16" MaxWidth="600">
 
-                <!-- ══════════════════════════════════════════════════════════ -->
-                <!-- Microphone & Recording                                    -->
-                <!-- ══════════════════════════════════════════════════════════ -->
-                <StackPanel Spacing="20" Visibility="{x:Bind ViewModel.IsMicrophoneSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <!-- Microphone & Recording -->
+                <StackPanel Spacing="16" Visibility="{x:Bind ViewModel.IsMicrophoneSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
-                    <!-- Input Device -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_RecordingDevice_Label" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_RecordingDevice_Description" FontSize="12"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.Audio.Devices}"
-                                  SelectedIndex="{x:Bind ViewModel.Audio.SelectedDeviceIndex, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch"/>
-                    </StackPanel>
-
-                    <!-- Max Recording Duration -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_MaxDuration_Label" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_MaxDuration_Description" FontSize="12"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.Audio.DurationLabels}"
-                                  SelectedIndex="{x:Bind ViewModel.Audio.SelectedDurationIndex, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch"/>
-                    </StackPanel>
-
-                    <!-- Audio Ducking -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Label" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Description" FontSize="12"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.Audio.DuckingEnabled, Mode=TwoWay}"/>
-                    </StackPanel>
-
-                    <!-- Duck Level Slider -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Label" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="0">
-                            <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Prefix" FontSize="12"
-                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock Text="{x:Bind ViewModel.Audio.DuckLevelPercent, Mode=OneWay}" FontSize="12"
-                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Suffix" FontSize="12"
-                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Audio_RecordingDevice_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Audio_RecordingDevice_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.Audio.Devices}"
+                                      SelectedIndex="{x:Bind ViewModel.Audio.SelectedDeviceIndex, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"/>
                         </StackPanel>
-                        <Slider Minimum="0" Maximum="100" StepFrequency="5"
-                                Value="{x:Bind ViewModel.Audio.DuckLevelPercent, Mode=TwoWay}"
-                                IsEnabled="{x:Bind ViewModel.Audio.DuckingEnabled, Mode=OneWay}"/>
-                    </StackPanel>
+                    </Border>
 
-                    <!-- Duck Ramp Down -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_DuckRamp_Label" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="0">
-                            <TextBlock l:Uids.Uid="Settings_Audio_DuckRamp_Prefix" FontSize="12"
-                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock Text="{x:Bind ViewModel.Audio.RampDownMs, Mode=OneWay}" FontSize="12"
-                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_Audio_DuckRamp_Suffix" FontSize="12"
-                                       Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Audio_MaxDuration_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Audio_MaxDuration_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.Audio.DurationLabels}"
+                                      SelectedIndex="{x:Bind ViewModel.Audio.SelectedDurationIndex, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"/>
                         </StackPanel>
-                        <Slider Minimum="0" Maximum="2000" StepFrequency="100"
-                                Value="{x:Bind ViewModel.Audio.RampDownMs, Mode=TwoWay}"
-                                IsEnabled="{x:Bind ViewModel.Audio.DuckingEnabled, Mode=OneWay}"/>
-                    </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                <ToggleSwitch IsOn="{x:Bind ViewModel.Audio.DuckingEnabled, Mode=TwoWay}"/>
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="0">
+                                    <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Prefix" FontSize="12"
+                                               Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.Audio.DuckLevelPercent, Mode=OneWay}" FontSize="12"
+                                               Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Suffix" FontSize="12"
+                                               Foreground="{StaticResource AppTextDimBrush}"/>
+                                </StackPanel>
+                                <Slider Minimum="0" Maximum="100" StepFrequency="5"
+                                        Value="{x:Bind ViewModel.Audio.DuckLevelPercent, Mode=TwoWay}"
+                                        IsEnabled="{x:Bind ViewModel.Audio.DuckingEnabled, Mode=OneWay}"/>
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Audio_DuckRamp_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="0">
+                                    <TextBlock l:Uids.Uid="Settings_Audio_DuckRamp_Prefix" FontSize="12"
+                                               Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.Audio.RampDownMs, Mode=OneWay}" FontSize="12"
+                                               Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Audio_DuckRamp_Suffix" FontSize="12"
+                                               Foreground="{StaticResource AppTextDimBrush}"/>
+                                </StackPanel>
+                                <Slider Minimum="0" Maximum="2000" StepFrequency="100"
+                                        Value="{x:Bind ViewModel.Audio.RampDownMs, Mode=TwoWay}"
+                                        IsEnabled="{x:Bind ViewModel.Audio.DuckingEnabled, Mode=OneWay}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
-                <!-- ══════════════════════════════════════════════════════════ -->
-                <!-- Sound Feedback                                            -->
-                <!-- ══════════════════════════════════════════════════════════ -->
-                <StackPanel Spacing="20" Visibility="{x:Bind ViewModel.IsSoundFeedbackSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <!-- Sound Feedback -->
+                <StackPanel Spacing="16" Visibility="{x:Bind ViewModel.IsSoundFeedbackSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
-                    <!-- Enable Sound Feedback -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Label" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Description" FontSize="12"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.Audio.SoundEnabled, Mode=TwoWay}"/>
-                    </StackPanel>
-
-                    <!-- Dictate Start Sound -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_StartSound_Label" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_StartSound_Description" FontSize="12"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <ComboBox ItemsSource="{x:Bind ViewModel.Audio.AvailableSounds}"
-                                      SelectedIndex="{x:Bind ViewModel.Audio.SelectedStartSoundIndex, Mode=TwoWay}"
-                                      MinWidth="120"
-                                      IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"/>
-                            <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                    Command="{x:Bind ViewModel.Audio.PreviewStartSoundCommand}"
-                                    IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"
-                                    ToolTipService.ToolTip="Preview"/>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.Audio.SoundEnabled, Mode=TwoWay}"/>
                         </StackPanel>
-                    </StackPanel>
+                    </Border>
 
-                    <!-- Dictate Stop Sound -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_StopSound_Label" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_StopSound_Description" FontSize="12"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <ComboBox ItemsSource="{x:Bind ViewModel.Audio.AvailableSounds}"
-                                      SelectedIndex="{x:Bind ViewModel.Audio.SelectedStopSoundIndex, Mode=TwoWay}"
-                                      MinWidth="120"
-                                      IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"/>
-                            <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                    Command="{x:Bind ViewModel.Audio.PreviewStopSoundCommand}"
-                                    IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"
-                                    ToolTipService.ToolTip="Preview"/>
-                        </StackPanel>
-                    </StackPanel>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Audio_StartSound_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Audio_StartSound_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ComboBox ItemsSource="{x:Bind ViewModel.Audio.AvailableSounds}"
+                                              SelectedIndex="{x:Bind ViewModel.Audio.SelectedStartSoundIndex, Mode=TwoWay}"
+                                              MinWidth="120"
+                                              IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"/>
+                                    <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                            Command="{x:Bind ViewModel.Audio.PreviewStartSoundCommand}"
+                                            IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"
+                                            ToolTipService.ToolTip="Preview"/>
+                                </StackPanel>
+                            </StackPanel>
 
-                    <!-- Utility Sound -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Audio_UtilitySound_Label" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Audio_UtilitySound_Description" FontSize="12"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <ComboBox ItemsSource="{x:Bind ViewModel.Audio.AvailableSounds}"
-                                      SelectedIndex="{x:Bind ViewModel.Audio.SelectedUtilitySoundIndex, Mode=TwoWay}"
-                                      MinWidth="120"
-                                      IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"/>
-                            <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                    Command="{x:Bind ViewModel.Audio.PreviewUtilitySoundCommand}"
-                                    IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"
-                                    ToolTipService.ToolTip="Preview"/>
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Audio_StopSound_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Audio_StopSound_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ComboBox ItemsSource="{x:Bind ViewModel.Audio.AvailableSounds}"
+                                              SelectedIndex="{x:Bind ViewModel.Audio.SelectedStopSoundIndex, Mode=TwoWay}"
+                                              MinWidth="120"
+                                              IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"/>
+                                    <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                            Command="{x:Bind ViewModel.Audio.PreviewStopSoundCommand}"
+                                            IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"
+                                            ToolTipService.ToolTip="Preview"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Audio_UtilitySound_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Audio_UtilitySound_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ComboBox ItemsSource="{x:Bind ViewModel.Audio.AvailableSounds}"
+                                              SelectedIndex="{x:Bind ViewModel.Audio.SelectedUtilitySoundIndex, Mode=TwoWay}"
+                                              MinWidth="120"
+                                              IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"/>
+                                    <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                            Command="{x:Bind ViewModel.Audio.PreviewUtilitySoundCommand}"
+                                            IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"
+                                            ToolTipService.ToolTip="Preview"/>
+                                </StackPanel>
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
+                    </Border>
                 </StackPanel>
 
-                <!-- ══════════════════════════════════════════════════════════ -->
-                <!-- Keyboard Shortcuts                                        -->
-                <!-- ══════════════════════════════════════════════════════════ -->
-                <StackPanel Spacing="20" Visibility="{x:Bind ViewModel.IsHotkeysSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <!-- Keyboard Shortcuts -->
+                <StackPanel Spacing="16" Visibility="{x:Bind ViewModel.IsHotkeysSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
-                    <!-- Dictate -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Label" FontWeight="SemiBold"
-                                   Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Description" FontSize="12"
-                                   Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="DictateBox"
-                                     Grid.Column="0"
-                                     Text="{x:Bind ViewModel.Hotkeys.Dictate, Mode=TwoWay}"
-                                     IsReadOnly="True"
-                                     PlaceholderText="Click Record to set hotkey"
-                                     BorderThickness="2"
-                                     BorderBrush="{ThemeResource TextControlBorderBrush}"/>
-                            <Button Grid.Column="1"
-                                    Content="Record"
-                                    Click="RecordDictate_Click"
-                                    MinWidth="80"/>
-                            <Button Grid.Column="2"
-                                    Content="Reset"
-                                    Command="{x:Bind ViewModel.Hotkeys.ResetDictateCommand}"
-                                    MinWidth="70"/>
-                        </Grid>
-                    </StackPanel>
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="20">
+                            <!-- Dictate -->
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="DictateBox" Grid.Column="0"
+                                             Text="{x:Bind ViewModel.Hotkeys.Dictate, Mode=TwoWay}"
+                                             IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                             BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                    <Button Grid.Column="1" Content="Record" Click="RecordDictate_Click" MinWidth="80"/>
+                                    <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetDictateCommand}" MinWidth="70"/>
+                                </Grid>
+                            </StackPanel>
 
-                    <!-- Refine -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="RefineBox"
-                                     Grid.Column="0"
-                                     Text="{x:Bind ViewModel.Hotkeys.Refine, Mode=TwoWay}"
-                                     IsReadOnly="True"
-                                     PlaceholderText="Click Record to set hotkey"
-                                     BorderThickness="2"
-                                     BorderBrush="{ThemeResource TextControlBorderBrush}"/>
-                            <Button Grid.Column="1"
-                                    Content="Record"
-                                    Click="RecordRefine_Click"
-                                    MinWidth="80"/>
-                            <Button Grid.Column="2"
-                                    Content="Reset"
-                                    Command="{x:Bind ViewModel.Hotkeys.ResetRefineCommand}"
-                                    MinWidth="70"/>
-                        </Grid>
-                    </StackPanel>
+                            <!-- Refine -->
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="RefineBox" Grid.Column="0"
+                                             Text="{x:Bind ViewModel.Hotkeys.Refine, Mode=TwoWay}"
+                                             IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                             BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                    <Button Grid.Column="1" Content="Record" Click="RecordRefine_Click" MinWidth="80"/>
+                                    <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetRefineCommand}" MinWidth="70"/>
+                                </Grid>
+                            </StackPanel>
 
-                    <!-- Ask -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="AskBox"
-                                     Grid.Column="0"
-                                     Text="{x:Bind ViewModel.Hotkeys.Ask, Mode=TwoWay}"
-                                     IsReadOnly="True"
-                                     PlaceholderText="Click Record to set hotkey"
-                                     BorderThickness="2"
-                                     BorderBrush="{ThemeResource TextControlBorderBrush}"/>
-                            <Button Grid.Column="1"
-                                    Content="Record"
-                                    Click="RecordAsk_Click"
-                                    MinWidth="80"/>
-                            <Button Grid.Column="2"
-                                    Content="Reset"
-                                    Command="{x:Bind ViewModel.Hotkeys.ResetAskCommand}"
-                                    MinWidth="70"/>
-                        </Grid>
-                    </StackPanel>
+                            <!-- Ask -->
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="AskBox" Grid.Column="0"
+                                             Text="{x:Bind ViewModel.Hotkeys.Ask, Mode=TwoWay}"
+                                             IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                             BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                    <Button Grid.Column="1" Content="Record" Click="RecordAsk_Click" MinWidth="80"/>
+                                    <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetAskCommand}" MinWidth="70"/>
+                                </Grid>
+                            </StackPanel>
 
-                    <!-- Translate -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="TranslateBox"
-                                     Grid.Column="0"
-                                     Text="{x:Bind ViewModel.Hotkeys.Translate, Mode=TwoWay}"
-                                     IsReadOnly="True"
-                                     PlaceholderText="Click Record to set hotkey"
-                                     BorderThickness="2"
-                                     BorderBrush="{ThemeResource TextControlBorderBrush}"/>
-                            <Button Grid.Column="1"
-                                    Content="Record"
-                                    Click="RecordTranslate_Click"
-                                    MinWidth="80"/>
-                            <Button Grid.Column="2"
-                                    Content="Reset"
-                                    Command="{x:Bind ViewModel.Hotkeys.ResetTranslateCommand}"
-                                    MinWidth="70"/>
-                        </Grid>
-                    </StackPanel>
+                            <!-- Translate -->
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="TranslateBox" Grid.Column="0"
+                                             Text="{x:Bind ViewModel.Hotkeys.Translate, Mode=TwoWay}"
+                                             IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                             BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                    <Button Grid.Column="1" Content="Record" Click="RecordTranslate_Click" MinWidth="80"/>
+                                    <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetTranslateCommand}" MinWidth="70"/>
+                                </Grid>
+                            </StackPanel>
 
-                    <!-- Oops -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="OopsBox"
-                                     Grid.Column="0"
-                                     Text="{x:Bind ViewModel.Hotkeys.Oops, Mode=TwoWay}"
-                                     IsReadOnly="True"
-                                     PlaceholderText="Click Record to set hotkey"
-                                     BorderThickness="2"
-                                     BorderBrush="{ThemeResource TextControlBorderBrush}"/>
-                            <Button Grid.Column="1"
-                                    Content="Record"
-                                    Click="RecordOops_Click"
-                                    MinWidth="80"/>
-                            <Button Grid.Column="2"
-                                    Content="Reset"
-                                    Command="{x:Bind ViewModel.Hotkeys.ResetOopsCommand}"
-                                    MinWidth="70"/>
-                        </Grid>
-                    </StackPanel>
+                            <!-- Oops -->
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="OopsBox" Grid.Column="0"
+                                             Text="{x:Bind ViewModel.Hotkeys.Oops, Mode=TwoWay}"
+                                             IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                             BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                    <Button Grid.Column="1" Content="Record" Click="RecordOops_Click" MinWidth="80"/>
+                                    <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetOopsCommand}" MinWidth="70"/>
+                                </Grid>
+                            </StackPanel>
 
-                    <!-- Note -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="NoteBox"
-                                     Grid.Column="0"
-                                     Text="{x:Bind ViewModel.Hotkeys.Note, Mode=TwoWay}"
-                                     IsReadOnly="True"
-                                     PlaceholderText="Click Record to set hotkey"
-                                     BorderThickness="2"
-                                     BorderBrush="{ThemeResource TextControlBorderBrush}"/>
-                            <Button Grid.Column="1"
-                                    Content="Record"
-                                    Click="RecordNote_Click"
-                                    MinWidth="80"/>
-                            <Button Grid.Column="2"
-                                    Content="Reset"
-                                    Command="{x:Bind ViewModel.Hotkeys.ResetNoteCommand}"
-                                    MinWidth="70"/>
-                        </Grid>
-                    </StackPanel>
+                            <!-- Note -->
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="NoteBox" Grid.Column="0"
+                                             Text="{x:Bind ViewModel.Hotkeys.Note, Mode=TwoWay}"
+                                             IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                             BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                    <Button Grid.Column="1" Content="Record" Click="RecordNote_Click" MinWidth="80"/>
+                                    <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetNoteCommand}" MinWidth="70"/>
+                                </Grid>
+                            </StackPanel>
 
-                    <!-- Chat -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="ChatBox"
-                                     Grid.Column="0"
-                                     Text="{x:Bind ViewModel.Hotkeys.Chat, Mode=TwoWay}"
-                                     IsReadOnly="True"
-                                     PlaceholderText="Click Record to set hotkey"
-                                     BorderThickness="2"
-                                     BorderBrush="{ThemeResource TextControlBorderBrush}"/>
-                            <Button Grid.Column="1"
-                                    Content="Record"
-                                    Click="RecordChat_Click"
-                                    MinWidth="80"/>
-                            <Button Grid.Column="2"
-                                    Content="Reset"
-                                    Command="{x:Bind ViewModel.Hotkeys.ResetChatCommand}"
-                                    MinWidth="70"/>
-                        </Grid>
-                    </StackPanel>
+                            <!-- Chat -->
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="ChatBox" Grid.Column="0"
+                                             Text="{x:Bind ViewModel.Hotkeys.Chat, Mode=TwoWay}"
+                                             IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                             BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                    <Button Grid.Column="1" Content="Record" Click="RecordChat_Click" MinWidth="80"/>
+                                    <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetChatCommand}" MinWidth="70"/>
+                                </Grid>
+                            </StackPanel>
 
-                    <!-- Read Selection -->
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_ReadSelection_Label" FontWeight="SemiBold" Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Hotkeys_ReadSelection_Description" FontSize="12" Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="ReadSelectionBox"
-                                     Grid.Column="0"
-                                     Text="{x:Bind ViewModel.Hotkeys.ReadSelection, Mode=TwoWay}"
-                                     IsReadOnly="True"
-                                     PlaceholderText="Click Record to set hotkey"
-                                     BorderThickness="2"
-                                     BorderBrush="{ThemeResource TextControlBorderBrush}"/>
-                            <Button Grid.Column="1"
-                                    Content="Record"
-                                    Click="RecordReadSelection_Click"
-                                    MinWidth="80"/>
-                            <Button Grid.Column="2"
-                                    Content="Reset"
-                                    Command="{x:Bind ViewModel.Hotkeys.ResetReadSelectionCommand}"
-                                    MinWidth="70"/>
-                        </Grid>
-                    </StackPanel>
+                            <!-- Read Selection -->
+                            <StackPanel Spacing="4">
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_ReadSelection_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Hotkeys_ReadSelection_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="ReadSelectionBox" Grid.Column="0"
+                                             Text="{x:Bind ViewModel.Hotkeys.ReadSelection, Mode=TwoWay}"
+                                             IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                             BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                    <Button Grid.Column="1" Content="Record" Click="RecordReadSelection_Click" MinWidth="80"/>
+                                    <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetReadSelectionCommand}" MinWidth="70"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
 
-                    <!-- Info Box -->
                     <InfoBar l:Uids.Uid="Settings_Hotkeys_InfoBar" Severity="Informational"
                              IsOpen="True"
                              IsClosable="False"/>

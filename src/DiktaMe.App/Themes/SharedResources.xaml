@@ -3,6 +3,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:DiktaMe.App.Converters">
 
+    <!-- ── Typography ──────────────────────────────────────────────────── -->
+    <FontFamily x:Key="AppFont">ms-appx:///Assets/Fonts/Inter-Regular.ttf#Inter</FontFamily>
+    <FontFamily x:Key="AppFontSemiBold">ms-appx:///Assets/Fonts/Inter-SemiBold.ttf#Inter</FontFamily>
+    <FontFamily x:Key="AppFontMono">Consolas</FontFamily>
+
     <!-- Value converters -->
     <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
     <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
@@ -12,27 +17,40 @@
     <converters:ApiKeyMaskConverter x:Key="ApiKeyMask"/>
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         V1 Color Palette (matches ControlPanelPage)
+         App Theme Brushes — Fallback defaults (Midnight palette).
+         These are mutated in-place by ThemeService.ApplyTheme() at runtime.
          ═══════════════════════════════════════════════════════════════════ -->
-    <SolidColorBrush x:Key="V1BackgroundBrush" Color="#002029"/>
-    <SolidColorBrush x:Key="V1HeaderBrush" Color="#00303d"/>
-    <SolidColorBrush x:Key="V1DetailBrush" Color="#002a35"/>
-    <SolidColorBrush x:Key="V1BorderBrush" Color="#004052"/>
-    <SolidColorBrush x:Key="V1ActiveModeBrush" Color="#00607a"/>
-    <SolidColorBrush x:Key="V1TextPrimaryBrush" Color="#e0e0e0"/>
-    <SolidColorBrush x:Key="V1TextSecondaryBrush" Color="#888888"/>
-    <SolidColorBrush x:Key="V1PerfGreenBrush" Color="#7aff9e"/>
+    <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0A0918"/>
+    <SolidColorBrush x:Key="AppSurfaceBrush" Color="#16152E"/>
+    <SolidColorBrush x:Key="AppSurface2Brush" Color="#1E1D38"/>
+    <SolidColorBrush x:Key="AppBorderBrush" Color="#FFFFFF14"/>
+    <SolidColorBrush x:Key="AppNavActiveBrush" Color="#3B82F6"/>
+    <SolidColorBrush x:Key="AppAccentBrush" Color="#5DEBFF"/>
+    <SolidColorBrush x:Key="AppTextBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="AppTextDimBrush" Color="#FFFFFF99"/>
+    <SolidColorBrush x:Key="AppPerfGreenBrush" Color="#7aff9e"/>
+
+    <!-- ── Reusable Styles ──────────────────────────────────────────────── -->
+
+    <!-- Settings card — borderless, spacing-separated (matches glassmorphic mockup) -->
+    <Style x:Key="SettingsCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Padding" Value="0,0,0,16"/>
+    </Style>
 
     <!-- Tab button style (Cloud/Local tabs) -->
     <Style x:Key="TabButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource V1HeaderBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource V1BorderBrush}"/>
+        <Setter Property="Background" Value="{StaticResource AppSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource AppBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="4"/>
         <Setter Property="Padding" Value="16,8"/>
         <Setter Property="MinWidth" Value="0"/>
         <Setter Property="MinHeight" Value="0"/>
-        <Setter Property="Foreground" Value="#e0e0e0"/>
+        <Setter Property="Foreground" Value="{StaticResource AppTextBrush}"/>
     </Style>
 
 </ResourceDictionary>

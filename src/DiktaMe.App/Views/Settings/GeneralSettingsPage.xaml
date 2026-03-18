@@ -14,17 +14,16 @@
 
     <Grid ColumnSpacing="0">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="224"/>
+            <ColumnDefinition Width="230"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Left: Sub-item list -->
-        <Border Background="{StaticResource V1HeaderBrush}"
-                BorderBrush="{StaticResource V1BorderBrush}" BorderThickness="0,0,1,0"
+        <Border Background="{StaticResource AppSurfaceBrush}"
                 Padding="24">
             <StackPanel Spacing="8">
                 <TextBlock l:Uids.Uid="Settings_General_Title" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"
-                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                           Foreground="{StaticResource AppTextBrush}"/>
                 <ListView ItemsSource="{x:Bind ViewModel.SubItems}"
                           SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}"
                           SelectionMode="Single">
@@ -32,7 +31,7 @@
                         <DataTemplate>
                             <StackPanel Padding="4,6">
                                 <TextBlock Text="{Binding Title}" FontSize="14"
-                                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -47,179 +46,213 @@
             <!-- ═══════════════════════════════════════════════════════════════
                  Application
                  ═══════════════════════════════════════════════════════════════ -->
-            <StackPanel Spacing="24" MaxWidth="600"
+            <StackPanel Spacing="16" MaxWidth="600"
                         Visibility="{x:Bind ViewModel.IsApplicationSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                 <TextBlock Text="Application" FontSize="20" FontWeight="SemiBold"
-                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                           Foreground="{StaticResource AppTextBrush}"/>
+
+                <!-- Theme Selector -->
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Theme" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{StaticResource AppTextBrush}"/>
+                        <TextBlock Text="Choose the color palette for the app." FontSize="12"
+                                   Foreground="{StaticResource AppTextDimBrush}"/>
+                        <RadioButtons SelectedIndex="{x:Bind ViewModel.SelectedThemeIndex, Mode=TwoWay}"
+                                      MaxColumns="3">
+                            <RadioButton Content="Midnight"/>
+                            <RadioButton Content="Ember"/>
+                            <RadioButton Content="Frost"/>
+                        </RadioButtons>
+                    </StackPanel>
+                </Border>
 
                 <!-- Auto-start -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_General_AutoStart_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_General_AutoStart_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.AutoStart, Mode=TwoWay}"/>
-                </StackPanel>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_General_AutoStart_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource AppTextBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_General_AutoStart_Description" FontSize="12"
+                                   Foreground="{StaticResource AppTextDimBrush}"/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.AutoStart, Mode=TwoWay}"/>
+                    </StackPanel>
+                </Border>
 
                 <!-- Control Panel Configuration -->
                 <TextBlock l:Uids.Uid="Settings_ControlPanel_Title" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"
-                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                           Foreground="{StaticResource AppTextBrush}"/>
                 <TextBlock l:Uids.Uid="Settings_ControlPanel_Description" FontSize="13"
-                           Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                           Foreground="{StaticResource AppTextDimBrush}"/>
 
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.ShowModesRow, Mode=TwoWay}"/>
-                </StackPanel>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.ShowModesRow, Mode=TwoWay}"/>
+                        </StackPanel>
 
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.ShowActionsRow, Mode=TwoWay}"/>
-                </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.ShowActionsRow, Mode=TwoWay}"/>
+                        </StackPanel>
 
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.ShowSessionStats, Mode=TwoWay}"/>
-                </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.ShowSessionStats, Mode=TwoWay}"/>
+                        </StackPanel>
 
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.ShowPerformanceStats, Mode=TwoWay}"/>
-                </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.ShowPerformanceStats, Mode=TwoWay}"/>
+                        </StackPanel>
 
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.AlwaysOnTop, Mode=TwoWay}"/>
-                </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.AlwaysOnTop, Mode=TwoWay}"/>
+                        </StackPanel>
 
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <RadioButtons SelectedIndex="{x:Bind ViewModel.ExpandDirectionIndex, Mode=TwoWay}">
-                        <RadioButton l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Down"/>
-                        <RadioButton l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Up"/>
-                    </RadioButtons>
-                </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <RadioButtons SelectedIndex="{x:Bind ViewModel.ExpandDirectionIndex, Mode=TwoWay}">
+                                <RadioButton l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Down"/>
+                                <RadioButton l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Up"/>
+                            </RadioButtons>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
 
                 <!-- Visual Effects -->
                 <TextBlock l:Uids.Uid="Settings_VisualEffects_Title" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"
-                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                           Foreground="{StaticResource AppTextBrush}"/>
                 <TextBlock l:Uids.Uid="Settings_VisualEffects_Description" FontSize="13"
-                           Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                           Foreground="{StaticResource AppTextDimBrush}"/>
 
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.VisualEffectsEnabled, Mode=TwoWay}"/>
-                </StackPanel>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.VisualEffectsEnabled, Mode=TwoWay}"/>
+                        </StackPanel>
 
-                <StackPanel Spacing="4"
-                            Visibility="{x:Bind ViewModel.VisualEffectsEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Scope_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Scope_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <RadioButtons SelectedIndex="{x:Bind ViewModel.VisualEffectsScopeIndex, Mode=TwoWay}">
-                        <RadioButton l:Uids.Uid="Settings_VisualEffects_Scope_WholeApp"/>
-                        <RadioButton l:Uids.Uid="Settings_VisualEffects_Scope_TopBarOnly"/>
-                    </RadioButtons>
-                </StackPanel>
+                        <StackPanel Spacing="4"
+                                    Visibility="{x:Bind ViewModel.VisualEffectsEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <TextBlock l:Uids.Uid="Settings_VisualEffects_Scope_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_VisualEffects_Scope_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <RadioButtons SelectedIndex="{x:Bind ViewModel.VisualEffectsScopeIndex, Mode=TwoWay}">
+                                <RadioButton l:Uids.Uid="Settings_VisualEffects_Scope_WholeApp"/>
+                                <RadioButton l:Uids.Uid="Settings_VisualEffects_Scope_TopBarOnly"/>
+                            </RadioButtons>
+                        </StackPanel>
 
-                <StackPanel Spacing="4"
-                            Visibility="{x:Bind ViewModel.VisualEffectsEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Intensity_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_VisualEffects_Intensity_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <Slider Minimum="0" Maximum="100"
-                            Value="{x:Bind ViewModel.VisualEffectsIntensityPercent, Mode=TwoWay}"
-                            StepFrequency="5" TickFrequency="25" TickPlacement="BottomRight"/>
-                </StackPanel>
+                        <StackPanel Spacing="4"
+                                    Visibility="{x:Bind ViewModel.VisualEffectsEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <TextBlock l:Uids.Uid="Settings_VisualEffects_Intensity_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_VisualEffects_Intensity_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Slider Minimum="0" Maximum="100"
+                                    Value="{x:Bind ViewModel.VisualEffectsIntensityPercent, Mode=TwoWay}"
+                                    StepFrequency="5" TickFrequency="25" TickPlacement="BottomRight"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
 
                 <!-- Auto-Hide -->
                 <TextBlock l:Uids.Uid="Settings_AutoHide_Title" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"
-                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                           Foreground="{StaticResource AppTextBrush}"/>
                 <TextBlock l:Uids.Uid="Settings_AutoHide_Description" FontSize="13"
-                           Foreground="{StaticResource V1TextSecondaryBrush}"/>
+                           Foreground="{StaticResource AppTextDimBrush}"/>
 
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.AutoHideEnabled, Mode=TwoWay}"/>
-                </StackPanel>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.AutoHideEnabled, Mode=TwoWay}"/>
+                        </StackPanel>
 
-                <StackPanel Spacing="4"
-                            Visibility="{x:Bind ViewModel.AutoHideEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                    <TextBlock l:Uids.Uid="Settings_AutoHide_Delay_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_AutoHide_Delay_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ComboBox ItemsSource="{x:Bind ViewModel.AutoHideDelayLabels}"
-                              SelectedIndex="{x:Bind ViewModel.AutoHideDelayIndex, Mode=TwoWay}"
-                              HorizontalAlignment="Stretch"/>
-                </StackPanel>
+                        <StackPanel Spacing="4"
+                                    Visibility="{x:Bind ViewModel.AutoHideEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <TextBlock l:Uids.Uid="Settings_AutoHide_Delay_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_AutoHide_Delay_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.AutoHideDelayLabels}"
+                                      SelectedIndex="{x:Bind ViewModel.AutoHideDelayIndex, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
             </StackPanel>
 
             <!-- ═══════════════════════════════════════════════════════════════
-                 Behavior
+                 Language
                  ═══════════════════════════════════════════════════════════════ -->
-            <StackPanel Spacing="24" MaxWidth="600"
+            <StackPanel Spacing="16" MaxWidth="600"
                         Visibility="{x:Bind ViewModel.IsLanguageSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                 <TextBlock Text="Language" FontSize="20" FontWeight="SemiBold"
-                           Foreground="{StaticResource V1TextPrimaryBrush}"/>
+                           Foreground="{StaticResource AppTextBrush}"/>
 
                 <!-- UI Language (requires restart) -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ComboBox ItemsSource="{x:Bind ViewModel.UiLanguages}"
-                              SelectedIndex="{x:Bind ViewModel.SelectedUiLanguageIndex, Mode=TwoWay}"
-                              HorizontalAlignment="Stretch"/>
-                    <InfoBar l:Uids.Uid="Settings_General_RestartInfoBar"
-                             Severity="Informational"
-                             IsOpen="{x:Bind ViewModel.ShowRestartWarning, Mode=OneWay}"
-                             IsClosable="False"
-                             Margin="0,4,0,0">
-                        <InfoBar.ActionButton>
-                            <Button l:Uids.Uid="Settings_General_RestartButton"
-                                    Command="{x:Bind ViewModel.RestartAppCommand}"/>
-                        </InfoBar.ActionButton>
-                    </InfoBar>
-                </StackPanel>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource AppTextBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_General_UiLanguage_Description" FontSize="12"
+                                   Foreground="{StaticResource AppTextDimBrush}"/>
+                        <ComboBox ItemsSource="{x:Bind ViewModel.UiLanguages}"
+                                  SelectedIndex="{x:Bind ViewModel.SelectedUiLanguageIndex, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"/>
+                        <InfoBar l:Uids.Uid="Settings_General_RestartInfoBar"
+                                 Severity="Informational"
+                                 IsOpen="{x:Bind ViewModel.ShowRestartWarning, Mode=OneWay}"
+                                 IsClosable="False"
+                                 Margin="0,4,0,0">
+                            <InfoBar.ActionButton>
+                                <Button l:Uids.Uid="Settings_General_RestartButton"
+                                        Command="{x:Bind ViewModel.RestartAppCommand}"/>
+                            </InfoBar.ActionButton>
+                        </InfoBar>
+                    </StackPanel>
+                </Border>
 
                 <!-- Transcription Language -->
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_General_Language_Label" FontWeight="SemiBold"
-                               Foreground="{StaticResource V1TextPrimaryBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_General_Language_Description" FontSize="12"
-                               Foreground="{StaticResource V1TextSecondaryBrush}"/>
-                    <ComboBox ItemsSource="{x:Bind ViewModel.Languages}"
-                              SelectedIndex="{x:Bind ViewModel.SelectedLanguageIndex, Mode=TwoWay}"
-                              HorizontalAlignment="Stretch"/>
-                </StackPanel>
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="4">
+                        <TextBlock l:Uids.Uid="Settings_General_Language_Label" FontWeight="SemiBold"
+                                   Foreground="{StaticResource AppTextBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_General_Language_Description" FontSize="12"
+                                   Foreground="{StaticResource AppTextDimBrush}"/>
+                        <ComboBox ItemsSource="{x:Bind ViewModel.Languages}"
+                                  SelectedIndex="{x:Bind ViewModel.SelectedLanguageIndex, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
 
             </Grid>
