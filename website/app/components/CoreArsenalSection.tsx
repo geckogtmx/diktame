@@ -12,8 +12,8 @@ export function CoreArsenalSection() {
     <div id="core-track" className="relative h-[400vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         {/* Background Effects */}
-        <div className="absolute inset-0 bg-background z-0"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[160px] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-background z-0" aria-hidden="true"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[160px] pointer-events-none" aria-hidden="true"></div>
 
         <div className="section-container relative z-10 w-full">
           <div className="text-center mb-16">
@@ -32,7 +32,7 @@ export function CoreArsenalSection() {
               {/* Card 1: Dictate */}
               <div id="core-card-1" className="card flex-1 p-8 border-primary/20 backdrop-blur-2xl">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 overflow-hidden">
-                  <Image src="/images/app-icon.png" alt="Dictate Mode Icon" width={48} height={48} className="object-cover" />
+                  <Image src="/images/app-icon.png" alt="dIKta.me Dictate Mode — voice-to-text input icon" width={48} height={48} className="object-cover" />
                 </div>
                 <div className="text-primary mb-2 font-mono text-[10px] uppercase tracking-widest flex justify-between">
                   <span>{t('mode01Label')}</span>
@@ -47,7 +47,7 @@ export function CoreArsenalSection() {
               {/* Card 2: Ask */}
               <div id="core-card-2" className="card flex-1 p-8 border-primary/20 backdrop-blur-2xl">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6 text-primary">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label="Ask Mode icon">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -77,7 +77,7 @@ export function CoreArsenalSection() {
               {/* Card 3: Refine */}
               <div id="core-card-3" className="card flex-1 p-8 border-primary/20 backdrop-blur-2xl">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6 text-primary">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label="Refine Mode icon">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -99,7 +99,7 @@ export function CoreArsenalSection() {
               {/* Card 4: Notes */}
               <div id="core-card-4" className="card flex-1 p-8 border-primary/20 backdrop-blur-2xl">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6 text-primary">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label="Structured Notes icon">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"

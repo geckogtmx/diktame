@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "dIKta.me - Private AI Voice Dictation for Windows",
-    "description": "Local, fast, intelligent voice-to-text powered by on-device AI. No cloud, no subscriptions, no compromise on privacy.",
+    "description": "Open-source local AI voice dictation for Windows. Whisper-powered speech-to-text with local LLMs, no cloud, no subscriptions, no compromise on privacy.",
     "featuresTitle": "Features - dIKta.me",
     "featuresDescription": "Explore 45+ features including local Whisper STT, AI-powered editing, voice snippets, real-time translation, and text-to-speech — all running privately on your Windows PC.",
     "aboutTitle": "About - dIKta.me",
@@ -104,7 +104,8 @@
     "row7Feature": "Offline Use",
     "row7Others": "Requires WiFi",
     "row7DiktaMe": "Works in a Bunker",
-    "footnote": "* Measured with gemma3:4b on consumer GPU. Results vary by hardware."
+    "footnote": "* Measured with gemma3:4b on consumer GPU. Results vary by hardware.",
+    "tableCaption": "Feature comparison: dIKta.me vs cloud dictation services"
   },
   "SpecsSection": {
     "title": "The Specs.",

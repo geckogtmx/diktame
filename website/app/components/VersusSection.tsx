@@ -18,6 +18,7 @@ export function VersusSection() {
 
           <div className="card overflow-hidden bg-black/40 backdrop-blur-xl border-white/5 p-0">
             <table className="w-full text-left border-collapse">
+              <caption className="sr-only">{t('tableCaption')}</caption>
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
                   <th className="py-4 px-6 text-sm font-mono uppercase tracking-widest text-muted">{t('headerFeature')}</th>

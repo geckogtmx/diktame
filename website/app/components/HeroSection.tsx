@@ -12,8 +12,8 @@ export function HeroSection() {
     <div id="hero-track" className="relative h-[200vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden pt-16">
         {/* Background */}
-        <div className="absolute inset-0 bg-background z-0"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-background z-0" aria-hidden="true"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" aria-hidden="true"></div>
 
         <div className="section-container relative z-10 text-center">
           {/* Badge */}

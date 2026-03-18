@@ -10,7 +10,7 @@ export function BilingualSection() {
   return (
     <div id="biling-track" className="relative h-[200vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-30"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-30" aria-hidden="true"></div>
         <div className="section-container grid md:grid-cols-2 gap-12 items-center relative z-10">
           <div>
             <div className="inline-block mb-4 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-white text-xs font-mono">

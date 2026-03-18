@@ -44,11 +44,11 @@ export function TTSSection() {
   return (
     <div id="tts-track" className="relative h-[200vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-30"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-30" aria-hidden="true"></div>
         <div className="section-container grid md:grid-cols-2 gap-12 items-center relative z-10">
           {/* Card (Left) */}
           <div className="card border-primary/20 bg-black/50 p-6 font-mono text-xs shadow-2xl relative overflow-hidden flex flex-col gap-4 order-last md:order-first">
-            <div className="absolute -top-3 -right-3 w-24 h-24 bg-primary/20 blur-2xl rounded-full"></div>
+            <div className="absolute -top-3 -right-3 w-24 h-24 bg-primary/20 blur-2xl rounded-full" aria-hidden="true"></div>
             <div className="flex justify-between items-center border-b border-white/10 pb-2">
               <span className="text-muted uppercase tracking-widest">{t('engineLabel')}</span>
               <span className={`w-3 h-3 rounded-full transition-colors duration-500 ${

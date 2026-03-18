@@ -27,7 +27,7 @@ export function VoiceMacrosSection() {
   return (
     <div id="macros-track" className="relative h-[300vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-l from-primary/5 to-transparent opacity-30"></div>
+        <div className="absolute inset-0 bg-gradient-to-l from-primary/5 to-transparent opacity-30" aria-hidden="true"></div>
         <div className="section-container grid md:grid-cols-2 gap-12 items-center relative z-10">
           {/* Text (Left) */}
           <div>

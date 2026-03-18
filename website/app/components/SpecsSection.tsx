@@ -10,7 +10,7 @@ export function SpecsSection() {
   return (
     <div id="specs-track" className="relative h-[400vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 blur-[120px]"></div>
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 blur-[120px]" aria-hidden="true"></div>
 
         <div className="section-container relative z-10 w-full">
           <div className="text-center mb-16">

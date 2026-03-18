@@ -14,7 +14,7 @@ export function Footer() {
             {t('credit')}
           </div>
         </div>
-        <div className="flex gap-6 text-sm">
+        <nav aria-label="Footer navigation" className="flex gap-6 text-sm">
           <Link href="/about" className="text-muted hover:text-white transition-colors">
             {t('about')}
           </Link>
@@ -32,7 +32,7 @@ export function Footer() {
           >
             {t('github')}
           </a>
-        </div>
+        </nav>
       </div>
     </footer>
   );

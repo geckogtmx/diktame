@@ -84,7 +84,7 @@ export default async function FeaturesPage({
   ];
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
 
       {/* Hero */}

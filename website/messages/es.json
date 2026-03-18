@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "dIKta.me - Dictado por Voz con IA Privada para Windows",
-    "description": "Voz a texto local, rápido e inteligente impulsado por IA en tu dispositivo. Sin nube, sin suscripciones, sin comprometer tu privacidad.",
+    "description": "Dictado por voz con IA local y de código abierto para Windows. Reconocimiento de voz con Whisper y LLMs locales, sin nube, sin suscripciones, sin comprometer tu privacidad.",
     "featuresTitle": "Funciones - dIKta.me",
     "featuresDescription": "Explora más de 45 funciones incluyendo STT local con Whisper, edición con IA, snippets de voz, traducción en tiempo real y texto a voz — todo ejecutándose de forma privada en tu PC con Windows.",
     "aboutTitle": "Acerca de - dIKta.me",
@@ -104,7 +104,8 @@
     "row7Feature": "Uso sin internet",
     "row7Others": "Requiere WiFi",
     "row7DiktaMe": "Funciona en un búnker",
-    "footnote": "* Medido con gemma3:4b en GPU de consumo. Los resultados varían según el hardware."
+    "footnote": "* Medido con gemma3:4b en GPU de consumo. Los resultados varían según el hardware.",
+    "tableCaption": "Comparativa de funciones: dIKta.me vs servicios de dictado en la nube"
   },
   "SpecsSection": {
     "title": "Las Especificaciones.",

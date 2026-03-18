@@ -45,6 +45,9 @@ export function Navbar() {
           : 'top-0 left-0 right-0'
         }`}
     >
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:rounded">
+        Skip to content
+      </a>
       <nav
         className={`mx-auto h-16 flex items-center transition-all duration-500 ${isScrolled
             ? 'max-w-6xl bg-background/80 backdrop-blur-xl shadow-lg border border-white/10 rounded-2xl'
@@ -55,7 +58,7 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
-            <Image src="/images/app-icon.png" alt="dIKta.me Icon" width={32} height={32} className="object-cover" />
+            <Image src="/images/app-icon.png" alt="dIKta.me — local AI voice dictation for Windows" width={32} height={32} className="object-cover" />
           </div>
           dIKta.me
         </Link>

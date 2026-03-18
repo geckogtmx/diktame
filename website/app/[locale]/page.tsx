@@ -17,7 +17,7 @@ import { PricingSection } from '@/app/components/PricingSection';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
 
       {/* Hero */}

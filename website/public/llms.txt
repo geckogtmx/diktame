@@ -34,6 +34,31 @@ dIKta.me is a privacy-first AI voice dictation application for Windows 10+. It r
 - Windows 10+ only (x64)
 - NVIDIA GPU recommended for local STT/LLM
 
+## FAQ
+
+**Q: How does dIKta.me work offline?**
+A: dIKta.me runs Whisper V3 Turbo and local LLMs (Gemma 3, Llama 3) directly on your GPU. No audio or text data ever leaves your machine. It is 100% air-gapped by default.
+
+**Q: What operating systems does dIKta.me support?**
+A: dIKta.me is available for Windows 10+ (x64). macOS and Linux support are on the roadmap.
+
+**Q: How much does dIKta.me cost?**
+A: Free trial with complimentary cloud credits included. Power License: $25 one-time purchase for unlimited local dictation, all voice modes, and lifetime updates. No subscription required.
+
+**Q: What languages does dIKta.me support for speech recognition?**
+A: Whisper V3 Turbo supports 90+ languages with automatic language detection. Bidirectional English-Spanish translation is built-in.
+
+**Q: Do I need an NVIDIA GPU to use dIKta.me?**
+A: An NVIDIA GPU is recommended for the fastest local STT and LLM processing. However, dIKta.me also works on CPU (slower) and offers a cloud mode with wallet credits for users without a powerful GPU.
+
+## Structured Data
+
+This site includes Schema.org JSON-LD markup on every page:
+- SoftwareApplication schema (product details, pricing, features)
+- FAQPage schema (common questions and answers)
+- Organization schema (brand identity)
+- Product schema on /pricing (offer details)
+
 ## Links
 
 - Website: https://dikta.me
@@ -42,3 +67,4 @@ dIKta.me is a privacy-first AI voice dictation application for Windows 10+. It r
 - Documentation: https://dikta.me/docs
 - Waitlist: https://dikta.me/waitlist
 - GitHub: https://github.com/geckogtmx/diktame
+- Full product reference: https://dikta.me/llms-full.txt
