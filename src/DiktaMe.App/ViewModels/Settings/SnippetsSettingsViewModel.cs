@@ -3,12 +3,14 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiktaMe.Core.Config;
+using DiktaMe.App.Services;
 using Serilog;
 
 namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class SnippetsSettingsViewModel : ObservableObject
 {
     private readonly SnippetManager _snippetManager;
+    private readonly LocalizationService _loc;
 
     [ObservableProperty] private ObservableCollection<Snippet> _snippets = new();
     [ObservableProperty] private Snippet? _selectedSnippet;
@@ -19,9 +21,16 @@ public sealed partial class SnippetsSettingsViewModel : ObservableObject
     [ObservableProperty] private string _countText = "0/100";
     [ObservableProperty] private string _editPanelTitle = "";
 
-    public SnippetsSettingsViewModel(SnippetManager snippetManager)
+    public string TooltipAdd => _loc.GetString("Common_Add");
+    public string TooltipEdit => _loc.GetString("Common_Edit");
+    public string TooltipDelete => _loc.GetString("Common_Delete");
+    public string TooltipSave => _loc.GetString("Common_Save");
+    public string TooltipCancel => _loc.GetString("Common_Cancel");
+
+    public SnippetsSettingsViewModel(SnippetManager snippetManager, LocalizationService loc)
     {
         _snippetManager = snippetManager;
+        _loc = loc;
         RefreshList();
     }
 

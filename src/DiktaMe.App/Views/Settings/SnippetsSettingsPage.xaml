@@ -83,17 +83,23 @@
                             <!-- Inline Edit + Delete buttons -->
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
                                         VerticalAlignment="Center">
-                                <Button ToolTipService.ToolTip="Edit" Tag="{Binding}"
+                                <Button Tag="{Binding}"
                                         Click="EditButton_Click"
                                         Width="32" Height="32" Padding="0"
                                         Background="Transparent" BorderThickness="0">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip l:Uids.Uid="Common_Edit" />
+                                    </ToolTipService.ToolTip>
                                     <FontIcon Glyph="&#xE70F;" FontSize="14"
                                               Foreground="{StaticResource AppTextDimBrush}"/>
                                 </Button>
-                                <Button ToolTipService.ToolTip="Delete" Tag="{Binding}"
+                                <Button Tag="{Binding}"
                                         Click="DeleteButton_Click"
                                         Width="32" Height="32" Padding="0"
                                         Background="Transparent" BorderThickness="0">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip l:Uids.Uid="Common_Delete" />
+                                    </ToolTipService.ToolTip>
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"
                                               Foreground="{StaticResource AppTextDimBrush}"/>
                                 </Button>

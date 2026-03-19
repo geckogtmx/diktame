@@ -86,7 +86,7 @@
                 <Border Background="{StaticResource AppSurface2Brush}" CornerRadius="3" Padding="6,1" Width="36">
                     <ToolTipService.ToolTip>
                         <StackPanel Spacing="2">
-                            <TextBlock Text="Speech-to-Text" FontSize="11" FontWeight="SemiBold"
+                            <TextBlock Text="{x:Bind ViewModel.TooltipBadgeStt, Mode=OneWay}" FontSize="11" FontWeight="SemiBold"
                                        Foreground="{x:Bind ViewModel.SttBadgeBrush, Mode=OneWay}"/>
                             <TextBlock Text="{x:Bind ViewModel.SttProviderName, Mode=OneWay}" FontSize="10"
                                        Foreground="{x:Bind ViewModel.SttBadgeBrush, Mode=OneWay}"/>
@@ -100,7 +100,7 @@
                 <Border Background="{StaticResource AppSurface2Brush}" CornerRadius="3" Padding="6,1" Width="36">
                     <ToolTipService.ToolTip>
                         <StackPanel Spacing="2">
-                            <TextBlock Text="Language Model" FontSize="11" FontWeight="SemiBold"
+                            <TextBlock Text="{x:Bind ViewModel.TooltipBadgeLlm, Mode=OneWay}" FontSize="11" FontWeight="SemiBold"
                                        Foreground="{x:Bind ViewModel.LlmBadgeBrush, Mode=OneWay}"/>
                             <TextBlock Text="{x:Bind ViewModel.LlmProviderName, Mode=OneWay}" FontSize="10"
                                        Foreground="{x:Bind ViewModel.LlmBadgeBrush, Mode=OneWay}"/>
@@ -114,7 +114,7 @@
                 <Border Background="{StaticResource AppSurface2Brush}" CornerRadius="3" Padding="6,1" Width="36">
                     <ToolTipService.ToolTip>
                         <StackPanel Spacing="2">
-                            <TextBlock Text="Text-to-Speech" FontSize="11" FontWeight="SemiBold"
+                            <TextBlock Text="{x:Bind ViewModel.TooltipBadgeTts, Mode=OneWay}" FontSize="11" FontWeight="SemiBold"
                                        Foreground="{x:Bind ViewModel.TtsBadgeBrush, Mode=OneWay}"/>
                             <TextBlock Text="{x:Bind ViewModel.TtsProviderName, Mode=OneWay}" FontSize="10"
                                        Foreground="{x:Bind ViewModel.TtsBadgeBrush, Mode=OneWay}"/>
@@ -390,7 +390,7 @@
                 <StackPanel Grid.Column="0" Background="{StaticResource AppSurfaceBrush}"
                             Padding="4,6" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
-                            ToolTipService.ToolTip="Requests this session">
+                            ToolTipService.ToolTip="{x:Bind ViewModel.TooltipReq, Mode=OneWay}">
                     <TextBlock Text="{x:Bind ViewModel.RequestCount, Mode=OneWay}"
                                FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource AppTextBrush}"
@@ -404,7 +404,7 @@
                 <StackPanel Grid.Column="1" Background="{StaticResource AppSurfaceBrush}"
                             Padding="4,6" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
-                            ToolTipService.ToolTip="Characters produced">
+                            ToolTipService.ToolTip="{x:Bind ViewModel.TooltipChar, Mode=OneWay}">
                     <TextBlock Text="{x:Bind ViewModel.CharCount, Mode=OneWay}"
                                FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource AppTextBrush}"
@@ -418,7 +418,7 @@
                 <StackPanel Grid.Column="2" Background="{StaticResource AppSurfaceBrush}"
                             Padding="4,6" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
-                            ToolTipService.ToolTip="Words produced">
+                            ToolTipService.ToolTip="{x:Bind ViewModel.TooltipWords, Mode=OneWay}">
                     <TextBlock Text="{x:Bind ViewModel.WordCount, Mode=OneWay}"
                                FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource AppTextBrush}"
@@ -432,7 +432,7 @@
                 <StackPanel Grid.Column="3" Background="{StaticResource AppSurfaceBrush}"
                             Padding="4,6" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
-                            ToolTipService.ToolTip="Words per minute since first request">
+                            ToolTipService.ToolTip="{x:Bind ViewModel.TooltipWordMin, Mode=OneWay}">
                     <TextBlock Text="{x:Bind ViewModel.WordsPerMinuteFormatted, Mode=OneWay}"
                                FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource AppTextBrush}"
@@ -462,7 +462,7 @@
                 <StackPanel Grid.Column="0" Background="{StaticResource AppSurfaceBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
-                            ToolTipService.ToolTip="Recording duration">
+                            ToolTipService.ToolTip="{x:Bind ViewModel.TooltipRec, Mode=OneWay}">
                     <TextBlock Text="{x:Bind ViewModel.LastRecordingFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
                                FontFamily="{StaticResource AppFontMono}"
@@ -477,7 +477,7 @@
                 <StackPanel Grid.Column="1" Background="{StaticResource AppSurfaceBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
-                            ToolTipService.ToolTip="Transcription latency">
+                            ToolTipService.ToolTip="{x:Bind ViewModel.TooltipTrns, Mode=OneWay}">
                     <TextBlock Text="{x:Bind ViewModel.LastTranscriptionFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
                                FontFamily="{StaticResource AppFontMono}"
@@ -492,7 +492,7 @@
                 <StackPanel Grid.Column="2" Background="{StaticResource AppSurfaceBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
-                            ToolTipService.ToolTip="LLM processing latency">
+                            ToolTipService.ToolTip="{x:Bind ViewModel.TooltipProc, Mode=OneWay}">
                     <TextBlock Text="{x:Bind ViewModel.LastProcessingFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
                                FontFamily="{StaticResource AppFontMono}"
@@ -507,7 +507,7 @@
                 <StackPanel Grid.Column="3" Background="{StaticResource AppSurfaceBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
-                            ToolTipService.ToolTip="Text injection latency">
+                            ToolTipService.ToolTip="{x:Bind ViewModel.TooltipInj, Mode=OneWay}">
                     <TextBlock Text="{x:Bind ViewModel.LastInjectionFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
                                FontFamily="{StaticResource AppFontMono}"
@@ -522,7 +522,7 @@
                 <StackPanel Grid.Column="4" Background="{StaticResource AppSurfaceBrush}"
                             Padding="2,4" HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch" Spacing="2"
-                            ToolTipService.ToolTip="Pipeline latency (excludes recording)">
+                            ToolTipService.ToolTip="{x:Bind ViewModel.TooltipTot, Mode=OneWay}">
                     <TextBlock Text="{x:Bind ViewModel.LastTotalFormatted, Mode=OneWay}"
                                FontSize="12" FontWeight="SemiBold"
                                FontFamily="{StaticResource AppFontMono}"

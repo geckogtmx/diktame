@@ -211,6 +211,22 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         _ => _loc.GetString("ControlPanel_State_Off"),
     };
 
+    // ── Tooltip localization strings ────────────────────────────────────────
+
+    public string TooltipBadgeStt => _loc.GetString("Settings_AIEngine_Sub_Stt");
+    public string TooltipBadgeLlm => _loc.GetString("Settings_AIEngine_Sub_Llm");
+    public string TooltipBadgeTts => _loc.GetString("Settings_AIEngine_Sub_Tts");
+    public string TooltipReq => _loc.GetString("ControlPanel_Tooltip_Req");
+    public string TooltipChar => _loc.GetString("ControlPanel_Tooltip_Char");
+    public string TooltipWords => _loc.GetString("ControlPanel_Tooltip_Words");
+    public string TooltipWordMin => _loc.GetString("ControlPanel_Tooltip_WordMin");
+    public string TooltipRec => _loc.GetString("ControlPanel_Tooltip_Rec");
+    public string TooltipTrns => _loc.GetString("ControlPanel_Tooltip_Trns");
+    public string TooltipProc => _loc.GetString("ControlPanel_Tooltip_Proc");
+    public string TooltipInj => _loc.GetString("ControlPanel_Tooltip_Inj");
+    public string TooltipTot => _loc.GetString("ControlPanel_Tooltip_Tot");
+
+
     // ── Toggle state color brushes (for cycle buttons) ──────────────────
 
     public SolidColorBrush SttStateBrush => IsLocalStt ? BadgeLocalBrush : BadgeCloudBrush;

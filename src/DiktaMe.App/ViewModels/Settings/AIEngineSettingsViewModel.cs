@@ -116,6 +116,10 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _activeTtsInfo = "";
 
+    // ── Tooltip strings ────────────────────────────────────────────────────
+    public string TooltipSave => _loc.GetString("Common_Save");
+    public string TooltipDelete => _loc.GetString("Common_Delete");
+
     public AIEngineSettingsViewModel(
         ApiKeysSettingsViewModel apiKeys,
         OllamaSettingsViewModel ollama,

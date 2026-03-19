@@ -50,6 +50,8 @@ public sealed partial class AudioSettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _selectedUtilitySoundIndex = -1;
 
+    public string TooltipPreview => _loc.GetString("Settings_Audio_Preview");
+
     public AudioSettingsViewModel(SettingsManager settings, NotificationService notifications, LocalizationService loc)
     {
         _settings = settings;

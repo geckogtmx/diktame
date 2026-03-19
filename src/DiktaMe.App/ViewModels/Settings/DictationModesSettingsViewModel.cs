@@ -81,6 +81,14 @@ public sealed partial class DictationModesSettingsViewModel : ObservableObject
     [RelayCommand]
     private void SelectLocal() => IsCloudTab = false;
 
+    // ── Tooltip strings ────────────────────────────────────────────────────
+
+    public string TooltipNew => _loc.GetString("Settings_DictationModes_Tooltip_New");
+    public string TooltipMoveUp => _loc.GetString("Settings_DictationModes_Tooltip_MoveUp");
+    public string TooltipMoveDown => _loc.GetString("Settings_DictationModes_Tooltip_MoveDown");
+    public string TooltipDelete => _loc.GetString("Settings_DictationModes_Tooltip_Delete");
+    public string TooltipRefreshModels => _loc.GetString("Settings_DictationModes_Tooltip_RefreshModels");
+
     // ── Constructor ────────────────────────────────────────────────────────
 
     public DictationModesSettingsViewModel(
