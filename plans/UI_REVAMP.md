@@ -106,6 +106,13 @@ The current settings navigation has **9 items** (not 13 as previously stated). T
 8. **Account** (Tag: `account`) — Login, wallet balance, sync status.
 9. **About** (Tag: `about`) — Version, credits, tech stack links.
 
+### Menu Icon Updates
+Update the `FontIcon` glyphs in `SettingsWindow.xaml` to match the target mockups:
+- **AI Engine**: Update from Globe to a "Brain" or AI-centric network icon.
+- **Pipelines / Workflows**: Update to a "pipes" / flow connection icon.
+- **Snippets**: Update to code brackets (`</>`) icon.
+*(Added by Gemini)*
+
 ---
 
 ## 6. Premium Control Styling
@@ -232,6 +239,42 @@ Apply the glassmorphic theme to the main HUD.
 | 5.5 | Publish size impact (fonts + palettes should add < 500KB) |
 | 5.6 | Full test suite: `dotnet test DiktaMe.sln` |
 | 5.7 | Localization regression (WinUI3Localizer + l:Uids.Uid) |
+
+### Phase 6: Glassmorphic Settings Window Overhaul
+
+This phase implements the true glassmorphic aesthetic based on expert feedback. We will use a `LinearGradientBrush` on the root Grid and layered semi-transparent `SolidColorBrush` panels. No native Acrylic/Mica is needed, perfectly preserving our `ThemeService` architecture while keeping the ControlPanel opaque and untouched.
+
+#### Implementation Tasks:
+
+**6.1 ThemePalette & Brush Definitions**
+| Task | Description | Files |
+|------|-------------|-------|
+| 6.1.1 | Add 7 new fields to `ThemePalette` record: `GradientStart`, `GradientMid`, `GradientEnd`, `GlowBase`, `BackgroundTranslucent`, `SurfaceTranslucent`, `Surface2Translucent`. | `Services/ThemeService.cs` |
+| 6.1.2 | Map 3 new brush keys to translucent accessors in `BrushKeys`. | `Services/ThemeService.cs` |
+| 6.1.3 | Add translucent brush definitions (e.g., `AppBackgroundTranslucentBrush` `#D00A0918`) for fallback. | `Themes/SharedResources.xaml` |
+
+**6.2 SettingsWindow Gradient & Translucency**
+| Task | Description | Files |
+|------|-------------|-------|
+| 6.2.1 | Add 3-stop `LinearGradientBrush` as root Grid background. | `Views/SettingsWindow.xaml` |
+| 6.2.2 | Set `NavigationView` Background to `AppBackgroundTranslucentBrush` and `ContentFrame` to `AppSurface2TranslucentBrush`. | `Views/SettingsWindow.xaml` |
+| 6.2.3 | Add `ApplyGradientBackground(ThemePalette)` to wire gradient stops to the palette. | `Views/SettingsWindow.xaml.cs` |
+| 6.2.4 | Ensure `ThemeService` updates `NavigationViewDefaultPaneBackground` to use `BackgroundTranslucent`. | `Services/ThemeService.cs` |
+| 6.2.5 | Add top-right 500x400 subtle glow `Border` with diagonal gradient. Wire stops via `ApplyGradientBackground()` using `GlowBase` (Midnight: `#5A3D8F`, Ember: `#4A2010`, Frost: `#8090E0`) with ~21% → ~9% → 0% alpha levels. | `Views/SettingsWindow.xaml` |
+
+**6.3 Settings Page Sub-Nav Translucency**
+| Task | Description | Files |
+|------|-------------|-------|
+| 6.3.1 | Update left `Border` Background from `AppSurfaceBrush` to `AppSurfaceTranslucentBrush` across all 6 sub-nav pages (General, AIEngine, Hardware, Workflows, Presets, Snippets). Privacy, Account, and About remain Transparent. | `Views/Settings/*SettingsPage.xaml` |
+
+**6.4 Accent Color Alignment (Cyan Unification)**
+| Task | Description | Files |
+|------|-------------|-------|
+| 6.4.1 | Change `NavigationViewItemBackgroundSelected*` accessors from `p.NavActive` to `p.Accent` (Cyan). | `Services/ThemeService.cs` |
+| 6.4.2 | Change `ListViewItemSelectionIndicatorBrush` from `p.NavActive` to `p.Accent`. | `Services/ThemeService.cs` |
+| 6.4.3 | Change `ToggleSwitchFillOn*` and `ToggleSwitchStrokeOn*` from `p.NavActive` to `p.Accent`. | `Services/ThemeService.cs` |
+
+*(Integrated by Gemini based on expert feedback)*
 
 ---
 

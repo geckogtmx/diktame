@@ -43,13 +43,31 @@ public sealed partial class SettingsWindow : Window
         // Apply theme-appropriate glassmorphic gradient on theme change
         var themeService = App.Current.Services.GetRequiredService<ThemeService>();
         ApplyGlassmorphicGradient(ThemeService.GetPalette(themeService.CurrentTheme));
+        ApplyGradientBackground(ThemeService.GetPalette(themeService.CurrentTheme));
         themeService.ThemeChanged += (_, themeName) =>
         {
-            DispatcherQueue.TryEnqueue(() => ApplyGlassmorphicGradient(ThemeService.GetPalette(themeName)));
+            DispatcherQueue.TryEnqueue(() => 
+            {
+                var palette = ThemeService.GetPalette(themeName);
+                ApplyGlassmorphicGradient(palette);
+                ApplyGradientBackground(palette);
+            });
         };
 
         // Select General (first item) on load
         NavView.SelectedItem = NavView.MenuItems[0];
+    }
+
+    private void ApplyGradientBackground(ThemePalette palette)
+    {
+        BgGradStart.Color = palette.GradientStart;
+        BgGradMid.Color = palette.GradientMid;
+        BgGradEnd.Color = palette.GradientEnd;
+
+        // The glow uses 0x35 (~21%), 0x18 (~9%), and 0x00 opacity steps
+        GlowStop1.Color = Color.FromArgb(0x35, palette.GlowBase.R, palette.GlowBase.G, palette.GlowBase.B);
+        GlowStop2.Color = Color.FromArgb(0x18, palette.GlowBase.R, palette.GlowBase.G, palette.GlowBase.B);
+        GlowStop3.Color = Color.FromArgb(0x00, palette.GlowBase.R, palette.GlowBase.G, palette.GlowBase.B);
     }
 
     private void ApplyGlassmorphicGradient(ThemePalette palette)

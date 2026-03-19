@@ -26,7 +26,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Left: Sub-item list -->
-        <Border Background="{StaticResource AppSurfaceBrush}"
+        <Border Background="{StaticResource AppSurfaceTranslucentBrush}"
                 Padding="24">
             <StackPanel Spacing="8">
                 <TextBlock l:Uids.Uid="Settings_AIEngine_Title" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"
@@ -273,7 +273,9 @@
                 <TextBlock l:Uids.Uid="Settings_AIEngine_STT_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
 
                 <!-- Cloud / Local segmented toggle -->
-                <StackPanel Orientation="Horizontal" Spacing="0" Margin="0,0,0,4">
+                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,8" Padding="4"
+                            BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="1" CornerRadius="8"
+                            Background="{StaticResource AppBackgroundTranslucentBrush}" HorizontalAlignment="Left">
                     <Button Content="Cloud" Command="{x:Bind ViewModel.SelectSttCloudCommand}"
                             Style="{StaticResource SegmentedLeftActiveStyle}"
                             Visibility="{x:Bind ViewModel.IsSttCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
@@ -384,7 +386,9 @@
                 <TextBlock l:Uids.Uid="Settings_Ollama_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
 
                 <!-- Cloud / Local segmented toggle -->
-                <StackPanel Orientation="Horizontal" Spacing="0" Margin="0,0,0,4">
+                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,8" Padding="4"
+                            BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="1" CornerRadius="8"
+                            Background="{StaticResource AppBackgroundTranslucentBrush}" HorizontalAlignment="Left">
                     <Button Content="Cloud" Command="{x:Bind ViewModel.SelectLlmCloudCommand}"
                             Style="{StaticResource SegmentedLeftActiveStyle}"
                             Visibility="{x:Bind ViewModel.IsLlmCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
@@ -727,7 +731,9 @@
                 <TextBlock l:Uids.Uid="Settings_Tts_Title" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
 
                 <!-- Cloud / Local segmented toggle -->
-                <StackPanel Orientation="Horizontal" Spacing="0" Margin="0,0,0,4">
+                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,8" Padding="4"
+                            BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="1" CornerRadius="8"
+                            Background="{StaticResource AppBackgroundTranslucentBrush}" HorizontalAlignment="Left">
                     <Button Content="Cloud" Command="{x:Bind ViewModel.SelectTtsCloudCommand}"
                             Style="{StaticResource SegmentedLeftActiveStyle}"
                             Visibility="{x:Bind ViewModel.IsTtsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>

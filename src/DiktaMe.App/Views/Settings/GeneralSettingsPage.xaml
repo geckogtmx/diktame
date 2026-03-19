@@ -19,7 +19,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Left: Sub-item list -->
-        <Border Background="{StaticResource AppSurfaceBrush}"
+        <Border Background="{StaticResource AppSurfaceTranslucentBrush}"
                 Padding="24">
             <StackPanel Spacing="8">
                 <TextBlock l:Uids.Uid="Settings_General_Title" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12"

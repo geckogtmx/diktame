@@ -52,29 +52,29 @@
                     <SolidColorBrush x:Key="TextControlBackground" Color="#1E1D38"/>
                     <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#1E1D38"/>
                     <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#1E1D38"/>
-                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#FFFFFF0A"/>
-                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#FFFFFF40"/>
+                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#0AFFFFFF"/>
+                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#40FFFFFF"/>
                     <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#5DEBFF"/>
                     <SolidColorBrush x:Key="TextControlForeground" Color="#FFFFFF"/>
-                    <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#FFFFFF99"/>
+                    <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#99FFFFFF"/>
                     <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
 
                     <!-- ComboBox -->
                     <SolidColorBrush x:Key="ComboBoxBackground" Color="#1E1D38"/>
                     <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#1E1D38"/>
                     <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#1E1D38"/>
-                    <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#FFFFFF0A"/>
-                    <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#FFFFFF40"/>
+                    <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#0AFFFFFF"/>
+                    <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#40FFFFFF"/>
                     <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#5DEBFF"/>
                     <SolidColorBrush x:Key="ComboBoxForeground" Color="#FFFFFF"/>
                     <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#1E1D38"/>
-                    <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#FFFFFF14"/>
+                    <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#14FFFFFF"/>
                     <SolidColorBrush x:Key="ComboBoxDropDownForeground" Color="#FFFFFF"/>
 
                     <!-- ListView — selected item -->
-                    <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="#FFFFFF14"/>
-                    <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#FFFFFF1A"/>
-                    <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="#FFFFFF22"/>
+                    <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="#14FFFFFF"/>
+                    <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#1AFFFFFF"/>
+                    <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="#22FFFFFF"/>
                     <SolidColorBrush x:Key="ListViewItemForegroundSelected" Color="#FFFFFF"/>
                     <SolidColorBrush x:Key="ListViewItemSelectionIndicatorBrush" Color="#3B82F6"/>
 
@@ -87,17 +87,17 @@
                     <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#3B82F6"/>
 
                     <!-- ToggleSwitch — track stroke -->
-                    <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#FFFFFF14"/>
-                    <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="#FFFFFF99"/>
-                    <SolidColorBrush x:Key="ToggleSwitchStrokeOffPressed" Color="#FFFFFF99"/>
+                    <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#14FFFFFF"/>
+                    <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="#99FFFFFF"/>
+                    <SolidColorBrush x:Key="ToggleSwitchStrokeOffPressed" Color="#99FFFFFF"/>
                     <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#3B82F6"/>
                     <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#3B82F6"/>
                     <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#3B82F6"/>
 
                     <!-- ToggleSwitch — knob fill -->
-                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOff" Color="#FFFFFF99"/>
-                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPointerOver" Color="#FFFFFF99"/>
-                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPressed" Color="#FFFFFF99"/>
+                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOff" Color="#99FFFFFF"/>
+                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPointerOver" Color="#99FFFFFF"/>
+                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPressed" Color="#99FFFFFF"/>
                     <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFFFFF"/>
                     <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFF"/>
                     <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#E0E0E0"/>
@@ -108,19 +108,19 @@
                     <SolidColorBrush x:Key="ToggleSwitchContainerBackgroundPressed" Color="Transparent"/>
 
                     <!-- ToggleSwitch — content (On/Off label) foreground -->
-                    <SolidColorBrush x:Key="ToggleSwitchOnContentForeground" Color="#FFFFFF99"/>
-                    <SolidColorBrush x:Key="ToggleSwitchOffContentForeground" Color="#FFFFFF99"/>
+                    <SolidColorBrush x:Key="ToggleSwitchOnContentForeground" Color="#99FFFFFF"/>
+                    <SolidColorBrush x:Key="ToggleSwitchOffContentForeground" Color="#99FFFFFF"/>
 
                     <!-- NavigationView -->
                     <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#0A0918"/>
                     <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent"/>
                     <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent"/>
-                    <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#FFFFFF99"/>
+                    <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#99FFFFFF"/>
                     <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="#FFFFFF"/>
                     <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="#FFFFFF"/>
                     <SolidColorBrush x:Key="NavigationViewItemBackground" Color="Transparent"/>
-                    <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#FFFFFF05"/>
-                    <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#FFFFFF0A"/>
+                    <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#05FFFFFF"/>
+                    <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#0AFFFFFF"/>
                     <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#3B82F6"/>
                     <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#3B82F6"/>
                     <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#3B82F6"/>
@@ -152,8 +152,8 @@
                     <SolidColorBrush x:Key="TextControlBackground" Color="#F2F4FF"/>
                     <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#F2F4FF"/>
                     <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#F2F4FF"/>
-                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#0000000A"/>
-                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#00000040"/>
+                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#0A000000"/>
+                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#40000000"/>
                     <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#0EA5E9"/>
                     <SolidColorBrush x:Key="TextControlForeground" Color="#1A1A2E"/>
                     <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#1A1A2E99"/>
@@ -162,17 +162,17 @@
                     <SolidColorBrush x:Key="ComboBoxBackground" Color="#F2F4FF"/>
                     <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#F2F4FF"/>
                     <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#F2F4FF"/>
-                    <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#0000000A"/>
-                    <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#00000040"/>
+                    <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#0A000000"/>
+                    <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#40000000"/>
                     <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#0EA5E9"/>
                     <SolidColorBrush x:Key="ComboBoxForeground" Color="#1A1A2E"/>
                     <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#F2F4FF"/>
-                    <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#00000014"/>
+                    <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#14000000"/>
                     <SolidColorBrush x:Key="ComboBoxDropDownForeground" Color="#1A1A2E"/>
 
-                    <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="#00000014"/>
-                    <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#0000001A"/>
-                    <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="#00000022"/>
+                    <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="#14000000"/>
+                    <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#1A000000"/>
+                    <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="#22000000"/>
                     <SolidColorBrush x:Key="ListViewItemForegroundSelected" Color="#1A1A2E"/>
                     <SolidColorBrush x:Key="ListViewItemSelectionIndicatorBrush" Color="#38BDF8"/>
 
@@ -182,7 +182,7 @@
                     <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#38BDF8"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#38BDF8"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#38BDF8"/>
-                    <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#00000014"/>
+                    <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#14000000"/>
                     <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="#1A1A2E99"/>
                     <SolidColorBrush x:Key="ToggleSwitchStrokeOffPressed" Color="#1A1A2E99"/>
                     <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#38BDF8"/>
@@ -208,8 +208,8 @@
                     <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="#1A1A2E"/>
                     <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="#1A1A2E"/>
                     <SolidColorBrush x:Key="NavigationViewItemBackground" Color="Transparent"/>
-                    <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#00000005"/>
-                    <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#0000000A"/>
+                    <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#05000000"/>
+                    <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#0A000000"/>
                     <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#38BDF8"/>
                     <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#38BDF8"/>
                     <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#38BDF8"/>
@@ -222,3 +222,4 @@
         </ResourceDictionary>
     </Application.Resources>
 </Application>
+

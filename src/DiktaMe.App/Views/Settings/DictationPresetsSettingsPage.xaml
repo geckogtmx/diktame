@@ -23,7 +23,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Left: Preset list + toolbar -->
-        <Border Background="{StaticResource AppSurfaceBrush}"
+        <Border Background="{StaticResource AppSurfaceTranslucentBrush}"
                 Padding="24">
             <Grid RowSpacing="8">
                 <Grid.RowDefinitions>
@@ -87,20 +87,22 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Cloud / Local tab bar -->
-                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,8,0,4">
-                    <StackPanel>
-                        <Button Content="Cloud" Command="{x:Bind ViewModel.SelectCloudCommand}"
-                                Style="{StaticResource TabButtonStyle}"/>
-                        <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                Visibility="{x:Bind ViewModel.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
-                    </StackPanel>
-                    <StackPanel>
-                        <Button Content="Local" Command="{x:Bind ViewModel.SelectLocalCommand}"
-                                Style="{StaticResource TabButtonStyle}"/>
-                        <Border Height="2" Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                Visibility="{x:Bind ViewModel.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
-                    </StackPanel>
+                <!-- Cloud / Local segmented toggle -->
+                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,8,0,8" Padding="4"
+                            BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="1" CornerRadius="8"
+                            Background="{StaticResource AppBackgroundTranslucentBrush}" HorizontalAlignment="Left">
+                    <Button Content="Cloud" Command="{x:Bind ViewModel.SelectCloudCommand}"
+                            Style="{StaticResource SegmentedLeftActiveStyle}"
+                            Visibility="{x:Bind ViewModel.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                    <Button Content="Cloud" Command="{x:Bind ViewModel.SelectCloudCommand}"
+                            Style="{StaticResource SegmentedLeftStyle}"
+                            Visibility="{x:Bind ViewModel.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                    <Button Content="Local" Command="{x:Bind ViewModel.SelectLocalCommand}"
+                            Style="{StaticResource SegmentedRightActiveStyle}"
+                            Visibility="{x:Bind ViewModel.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                    <Button Content="Local" Command="{x:Bind ViewModel.SelectLocalCommand}"
+                            Style="{StaticResource SegmentedRightStyle}"
+                            Visibility="{x:Bind ViewModel.IsCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
                 </StackPanel>
 
                 <!-- ── Cloud tab content ─────────────────────────────── -->
