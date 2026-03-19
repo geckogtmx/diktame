@@ -32,8 +32,8 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Spacing="2" VerticalAlignment="Center">
-                        <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                        <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                     <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.PiiScrubEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
                 </Grid>

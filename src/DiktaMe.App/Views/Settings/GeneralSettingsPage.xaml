@@ -81,9 +81,9 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Spacing="2" VerticalAlignment="Center">
                             <TextBlock l:Uids.Uid="Settings_General_AutoStart_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
+                                       Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                             <TextBlock l:Uids.Uid="Settings_General_AutoStart_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                                       Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
                         <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AutoStart, Mode=TwoWay}" VerticalAlignment="Center"/>
                     </Grid>
@@ -104,9 +104,9 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Label" FontWeight="SemiBold"
-                                           Foreground="{StaticResource AppTextBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                                 <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Description" FontSize="12"
-                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                           Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ShowModesRow, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -118,9 +118,9 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Label" FontWeight="SemiBold"
-                                           Foreground="{StaticResource AppTextBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                                 <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Description" FontSize="12"
-                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                           Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ShowActionsRow, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -132,9 +132,9 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Label" FontWeight="SemiBold"
-                                           Foreground="{StaticResource AppTextBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                                 <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Description" FontSize="12"
-                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                           Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ShowSessionStats, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -146,9 +146,9 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Label" FontWeight="SemiBold"
-                                           Foreground="{StaticResource AppTextBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                                 <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Description" FontSize="12"
-                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                           Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ShowPerformanceStats, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -160,9 +160,9 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Label" FontWeight="SemiBold"
-                                           Foreground="{StaticResource AppTextBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                                 <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Description" FontSize="12"
-                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                           Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AlwaysOnTop, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -232,9 +232,9 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Label" FontWeight="SemiBold"
-                                           Foreground="{StaticResource AppTextBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                                 <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Description" FontSize="12"
-                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                           Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.VisualEffectsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -292,9 +292,9 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock l:Uids.Uid="Settings_AutoCollapse_Enable_Label" FontWeight="SemiBold"
-                                           Foreground="{StaticResource AppTextBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                                 <TextBlock l:Uids.Uid="Settings_AutoCollapse_Enable_Description" FontSize="12"
-                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                           Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AutoCollapseEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -327,9 +327,9 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Label" FontWeight="SemiBold"
-                                           Foreground="{StaticResource AppTextBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                                 <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Description" FontSize="12"
-                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                           Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AutoHideEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>

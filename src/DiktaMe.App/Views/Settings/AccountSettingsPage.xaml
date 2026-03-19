@@ -56,7 +56,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Use Wallet Proxy (Cloud STT + LLM)" FontWeight="SemiBold" VerticalAlignment="Center"
-                                       Foreground="{StaticResource AppTextBrush}"/>
+                                       Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.UseWalletProxy, Mode=TwoWay}" VerticalAlignment="Center"
                                           OnContent="Active" OffContent="Off"/>
                         </Grid>

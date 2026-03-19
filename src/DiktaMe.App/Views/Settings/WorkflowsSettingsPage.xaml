@@ -70,8 +70,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakAsk_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakAsk_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakAsk_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakAsk_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Tts.SpeakAskResponses, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
@@ -82,8 +82,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakChat_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakChat_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakChat_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakChat_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Tts.SpeakChatResponses, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
@@ -94,8 +94,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakTranslate_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakTranslate_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakTranslate_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakTranslate_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Tts.SpeakTranslations, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
@@ -106,8 +106,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakNotifications_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakNotifications_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakNotifications_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_SpeakNotifications_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Tts.SpeakNotifications, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
@@ -122,8 +122,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock l:Uids.Uid="Settings_Tts_DuckOtherApps_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                    <TextBlock l:Uids.Uid="Settings_Tts_DuckOtherApps_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_DuckOtherApps_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock l:Uids.Uid="Settings_Tts_DuckOtherApps_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Tts.DuckDuringPlayback, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
@@ -250,8 +250,8 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Spacing="2" VerticalAlignment="Center">
-                                        <TextBlock l:Uids.Uid="Settings_Modes_LlmProcessing_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                        <TextBlock l:Uids.Uid="Settings_Modes_LlmProcessing_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                        <TextBlock l:Uids.Uid="Settings_Modes_LlmProcessing_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                        <TextBlock l:Uids.Uid="Settings_Modes_LlmProcessing_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.UtilityPipelines.NoteUseLlmProcessing, Mode=TwoWay}" VerticalAlignment="Center"/>
                                 </Grid>

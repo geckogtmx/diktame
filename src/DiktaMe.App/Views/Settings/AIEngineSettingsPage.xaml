@@ -318,8 +318,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Punctuate_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.DeepgramPunctuate, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
@@ -330,8 +330,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Dictation_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.DeepgramDictation, Mode=TwoWay}"
                                               IsEnabled="{x:Bind ViewModel.IsDictationEnabled, Mode=OneWay}" VerticalAlignment="Center"/>
@@ -344,8 +344,8 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Spacing="2" VerticalAlignment="Center">
-                                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                        <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_SmartFormat_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.DeepgramSmartFormat, Mode=TwoWay}" VerticalAlignment="Center"/>
                                 </Grid>
@@ -359,8 +359,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock l:Uids.Uid="Settings_AIEngine_Deepgram_Streaming_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.DeepgramStreaming, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
@@ -1011,8 +1011,8 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
-                                <TextBlock l:Uids.Uid="Settings_Chat_AlwaysOnTop_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                <TextBlock l:Uids.Uid="Settings_Chat_AlwaysOnTop_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Chat_AlwaysOnTop_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                <TextBlock l:Uids.Uid="Settings_Chat_AlwaysOnTop_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Pipelines.ChatAlwaysOnTop, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -1054,8 +1054,8 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
-                                <TextBlock l:Uids.Uid="Settings_Chat_WebSearch_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                <TextBlock l:Uids.Uid="Settings_Chat_WebSearch_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Chat_WebSearch_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                <TextBlock l:Uids.Uid="Settings_Chat_WebSearch_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Pipelines.ChatWebSearchEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -1071,8 +1071,8 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
-                                <TextBlock l:Uids.Uid="Settings_Chat_ForgetOnClose_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                <TextBlock l:Uids.Uid="Settings_Chat_ForgetOnClose_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Chat_ForgetOnClose_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                <TextBlock l:Uids.Uid="Settings_Chat_ForgetOnClose_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Pipelines.ChatForgetOnClose, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -1092,8 +1092,8 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
-                                <TextBlock l:Uids.Uid="Settings_Chat_Timestamps_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                <TextBlock l:Uids.Uid="Settings_Chat_Timestamps_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Chat_Timestamps_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                <TextBlock l:Uids.Uid="Settings_Chat_Timestamps_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Pipelines.ChatShowTimestamps, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -1104,8 +1104,8 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
-                                <TextBlock l:Uids.Uid="Settings_Chat_Markdown_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                <TextBlock l:Uids.Uid="Settings_Chat_Markdown_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Chat_Markdown_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                <TextBlock l:Uids.Uid="Settings_Chat_Markdown_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Pipelines.ChatEnableMarkdown, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>

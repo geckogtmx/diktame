@@ -149,9 +149,9 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold"
-                                           Foreground="{StaticResource AppTextBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                                 <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12"
-                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                           Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.CloudTrailingSpace, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
@@ -181,9 +181,9 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold"
-                                           Foreground="{StaticResource AppTextBrush}"/>
+                                           Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
                                 <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12"
-                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                                           Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.LocalTrailingSpace, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
