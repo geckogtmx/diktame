@@ -26,10 +26,34 @@
              Row 0: Header Bar — Status dot + text + badges + gear
              ═══════════════════════════════════════════════════════════════ -->
         <Grid x:Name="HeaderBar" Grid.Row="0" Background="{StaticResource AppSurfaceBrush}"
-              Padding="12,4,12,11">
+              Padding="12,4,12,11" MinHeight="34">
             <!-- Transparent drag surface — SetTitleBar targets this, not the whole grid.
                  This gives buttons full pointer control (hold-click, etc.) -->
             <Border x:Name="DragRegion" Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+            <!-- Voice waveform container: fixed-size overlay with clipping to prevent
+                 the Polyline's measured bounds from influencing Grid layout.
+                 Negative margin counteracts HeaderBar padding so the waveform fills edge-to-edge. -->
+            <Grid x:Name="WaveformContainer"
+                  IsHitTestVisible="False"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  Margin="-12,-4,-12,-11">
+                <Polyline x:Name="WaveformLine"
+                          Stroke="{StaticResource AppAccentBrush}"
+                          StrokeThickness="1.5"
+                          Opacity="0"
+                          IsHitTestVisible="False"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top"
+                          StrokeLineJoin="Round"/>
+                <ContentControl x:Name="WaveformBars"
+                                Opacity="0"
+                                IsHitTestVisible="False"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"/>
+            </Grid>
+
             <StackPanel Orientation="Horizontal" Spacing="8"
                         HorizontalAlignment="Left" VerticalAlignment="Center">
                 <Ellipse Width="10" Height="10"

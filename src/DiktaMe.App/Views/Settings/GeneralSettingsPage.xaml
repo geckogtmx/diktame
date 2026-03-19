@@ -177,6 +177,48 @@
                                     Value="{x:Bind ViewModel.VisualEffectsIntensityPercent, Mode=TwoWay}"
                                     StepFrequency="5" TickFrequency="25" TickPlacement="BottomRight"/>
                         </StackPanel>
+
+                        <StackPanel Spacing="4"
+                                    Visibility="{x:Bind ViewModel.VisualEffectsEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <TextBlock l:Uids.Uid="Settings_Waveform_Style_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Waveform_Style_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <RadioButtons SelectedIndex="{x:Bind ViewModel.WaveformStyleIndex, Mode=TwoWay}">
+                                <RadioButton l:Uids.Uid="Settings_Waveform_Style_Wave"/>
+                                <RadioButton l:Uids.Uid="Settings_Waveform_Style_Bars"/>
+                                <RadioButton l:Uids.Uid="Settings_Waveform_Style_Off"/>
+                            </RadioButtons>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Auto-Collapse -->
+                <TextBlock l:Uids.Uid="Settings_AutoCollapse_Title" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"
+                           Foreground="{StaticResource AppTextBrush}"/>
+                <TextBlock l:Uids.Uid="Settings_AutoCollapse_Description" FontSize="13"
+                           Foreground="{StaticResource AppTextDimBrush}"/>
+
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_AutoCollapse_Enable_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_AutoCollapse_Enable_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ToggleSwitch IsOn="{x:Bind ViewModel.AutoCollapseEnabled, Mode=TwoWay}"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4"
+                                    Visibility="{x:Bind ViewModel.AutoCollapseEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <TextBlock l:Uids.Uid="Settings_AutoCollapse_Delay_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_AutoCollapse_Delay_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.AutoCollapseDelayLabels}"
+                                      SelectedIndex="{x:Bind ViewModel.AutoCollapseDelayIndex, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 

@@ -119,6 +119,17 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Restores full visibility after the window is shown from tray.
+    /// Resets both Win32 opacity and ControlPanelPage auto-hide/collapse state.
+    /// </summary>
+    public void RestoreFromTray()
+    {
+        SetOpacity(255);
+        var page = FindDescendant<Views.ControlPanelPage>(Content as DependencyObject);
+        page?.ResetAutoHideState();
+    }
+
     private void InstallDoubleClickHook(Views.ControlPanelPage? page)
     {
         var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);

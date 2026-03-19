@@ -285,6 +285,19 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [ObservableProperty]
     private double _visualEffectsIntensity = 0.5;
 
+    // ── Auto-collapse settings (read-only, consumed by code-behind timer) ─
+
+    [ObservableProperty]
+    private bool _autoCollapseEnabled;
+
+    [ObservableProperty]
+    private int _autoCollapseDelaySeconds = 10;
+
+    // ── Waveform style (read-only, consumed by code-behind timer) ────────
+
+    [ObservableProperty]
+    private string _waveformStyle = "Wave";
+
     // ── Auto-hide settings (read-only, consumed by code-behind timer) ───
 
     [ObservableProperty]
@@ -886,6 +899,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         VisualEffectsEnabled = settings.ControlPanel.VisualEffectsEnabled;
         VisualEffectsWholeApp = !string.Equals(settings.ControlPanel.VisualEffectsScope, "TopBarOnly", StringComparison.Ordinal);
         VisualEffectsIntensity = settings.ControlPanel.VisualEffectsIntensity;
+        AutoCollapseEnabled = settings.ControlPanel.AutoCollapseEnabled;
+        AutoCollapseDelaySeconds = settings.ControlPanel.AutoCollapseDelaySeconds;
+        WaveformStyle = settings.ControlPanel.WaveformStyle;
         AutoHideEnabled = settings.ControlPanel.AutoHideEnabled;
         AutoHideDelaySeconds = settings.ControlPanel.AutoHideDelaySeconds;
 

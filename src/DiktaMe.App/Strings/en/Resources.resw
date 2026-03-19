@@ -1282,6 +1282,55 @@
   <data name="Settings_VisualEffects_Intensity_Description.Text" xml:space="preserve">
     <value>Controls how strongly the background reacts to voice input</value>
   </data>
+  <data name="Settings_Waveform_Style_Label.Text" xml:space="preserve">
+    <value>Voice Waveform</value>
+  </data>
+  <data name="Settings_Waveform_Style_Description.Text" xml:space="preserve">
+    <value>Visual style for the voice activity indicator in the header bar</value>
+  </data>
+  <data name="Settings_Waveform_Style_Wave.Content" xml:space="preserve">
+    <value>Sine Wave</value>
+  </data>
+  <data name="Settings_Waveform_Style_Bars.Content" xml:space="preserve">
+    <value>Amplitude Bars</value>
+  </data>
+  <data name="Settings_Waveform_Style_Off.Content" xml:space="preserve">
+    <value>Off</value>
+  </data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > General > Auto-Collapse
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_AutoCollapse_Title.Text" xml:space="preserve">
+    <value>Auto-Collapse</value>
+  </data>
+  <data name="Settings_AutoCollapse_Description.Text" xml:space="preserve">
+    <value>Shrink the bar to show only the status indicator when idle. Only applies in bar mode.</value>
+  </data>
+  <data name="Settings_AutoCollapse_Enable_Label.Text" xml:space="preserve">
+    <value>Enable Auto-Collapse</value>
+  </data>
+  <data name="Settings_AutoCollapse_Enable_Description.Text" xml:space="preserve">
+    <value>Automatically collapse the bar after a period of inactivity</value>
+  </data>
+  <data name="Settings_AutoCollapse_Delay_Label.Text" xml:space="preserve">
+    <value>Collapse After</value>
+  </data>
+  <data name="Settings_AutoCollapse_Delay_Description.Text" xml:space="preserve">
+    <value>How long to wait before collapsing. Must be less than auto-hide delay.</value>
+  </data>
+  <data name="Settings_AutoCollapse_Delay_5s" xml:space="preserve">
+    <value>5 seconds</value>
+  </data>
+  <data name="Settings_AutoCollapse_Delay_10s" xml:space="preserve">
+    <value>10 seconds</value>
+  </data>
+  <data name="Settings_AutoCollapse_Delay_30s" xml:space="preserve">
+    <value>30 seconds</value>
+  </data>
+  <data name="Settings_AutoCollapse_Delay_1m" xml:space="preserve">
+    <value>1 minute</value>
+  </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > General > Auto-Hide

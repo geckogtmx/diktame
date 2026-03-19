@@ -13,6 +13,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Shapes;
 using Serilog;
 using Windows.Graphics;
 using Windows.UI;
@@ -54,6 +55,27 @@ public sealed partial class ControlPanelPage : Page
     private SolidColorBrush? _headerBarBrush;
     private Services.ThemeService? _themeService;
 
+    // ── Auto-collapse (bar width shrink) ─────────────────────────────────
+    private const int FullWidth = 420;
+    private const int CollapsedWidth = 170;
+    private const int CollapseAnimationTicks = 12; // ~400ms at 33ms/tick
+    private double _currentWidth = FullWidth;
+    private bool _isBarCollapsed;
+    private bool _isBarCollapsing;
+    private bool _isBarExpanding;
+    private double _collapseAnimProgress;
+
+    // ── Waveform ──────────────────────────────────────────────────────
+    private const int WaveformPoints = 40;
+    private const int WaveformBarCount = 20;
+    private const double WaveformFrequency = 2.5;
+    private double _waveformPhase;
+    private double _waveformAmplitude;
+    private double _waveformTargetAmplitude;
+    private double _waveformOpacity;
+    private string _waveformStyleCached = "Wave";
+    private Rectangle[]? _barElements;
+
     // Base colors (idle) → Bright colors (max glow) — derived from current theme palette
     private byte _baseBgR, _baseBgG, _baseBgB;
     private byte _brightBgR, _brightBgG, _brightBgB;
@@ -87,8 +109,15 @@ public sealed partial class ControlPanelPage : Page
             return;
         }
 
+        // During collapse/expand animation, width is driven by TickCollapseAnimation.
+        // Suppress height-change resizes to prevent the bar from drifting on screen.
+        if (_isBarCollapsing || _isBarExpanding || _isBarCollapsed)
+        {
+            return;
+        }
+
         double scale = XamlRoot?.RasterizationScale ?? 1.0;
-        int physicalWidth = (int)(420 * scale);
+        int physicalWidth = (int)(_currentWidth * scale);
         int physicalHeight = (int)(e.NewSize.Height * scale);
 
         var appWindow = window.AppWindow;
@@ -176,6 +205,21 @@ public sealed partial class ControlPanelPage : Page
             _expandUpward = ViewModel.ExpandUpward;
             ApplyExpandDirection(_expandUpward);
         }
+        else if (string.Equals(e.PropertyName, nameof(ControlPanelViewModel.IsExpanded), StringComparison.Ordinal))
+        {
+            if (ViewModel.IsExpanded && (_isBarCollapsed || _isBarCollapsing))
+            {
+                // User expanded panel — restore full width immediately
+                _isBarCollapsing = false;
+                _isBarCollapsed = false;
+                _isBarExpanding = false;
+                _collapseAnimProgress = 0;
+                _currentWidth = FullWidth;
+                HeaderButtons.Visibility = Visibility.Visible;
+                HeaderButtons.Opacity = 1.0;
+                ApplyWindowWidth(FullWidth);
+            }
+        }
     }
 
     private void ApplyExpandDirection(bool expandUpward)
@@ -246,6 +290,17 @@ public sealed partial class ControlPanelPage : Page
     {
         _levelMonitor = App.Current.Services.GetRequiredService<AudioLevelMonitor>();
         _loc = App.Current.Services.GetRequiredService<LocalizationService>();
+        InitializeWaveformBars();
+
+        // Keep the waveform container clipped so the Polyline's measured bounds
+        // never influence the HeaderBar grid layout (prevents text displacement).
+        WaveformContainer.SizeChanged += (_, e) =>
+        {
+            WaveformContainer.Clip = new Microsoft.UI.Xaml.Media.RectangleGeometry
+            {
+                Rect = new Windows.Foundation.Rect(0, 0, e.NewSize.Width, e.NewSize.Height),
+            };
+        };
 
         // Cache brush references from App-level resources — changing .Color updates every element
         var res = Application.Current.Resources;
@@ -273,8 +328,12 @@ public sealed partial class ControlPanelPage : Page
         this.Loaded += (_, _) => _effectTimer?.Start();
         this.Unloaded += (_, _) => _effectTimer?.Stop();
 
-        // Auto-hide pop-back triggers
-        RootGrid.PointerEntered += (_, _) => RestoreOpacity();
+        // Auto-hide + auto-collapse pop-back triggers
+        RootGrid.PointerEntered += (_, _) =>
+        {
+            RestoreOpacity();
+            RestoreBarWidth();
+        };
         var hotkeyMgr = App.Current.Services.GetService<HotkeyManager>();
         if (hotkeyMgr is not null)
         {
@@ -341,8 +400,9 @@ public sealed partial class ControlPanelPage : Page
     {
         _tickCount++;
 
-        // Auto-hide: runs independently of visual effects
-        TickAutoHide();
+        // Two-stage idle: collapse + hide. Runs independently of visual effects.
+        TickIdleBehavior();
+        TickCollapseAnimation();
 
         if (!ViewModel.VisualEffectsEnabled)
         {
@@ -385,6 +445,7 @@ public sealed partial class ControlPanelPage : Page
         {
             UpdateGlow(wholeApp, intensity);
             FadeShimmer();
+            UpdateWaveform();
         }
         else if (state is PipelineState.Transcribing
             or PipelineState.Processing
@@ -394,23 +455,28 @@ public sealed partial class ControlPanelPage : Page
         {
             FadeGlow(wholeApp);
             UpdateShimmer(wholeApp);
+            UpdateWaveform();
         }
         else
         {
             FadeGlow(wholeApp);
             FadeShimmer();
+            FadeWaveform();
         }
     }
 
-    // ── Auto-hide (window fade) ──────────────────────────────────────────
+    // ── Two-stage idle: collapse + hide ──────────────────────────────────
 
-    private void TickAutoHide()
+    private void TickIdleBehavior()
     {
-        bool enabled = ViewModel.AutoHideEnabled;
-        int delaySeconds = ViewModel.AutoHideDelaySeconds;
+        bool hideEnabled = ViewModel.AutoHideEnabled;
+        int hideDelay = ViewModel.AutoHideDelaySeconds;
+        bool collapseEnabled = ViewModel.AutoCollapseEnabled;
+        int collapseDelay = ViewModel.AutoCollapseDelaySeconds;
 
-        // Disabled or "Never" (0) — ensure fully opaque
-        if (!enabled || delaySeconds <= 0)
+        // If both features are completely disabled, reset state
+        bool anyEnabled = (hideEnabled && hideDelay > 0) || collapseEnabled;
+        if (!anyEnabled)
         {
             if (_currentOpacity < 255)
             {
@@ -427,6 +493,7 @@ public sealed partial class ControlPanelPage : Page
 
         if (isActive)
         {
+            // Activity restores OPACITY only, NOT width (hover-only expands)
             if (_currentOpacity < 255)
             {
                 RestoreOpacity();
@@ -439,16 +506,29 @@ public sealed partial class ControlPanelPage : Page
         // Count idle ticks
         _idleTicks++;
 
-        // Threshold: delay in seconds × 30 ticks/second
-        int threshold = delaySeconds * 30;
-        if (_idleTicks >= threshold)
+        // Stage 1: Collapse (only when bar mode + collapse enabled)
+        if (collapseEnabled && !ViewModel.IsExpanded)
         {
-            _isFadingOut = true;
+            int collapseThreshold = collapseDelay * 30;
+            if (_idleTicks >= collapseThreshold && !_isBarCollapsed && !_isBarCollapsing)
+            {
+                _isBarCollapsing = true;
+                _isBarExpanding = false;
+            }
+        }
+
+        // Stage 2: Hide (existing fade logic)
+        if (hideEnabled && hideDelay > 0)
+        {
+            int hideThreshold = hideDelay * 30;
+            if (_idleTicks >= hideThreshold)
+            {
+                _isFadingOut = true;
+            }
         }
 
         if (_isFadingOut && _currentOpacity > 5)
         {
-            // Fade out: decrement alpha by 8 per tick (~32 ticks = ~1s)
             _currentOpacity = (byte)Math.Max(5, _currentOpacity - 8);
             var mainWindow = App.Current.MainWindow as MainWindow;
             mainWindow?.SetOpacity(_currentOpacity);
@@ -466,6 +546,95 @@ public sealed partial class ControlPanelPage : Page
         _idleTicks = 0;
         _isFadingOut = false;
     }
+
+    /// <summary>
+    /// Resets auto-hide and auto-collapse state. Called when the window is shown
+    /// from the system tray to ensure the bar is fully visible and not faded.
+    /// </summary>
+    public void ResetAutoHideState()
+    {
+        RestoreOpacity();
+        RestoreBarWidth();
+    }
+
+    // ── Collapse/expand animation ─────────────────────────────────────
+
+    private void TickCollapseAnimation()
+    {
+        if (_isBarCollapsing)
+        {
+            _collapseAnimProgress = Math.Min(1.0, _collapseAnimProgress + 1.0 / CollapseAnimationTicks);
+            double t = EaseOut(_collapseAnimProgress);
+            _currentWidth = FullWidth - (FullWidth - CollapsedWidth) * t;
+
+            // Fade HeaderButtons (disappear in first 60% of animation)
+            double fadeT = Math.Min(1.0, _collapseAnimProgress / 0.6);
+            HeaderButtons.Opacity = 1.0 - fadeT;
+
+            ApplyWindowWidth((int)_currentWidth);
+
+            if (_collapseAnimProgress >= 1.0)
+            {
+                _isBarCollapsing = false;
+                _isBarCollapsed = true;
+                HeaderButtons.Visibility = Visibility.Collapsed;
+            }
+        }
+        else if (_isBarExpanding)
+        {
+            _collapseAnimProgress = Math.Max(0.0, _collapseAnimProgress - 1.0 / CollapseAnimationTicks);
+            double expandProgress = 1.0 - _collapseAnimProgress;
+            double t = EaseOut(expandProgress);
+            _currentWidth = CollapsedWidth + (FullWidth - CollapsedWidth) * t;
+
+            // Fade HeaderButtons back in (appear after 40% of expand)
+            double fadeT = Math.Max(0.0, (expandProgress - 0.4) / 0.6);
+            HeaderButtons.Opacity = fadeT;
+
+            ApplyWindowWidth((int)_currentWidth);
+
+            if (_collapseAnimProgress <= 0.0)
+            {
+                _isBarExpanding = false;
+                _isBarCollapsed = false;
+            }
+        }
+    }
+
+    private void ApplyWindowWidth(int widthDips)
+    {
+        var window = App.Current.MainWindow;
+        if (window is null)
+        {
+            return;
+        }
+
+        double scale = XamlRoot?.RasterizationScale ?? 1.0;
+        int physicalWidth = (int)(widthDips * scale);
+
+        var appWindow = window.AppWindow;
+        var current = appWindow.Size;
+
+        if (Math.Abs(current.Width - physicalWidth) <= 1)
+        {
+            return;
+        }
+
+        appWindow.Resize(new SizeInt32(physicalWidth, current.Height));
+    }
+
+    private void RestoreBarWidth()
+    {
+        if (_isBarCollapsed || _isBarCollapsing)
+        {
+            _isBarExpanding = true;
+            _isBarCollapsing = false;
+            HeaderButtons.Visibility = Visibility.Visible;
+            _idleTicks = 0;
+        }
+    }
+
+    private static double EaseOut(double t) => 1.0 - Math.Pow(1.0 - t, 3);
 
     // ── Glow effects ─────────────────────────────────────────────────────
 
@@ -676,5 +845,143 @@ public sealed partial class ControlPanelPage : Page
     {
         ShimmerOverlayFull.Opacity = 0;
         ShimmerOverlayHeader.Opacity = 0;
+    }
+
+    // ── Waveform engine ────────────────────────────────────────────────
+
+    private void InitializeWaveformBars()
+    {
+        var grid = new Grid
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Bottom,
+        };
+        // Create columns for even spacing across full width
+        for (int i = 0; i < WaveformBarCount; i++)
+        {
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        }
+        _barElements = new Rectangle[WaveformBarCount];
+        var accentBrush = (SolidColorBrush)Application.Current.Resources["AppAccentBrush"];
+        for (int i = 0; i < WaveformBarCount; i++)
+        {
+            _barElements[i] = new Rectangle
+            {
+                Width = 3,
+                Height = 2,
+                RadiusX = 1,
+                RadiusY = 1,
+                Fill = accentBrush,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Bottom,
+            };
+            Grid.SetColumn(_barElements[i], i);
+            grid.Children.Add(_barElements[i]);
+        }
+        WaveformBars.Content = grid;
+    }
+
+    private void UpdateWaveform()
+    {
+        _waveformStyleCached = ViewModel.WaveformStyle;
+        if (string.Equals(_waveformStyleCached, "Off", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        float level = _levelMonitor?.SmoothedLevel ?? 0f;
+        _waveformTargetAmplitude = Math.Sqrt(level);
+
+        // Smooth toward target — very fast attack for snappy voice reactivity, moderate decay
+        if (_waveformTargetAmplitude > _waveformAmplitude)
+        {
+            _waveformAmplitude += (_waveformTargetAmplitude - _waveformAmplitude) * 0.75;
+        }
+        else
+        {
+            _waveformAmplitude += (_waveformTargetAmplitude - _waveformAmplitude) * 0.35;
+        }
+
+        // Fade in quickly
+        _waveformOpacity = Math.Min(1.0, _waveformOpacity + 0.15);
+
+        if (string.Equals(_waveformStyleCached, "Wave", StringComparison.Ordinal))
+        {
+            UpdateWaveformSine();
+        }
+        else if (string.Equals(_waveformStyleCached, "Bars", StringComparison.Ordinal))
+        {
+            UpdateWaveformBars();
+        }
+    }
+
+    private void UpdateWaveformSine()
+    {
+        WaveformLine.Opacity = _waveformOpacity * 0.6;
+        WaveformBars.Opacity = 0;
+
+        _waveformPhase += 0.15; // faster phase advance for more visible movement
+
+        // Use WaveformContainer dimensions — it spans the full header area (negative margin cancels padding)
+        double width = WaveformContainer.ActualWidth > 0 ? WaveformContainer.ActualWidth : _currentWidth;
+        double height = WaveformContainer.ActualHeight > 0 ? WaveformContainer.ActualHeight : 34;
+        double centerY = height / 2.0;
+        // Use 80% of half-height so the wave nearly touches top and bottom edges
+        double maxHeight = centerY * 0.8;
+
+        var points = WaveformLine.Points;
+        points.Clear();
+        for (int i = 0; i < WaveformPoints; i++)
+        {
+            double t = (double)i / (WaveformPoints - 1);
+            double x = t * width;
+            double sine = Math.Sin(t * WaveformFrequency * 2 * Math.PI + _waveformPhase);
+            double y = centerY + sine * maxHeight * _waveformAmplitude;
+            points.Add(new Windows.Foundation.Point(x, y));
+        }
+    }
+
+    private void UpdateWaveformBars()
+    {
+        WaveformLine.Opacity = 0;
+        WaveformBars.Opacity = _waveformOpacity * 0.7;
+
+        if (_barElements is null)
+        {
+            return;
+        }
+
+        double containerHeight = WaveformContainer.ActualHeight > 0 ? WaveformContainer.ActualHeight : 34;
+        double maxBarHeight = containerHeight * 0.85; // fill nearly all the bar height
+        _waveformPhase += 0.12; // faster phase for snappier ripple
+
+        for (int i = 0; i < WaveformBarCount; i++)
+        {
+            double barPhase = (double)i / WaveformBarCount * Math.PI * 2 + _waveformPhase;
+            double barLevel = (Math.Sin(barPhase) * 0.5 + 0.5) * _waveformAmplitude;
+            _barElements[i].Height = Math.Max(2, barLevel * maxBarHeight);
+        }
+    }
+
+    private void FadeWaveform()
+    {
+        if (_waveformOpacity < 0.01)
+        {
+            WaveformLine.Opacity = 0;
+            WaveformBars.Opacity = 0;
+            return;
+        }
+
+        _waveformOpacity *= 0.85;
+        _waveformAmplitude *= 0.8;
+
+        if (string.Equals(_waveformStyleCached, "Wave", StringComparison.Ordinal))
+        {
+            UpdateWaveformSine();
+        }
+        else if (string.Equals(_waveformStyleCached, "Bars", StringComparison.Ordinal))
+        {
+            UpdateWaveformBars();
+        }
     }
 }

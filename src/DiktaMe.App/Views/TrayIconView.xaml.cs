@@ -66,6 +66,11 @@ public sealed partial class TrayIconView : UserControl, IDisposable
                 ViewModel.OpenControlPanelCommand.Execute(null);
                 break;
 
+            case MouseEvent.IconLeftDoubleClick:
+                Log.Debug("TrayIcon: double click — restoring window");
+                ViewModel.OpenControlPanelCommand.Execute(null);
+                break;
+
             case MouseEvent.IconRightMouseUp:
                 Log.Debug("TrayIcon: right click — showing context menu");
                 ShowContextMenu(e.Point);

@@ -198,6 +198,15 @@ public sealed record ControlPanelSettings
     /// <summary>Intensity of voice-level glow effects (0.0 = subtle, 1.0 = hardcore).</summary>
     public double VisualEffectsIntensity { get; init; } = 0.5;
 
+    /// <summary>Auto-collapse: shrink bar width after idle (bar mode only).</summary>
+    public bool AutoCollapseEnabled { get; init; } = false;
+
+    /// <summary>Seconds of idle before bar collapses. Must be ≤ AutoHideDelaySeconds when both are enabled.</summary>
+    public int AutoCollapseDelaySeconds { get; init; } = 10;
+
+    /// <summary>Waveform style: "Off", "Wave", or "Bars".</summary>
+    public string WaveformStyle { get; init; } = "Wave";
+
     /// <summary>Auto-hide: fade the control panel after idle.</summary>
     public bool AutoHideEnabled { get; init; } = false;
 

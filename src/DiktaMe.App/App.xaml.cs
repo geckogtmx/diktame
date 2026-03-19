@@ -370,6 +370,8 @@ public partial class App : Application
 
         _window.AppWindow.Show();
         _window.Activate();
+        // Restore full opacity and reset auto-hide state in case the window was faded
+        (_window as MainWindow)?.RestoreFromTray();
     }
 
     /// <summary>

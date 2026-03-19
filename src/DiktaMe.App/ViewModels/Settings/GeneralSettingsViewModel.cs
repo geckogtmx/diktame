@@ -84,6 +84,23 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
 
     public int[] AutoHideDelayValues { get; } = [10, 30, 60, 300, 0]; // 0 = Never
 
+    // ── Auto-Collapse fields ──────────────────────────────────────────
+
+    [ObservableProperty]
+    private bool _autoCollapseEnabled;
+
+    [ObservableProperty]
+    private int _autoCollapseDelayIndex; // 0=5s, 1=10s, 2=30s, 3=60s
+
+    public int[] AutoCollapseDelayValues { get; } = [5, 10, 30, 60];
+
+    // ── Waveform style fields ─────────────────────────────────────────
+
+    [ObservableProperty]
+    private int _waveformStyleIndex; // 0=Wave, 1=Bars, 2=Off
+
+    public string[] WaveformStyleValues { get; } = ["Wave", "Bars", "Off"];
+
     // ── Language fields ──────────────────────────────────────────────────
 
     [ObservableProperty]
@@ -129,6 +146,19 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         _loc.GetString("Settings_AutoHide_Delay_1m"),
         _loc.GetString("Settings_AutoHide_Delay_5m"),
         _loc.GetString("Settings_AutoHide_Delay_Never"),
+    ];
+
+    public string[] AutoCollapseDelayLabels => [
+        _loc.GetString("Settings_AutoCollapse_Delay_5s"),
+        _loc.GetString("Settings_AutoCollapse_Delay_10s"),
+        _loc.GetString("Settings_AutoCollapse_Delay_30s"),
+        _loc.GetString("Settings_AutoCollapse_Delay_1m"),
+    ];
+
+    public string[] WaveformStyleLabels => [
+        _loc.GetString("Settings_Waveform_Style_Wave"),
+        _loc.GetString("Settings_Waveform_Style_Bars"),
+        _loc.GetString("Settings_Waveform_Style_Off"),
     ];
 
     // ── Sub-item list ───────────────────────────────────────────────────
@@ -180,6 +210,9 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         VisualEffectsIntensityPercent = cp.VisualEffectsIntensity * 100;
         AutoHideEnabled = cp.AutoHideEnabled;
         AutoHideDelayIndex = Array.IndexOf(AutoHideDelayValues, cp.AutoHideDelaySeconds) is var ah and >= 0 ? ah : 1; // default 30s
+        AutoCollapseEnabled = cp.AutoCollapseEnabled;
+        AutoCollapseDelayIndex = Array.IndexOf(AutoCollapseDelayValues, cp.AutoCollapseDelaySeconds) is var ac and >= 0 ? ac : 1; // default 10s
+        WaveformStyleIndex = Array.IndexOf(WaveformStyleValues, cp.WaveformStyle) is var ws and >= 0 ? ws : 0; // default Wave
 
         _isLoading = false;
     }
@@ -206,6 +239,9 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     partial void OnVisualEffectsIntensityPercentChanged(double value) => Save();
     partial void OnAutoHideEnabledChanged(bool value) => Save();
     partial void OnAutoHideDelayIndexChanged(int value) => Save();
+    partial void OnAutoCollapseEnabledChanged(bool value) => Save();
+    partial void OnAutoCollapseDelayIndexChanged(int value) => Save();
+    partial void OnWaveformStyleIndexChanged(int value) => Save();
 
     partial void OnSelectedThemeIndexChanged(int value)
     {
@@ -243,9 +279,14 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
                 VisualEffectsEnabled = VisualEffectsEnabled,
                 VisualEffectsScope = VisualEffectsScopeIndex == 1 ? "TopBarOnly" : "WholeApp",
                 VisualEffectsIntensity = VisualEffectsIntensityPercent / 100.0,
+                AutoCollapseEnabled = AutoCollapseEnabled,
+                AutoCollapseDelaySeconds = AutoCollapseDelayIndex >= 0 && AutoCollapseDelayIndex < AutoCollapseDelayValues.Length
+                    ? AutoCollapseDelayValues[AutoCollapseDelayIndex] : 10,
+                WaveformStyle = WaveformStyleIndex >= 0 && WaveformStyleIndex < WaveformStyleValues.Length
+                    ? WaveformStyleValues[WaveformStyleIndex] : "Wave",
                 AutoHideEnabled = AutoHideEnabled,
-                AutoHideDelaySeconds = AutoHideDelayIndex >= 0 && AutoHideDelayIndex < AutoHideDelayValues.Length
-                    ? AutoHideDelayValues[AutoHideDelayIndex] : 5,
+                // Enforce constraint: hide delay ≥ collapse delay when both enabled
+                AutoHideDelaySeconds = EnforceHideDelay(),
             }
         };
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>
@@ -255,6 +296,25 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
                 Log.Error(t.Exception, "Failed to save general settings");
             }
         }, TaskScheduler.Default);
+    }
+
+    private int EnforceHideDelay()
+    {
+        int hideDelay = AutoHideDelayIndex >= 0 && AutoHideDelayIndex < AutoHideDelayValues.Length
+            ? AutoHideDelayValues[AutoHideDelayIndex] : 30;
+        // "Never" (0) is exempt from constraint
+        if (hideDelay == 0)
+        {
+            return 0;
+        }
+        int collapseDelay = AutoCollapseDelayIndex >= 0 && AutoCollapseDelayIndex < AutoCollapseDelayValues.Length
+            ? AutoCollapseDelayValues[AutoCollapseDelayIndex] : 10;
+        // When both enabled, hide delay must be ≥ collapse delay
+        if (AutoCollapseEnabled && AutoHideEnabled && hideDelay < collapseDelay)
+        {
+            return collapseDelay;
+        }
+        return hideDelay;
     }
 
     [RelayCommand]

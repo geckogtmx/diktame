@@ -484,6 +484,25 @@
   <data name="Settings_VisualEffects_Scope_TopBarOnly.Content" xml:space="preserve"><value>Solo Barra Superior</value></data>
   <data name="Settings_VisualEffects_Intensity_Label.Text" xml:space="preserve"><value>Intensidad del Brillo</value></data>
   <data name="Settings_VisualEffects_Intensity_Description.Text" xml:space="preserve"><value>Controla qu&#233; tan fuerte reacciona el fondo a la entrada de voz</value></data>
+  <data name="Settings_Waveform_Style_Label.Text" xml:space="preserve"><value>Forma de Onda de Voz</value></data>
+  <data name="Settings_Waveform_Style_Description.Text" xml:space="preserve"><value>Estilo visual del indicador de actividad de voz en la barra superior</value></data>
+  <data name="Settings_Waveform_Style_Wave.Content" xml:space="preserve"><value>Onda Sinusoidal</value></data>
+  <data name="Settings_Waveform_Style_Bars.Content" xml:space="preserve"><value>Barras de Amplitud</value></data>
+  <data name="Settings_Waveform_Style_Off.Content" xml:space="preserve"><value>Desactivado</value></data>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       Settings > General > Auto-Collapse
+       ══════════════════════════════════════════════════════════════════════ -->
+  <data name="Settings_AutoCollapse_Title.Text" xml:space="preserve"><value>Auto-Contraer</value></data>
+  <data name="Settings_AutoCollapse_Description.Text" xml:space="preserve"><value>Reducir la barra para mostrar solo el indicador de estado cuando est&#225; inactivo. Solo aplica en modo barra.</value></data>
+  <data name="Settings_AutoCollapse_Enable_Label.Text" xml:space="preserve"><value>Habilitar Auto-Contraer</value></data>
+  <data name="Settings_AutoCollapse_Enable_Description.Text" xml:space="preserve"><value>Contraer autom&#225;ticamente la barra despu&#233;s de un per&#237;odo de inactividad</value></data>
+  <data name="Settings_AutoCollapse_Delay_Label.Text" xml:space="preserve"><value>Contraer despu&#233;s de</value></data>
+  <data name="Settings_AutoCollapse_Delay_Description.Text" xml:space="preserve"><value>Cu&#225;nto tiempo esperar antes de contraer. Debe ser menor que el retraso de auto-ocultar.</value></data>
+  <data name="Settings_AutoCollapse_Delay_5s" xml:space="preserve"><value>5 segundos</value></data>
+  <data name="Settings_AutoCollapse_Delay_10s" xml:space="preserve"><value>10 segundos</value></data>
+  <data name="Settings_AutoCollapse_Delay_30s" xml:space="preserve"><value>30 segundos</value></data>
+  <data name="Settings_AutoCollapse_Delay_1m" xml:space="preserve"><value>1 minuto</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > General > Auto-Hide
