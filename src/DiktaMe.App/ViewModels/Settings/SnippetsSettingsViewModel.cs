@@ -2,8 +2,8 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DiktaMe.Core.Config;
 using DiktaMe.App.Services;
+using DiktaMe.Core.Config;
 using Serilog;
 
 namespace DiktaMe.App.ViewModels.Settings;
