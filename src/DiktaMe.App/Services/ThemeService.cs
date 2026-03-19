@@ -159,9 +159,9 @@ public sealed class ThemeService
         ("NavigationViewItemForegroundSelectedPressed", p => p.Text),
 
         // ToggleSwitch overrides
-        ("ToggleSwitchFillOff", p => p.Surface2),
-        ("ToggleSwitchFillOffPointerOver", p => p.Surface2),
-        ("ToggleSwitchFillOffPressed", p => p.Surface2),
+        ("ToggleSwitchFillOff", p => Color.FromArgb(0x00, 0, 0, 0)),
+        ("ToggleSwitchFillOffPointerOver", p => Color.FromArgb(0x00, 0, 0, 0)),
+        ("ToggleSwitchFillOffPressed", p => Color.FromArgb(0x00, 0, 0, 0)),
         ("ToggleSwitchFillOn", p => p.NavActive),
         ("ToggleSwitchFillOnPointerOver", p => p.NavActive),
         ("ToggleSwitchFillOnPressed", p => p.NavActive),

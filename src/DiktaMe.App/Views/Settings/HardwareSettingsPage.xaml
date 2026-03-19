@@ -78,13 +78,19 @@
 
                     <Border Style="{StaticResource SettingsCardStyle}">
                         <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
-                                <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Label" FontWeight="SemiBold"
-                                           Foreground="{StaticResource AppTextBrush}"/>
-                                <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Description" FontSize="12"
-                                           Foreground="{StaticResource AppTextDimBrush}"/>
-                                <ToggleSwitch IsOn="{x:Bind ViewModel.Audio.DuckingEnabled, Mode=TwoWay}"/>
-                            </StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Label" FontWeight="SemiBold"
+                                               Foreground="{StaticResource AppTextBrush}"/>
+                                    <TextBlock l:Uids.Uid="Settings_Audio_Ducking_Description" FontSize="12"
+                                               Foreground="{StaticResource AppTextDimBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Audio.DuckingEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            </Grid>
 
                             <StackPanel Spacing="4">
                                 <TextBlock l:Uids.Uid="Settings_Audio_DuckLevel_Label" FontWeight="SemiBold"
@@ -125,13 +131,19 @@
                 <StackPanel Spacing="16" Visibility="{x:Bind ViewModel.IsSoundFeedbackSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
                     <Border Style="{StaticResource SettingsCardStyle}">
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.Audio.SoundEnabled, Mode=TwoWay}"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_Audio_EnableSounds_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.Audio.SoundEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </Grid>
                     </Border>
 
                     <Border Style="{StaticResource SettingsCardStyle}">
@@ -149,7 +161,7 @@
                                     <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                             Command="{x:Bind ViewModel.Audio.PreviewStartSoundCommand}"
                                             IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"
-                                            ToolTipService.ToolTip="Preview"/>
+                                            ToolTipService.ToolTip="{x:Bind ViewModel.Audio.TooltipPreview, Mode=OneWay}"/>
                                 </StackPanel>
                             </StackPanel>
 
@@ -166,7 +178,7 @@
                                     <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                             Command="{x:Bind ViewModel.Audio.PreviewStopSoundCommand}"
                                             IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"
-                                            ToolTipService.ToolTip="Preview"/>
+                                            ToolTipService.ToolTip="{x:Bind ViewModel.Audio.TooltipPreview, Mode=OneWay}"/>
                                 </StackPanel>
                             </StackPanel>
 
@@ -183,7 +195,7 @@
                                     <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                             Command="{x:Bind ViewModel.Audio.PreviewUtilitySoundCommand}"
                                             IsEnabled="{x:Bind ViewModel.Audio.SoundEnabled, Mode=OneWay}"
-                                            ToolTipService.ToolTip="Preview"/>
+                                            ToolTipService.ToolTip="{x:Bind ViewModel.Audio.TooltipPreview, Mode=OneWay}"/>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>

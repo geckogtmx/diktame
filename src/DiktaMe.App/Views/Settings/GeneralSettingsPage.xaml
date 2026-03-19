@@ -74,13 +74,19 @@
 
                 <!-- Auto-start -->
                 <Border Style="{StaticResource SettingsCardStyle}">
-                    <StackPanel Spacing="4">
-                        <TextBlock l:Uids.Uid="Settings_General_AutoStart_Label" FontWeight="SemiBold"
-                                   Foreground="{StaticResource AppTextBrush}"/>
-                        <TextBlock l:Uids.Uid="Settings_General_AutoStart_Description" FontSize="12"
-                                   Foreground="{StaticResource AppTextDimBrush}"/>
-                        <ToggleSwitch IsOn="{x:Bind ViewModel.AutoStart, Mode=TwoWay}"/>
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                            <TextBlock l:Uids.Uid="Settings_General_AutoStart_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_General_AutoStart_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AutoStart, Mode=TwoWay}" VerticalAlignment="Center"/>
+                    </Grid>
                 </Border>
 
                 <!-- Control Panel Configuration -->
@@ -91,45 +97,75 @@
 
                 <Border Style="{StaticResource SettingsCardStyle}">
                     <StackPanel Spacing="16">
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.ShowModesRow, Mode=TwoWay}"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowModesRow_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ShowModesRow, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </Grid>
 
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.ShowActionsRow, Mode=TwoWay}"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowActionsRow_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ShowActionsRow, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </Grid>
 
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.ShowSessionStats, Mode=TwoWay}"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowSessionStats_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ShowSessionStats, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </Grid>
 
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.ShowPerformanceStats, Mode=TwoWay}"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_ControlPanel_ShowPerformanceStats_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ShowPerformanceStats, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </Grid>
 
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.AlwaysOnTop, Mode=TwoWay}"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_ControlPanel_AlwaysOnTop_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AlwaysOnTop, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </Grid>
 
                         <StackPanel Spacing="4">
                             <TextBlock l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Label" FontWeight="SemiBold"
@@ -189,13 +225,19 @@
 
                 <Border Style="{StaticResource SettingsCardStyle}">
                     <StackPanel Spacing="16">
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.VisualEffectsEnabled, Mode=TwoWay}"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_VisualEffects_Enable_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.VisualEffectsEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </Grid>
 
                         <StackPanel Spacing="4"
                                     Visibility="{x:Bind ViewModel.VisualEffectsEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
@@ -243,13 +285,19 @@
 
                 <Border Style="{StaticResource SettingsCardStyle}">
                     <StackPanel Spacing="16">
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_AutoCollapse_Enable_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_AutoCollapse_Enable_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.AutoCollapseEnabled, Mode=TwoWay}"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_AutoCollapse_Enable_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_AutoCollapse_Enable_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AutoCollapseEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </Grid>
 
                         <StackPanel Spacing="4"
                                     Visibility="{x:Bind ViewModel.AutoCollapseEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
@@ -272,13 +320,19 @@
 
                 <Border Style="{StaticResource SettingsCardStyle}">
                     <StackPanel Spacing="16">
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.AutoHideEnabled, Mode=TwoWay}"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_AutoHide_Enable_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AutoHideEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </Grid>
 
                         <StackPanel Spacing="4"
                                     Visibility="{x:Bind ViewModel.AutoHideEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">

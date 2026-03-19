@@ -26,11 +26,17 @@
 
             <!-- PII Scrubber -->
             <Border Style="{StaticResource SettingsCardStyle}">
-                <StackPanel Spacing="4">
-                    <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                    <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
-                    <ToggleSwitch IsOn="{x:Bind ViewModel.PiiScrubEnabled, Mode=TwoWay}"/>
-                </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                        <TextBlock l:Uids.Uid="Settings_Privacy_PiiScrubber_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.PiiScrubEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                </Grid>
             </Border>
 
             <!-- History Retention -->

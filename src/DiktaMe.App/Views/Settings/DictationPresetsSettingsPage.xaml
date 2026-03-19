@@ -50,20 +50,20 @@
                 </ListView>
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="4" Margin="0,4,0,0">
-                    <Button Content="+" ToolTipService.ToolTip="New Preset"
+                    <Button Content="+" ToolTipService.ToolTip="{x:Bind ViewModel.TooltipNew, Mode=OneWay}"
                             Command="{x:Bind ViewModel.CreateModeCommand}"
                             Width="36" Height="32"/>
-                    <Button ToolTipService.ToolTip="Move Up"
+                    <Button ToolTipService.ToolTip="{x:Bind ViewModel.TooltipMoveUp, Mode=OneWay}"
                             Command="{x:Bind ViewModel.MoveUpCommand}"
                             Width="36" Height="32">
                         <FontIcon Glyph="&#xE70E;" FontSize="12"/>
                     </Button>
-                    <Button ToolTipService.ToolTip="Move Down"
+                    <Button ToolTipService.ToolTip="{x:Bind ViewModel.TooltipMoveDown, Mode=OneWay}"
                             Command="{x:Bind ViewModel.MoveDownCommand}"
                             Width="36" Height="32">
                         <FontIcon Glyph="&#xE70D;" FontSize="12"/>
                     </Button>
-                    <Button ToolTipService.ToolTip="Delete Preset"
+                    <Button ToolTipService.ToolTip="{x:Bind ViewModel.TooltipDelete, Mode=OneWay}"
                             Command="{x:Bind ViewModel.DeleteModeCommand}"
                             Width="36" Height="32">
                         <FontIcon Glyph="&#xE74D;" FontSize="12"/>
@@ -122,7 +122,7 @@
                                           SelectedIndex="{x:Bind ViewModel.SelectedCloudModelIndex, Mode=TwoWay}"
                                           HorizontalAlignment="Stretch"
                                           IsEnabled="{x:Bind ViewModel.IsLoadingModels, Mode=OneWay, Converter={StaticResource BoolNeg}}"/>
-                                <Button Grid.Column="1" ToolTipService.ToolTip="Refresh model list"
+                                <Button Grid.Column="1" ToolTipService.ToolTip="{x:Bind ViewModel.TooltipRefreshModels, Mode=OneWay}"
                                         Command="{x:Bind ViewModel.RefreshModelsCommand}">
                                     <FontIcon Glyph="&#xE72C;" FontSize="14"/>
                                 </Button>
@@ -142,13 +142,19 @@
 
                     <Border Style="{StaticResource SettingsCardStyle}"
                             Visibility="{x:Bind ViewModel.IsDictationMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.CloudTrailingSpace, Mode=TwoWay}"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.CloudTrailingSpace, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </Grid>
                     </Border>
                 </StackPanel>
 
@@ -168,13 +174,19 @@
 
                     <Border Style="{StaticResource SettingsCardStyle}"
                             Visibility="{x:Bind ViewModel.IsDictationMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold"
-                                       Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12"
-                                       Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ToggleSwitch IsOn="{x:Bind ViewModel.LocalTrailingSpace, Mode=TwoWay}"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock l:Uids.Uid="Settings_General_TrailingSpace_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.LocalTrailingSpace, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </Grid>
                     </Border>
                 </StackPanel>
 

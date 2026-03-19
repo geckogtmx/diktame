@@ -83,9 +83,9 @@
                     <SolidColorBrush x:Key="SubNavItemForegroundSelected" Color="#0A0918"/>
 
                     <!-- ToggleSwitch — track fill -->
-                    <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#1E1D38"/>
-                    <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#1E1D38"/>
-                    <SolidColorBrush x:Key="ToggleSwitchFillOffPressed" Color="#1E1D38"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOffPressed" Color="Transparent"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#3B82F6"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#3B82F6"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#3B82F6"/>
@@ -183,9 +183,9 @@
                     <SolidColorBrush x:Key="SubNavItemBackgroundSelected" Color="#38BDF8"/>
                     <SolidColorBrush x:Key="SubNavItemForegroundSelected" Color="#F0F4FF"/>
 
-                    <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#F2F4FF"/>
-                    <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#F2F4FF"/>
-                    <SolidColorBrush x:Key="ToggleSwitchFillOffPressed" Color="#F2F4FF"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOffPressed" Color="Transparent"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#38BDF8"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#38BDF8"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#38BDF8"/>

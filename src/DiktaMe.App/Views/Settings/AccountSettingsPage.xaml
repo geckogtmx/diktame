@@ -50,11 +50,16 @@
                                    FontSize="28" FontWeight="Bold"/>
 
                         <!-- Wallet Proxy toggle -->
-                        <ToggleSwitch Header="Use Wallet Proxy (Cloud STT + LLM)"
-                                      IsOn="{x:Bind ViewModel.UseWalletProxy, Mode=TwoWay}"
-                                      Margin="0,8,0,0"
-                                      OnContent="Wallet active — all requests use cloud APIs"
-                                      OffContent="Off — using local/BYOK providers"/>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Use Wallet Proxy (Cloud STT + LLM)" FontWeight="SemiBold" VerticalAlignment="Center"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.UseWalletProxy, Mode=TwoWay}" VerticalAlignment="Center"
+                                          OnContent="Active" OffContent="Off"/>
+                        </Grid>
 
                         <!-- Action buttons -->
                         <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
