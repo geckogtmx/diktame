@@ -144,7 +144,7 @@ public sealed class ThemeService
 
         // NavigationView overrides
         ("NavigationViewDefaultPaneBackground", p => p.BackgroundTranslucent),
-        ("NavigationViewItemForeground", p => p.TextDim),
+        ("NavigationViewItemForeground", p => Color.FromArgb(0xB3, p.Text.R, p.Text.G, p.Text.B)),
         ("NavigationViewItemForegroundPointerOver", p => p.Text),
         ("NavigationViewItemForegroundPressed", p => p.Text),
         ("NavigationViewItemBackgroundSelected", p => p.Accent),

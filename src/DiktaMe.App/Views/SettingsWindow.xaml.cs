@@ -1,8 +1,10 @@
 
+using System.Collections.Generic;
 using DiktaMe.App.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Serilog;
 using Windows.UI;
@@ -16,6 +18,17 @@ public sealed partial class SettingsWindow : Window
     private bool _suppressNextSelection;
     private object? _selectionBeforeClick; // the item that was selected before the current click
     private object? _currentSelection;     // the currently selected item
+    private readonly ThemeService _themeService;
+    private readonly Dictionary<NavigationViewItem, NavItemBrushes> _navBrushes = new();
+
+    /// <summary>Holds per-item local brush refs injected into NavigationViewItem.Resources.</summary>
+    private sealed record NavItemBrushes(
+        SolidColorBrush Foreground,
+        SolidColorBrush ForegroundPointerOver,
+        SolidColorBrush ForegroundPressed,
+        SolidColorBrush ForegroundSelected,
+        SolidColorBrush ForegroundSelectedPointerOver,
+        SolidColorBrush ForegroundSelectedPressed);
 
     public SettingsWindow()
     {
@@ -41,21 +54,35 @@ public sealed partial class SettingsWindow : Window
         };
 
         // Apply theme-appropriate glassmorphic gradient on theme change
-        var themeService = App.Current.Services.GetRequiredService<ThemeService>();
-        ApplyGlassmorphicGradient(ThemeService.GetPalette(themeService.CurrentTheme));
-        ApplyGradientBackground(ThemeService.GetPalette(themeService.CurrentTheme));
-        themeService.ThemeChanged += (_, themeName) =>
+        _themeService = App.Current.Services.GetRequiredService<ThemeService>();
+        ApplyGlassmorphicGradient(ThemeService.GetPalette(_themeService.CurrentTheme));
+        ApplyGradientBackground(ThemeService.GetPalette(_themeService.CurrentTheme));
+        _themeService.ThemeChanged += (_, themeName) =>
         {
-            DispatcherQueue.TryEnqueue(() => 
+            DispatcherQueue.TryEnqueue(() =>
             {
                 var palette = ThemeService.GetPalette(themeName);
                 ApplyGlassmorphicGradient(palette);
                 ApplyGradientBackground(palette);
+                ApplyNavItemColors();
             });
         };
 
+        // Inject per-item local ThemeResource brush overrides for nav text contrast.
+        // Each NavigationViewItem gets its own brush instances in its Resources dict,
+        // so WinUI's VisualStateManager resolves them locally (no global bleed).
+        var initPalette = ThemeService.GetPalette(_themeService.CurrentTheme);
+        foreach (var menuItem in NavView.MenuItems)
+        {
+            if (menuItem is NavigationViewItem navItem)
+            {
+                _navBrushes[navItem] = InjectNavItemBrushes(navItem, initPalette, isSelected: false);
+            }
+        }
+
         // Select General (first item) on load
         NavView.SelectedItem = NavView.MenuItems[0];
+        ApplyNavItemColors();
     }
 
     private void ApplyGradientBackground(ThemePalette palette)
@@ -131,6 +158,9 @@ public sealed partial class SettingsWindow : Window
         {
             Log.Error(ex, "SettingsWindow: CRASH navigating to {Page}", pageType?.Name);
         }
+
+        // Update nav item foreground colors (selected = dark on blue bg, deselected = dim)
+        ApplyNavItemColors();
     }
 
     private void NavView_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
@@ -157,5 +187,90 @@ public sealed partial class SettingsWindow : Window
         }
 
         e.Handled = true;
+    }
+
+    // ── Nav item foreground colors (per-item local ThemeResource overrides) ──
+
+    /// <summary>
+    /// Creates 6 SolidColorBrush instances and injects them into the NavigationViewItem's
+    /// Resources dictionary. WinUI's VisualStateManager resolves {ThemeResource} keys from
+    /// the nearest scope — these local brushes take priority over App.xaml globals.
+    /// </summary>
+    private static NavItemBrushes InjectNavItemBrushes(NavigationViewItem navItem, ThemePalette palette, bool isSelected)
+    {
+        var brushes = CreateBrushSet(palette, isSelected);
+
+        navItem.Resources["NavigationViewItemForeground"] = brushes.Foreground;
+        navItem.Resources["NavigationViewItemForegroundPointerOver"] = brushes.ForegroundPointerOver;
+        navItem.Resources["NavigationViewItemForegroundPressed"] = brushes.ForegroundPressed;
+        navItem.Resources["NavigationViewItemForegroundSelected"] = brushes.ForegroundSelected;
+        navItem.Resources["NavigationViewItemForegroundSelectedPointerOver"] = brushes.ForegroundSelectedPointerOver;
+        navItem.Resources["NavigationViewItemForegroundSelectedPressed"] = brushes.ForegroundSelectedPressed;
+
+        return brushes;
+    }
+
+    private static NavItemBrushes CreateBrushSet(ThemePalette palette, bool isSelected)
+    {
+        if (isSelected)
+        {
+            // Selected item: dark text on blue/accent background — all states dark
+            var dark = palette.Background;
+            return new NavItemBrushes(
+                Foreground: new SolidColorBrush(dark),
+                ForegroundPointerOver: new SolidColorBrush(dark),
+                ForegroundPressed: new SolidColorBrush(dark),
+                ForegroundSelected: new SolidColorBrush(dark),
+                ForegroundSelectedPointerOver: new SolidColorBrush(dark),
+                ForegroundSelectedPressed: new SolidColorBrush(dark));
+        }
+
+        // Non-selected item: 70% text normal, accent on hover, full text on press
+        var normal = Color.FromArgb(0xB3, palette.Text.R, palette.Text.G, palette.Text.B);
+        return new NavItemBrushes(
+            Foreground: new SolidColorBrush(normal),
+            ForegroundPointerOver: new SolidColorBrush(palette.NavActive),
+            ForegroundPressed: new SolidColorBrush(palette.Text),
+            ForegroundSelected: new SolidColorBrush(palette.Background),
+            ForegroundSelectedPointerOver: new SolidColorBrush(palette.Background),
+            ForegroundSelectedPressed: new SolidColorBrush(palette.Background));
+    }
+
+    /// <summary>
+    /// Mutates existing local brush colors in-place based on current selection state.
+    /// Called on selection change and theme change.
+    /// </summary>
+    private void ApplyNavItemColors()
+    {
+        var palette = ThemeService.GetPalette(_themeService.CurrentTheme);
+        var dark = palette.Background;
+        var normal = Color.FromArgb(0xB3, palette.Text.R, palette.Text.G, palette.Text.B);
+
+        foreach (var menuItem in NavView.MenuItems)
+        {
+            if (menuItem is NavigationViewItem navItem && _navBrushes.TryGetValue(navItem, out var brushes))
+            {
+                bool isSelected = ReferenceEquals(navItem, NavView.SelectedItem);
+
+                if (isSelected)
+                {
+                    brushes.Foreground.Color = dark;
+                    brushes.ForegroundPointerOver.Color = dark;
+                    brushes.ForegroundPressed.Color = dark;
+                    brushes.ForegroundSelected.Color = dark;
+                    brushes.ForegroundSelectedPointerOver.Color = dark;
+                    brushes.ForegroundSelectedPressed.Color = dark;
+                }
+                else
+                {
+                    brushes.Foreground.Color = normal;
+                    brushes.ForegroundPointerOver.Color = palette.NavActive;
+                    brushes.ForegroundPressed.Color = palette.Text;
+                    brushes.ForegroundSelected.Color = dark;
+                    brushes.ForegroundSelectedPointerOver.Color = dark;
+                    brushes.ForegroundSelectedPressed.Color = dark;
+                }
+            }
+        }
     }
 }
