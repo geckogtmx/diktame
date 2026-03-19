@@ -142,6 +142,10 @@ public sealed class ThemeService
         ("ListViewItemForegroundSelected", p => p.Text),
         ("ListViewItemSelectionIndicatorBrush", p => p.Accent),
 
+        // Sub-nav (settings pages) selected item
+        ("SubNavItemBackgroundSelected", p => p.Accent),
+        ("SubNavItemForegroundSelected", p => p.Background),
+
         // NavigationView overrides
         ("NavigationViewDefaultPaneBackground", p => p.BackgroundTranslucent),
         ("NavigationViewItemForeground", p => Color.FromArgb(0xB3, p.Text.R, p.Text.G, p.Text.B)),

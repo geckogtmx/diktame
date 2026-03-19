@@ -445,73 +445,43 @@ Button labels are inline content (not localized Uids) — keep English for V1, c
 
 ---
 
-## 9. Bug 3: Nav Text Contrast — WinUI 3 ThemeResource Gotcha
+## 9. Bug 3: Nav Text Contrast — RESOLVED ✅
 
 ### Problem
-Settings sidebar nav items (General, Audio, Motor IA, etc.) have white text on hover and selected states. User wants blue text on hover and dark text on selected (against the blue selected background).
+Settings sidebar nav items had white text on the blue selected background — poor contrast. Two prior approaches failed: global ThemeResource mutation (bleed across all items) and code-behind `.Foreground` (overridden by VisualState Setters inside the template).
 
-### Failed approach: NavigationViewItemForeground* ThemeResource keys
+### Solution: Per-Item Local ThemeResource Overrides
 
-Changed `NavigationViewItemForegroundPointerOver` → `p.NavActive` (blue) and `NavigationViewItemForegroundSelected` → `p.Background` (dark navy) in both `ThemeService.cs` BrushKeys array and `App.xaml` ThemeDictionaries.
+Verified via WinUI 3 `generic.xaml` inspection: NavigationViewItemPresenter's VisualState Setters use `{ThemeResource NavigationViewItemForegroundSelected}` with an empty `<Grid.Resources/>` — no internal overrides to shadow. ThemeResource resolution walks: Presenter → **NavigationViewItem** (our brushes) → NavigationView → Window → App.
 
-**Result**: ALL nav item text turned dark/invisible — not just selected or hovered items. Attempted 3 times with same failure.
+**Main nav (SettingsWindow.xaml.cs)**:
+- Each `NavigationViewItem` gets 6 local `SolidColorBrush` instances injected into `.Resources` at construction time
+- `ApplyNavItemColors()` mutates `.Color` in-place on selection change and theme change
+- No pointer event handlers needed — VisualStateManager transitions between states using local brushes
+- Selected: `p.Background` (dark navy), Hover: `p.NavActive` (blue), Normal: 70% `p.Text`
 
-### Root cause
+**Sub-nav (4 settings page ListViews)**:
+- Custom `SubNavItemBackgroundSelected`/`SubNavItemForegroundSelected` brushes in App.xaml ThemeDictionaries
+- `<StaticResource x:Key="ListViewItem..." ResourceKey="SubNavItem..."/>` aliases in `<ListView.Resources>`
+- Removed hardcoded `Foreground="{StaticResource AppTextBrush}"` from DataTemplate TextBlocks
+- Column width 230px → 250px to prevent text clipping
 
-WinUI 3's `NavigationViewItem` template uses `{ThemeResource NavigationViewItemForeground}` as the base `Style.Setter` for `Foreground`, with per-state overrides via `VisualState.Setters` targeting `ContentPresenter.Foreground`. When `ThemeService.ApplyTheme()` mutates the `SolidColorBrush.Color` of ThemeDictionary entries at runtime, the VisualStateManager does NOT cleanly re-resolve per-state brushes after state transitions. Items that have transitioned through selected/hover states retain stale brush references, causing the dark color to bleed across all items.
+### Why previous approaches failed
 
-**Key lesson**: `NavigationViewItemForeground*` ThemeResource keys CANNOT be used for differentiated per-state foreground colors when using runtime brush Color mutation (our ThemeService pattern). They are safe to set identically (e.g., all to `p.Text` = white), but setting different colors per state causes cross-contamination.
+1. **Global ThemeResource mutation**: All items shared the same `SolidColorBrush` instance. Mutating `.Color` on the "Selected" brush made ALL items dark because WinUI's VisualStateManager doesn't cleanly re-resolve per-state brushes after transitions.
 
-### Attempted approach 2: Code-behind in SettingsWindow.xaml.cs
+2. **Code-behind `.Foreground`**: The template's VisualState Setters target `ContentPresenter.Foreground` via `{ThemeResource}`, bypassing the outer `.Foreground` property entirely.
 
-Applied foreground colors directly on each `NavigationViewItem` element via:
-- `SelectionChanged` handler: selected item → `p.Background` (dark navy), previously-selected → `p.TextDim`
-- `PointerEntered` / `PointerExited` handlers: hover → `p.NavActive` (blue), exit → `p.TextDim` (unless selected)
-- `ThemeChanged` handler: re-apply all foreground colors from new palette
-- Uses `ReferenceEquals(navItem, NavView.SelectedItem)` (not `==`) to avoid CS0253
+3. **Per-item local Resources**: Each item gets SEPARATE brush instances. VisualStateManager resolves from the item's local scope. No sharing = no bleed. No `.Foreground` = no bypass.
 
-**Result**: Partially working but user reports:
-1. **Selected item contrast poor** — `p.Background` (#0A0918 dark navy on Midnight) against the blue NavigationViewItem selected background doesn't read well
-2. **Hover contrast not distinctive enough** — `p.NavActive` (#3B82F6 blue) may be getting overridden by WinUI VisualState Setters
-3. **Non-selected items too gray** — `p.TextDim` (#99FFFFFF = white at 60% opacity) looks washed out compared to original full-white text
+### Files
 
-**Suspected additional root cause**: WinUI 3's `NavigationViewItem` ControlTemplate uses `VisualState.Setters` to target `ContentPresenter.Foreground` with `{ThemeResource NavigationViewItemForeground*}` values. These VisualState Setters may **override** the outer `NavigationViewItem.Foreground` property set via code-behind, since VisualState Setters have higher precedence than local values in the WinUI property system.
+| File | Change |
+|------|--------|
+| `SettingsWindow.xaml.cs` | `NavItemBrushes` record + `InjectNavItemBrushes()` + `CreateBrushSet()` + rewritten `ApplyNavItemColors()`. Removed pointer handlers. |
+| `ThemeService.cs` | `NavigationViewItemForeground` → 70% alpha. Added `SubNavItemBackgroundSelected`/`SubNavItemForegroundSelected` entries. |
+| `App.xaml` | `NavigationViewItemForeground` opacity 60%→70%. Added `SubNavItem*` brushes in both ThemeDictionaries. |
+| 4 settings pages | `<ListView.Resources>` with `StaticResource` aliases. Removed hardcoded TextBlock Foreground. Width 230→250. |
+| `DictationPresetsSettingsPage.xaml` | Width 230→250 only. |
 
-### Current state of code-behind (in SettingsWindow.xaml.cs)
-
-```csharp
-// Methods implemented:
-private void ApplyNavItemColors()  // Sets all items: selected=p.Background, others=p.TextDim
-private void NavItem_PointerEntered(...)  // Non-selected → p.NavActive
-private void NavItem_PointerExited(...)   // Non-selected → p.TextDim
-
-// Called from:
-// - Constructor (after NavView.SelectedItem = NavView.MenuItems[0])
-// - NavView_SelectionChanged (after ContentFrame.Navigate)
-// - ThemeChanged handler
-```
-
-### What still needs investigation
-
-1. **VisualState precedence**: The code-behind sets `NavigationViewItem.Foreground`, but the template's `VisualState.Setters` may target `ContentPresenter.Foreground` directly — the inner ContentPresenter may ignore the outer Foreground if the VisualState Setter overrides it. Need to either:
-   - Walk the visual tree to find the `ContentPresenter` and set its `Foreground` directly
-   - Or override the ThemeResource keys with **new SolidColorBrush instances** (not mutated existing ones) — create fresh brushes in code-behind and inject them into the item's local `Resources` dictionary
-   - Or use a completely custom `Style` for `NavigationViewItem` with explicit `VisualState.Setters` that reference code-behind-controlled brushes
-
-2. **Color choices**: Even if the mechanism works, the colors may need tuning:
-   - Selected: instead of `p.Background` (nearly black), try white or a contrasting bright color
-   - Non-selected: instead of `p.TextDim` (60% opacity white), use `p.Text` (full white) for better readability
-   - Hover: `p.NavActive` is correct conceptually but needs to survive VisualState overrides
-
-3. **Per-item Resources approach**: Create a `SolidColorBrush` with key `NavigationViewItemForeground` in each item's local `Resources` dictionary. VisualState Setters resolve `{ThemeResource}` starting from the element's local resources, so this would override the app-level value per-item without ThemeService mutation issues.
-
-### Files (current state)
-
-| File | State |
-|------|-------|
-| `ThemeService.cs` | REVERTED — all `NavigationViewItemForeground*` back to `p.Text` |
-| `App.xaml` | REVERTED — all `NavigationViewItemForeground*` back to `#FFFFFF` / `#1A1A2E` |
-| `SettingsWindow.xaml.cs` | Code-behind approach IMPLEMENTED but NOT producing good results |
-| `SegmentedButtonStyle.xaml` | `AppNavActiveBrush` on active pill (safe, uses StaticResource) — KEEP |
-
-### Status: UNRESOLVED — needs fresh investigation
+### Status: RESOLVED ✅

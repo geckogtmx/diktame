@@ -78,6 +78,10 @@
                     <SolidColorBrush x:Key="ListViewItemForegroundSelected" Color="#FFFFFF"/>
                     <SolidColorBrush x:Key="ListViewItemSelectionIndicatorBrush" Color="#3B82F6"/>
 
+                    <!-- Sub-nav selected item (settings pages only) -->
+                    <SolidColorBrush x:Key="SubNavItemBackgroundSelected" Color="#3B82F6"/>
+                    <SolidColorBrush x:Key="SubNavItemForegroundSelected" Color="#0A0918"/>
+
                     <!-- ToggleSwitch — track fill -->
                     <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#1E1D38"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#1E1D38"/>
@@ -175,6 +179,9 @@
                     <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="#22000000"/>
                     <SolidColorBrush x:Key="ListViewItemForegroundSelected" Color="#1A1A2E"/>
                     <SolidColorBrush x:Key="ListViewItemSelectionIndicatorBrush" Color="#38BDF8"/>
+
+                    <SolidColorBrush x:Key="SubNavItemBackgroundSelected" Color="#38BDF8"/>
+                    <SolidColorBrush x:Key="SubNavItemForegroundSelected" Color="#F0F4FF"/>
 
                     <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#F2F4FF"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#F2F4FF"/>

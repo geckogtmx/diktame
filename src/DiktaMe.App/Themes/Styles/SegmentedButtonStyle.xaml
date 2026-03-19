@@ -22,7 +22,7 @@
     <!-- ACTIVE style: Subtle glass background, bright text -->
     <Style x:Key="SegmentedActiveStyle" TargetType="Button" BasedOn="{StaticResource SegmentedButtonBase}">
         <Setter Property="Background" Value="{StaticResource AppSurfaceTranslucentBrush}"/>
-        <Setter Property="Foreground" Value="{StaticResource AppTextBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource AppNavActiveBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="BorderBrush" Value="{StaticResource AppBorderBrush}"/>
     </Style>
