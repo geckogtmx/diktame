@@ -274,6 +274,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [ObservableProperty]
     private bool _alwaysOnTop;
 
+    [ObservableProperty]
+    private string _barPosition = "TopRight";
+
     // ── Visual effects settings (read-only, consumed by code-behind timer) ──
 
     [ObservableProperty]
@@ -698,6 +701,30 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         Log.Information("ControlPanel: ExpandUpward set to {ExpandUpward}", value);
     }
 
+    partial void OnBarPositionChanged(string value)
+    {
+        if (!_suppressSave)
+        {
+            var updated = _settings.Current with
+            {
+                ControlPanel = _settings.Current.ControlPanel with
+                {
+                    BarPosition = value
+                }
+            };
+            _ = _settings.UpdateAsync(updated);
+
+            // Auto-set expand direction based on position
+            bool isBottom = value.StartsWith("Bottom", StringComparison.Ordinal);
+            if (isBottom != ExpandUpward)
+            {
+                ExpandUpward = isBottom;
+            }
+        }
+
+        Log.Information("ControlPanel: BarPosition set to {BarPosition}", value);
+    }
+
     partial void OnAlwaysOnTopChanged(bool value)
     {
         if (!_suppressSave)
@@ -899,6 +926,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         VisualEffectsEnabled = settings.ControlPanel.VisualEffectsEnabled;
         VisualEffectsWholeApp = !string.Equals(settings.ControlPanel.VisualEffectsScope, "TopBarOnly", StringComparison.Ordinal);
         VisualEffectsIntensity = settings.ControlPanel.VisualEffectsIntensity;
+        BarPosition = settings.ControlPanel.BarPosition ?? "TopRight";
         AutoCollapseEnabled = settings.ControlPanel.AutoCollapseEnabled;
         AutoCollapseDelaySeconds = settings.ControlPanel.AutoCollapseDelaySeconds;
         WaveformStyle = settings.ControlPanel.WaveformStyle;

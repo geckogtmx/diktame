@@ -472,6 +472,14 @@
   <data name="Settings_ControlPanel_ExpandDirection_Description.Text" xml:space="preserve"><value>Elige si el panel se expande hacia abajo o arriba desde la barra. Tip: mantén presionado el botón de colapsar para invertir.</value></data>
   <data name="Settings_ControlPanel_ExpandDirection_Down.Content" xml:space="preserve"><value>Abajo (barra arriba)</value></data>
   <data name="Settings_ControlPanel_ExpandDirection_Up.Content" xml:space="preserve"><value>Arriba (barra abajo)</value></data>
+  <data name="Settings_ControlPanel_BarPosition_Label.Text" xml:space="preserve"><value>Posición de la Barra</value></data>
+  <data name="Settings_ControlPanel_BarPosition_Description.Text" xml:space="preserve"><value>Fijar el panel de control en una posición de pantalla.</value></data>
+  <data name="Settings_ControlPanel_BarPosition_TopLeft.Content" xml:space="preserve"><value>Arriba Izq.</value></data>
+  <data name="Settings_ControlPanel_BarPosition_TopCenter.Content" xml:space="preserve"><value>Arriba Centro</value></data>
+  <data name="Settings_ControlPanel_BarPosition_TopRight.Content" xml:space="preserve"><value>Arriba Der.</value></data>
+  <data name="Settings_ControlPanel_BarPosition_BottomLeft.Content" xml:space="preserve"><value>Abajo Izq.</value></data>
+  <data name="Settings_ControlPanel_BarPosition_BottomCenter.Content" xml:space="preserve"><value>Abajo Centro</value></data>
+  <data name="Settings_ControlPanel_BarPosition_BottomRight.Content" xml:space="preserve"><value>Abajo Der.</value></data>
 
   <!-- Efectos Visuales -->
   <data name="Settings_VisualEffects_Title.Text" xml:space="preserve"><value>Efectos Visuales</value></data>

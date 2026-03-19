@@ -207,6 +207,9 @@ public sealed record ControlPanelSettings
     /// <summary>Waveform style: "Off", "Wave", or "Bars".</summary>
     public string WaveformStyle { get; init; } = "Wave";
 
+    /// <summary>Screen snap position: TopLeft, TopCenter, TopRight, BottomLeft, BottomCenter, BottomRight.</summary>
+    public string BarPosition { get; init; } = "TopRight";
+
     /// <summary>Auto-hide: fade the control panel after idle.</summary>
     public bool AutoHideEnabled { get; init; } = false;
 

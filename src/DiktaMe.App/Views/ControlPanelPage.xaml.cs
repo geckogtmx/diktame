@@ -14,6 +14,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
+using Microsoft.UI.Windowing;
 using Serilog;
 using Windows.Graphics;
 using Windows.UI;
@@ -67,7 +68,7 @@ public sealed partial class ControlPanelPage : Page
 
     // ── Waveform ──────────────────────────────────────────────────────
     private const int WaveformPoints = 40;
-    private const int WaveformBarCount = 20;
+    private const int WaveformBarCount = 40;
     private const double WaveformFrequency = 2.5;
     private double _waveformPhase;
     private double _waveformAmplitude;
@@ -75,6 +76,7 @@ public sealed partial class ControlPanelPage : Page
     private double _waveformOpacity;
     private string _waveformStyleCached = "Wave";
     private Rectangle[]? _barElements;
+    private bool _barsGradientDirty = true;
 
     // Base colors (idle) → Bright colors (max glow) — derived from current theme palette
     private byte _baseBgR, _baseBgG, _baseBgB;
@@ -196,6 +198,9 @@ public sealed partial class ControlPanelPage : Page
         // Double-click on header is handled at Win32 level (WM_NCLBUTTONDBLCLK)
         // in MainWindow.cs — SetTitleBar routes pointer events to the OS,
         // so XAML DoubleTapped never fires on the title bar element.
+
+        // Apply initial bar position from saved settings
+        SnapToPosition(ViewModel.BarPosition);
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -215,10 +220,14 @@ public sealed partial class ControlPanelPage : Page
                 _isBarExpanding = false;
                 _collapseAnimProgress = 0;
                 _currentWidth = FullWidth;
-                HeaderButtons.Visibility = Visibility.Visible;
+                HeaderButtons.IsHitTestVisible = true;
                 HeaderButtons.Opacity = 1.0;
                 ApplyWindowWidth(FullWidth);
             }
+        }
+        else if (string.Equals(e.PropertyName, nameof(ControlPanelViewModel.BarPosition), StringComparison.Ordinal))
+        {
+            SnapToPosition(ViewModel.BarPosition);
         }
     }
 
@@ -370,6 +379,9 @@ public sealed partial class ControlPanelPage : Page
         _brightTxtR = 255; _brightTxtG = 255; _brightTxtB = 255;
         _brightTxt2R = 255; _brightTxt2G = 255; _brightTxt2B = 255;
         _brightGrnR = 255; _brightGrnG = 255; _brightGrnB = 255;
+
+        // Recompute bar gradient colors on next waveform tick
+        _barsGradientDirty = true;
 
         // Update header bar brush to match new surface color
         if (_headerBarBrush is not null)
@@ -577,7 +589,8 @@ public sealed partial class ControlPanelPage : Page
             {
                 _isBarCollapsing = false;
                 _isBarCollapsed = true;
-                HeaderButtons.Visibility = Visibility.Collapsed;
+                HeaderButtons.Opacity = 0;
+                HeaderButtons.IsHitTestVisible = false;
             }
         }
         else if (_isBarExpanding)
@@ -620,7 +633,19 @@ public sealed partial class ControlPanelPage : Page
             return;
         }
 
-        appWindow.Resize(new SizeInt32(physicalWidth, current.Height));
+        // For center positions, re-center horizontally as width changes
+        string pos = ViewModel.BarPosition ?? "TopRight";
+        if (pos.EndsWith("Center", StringComparison.Ordinal))
+        {
+            var position = appWindow.Position;
+            int deltaW = physicalWidth - current.Width;
+            int newX = position.X - deltaW / 2;
+            appWindow.MoveAndResize(new RectInt32(newX, position.Y, physicalWidth, current.Height));
+        }
+        else
+        {
+            appWindow.Resize(new SizeInt32(physicalWidth, current.Height));
+        }
     }
 
     private void RestoreBarWidth()
@@ -629,7 +654,7 @@ public sealed partial class ControlPanelPage : Page
         {
             _isBarExpanding = true;
             _isBarCollapsing = false;
-            HeaderButtons.Visibility = Visibility.Visible;
+            HeaderButtons.IsHitTestVisible = true;
             _idleTicks = 0;
         }
     }
@@ -856,7 +881,6 @@ public sealed partial class ControlPanelPage : Page
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Bottom,
         };
-        // Create columns for even spacing across full width
         for (int i = 0; i < WaveformBarCount; i++)
         {
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -871,6 +895,7 @@ public sealed partial class ControlPanelPage : Page
                 Height = 2,
                 RadiusX = 1,
                 RadiusY = 1,
+                Opacity = 0,
                 Fill = accentBrush,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Bottom,
@@ -879,6 +904,7 @@ public sealed partial class ControlPanelPage : Page
             grid.Children.Add(_barElements[i]);
         }
         WaveformBars.Content = grid;
+        _barsGradientDirty = true;
     }
 
     private void UpdateWaveform()
@@ -899,7 +925,7 @@ public sealed partial class ControlPanelPage : Page
         }
         else
         {
-            _waveformAmplitude += (_waveformTargetAmplitude - _waveformAmplitude) * 0.35;
+            _waveformAmplitude += (_waveformTargetAmplitude - _waveformAmplitude) * 0.65;
         }
 
         // Fade in quickly
@@ -944,22 +970,62 @@ public sealed partial class ControlPanelPage : Page
     private void UpdateWaveformBars()
     {
         WaveformLine.Opacity = 0;
-        WaveformBars.Opacity = _waveformOpacity * 0.7;
-
         if (_barElements is null)
         {
             return;
         }
 
+        if (_barsGradientDirty)
+        {
+            ApplyBarGradientColors();
+            _barsGradientDirty = false;
+        }
+
         double containerHeight = WaveformContainer.ActualHeight > 0 ? WaveformContainer.ActualHeight : 34;
-        double maxBarHeight = containerHeight * 0.85; // fill nearly all the bar height
-        _waveformPhase += 0.12; // faster phase for snappier ripple
+        double barHeight = containerHeight * 0.85;
+
+        // VU level meter: amplitude controls how many bars are lit left-to-right
+        double litCount = _waveformAmplitude * WaveformBarCount;
 
         for (int i = 0; i < WaveformBarCount; i++)
         {
-            double barPhase = (double)i / WaveformBarCount * Math.PI * 2 + _waveformPhase;
-            double barLevel = (Math.Sin(barPhase) * 0.5 + 0.5) * _waveformAmplitude;
-            _barElements[i].Height = Math.Max(2, barLevel * maxBarHeight);
+            _barElements[i].Height = barHeight;
+            if (i < (int)litCount)
+            {
+                _barElements[i].Opacity = _waveformOpacity * 0.8;
+            }
+            else if (i < litCount + 1 && litCount > 0)
+            {
+                double frac = litCount - (int)litCount;
+                _barElements[i].Opacity = frac * _waveformOpacity * 0.8;
+            }
+            else
+            {
+                _barElements[i].Opacity = 0;
+            }
+        }
+
+        WaveformBars.Opacity = 1;
+    }
+
+    private void ApplyBarGradientColors()
+    {
+        if (_barElements is null)
+        {
+            return;
+        }
+
+        var palette = Services.ThemeService.GetPalette(_themeService?.CurrentTheme ?? "Midnight");
+        var from = palette.Accent;
+        var to = palette.GlowBase;
+
+        for (int i = 0; i < _barElements.Length; i++)
+        {
+            float t = (float)i / (_barElements.Length - 1);
+            byte r = (byte)(from.R + (int)((to.R - from.R) * t));
+            byte g = (byte)(from.G + (int)((to.G - from.G) * t));
+            byte b = (byte)(from.B + (int)((to.B - from.B) * t));
+            _barElements[i].Fill = new SolidColorBrush(Color.FromArgb(255, r, g, b));
         }
     }
 
@@ -983,5 +1049,74 @@ public sealed partial class ControlPanelPage : Page
         {
             UpdateWaveformBars();
         }
+    }
+
+    // ── Snap-to-position ──────────────────────────────────────────────────
+
+    private void SnapToPosition(string position)
+    {
+        var window = App.Current.MainWindow;
+        if (window is null)
+        {
+            return;
+        }
+
+        var appWindow = window.AppWindow;
+        var windowId = appWindow.Id;
+
+        DisplayArea displayArea;
+        try
+        {
+            displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
+        }
+        catch
+        {
+            // Fallback if display area lookup fails (e.g., during startup before window is visible)
+            displayArea = DisplayArea.Primary;
+        }
+
+        if (displayArea is null)
+        {
+            return;
+        }
+
+        var workArea = displayArea.WorkArea;
+        var windowSize = appWindow.Size;
+
+        int x, y;
+
+        switch (position)
+        {
+            case "TopLeft":
+                x = workArea.X;
+                y = workArea.Y;
+                break;
+            case "TopCenter":
+                x = workArea.X + (workArea.Width - windowSize.Width) / 2;
+                y = workArea.Y;
+                break;
+            case "TopRight":
+                x = workArea.X + workArea.Width - windowSize.Width;
+                y = workArea.Y;
+                break;
+            case "BottomLeft":
+                x = workArea.X;
+                y = workArea.Y + workArea.Height - windowSize.Height;
+                break;
+            case "BottomCenter":
+                x = workArea.X + (workArea.Width - windowSize.Width) / 2;
+                y = workArea.Y + workArea.Height - windowSize.Height;
+                break;
+            case "BottomRight":
+                x = workArea.X + workArea.Width - windowSize.Width;
+                y = workArea.Y + workArea.Height - windowSize.Height;
+                break;
+            default:
+                Log.Warning("ControlPanel: Unknown BarPosition '{Position}', ignoring", position);
+                return;
+        }
+
+        appWindow.Move(new PointInt32(x, y));
+        Log.Information("ControlPanel: Snapped to {Position} ({X},{Y})", position, x, y);
     }
 }

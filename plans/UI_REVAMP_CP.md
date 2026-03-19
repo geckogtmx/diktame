@@ -213,3 +213,305 @@ Only visible during activity (recording/processing). Fades in when recording sta
 ---
 
 **Status:** Approved Plan | **Priority:** Medium | **Target:** V2.1 UI Refresh Phase 4+
+
+---
+
+## 8. CP.9 — Snap Bar to Screen Position
+
+### Overview
+
+Add a **snap-to-position** feature: the Control Panel bar can be placed at 6 predefined screen positions. Selecting a position in Settings instantly moves the bar to that spot. Position is persisted across restarts.
+
+```
+┌─────────────────────────────────────┐
+│ ┌──────┐  ┌──────────┐  ┌──────┐   │
+│ │TopL  │  │TopCenter │  │TopR  │   │
+│ └──────┘  └──────────┘  └──────┘   │
+│                                     │
+│                                     │
+│ ┌──────┐  ┌──────────┐  ┌──────┐   │
+│ │BotL  │  │BotCenter │  │BotR  │   │
+│ └──────┘  └──────────┘  └──────┘   │
+└─────────────────────────────────────┘
+```
+
+**Positions**: `TopLeft`, `TopCenter`, `TopRight`, `BottomLeft`, `BottomCenter`, `BottomRight`
+
+**Behavior**:
+- Selecting a position instantly moves the bar (no animation)
+- Bottom positions auto-set `ExpandUpward = true`; top positions auto-set `ExpandUpward = false`
+- Position is applied on app startup (after `MainWindow` creates the `AppWindow`)
+- Bar width uses `_currentWidth` (420 full / 170 collapsed) for correct centering
+- A small margin (8px) keeps the bar from touching screen edges
+
+### CP.9.1 — Settings Model
+
+**File**: `src/DiktaMe.Core/Config/AppSettings.cs`
+
+Add to `ControlPanelSettings` record:
+```csharp
+/// <summary>Screen snap position: TopLeft, TopCenter, TopRight, BottomLeft, BottomCenter, BottomRight.</summary>
+public string BarPosition { get; init; } = "TopRight";
+```
+
+### CP.9.2 — ControlPanelViewModel
+
+**File**: `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs`
+
+- Add `[ObservableProperty] private string _barPosition = "TopRight";`
+- In `LoadFromSettings()`: `BarPosition = settings.ControlPanel.BarPosition ?? "TopRight";`
+- Add change handler:
+  ```csharp
+  partial void OnBarPositionChanged(string value)
+  {
+      if (!_suppressSave)
+      {
+          var updated = _settings.Current with
+          {
+              ControlPanel = _settings.Current.ControlPanel with { BarPosition = value }
+          };
+          _ = _settings.UpdateAsync(updated);
+
+          // Auto-set expand direction based on position
+          bool isBottom = value.StartsWith("Bottom", StringComparison.Ordinal);
+          if (isBottom != ExpandUpward)
+          {
+              ExpandUpward = isBottom;
+          }
+      }
+  }
+  ```
+
+### CP.9.3 — Snap Position Engine
+
+**File**: `src/DiktaMe.App/Views/ControlPanelPage.xaml.cs`
+
+Add `SnapToPosition()` method:
+```csharp
+private void SnapToPosition(string position)
+{
+    var window = App.Current.MainWindow;
+    if (window is null) return;
+
+    var appWindow = window.AppWindow;
+    var windowId = appWindow.Id;
+    var displayArea = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(
+        windowId, Microsoft.UI.Windowing.DisplayAreaFallback.Primary);
+    var workArea = displayArea.WorkArea; // excludes taskbar
+
+    double scale = XamlRoot?.RasterizationScale ?? 1.0;
+    int barWidth = (int)(_currentWidth * scale);
+    int barHeight = appWindow.Size.Height;
+    int margin = (int)(8 * scale); // 8 DIP margin from edges
+
+    int x, y;
+    switch (position)
+    {
+        case "TopLeft":
+            x = workArea.X + margin;
+            y = workArea.Y + margin;
+            break;
+        case "TopCenter":
+            x = workArea.X + (workArea.Width - barWidth) / 2;
+            y = workArea.Y + margin;
+            break;
+        case "TopRight":
+            x = workArea.X + workArea.Width - barWidth - margin;
+            y = workArea.Y + margin;
+            break;
+        case "BottomLeft":
+            x = workArea.X + margin;
+            y = workArea.Y + workArea.Height - barHeight - margin;
+            break;
+        case "BottomCenter":
+            x = workArea.X + (workArea.Width - barWidth) / 2;
+            y = workArea.Y + workArea.Height - barHeight - margin;
+            break;
+        case "BottomRight":
+            x = workArea.X + workArea.Width - barWidth - margin;
+            y = workArea.Y + workArea.Height - barHeight - margin;
+            break;
+        default:
+            return; // unknown position, don't move
+    }
+
+    appWindow.Move(new Windows.Graphics.PointInt32(x, y));
+}
+```
+
+**Wire it**:
+- Call from `ViewModel.PropertyChanged` handler when `BarPosition` changes
+- Call once during initialization (after `XamlRoot` is available) to apply saved position on startup
+- Also call from `ApplyWindowWidth()` when bar width changes during collapse/expand — recenter if position is `*Center`
+
+### CP.9.4 — Settings UI
+
+**File**: `src/DiktaMe.App/Views/Settings/GeneralSettingsPage.xaml`
+
+Add a new section between "Control Panel Configuration" and "Visual Effects" cards:
+
+```xaml
+<!-- Bar Position -->
+<TextBlock l:Uids.Uid="Settings_BarPosition_Title"
+           FontSize="18" FontWeight="Bold"
+           Foreground="{StaticResource AppTextBrush}" Margin="0,24,0,4"/>
+<TextBlock l:Uids.Uid="Settings_BarPosition_Description"
+           FontSize="12" Foreground="{StaticResource AppTextDimBrush}" Margin="0,0,0,8"/>
+
+<Border Style="{StaticResource SettingsCardStyle}">
+    <StackPanel Spacing="8">
+        <!-- 3x2 grid of position buttons -->
+        <Grid ColumnSpacing="8" RowSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Button Content="&#xE110; Top Left" Grid.Row="0" Grid.Column="0"
+                    Command="{x:Bind ViewModel.SetBarPositionCommand}"
+                    CommandParameter="TopLeft"
+                    HorizontalAlignment="Stretch" MinHeight="36"/>
+            <Button Content="&#xE110; Top Center" Grid.Row="0" Grid.Column="1"
+                    Command="{x:Bind ViewModel.SetBarPositionCommand}"
+                    CommandParameter="TopCenter"
+                    HorizontalAlignment="Stretch" MinHeight="36"/>
+            <Button Content="&#xE110; Top Right" Grid.Row="0" Grid.Column="2"
+                    Command="{x:Bind ViewModel.SetBarPositionCommand}"
+                    CommandParameter="TopRight"
+                    HorizontalAlignment="Stretch" MinHeight="36"/>
+            <Button Content="&#xE110; Bottom Left" Grid.Row="1" Grid.Column="0"
+                    Command="{x:Bind ViewModel.SetBarPositionCommand}"
+                    CommandParameter="BottomLeft"
+                    HorizontalAlignment="Stretch" MinHeight="36"/>
+            <Button Content="&#xE110; Bottom Center" Grid.Row="1" Grid.Column="1"
+                    Command="{x:Bind ViewModel.SetBarPositionCommand}"
+                    CommandParameter="BottomCenter"
+                    HorizontalAlignment="Stretch" MinHeight="36"/>
+            <Button Content="&#xE110; Bottom Right" Grid.Row="1" Grid.Column="2"
+                    Command="{x:Bind ViewModel.SetBarPositionCommand}"
+                    CommandParameter="BottomRight"
+                    HorizontalAlignment="Stretch" MinHeight="36"/>
+        </Grid>
+    </StackPanel>
+</Border>
+```
+
+**File**: `src/DiktaMe.App/ViewModels/Settings/GeneralSettingsViewModel.cs`
+
+- Add `[RelayCommand] private void SetBarPosition(string position)` that updates the setting
+- The command saves to settings, which fires `SettingsChanged`, which ControlPanelViewModel picks up and triggers `SnapToPosition()`
+
+### CP.9.5 — Localization
+
+**Files**: `src/DiktaMe.App/Strings/en/Resources.resw`, `es-MX/Resources.resw`
+
+| Key | English | Spanish |
+|-----|---------|---------|
+| `Settings_BarPosition_Title.Text` | Bar Position | Posición de la Barra |
+| `Settings_BarPosition_Description.Text` | Choose where the control panel bar snaps to on your screen | Elige dónde se coloca la barra del panel de control en tu pantalla |
+
+Button labels are inline content (not localized Uids) — keep English for V1, can localize later.
+
+### CP.9.6 — Edge Cases
+
+| # | Scenario | Expected |
+|---|----------|----------|
+| 1 | Bar collapses (420→170) while at TopCenter | Re-snap to keep centered (narrower bar, same center point) |
+| 2 | Bar expands (170→420) while at TopCenter | Re-snap to keep centered |
+| 3 | Bottom position selected | `ExpandUpward` auto-set to `true` |
+| 4 | Top position selected | `ExpandUpward` auto-set to `false` |
+| 5 | Multi-monitor | `DisplayArea.GetFromWindowId` returns the monitor the bar is currently on |
+| 6 | Settings.json missing `BarPosition` | Defaults to `"TopRight"` (init default) |
+| 7 | User drags bar manually after snap | Bar stays where dragged; next snap overrides |
+| 8 | App restart | Position re-applied from saved `BarPosition` on startup |
+
+### CP.9.7 — File Modification Map
+
+| File | Changes |
+|------|---------|
+| `src/DiktaMe.Core/Config/AppSettings.cs` | +1 property `BarPosition` on `ControlPanelSettings` |
+| `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs` | +1 observable property, load/save, auto-set ExpandUpward |
+| `src/DiktaMe.App/Views/ControlPanelPage.xaml.cs` | +`SnapToPosition()` method, wire to property change + startup + width change |
+| `src/DiktaMe.App/MainWindow.xaml.cs` | Call initial snap after window creation (or defer to ControlPanelPage init) |
+| `src/DiktaMe.App/ViewModels/Settings/GeneralSettingsViewModel.cs` | +`SetBarPositionCommand`, wire to settings save |
+| `src/DiktaMe.App/Views/Settings/GeneralSettingsPage.xaml` | +Bar Position section with 3x2 button grid |
+| `src/DiktaMe.App/Strings/en/Resources.resw` | +2 localization keys |
+| `src/DiktaMe.App/Strings/es-MX/Resources.resw` | +2 Spanish translations |
+
+---
+
+## 9. Bug 3: Nav Text Contrast — WinUI 3 ThemeResource Gotcha
+
+### Problem
+Settings sidebar nav items (General, Audio, Motor IA, etc.) have white text on hover and selected states. User wants blue text on hover and dark text on selected (against the blue selected background).
+
+### Failed approach: NavigationViewItemForeground* ThemeResource keys
+
+Changed `NavigationViewItemForegroundPointerOver` → `p.NavActive` (blue) and `NavigationViewItemForegroundSelected` → `p.Background` (dark navy) in both `ThemeService.cs` BrushKeys array and `App.xaml` ThemeDictionaries.
+
+**Result**: ALL nav item text turned dark/invisible — not just selected or hovered items. Attempted 3 times with same failure.
+
+### Root cause
+
+WinUI 3's `NavigationViewItem` template uses `{ThemeResource NavigationViewItemForeground}` as the base `Style.Setter` for `Foreground`, with per-state overrides via `VisualState.Setters` targeting `ContentPresenter.Foreground`. When `ThemeService.ApplyTheme()` mutates the `SolidColorBrush.Color` of ThemeDictionary entries at runtime, the VisualStateManager does NOT cleanly re-resolve per-state brushes after state transitions. Items that have transitioned through selected/hover states retain stale brush references, causing the dark color to bleed across all items.
+
+**Key lesson**: `NavigationViewItemForeground*` ThemeResource keys CANNOT be used for differentiated per-state foreground colors when using runtime brush Color mutation (our ThemeService pattern). They are safe to set identically (e.g., all to `p.Text` = white), but setting different colors per state causes cross-contamination.
+
+### Attempted approach 2: Code-behind in SettingsWindow.xaml.cs
+
+Applied foreground colors directly on each `NavigationViewItem` element via:
+- `SelectionChanged` handler: selected item → `p.Background` (dark navy), previously-selected → `p.TextDim`
+- `PointerEntered` / `PointerExited` handlers: hover → `p.NavActive` (blue), exit → `p.TextDim` (unless selected)
+- `ThemeChanged` handler: re-apply all foreground colors from new palette
+- Uses `ReferenceEquals(navItem, NavView.SelectedItem)` (not `==`) to avoid CS0253
+
+**Result**: Partially working but user reports:
+1. **Selected item contrast poor** — `p.Background` (#0A0918 dark navy on Midnight) against the blue NavigationViewItem selected background doesn't read well
+2. **Hover contrast not distinctive enough** — `p.NavActive` (#3B82F6 blue) may be getting overridden by WinUI VisualState Setters
+3. **Non-selected items too gray** — `p.TextDim` (#99FFFFFF = white at 60% opacity) looks washed out compared to original full-white text
+
+**Suspected additional root cause**: WinUI 3's `NavigationViewItem` ControlTemplate uses `VisualState.Setters` to target `ContentPresenter.Foreground` with `{ThemeResource NavigationViewItemForeground*}` values. These VisualState Setters may **override** the outer `NavigationViewItem.Foreground` property set via code-behind, since VisualState Setters have higher precedence than local values in the WinUI property system.
+
+### Current state of code-behind (in SettingsWindow.xaml.cs)
+
+```csharp
+// Methods implemented:
+private void ApplyNavItemColors()  // Sets all items: selected=p.Background, others=p.TextDim
+private void NavItem_PointerEntered(...)  // Non-selected → p.NavActive
+private void NavItem_PointerExited(...)   // Non-selected → p.TextDim
+
+// Called from:
+// - Constructor (after NavView.SelectedItem = NavView.MenuItems[0])
+// - NavView_SelectionChanged (after ContentFrame.Navigate)
+// - ThemeChanged handler
+```
+
+### What still needs investigation
+
+1. **VisualState precedence**: The code-behind sets `NavigationViewItem.Foreground`, but the template's `VisualState.Setters` may target `ContentPresenter.Foreground` directly — the inner ContentPresenter may ignore the outer Foreground if the VisualState Setter overrides it. Need to either:
+   - Walk the visual tree to find the `ContentPresenter` and set its `Foreground` directly
+   - Or override the ThemeResource keys with **new SolidColorBrush instances** (not mutated existing ones) — create fresh brushes in code-behind and inject them into the item's local `Resources` dictionary
+   - Or use a completely custom `Style` for `NavigationViewItem` with explicit `VisualState.Setters` that reference code-behind-controlled brushes
+
+2. **Color choices**: Even if the mechanism works, the colors may need tuning:
+   - Selected: instead of `p.Background` (nearly black), try white or a contrasting bright color
+   - Non-selected: instead of `p.TextDim` (60% opacity white), use `p.Text` (full white) for better readability
+   - Hover: `p.NavActive` is correct conceptually but needs to survive VisualState overrides
+
+3. **Per-item Resources approach**: Create a `SolidColorBrush` with key `NavigationViewItemForeground` in each item's local `Resources` dictionary. VisualState Setters resolve `{ThemeResource}` starting from the element's local resources, so this would override the app-level value per-item without ThemeService mutation issues.
+
+### Files (current state)
+
+| File | State |
+|------|-------|
+| `ThemeService.cs` | REVERTED — all `NavigationViewItemForeground*` back to `p.Text` |
+| `App.xaml` | REVERTED — all `NavigationViewItemForeground*` back to `#FFFFFF` / `#1A1A2E` |
+| `SettingsWindow.xaml.cs` | Code-behind approach IMPLEMENTED but NOT producing good results |
+| `SegmentedButtonStyle.xaml` | `AppNavActiveBrush` on active pill (safe, uses StaticResource) — KEEP |
+
+### Status: UNRESOLVED — needs fresh investigation

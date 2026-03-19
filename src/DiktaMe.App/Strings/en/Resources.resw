@@ -1250,6 +1250,30 @@
   <data name="Settings_ControlPanel_ExpandDirection_Up.Content" xml:space="preserve">
     <value>Up (header at bottom)</value>
   </data>
+  <data name="Settings_ControlPanel_BarPosition_Label.Text" xml:space="preserve">
+    <value>Bar Position</value>
+  </data>
+  <data name="Settings_ControlPanel_BarPosition_Description.Text" xml:space="preserve">
+    <value>Snap the control panel to a fixed screen position.</value>
+  </data>
+  <data name="Settings_ControlPanel_BarPosition_TopLeft.Content" xml:space="preserve">
+    <value>Top Left</value>
+  </data>
+  <data name="Settings_ControlPanel_BarPosition_TopCenter.Content" xml:space="preserve">
+    <value>Top Center</value>
+  </data>
+  <data name="Settings_ControlPanel_BarPosition_TopRight.Content" xml:space="preserve">
+    <value>Top Right</value>
+  </data>
+  <data name="Settings_ControlPanel_BarPosition_BottomLeft.Content" xml:space="preserve">
+    <value>Bottom Left</value>
+  </data>
+  <data name="Settings_ControlPanel_BarPosition_BottomCenter.Content" xml:space="preserve">
+    <value>Bottom Center</value>
+  </data>
+  <data name="Settings_ControlPanel_BarPosition_BottomRight.Content" xml:space="preserve">
+    <value>Bottom Right</value>
+  </data>
 
   <!-- Visual Effects -->
   <data name="Settings_VisualEffects_Title.Text" xml:space="preserve">

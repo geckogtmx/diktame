@@ -136,6 +136,43 @@
                                 <RadioButton l:Uids.Uid="Settings_ControlPanel_ExpandDirection_Up"/>
                             </RadioButtons>
                         </StackPanel>
+
+                        <!-- Bar Position -->
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_BarPosition_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_ControlPanel_BarPosition_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="4" RowSpacing="4" Margin="0,4,0,0" MaxWidth="320" HorizontalAlignment="Left">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Button Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" Padding="8,6"
+                                        l:Uids.Uid="Settings_ControlPanel_BarPosition_TopLeft"
+                                        Command="{x:Bind ViewModel.SetBarPositionCommand}" CommandParameter="TopLeft"/>
+                                <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" Padding="8,6"
+                                        l:Uids.Uid="Settings_ControlPanel_BarPosition_TopCenter"
+                                        Command="{x:Bind ViewModel.SetBarPositionCommand}" CommandParameter="TopCenter"/>
+                                <Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" Padding="8,6"
+                                        l:Uids.Uid="Settings_ControlPanel_BarPosition_TopRight"
+                                        Command="{x:Bind ViewModel.SetBarPositionCommand}" CommandParameter="TopRight"/>
+                                <Button Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" Padding="8,6"
+                                        l:Uids.Uid="Settings_ControlPanel_BarPosition_BottomLeft"
+                                        Command="{x:Bind ViewModel.SetBarPositionCommand}" CommandParameter="BottomLeft"/>
+                                <Button Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Padding="8,6"
+                                        l:Uids.Uid="Settings_ControlPanel_BarPosition_BottomCenter"
+                                        Command="{x:Bind ViewModel.SetBarPositionCommand}" CommandParameter="BottomCenter"/>
+                                <Button Grid.Row="1" Grid.Column="2" HorizontalAlignment="Stretch" Padding="8,6"
+                                        l:Uids.Uid="Settings_ControlPanel_BarPosition_BottomRight"
+                                        Command="{x:Bind ViewModel.SetBarPositionCommand}" CommandParameter="BottomRight"/>
+                            </Grid>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 
