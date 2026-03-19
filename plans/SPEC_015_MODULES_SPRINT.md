@@ -1018,4 +1018,12 @@ After this sprint, V2's feature set is **locked**:
 
 ---
 
+## Next: SPEC_016 — Refinemmarly (Grammarly-like Grammar Check)
+
+> **Prerequisite:** All SPEC_015 phases complete (plugin infrastructure + all three plugins + vision core shipped).
+>
+> Once SPEC_015 is done, proceed to [`SPEC_016_V2.1_REFINEMMARLY.md`](SPEC_016_V2.1_REFINEMMARLY.md) — enhances Refine Auto into a Grammarly-like grammar checker with inline diff popup, per-word/phrase accept/reject, and passive clipboard monitoring. This is a V2.1 feature that builds on the completed V2 foundation.
+
+---
+
 *End of SPEC_015*
