@@ -23,7 +23,7 @@
                                HorizontalAlignment="Center"
                                Foreground="{StaticResource AppTextDimBrush}"/>
 
-                    <TextBlock Text="UI DEBUG BUILD [v19]" FontSize="11"
+                    <TextBlock Text="UI DEBUG BUILD [v20]" FontSize="11"
                                HorizontalAlignment="Center"
                                Foreground="Red" FontWeight="Bold"/>
 

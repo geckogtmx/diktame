@@ -1,10 +1,11 @@
 # Theme System — Full Technical History & Architecture
 
-> **STATUS: v19 — MAJOR PROGRESS. Frost theme fully applying.** (as of March 20, 2026)
-> v19 per-key try-catch in `MutateBrushes()` fixed the silent crash. 8 Foreground brush keys
-> crash with "unauthorized operation" but are handled gracefully. Ancestor-scope injection
-> (`InjectControlBrushes` + `InjectPageBrushes`) covers those keys. Frost backgrounds, controls,
-> toggles, ComboBoxes all rendering correctly. Remaining: nav selected text color polish.
+> **STATUS: v20 — Settings corruption fix + per-theme nav text.** (as of March 20, 2026)
+> v20 fixes a critical settings corruption bug (COMException 0x8001010E from background-thread
+> SettingsChanged → defaults overwrite). Two-part defense: try-catch in SettingsManager setter +
+> DispatcherQueue.HasThreadAccess in ThemeService. Also fixes nav selected text: dark themes
+> (Midnight/Ember) use `palette.Background` (dark text), light themes (Frost) use white.
+> Pipelines nav icon fixed (was rendering as box). Midnight is LOCKED — no appearance changes.
 
 > **Purpose**: Prevent future AI models and developers from repeating the same failed approaches.
 > This document covers the full story of the theme system, what was tried, what failed, why,
@@ -520,6 +521,39 @@ into each page) covers these keys with fresh brush instances, so controls still 
 
 **Remaining issue**: Main nav selected item text is dark navy (#1A1A2E from `palette.Text`) on
 sky blue background. User feedback: "White works better on selected."
+
+### v20 (March 20, 2026) — Settings corruption fix + per-theme nav text
+
+**Critical bug fixed: Settings corruption on startup.**
+
+`SettingsManager.LoadAsync()` uses `ConfigureAwait(false)` on `File.ReadAllTextAsync`, causing
+the continuation to run on a threadpool thread. The `Current` setter fires `SettingsChanged`,
+which invokes `ThemeService.ApplyTheme()` → `Application.Current.Resources` (UI-thread-only API)
+→ `COMException 0x8001010E` (RPC_E_WRONG_THREAD). The exception propagates back into
+`LoadAsync`'s catch block, which replaces correctly loaded settings with `new AppSettings()`
+(WizardCompleted=false, ThemeName="Midnight"). The wizard then saves those defaults to disk,
+permanently overwriting the user's real settings.
+
+**Two-part defense:**
+
+1. **SettingsManager.cs** — `Current` setter wraps `SettingsChanged?.Invoke` in try-catch.
+   Any subscriber crash is caught and logged as warning. Loaded settings are never lost.
+
+2. **ThemeService.cs** — Captures `DispatcherQueue` at construction time (guaranteed UI thread).
+   `SettingsChanged` handler uses `HasThreadAccess` to dispatch `ApplyTheme` synchronously on
+   UI thread, or via `TryEnqueue` from background threads. Fixes the actual root cause.
+
+**Nav selected text — per-theme, not global:**
+
+```csharp
+var selectedFg = palette.IsDark ? palette.Background : Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF);
+```
+
+- Dark themes (Midnight/Ember): `palette.Background` = dark text on colored nav bg
+- Light themes (Frost): white = bright text on sky blue nav bg
+- **Rule: Midnight is LOCKED. Theme-specific requests must NEVER be applied globally.**
+
+**Pipelines nav icon**: Changed from `&#xE20B;` (broken/box) to `&#xE9D9;` (FlowChart).
 
 ### Design mocks (target appearance)
 - Frost: `E:\dIKtame\Themes\Frost-GlassmorphicSettingsLight.png`

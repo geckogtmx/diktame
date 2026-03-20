@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using DiktaMe.Core.Config;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Serilog;
@@ -18,6 +19,7 @@ namespace DiktaMe.App.Services;
 public sealed class ThemeService
 {
     private readonly SettingsManager _settings;
+    private readonly DispatcherQueue _dispatcherQueue;
     private string _currentTheme = string.Empty;
 
     /// <summary>Raised after a theme has been applied. Subscribers (e.g. ControlPanelPage)
@@ -194,15 +196,25 @@ public sealed class ThemeService
     public ThemeService(SettingsManager settings)
     {
         _settings = settings;
+        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
         // Re-apply theme when settings are loaded from disk (e.g. after LoadAsync in LoadingViewModel).
         // This handles the case where the user's saved theme differs from the default "Midnight".
+        // SettingsChanged may fire from a background thread (LoadAsync uses ConfigureAwait(false)),
+        // so we must marshal ApplyTheme to the UI thread — it accesses Application.Current.Resources.
         _settings.SettingsChanged += (_, newSettings) =>
         {
             var savedTheme = newSettings.General.ThemeName;
             if (!string.Equals(_currentTheme, savedTheme, StringComparison.OrdinalIgnoreCase))
             {
-                ApplyTheme(savedTheme);
+                if (_dispatcherQueue.HasThreadAccess)
+                {
+                    ApplyTheme(savedTheme);
+                }
+                else
+                {
+                    _dispatcherQueue.TryEnqueue(() => ApplyTheme(savedTheme));
+                }
             }
         };
     }

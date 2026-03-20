@@ -54,7 +54,7 @@
             </muxc:NavigationViewItem>
             <muxc:NavigationViewItem l:Uids.Uid="Nav_Workflows" Tag="workflows">
                 <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE20B;"/>
+                    <FontIcon Glyph="&#xE9D9;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
             <muxc:NavigationViewItem l:Uids.Uid="Nav_DictationPresets" Tag="presets">

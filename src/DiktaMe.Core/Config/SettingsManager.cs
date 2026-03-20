@@ -34,7 +34,14 @@ public sealed class SettingsManager
         private set
         {
             _current = value;
-            SettingsChanged?.Invoke(this, value);
+            try
+            {
+                SettingsChanged?.Invoke(this, value);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "SettingsManager: SettingsChanged subscriber threw — settings loaded, notification partially failed");
+            }
         }
     }
 

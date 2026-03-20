@@ -34,7 +34,7 @@ public sealed partial class SettingsWindow : Window
     {
         this.InitializeComponent();
         AppWindow.Resize(new Windows.Graphics.SizeInt32(1000, 700));
-        AppWindow.Title = "dIKta.me — Settings [v19]";
+        AppWindow.Title = "dIKta.me — Settings [v20]";
 
         // Extend content into title bar (caption buttons float over content)
         ExtendsContentIntoTitleBar = true;
@@ -248,9 +248,9 @@ public sealed partial class SettingsWindow : Window
 
     private static NavItemBrushes CreateBrushSet(ThemePalette palette, bool isSelected)
     {
-        // Dark themes: palette.Background (dark text on blue bg) — original Midnight behavior
-        // Light themes: palette.Text (dark navy on sky blue) — Frost fix
-        var selectedFg = palette.IsDark ? palette.Background : palette.Text;
+        // Dark themes: palette.Background (dark text on blue/purple bg) — matches Midnight/Ember design
+        // Light themes: white (bright text on sky blue bg) — user preference for Frost
+        var selectedFg = palette.IsDark ? palette.Background : Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF);
 
         if (isSelected)
         {
@@ -312,7 +312,7 @@ public sealed partial class SettingsWindow : Window
     private void ApplyNavItemColors()
     {
         var palette = ThemeService.GetPalette(_themeService.CurrentTheme);
-        var selectedFg = palette.IsDark ? palette.Background : palette.Text;
+        var selectedFg = palette.IsDark ? palette.Background : Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF);
         var normal = Color.FromArgb(0xB3, palette.Text.R, palette.Text.G, palette.Text.B);
 
         foreach (var menuItem in NavView.MenuItems)
