@@ -32,6 +32,8 @@ public sealed class ThemeService
             GradientMid: ColorFrom(0x2A, 0x25, 0x50),
             GradientEnd: ColorFrom(0x4A, 0x3B, 0x75),
             GlowBase: ColorFrom(0x5A, 0x3D, 0x8F),
+            GlassColor1: ColorFrom(0x66, 0x33, 0x99),
+            GlassColor2: ColorFrom(0x99, 0x33, 0x66),
             BackgroundTranslucent: ColorFrom(0x0A, 0x09, 0x18, 0xD0),
             SurfaceTranslucent: ColorFrom(0x16, 0x15, 0x2E, 0xA0),
             Surface2Translucent: ColorFrom(0x1E, 0x1D, 0x38, 0x70),
@@ -48,9 +50,11 @@ public sealed class ThemeService
 
         ["Ember"] = new ThemePalette(
             GradientStart: ColorFrom(0x12, 0x08, 0x08),
-            GradientMid: ColorFrom(0x2A, 0x18, 0x10),
-            GradientEnd: ColorFrom(0x4A, 0x2F, 0x1D),
-            GlowBase: ColorFrom(0x4A, 0x20, 0x10),
+            GradientMid: ColorFrom(0x2A, 0x15, 0x18),
+            GradientEnd: ColorFrom(0x5A, 0x20, 0x3A),
+            GlowBase: ColorFrom(0x9A, 0x30, 0x60),
+            GlassColor1: ColorFrom(0x80, 0x20, 0x40),
+            GlassColor2: ColorFrom(0x99, 0x44, 0x22),
             BackgroundTranslucent: ColorFrom(0x0D, 0x08, 0x06, 0xD0),
             SurfaceTranslucent: ColorFrom(0x1C, 0x1C, 0x1C, 0xA0),
             Surface2Translucent: ColorFrom(0x25, 0x25, 0x25, 0x70),
@@ -66,21 +70,23 @@ public sealed class ThemeService
             IsDark: true),
 
         ["Frost"] = new ThemePalette(
-            GradientStart: ColorFrom(0xE8, 0xED, 0xFF),
-            GradientMid: ColorFrom(0xDD, 0xE4, 0xFF),
-            GradientEnd: ColorFrom(0xD0, 0xD8, 0xFF),
-            GlowBase: ColorFrom(0x80, 0x90, 0xE0),
-            BackgroundTranslucent: ColorFrom(0xF0, 0xF4, 0xFF, 0xD0),
-            SurfaceTranslucent: ColorFrom(0xFF, 0xFF, 0xFF, 0xA0),
-            Surface2Translucent: ColorFrom(0xF2, 0xF4, 0xFF, 0x70),
-            Background: ColorFrom(0xF0, 0xF4, 0xFF),
+            GradientStart: ColorFrom(0xFA, 0xFB, 0xFF),
+            GradientMid: ColorFrom(0xFA, 0xFB, 0xFF),
+            GradientEnd: ColorFrom(0xFA, 0xFB, 0xFF),
+            GlowBase: ColorFrom(0xC0, 0xD0, 0xFF),
+            GlassColor1: ColorFrom(0xFF, 0xFF, 0xFF),
+            GlassColor2: ColorFrom(0xFF, 0xFF, 0xFF),
+            BackgroundTranslucent: ColorFrom(0xFA, 0xFB, 0xFF, 0xFF),
+            SurfaceTranslucent: ColorFrom(0xFF, 0xFF, 0xFF, 0xFF),
+            Surface2Translucent: ColorFrom(0xF0, 0xF2, 0xF8, 0xFF),
+            Background: ColorFrom(0xFA, 0xFB, 0xFF),
             Surface: ColorFrom(0xFF, 0xFF, 0xFF),
-            Surface2: ColorFrom(0xF2, 0xF4, 0xFF),
-            Border: ColorFrom(0x00, 0x00, 0x00, 0x14),
+            Surface2: ColorFrom(0xF0, 0xF2, 0xF8),
+            Border: ColorFrom(0xE2, 0xE5, 0xEB),
             NavActive: ColorFrom(0x38, 0xBD, 0xF8),
             Accent: ColorFrom(0x0E, 0xA5, 0xE9),
             Text: ColorFrom(0x1A, 0x1A, 0x2E),
-            TextDim: ColorFrom(0x1A, 0x1A, 0x2E, 0x99),
+            TextDim: ColorFrom(0x6B, 0x72, 0x80),
             PerfGreen: ColorFrom(0x05, 0x96, 0x69),
             IsDark: false),
     };
@@ -124,9 +130,11 @@ public sealed class ThemeService
         ("TextControlPlaceholderForeground", p => p.TextDim),
 
         // ComboBox overrides
-        ("ComboBoxBackground", p => p.Border),
-        ("ComboBoxBackgroundPointerOver", p => ColorFrom(0xFF, 0xFF, 0xFF, 0x1A)),
-        ("ComboBoxBackgroundPressed", p => ColorFrom(0xFF, 0xFF, 0xFF, 0x22)),
+        ("ComboBoxBackground", p => p.IsDark ? p.Border : p.Surface2),
+        ("ComboBoxBackgroundPointerOver", p => p.IsDark
+            ? ColorFrom(0xFF, 0xFF, 0xFF, 0x1A) : ColorFrom(0x00, 0x00, 0x00, 0x06)),
+        ("ComboBoxBackgroundPressed", p => p.IsDark
+            ? ColorFrom(0xFF, 0xFF, 0xFF, 0x22) : ColorFrom(0x00, 0x00, 0x00, 0x0A)),
         ("ComboBoxBorderBrush", p => p.Border),
         ("ComboBoxBorderBrushPointerOver", p => p.TextDim),
         ("ComboBoxBorderBrushPressed", p => p.Accent),
@@ -202,8 +210,8 @@ public sealed class ThemeService
     /// <summary>The currently active theme name.</summary>
     public string CurrentTheme => _currentTheme;
 
-    /// <summary>Available theme names for UI selectors.</summary>
-    public static string[] AvailableThemes => ["Midnight", "Ember", "Frost"];
+    /// <summary>Available theme names for UI selectors. Derived from Palettes dictionary.</summary>
+    public static string[] AvailableThemes => [.. Palettes.Keys];
 
     /// <summary>Gets the palette for the given theme name. Returns Midnight if not found.</summary>
     public static ThemePalette GetPalette(string? themeName)
@@ -225,57 +233,27 @@ public sealed class ThemeService
         }
 
         var resources = Application.Current.Resources;
+        Log.Debug("████ THEME APPLYING: {Theme} (IsDark={IsDark}) MergedDicts={Count}",
+            themeName, palette.IsDark, resources.MergedDictionaries.Count);
 
-        // Mutate each brush's Color in-place so existing StaticResource bindings update.
-        // Brushes live in ThemeDictionaries (for ThemeResource resolution) AND at the
-        // flat level (for our custom App*Brush StaticResource bindings). Search both.
-        foreach (var (key, accessor) in BrushKeys)
+        // Set RequestedTheme FIRST so WinUI re-resolves {ThemeResource} bindings to the
+        // correct ThemeDictionary (Default or Light) brush instances BEFORE we mutate them.
+        // If we mutate first then switch theme, WinUI replaces our mutated brushes with
+        // fresh un-mutated instances from the newly-active dictionary.
+        var elementTheme = palette.IsDark ? ElementTheme.Dark : ElementTheme.Light;
+        foreach (var window in App.Current.ActiveWindows)
         {
-            var found = false;
-
-            // 1. Search flat resources (App*Brush keys from SharedResources.xaml)
-            if (resources.TryGetValue(key, out var obj) && obj is SolidColorBrush brush)
+            if (window.Content is FrameworkElement fe)
             {
-                brush.Color = accessor(palette);
-                found = true;
-            }
-
-            // 2. Search ThemeDictionaries (WinUI control overrides in App.xaml)
-            if (resources.ThemeDictionaries is { } themeDicts)
-            {
-                foreach (var entry in themeDicts)
-                {
-                    if (entry.Value is ResourceDictionary themeDict
-                        && themeDict.TryGetValue(key, out var tObj) && tObj is SolidColorBrush tBrush)
-                    {
-                        tBrush.Color = accessor(palette);
-                        found = true;
-                    }
-                }
-            }
-
-            // 3. Also search MergedDictionaries' ThemeDictionaries
-            foreach (var merged in resources.MergedDictionaries)
-            {
-                if (merged.ThemeDictionaries is { } mergedThemeDicts)
-                {
-                    foreach (var entry in mergedThemeDicts)
-                    {
-                        if (entry.Value is ResourceDictionary themeDict
-                            && themeDict.TryGetValue(key, out var mObj) && mObj is SolidColorBrush mBrush)
-                        {
-                            mBrush.Color = accessor(palette);
-                            found = true;
-                        }
-                    }
-                }
-            }
-
-            if (!found)
-            {
-                Log.Warning("Theme brush '{Key}' not found in Application.Resources or ThemeDictionaries", key);
+                fe.RequestedTheme = elementTheme;
             }
         }
+
+        var (foundFlat, foundTheme, foundMergedTheme, foundMergedFlat, notFound, crashed) =
+            MutateBrushes(resources, palette);
+
+        Log.Debug("████ THEME BRUSH SUMMARY: flat={Flat} themeDicts={Theme} mergedTheme={MT} mergedFlat={MF} notFound={NF} crashed={Crashed} total={Total}",
+            foundFlat, foundTheme, foundMergedTheme, foundMergedFlat, notFound, crashed, BrushKeys.Length);
 
         // Override SystemAccentColor and variants in ThemeDictionaries so WinUI controls
         // use our accent, not the Windows system accent (which may be yellow/gold).
@@ -297,16 +275,6 @@ public sealed class ThemeService
                         themeDict[accentKey] = palette.Accent;
                     }
                 }
-            }
-        }
-
-        // Set RequestedTheme on all active windows for correct system control rendering
-        var elementTheme = palette.IsDark ? ElementTheme.Dark : ElementTheme.Light;
-        foreach (var window in App.Current.ActiveWindows)
-        {
-            if (window.Content is FrameworkElement fe)
-            {
-                fe.RequestedTheme = elementTheme;
             }
         }
 
@@ -340,18 +308,151 @@ public sealed class ThemeService
         ApplyTheme(themeName);
     }
 
+    /// <summary>
+    /// Mutates each brush's Color in-place across all 4 resource scopes.
+    /// Each key is wrapped in try-catch because mutating .Color on a brush from a
+    /// ThemeDictionary that became inactive after RequestedTheme change can cause
+    /// a silent native WinUI crash (observed: Frost crashes at TextControlForeground).
+    /// </summary>
+    private static (int Flat, int Theme, int MergedTheme, int MergedFlat, int NotFound, int Crashed)
+        MutateBrushes(ResourceDictionary resources, ThemePalette palette)
+    {
+        int foundFlat = 0, foundTheme = 0, foundMergedTheme = 0, foundMergedFlat = 0, notFound = 0, crashed = 0;
+
+        foreach (var (key, accessor) in BrushKeys)
+        {
+            try
+            {
+                var found = false;
+                bool inFlat = false, inTheme = false, inMergedTheme = false, inMergedFlat = false;
+
+                // 1. Flat resources (App*Brush keys)
+                if (resources.TryGetValue(key, out var obj) && obj is SolidColorBrush brush)
+                {
+                    brush.Color = accessor(palette);
+                    found = true;
+                    inFlat = true;
+                }
+
+                // 2. ThemeDictionaries (WinUI control overrides in App.xaml)
+                if (resources.ThemeDictionaries is { } themeDicts)
+                {
+                    foreach (var entry in themeDicts)
+                    {
+                        if (entry.Value is ResourceDictionary themeDict
+                            && themeDict.TryGetValue(key, out var tObj) && tObj is SolidColorBrush tBrush)
+                        {
+                            tBrush.Color = accessor(palette);
+                            found = true;
+                            inTheme = true;
+                        }
+                    }
+                }
+
+                // 3. MergedDictionaries' ThemeDictionaries
+                foreach (var merged in resources.MergedDictionaries)
+                {
+                    if (merged.ThemeDictionaries is { } mergedThemeDicts)
+                    {
+                        foreach (var entry in mergedThemeDicts)
+                        {
+                            if (entry.Value is ResourceDictionary themeDict
+                                && themeDict.TryGetValue(key, out var mObj) && mObj is SolidColorBrush mBrush)
+                            {
+                                mBrush.Color = accessor(palette);
+                                found = true;
+                                inMergedTheme = true;
+                            }
+                        }
+                    }
+                }
+
+                // 4. MergedDictionaries' flat resources
+                foreach (var merged in resources.MergedDictionaries)
+                {
+                    if (merged.TryGetValue(key, out var mFlatObj) && mFlatObj is SolidColorBrush mFlatBrush)
+                    {
+                        mFlatBrush.Color = accessor(palette);
+                        found = true;
+                        inMergedFlat = true;
+                    }
+                }
+
+                if (inFlat) foundFlat++;
+                if (inTheme) foundTheme++;
+                if (inMergedTheme) foundMergedTheme++;
+                if (inMergedFlat) foundMergedFlat++;
+                if (!found)
+                {
+                    notFound++;
+                    Log.Warning("Theme brush '{Key}' NOT FOUND anywhere", key);
+                }
+                else
+                {
+                    var c = accessor(palette);
+                    Log.Debug("  {Key} → #{A:X2}{R:X2}{G:X2}{B:X2} [flat={F} theme={T} mTheme={MT} mFlat={MF}]",
+                        key, c.A, c.R, c.G, c.B, inFlat, inTheme, inMergedTheme, inMergedFlat);
+                }
+            }
+            catch (Exception ex)
+            {
+                crashed++;
+                Log.Warning("Theme brush '{Key}' CRASHED during mutation: {Error}", key, ex.Message);
+            }
+        }
+
+        return (foundFlat, foundTheme, foundMergedTheme, foundMergedFlat, notFound, crashed);
+    }
+
+    /// <summary>
+    /// Returns all WinUI control ThemeResource key→color pairs for the given palette.
+    /// Used by window code-behind to inject brushes at the visual-tree level,
+    /// bypassing the ThemeDictionary brush-identity mismatch bug.
+    /// Excludes App*Brush keys (those are flat resources mutated in-place by ApplyTheme).
+    /// </summary>
+    public static IEnumerable<(string Key, Color Color)> GetControlBrushValues(ThemePalette palette)
+    {
+        foreach (var (key, accessor) in BrushKeys)
+        {
+            if (!key.StartsWith("App", StringComparison.Ordinal))
+            {
+                yield return (key, accessor(palette));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Computes glassmorphic gradient stop colors from the palette.
+    /// Dark themes get a visible colored sweep; light themes get fully transparent stops.
+    /// Used by SettingsWindow and ControlPanelPage to eliminate hardcoded glass colors.
+    /// </summary>
+    public static (Color S1, Color S2, Color S3, Color S4) ComputeGlassStops(ThemePalette palette)
+    {
+        byte a2 = palette.IsDark ? (byte)0x30 : (byte)0x00;
+        byte a3 = palette.IsDark ? (byte)0x20 : (byte)0x00;
+        return (
+            Color.FromArgb(0x00, palette.Surface.R, palette.Surface.G, palette.Surface.B),
+            Color.FromArgb(a2, palette.GlassColor1.R, palette.GlassColor1.G, palette.GlassColor1.B),
+            Color.FromArgb(a3, palette.GlassColor2.R, palette.GlassColor2.G, palette.GlassColor2.B),
+            Color.FromArgb(0x00, palette.Surface.R, palette.Surface.G, palette.Surface.B));
+    }
+
     private static Color ColorFrom(byte r, byte g, byte b, byte a = 0xFF)
         => Color.FromArgb(a, r, g, b);
 }
 
 /// <summary>
 /// Immutable palette definition for a single theme.
+/// This is the SINGLE SOURCE OF TRUTH for all theme colors.
+/// Adding a new theme = adding one entry to <see cref="ThemeService"/> Palettes dictionary.
 /// </summary>
 public sealed record ThemePalette(
     Color GradientStart,
     Color GradientMid,
     Color GradientEnd,
     Color GlowBase,
+    Color GlassColor1,
+    Color GlassColor2,
     Color BackgroundTranslucent,
     Color SurfaceTranslucent,
     Color Surface2Translucent,

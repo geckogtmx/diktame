@@ -34,7 +34,7 @@ public sealed partial class SettingsWindow : Window
     {
         this.InitializeComponent();
         AppWindow.Resize(new Windows.Graphics.SizeInt32(1000, 700));
-        AppWindow.Title = "dIKta.me — Settings";
+        AppWindow.Title = "dIKta.me — Settings [v19]";
 
         // Extend content into title bar (caption buttons float over content)
         ExtendsContentIntoTitleBar = true;
@@ -55,13 +55,59 @@ public sealed partial class SettingsWindow : Window
 
         // Apply theme-appropriate glassmorphic gradient on theme change
         _themeService = App.Current.Services.GetRequiredService<ThemeService>();
-        ApplyGlassmorphicGradient(ThemeService.GetPalette(_themeService.CurrentTheme));
-        ApplyGradientBackground(ThemeService.GetPalette(_themeService.CurrentTheme));
+        var initPalette = ThemeService.GetPalette(_themeService.CurrentTheme);
+        Log.Information("SettingsWindow: init theme={Theme} IsDark={IsDark}",
+            _themeService.CurrentTheme, initPalette.IsDark);
+
+        // Set RequestedTheme so WinUI controls resolve {ThemeResource} from the correct
+        // ThemeDictionary (Default for dark, Light for light). Without this, SettingsWindow
+        // defaults to Dark because ApplyTheme() ran before this window existed.
+        if (Content is FrameworkElement rootElement)
+        {
+            rootElement.RequestedTheme = initPalette.IsDark ? ElementTheme.Dark : ElementTheme.Light;
+            Log.Information("SettingsWindow: RequestedTheme set to {Theme}",
+                initPalette.IsDark ? "Dark" : "Light");
+        }
+
+        ApplyGlassmorphicGradient(initPalette);
+        ApplyGradientBackground(initPalette);
+
+        // Inject WinUI control ThemeResource brushes at NavView scope (for nav pane controls)
+        // and into each navigated page (for ComboBox/TextBox/Slider inside content pages).
+        // This bypasses the ThemeDictionary brush-identity mismatch bug.
+        InjectControlBrushes(initPalette);
+
+        // Inject brushes into each page as it navigates into the ContentFrame.
+        // Page.Resources is checked by controls' {ThemeResource} resolution before
+        // walking up to NavView or Application.Resources.
+        ContentFrame.Navigated += (_, args) =>
+        {
+            if (args.Content is FrameworkElement page)
+            {
+                var pal = ThemeService.GetPalette(_themeService.CurrentTheme);
+                InjectPageBrushes(page, pal);
+            }
+        };
+
         _themeService.ThemeChanged += (_, themeName) =>
         {
             DispatcherQueue.TryEnqueue(() =>
             {
                 var palette = ThemeService.GetPalette(themeName);
+                Log.Information("SettingsWindow: ThemeChanged → {Theme} IsDark={IsDark}",
+                    themeName, palette.IsDark);
+
+                // Update RequestedTheme so {ThemeResource} resolves from correct dictionary
+                if (Content is FrameworkElement root)
+                {
+                    root.RequestedTheme = palette.IsDark ? ElementTheme.Dark : ElementTheme.Light;
+                }
+
+                InjectControlBrushes(palette);
+                if (ContentFrame.Content is FrameworkElement page)
+                {
+                    InjectPageBrushes(page, palette);
+                }
                 ApplyGlassmorphicGradient(palette);
                 ApplyGradientBackground(palette);
                 ApplyNavItemColors();
@@ -71,7 +117,6 @@ public sealed partial class SettingsWindow : Window
         // Inject per-item local ThemeResource brush overrides for nav text contrast.
         // Each NavigationViewItem gets its own brush instances in its Resources dict,
         // so WinUI's VisualStateManager resolves them locally (no global bleed).
-        var initPalette = ThemeService.GetPalette(_themeService.CurrentTheme);
         foreach (var menuItem in NavView.MenuItems)
         {
             if (menuItem is NavigationViewItem navItem)
@@ -91,30 +136,21 @@ public sealed partial class SettingsWindow : Window
         BgGradMid.Color = palette.GradientMid;
         BgGradEnd.Color = palette.GradientEnd;
 
-        // The glow uses 0x35 (~21%), 0x18 (~9%), and 0x00 opacity steps
-        GlowStop1.Color = Color.FromArgb(0x35, palette.GlowBase.R, palette.GlowBase.G, palette.GlowBase.B);
-        GlowStop2.Color = Color.FromArgb(0x18, palette.GlowBase.R, palette.GlowBase.G, palette.GlowBase.B);
+        // Dark themes get atmospheric glow (21%/9%); light themes get zero glow for clean white
+        byte glowA1 = palette.IsDark ? (byte)0x35 : (byte)0x00;
+        byte glowA2 = palette.IsDark ? (byte)0x18 : (byte)0x00;
+        GlowStop1.Color = Color.FromArgb(glowA1, palette.GlowBase.R, palette.GlowBase.G, palette.GlowBase.B);
+        GlowStop2.Color = Color.FromArgb(glowA2, palette.GlowBase.R, palette.GlowBase.G, palette.GlowBase.B);
         GlowStop3.Color = Color.FromArgb(0x00, palette.GlowBase.R, palette.GlowBase.G, palette.GlowBase.B);
     }
 
     private void ApplyGlassmorphicGradient(ThemePalette palette)
     {
-        if (palette.IsDark)
-        {
-            // Dark themes: purple/magenta sweep
-            GlassStop1.Color = Color.FromArgb(0x00, 0x16, 0x15, 0x30);
-            GlassStop2.Color = Color.FromArgb(0x30, 0x66, 0x33, 0x99);
-            GlassStop3.Color = Color.FromArgb(0x20, 0x99, 0x33, 0x66);
-            GlassStop4.Color = Color.FromArgb(0x00, 0x16, 0x15, 0x30);
-        }
-        else
-        {
-            // Light themes: subtle blue/lavender sweep
-            GlassStop1.Color = Color.FromArgb(0x00, 0xC0, 0xD0, 0xFF);
-            GlassStop2.Color = Color.FromArgb(0x18, 0x80, 0x90, 0xE0);
-            GlassStop3.Color = Color.FromArgb(0x10, 0xA0, 0x80, 0xD0);
-            GlassStop4.Color = Color.FromArgb(0x00, 0xC0, 0xD0, 0xFF);
-        }
+        var (s1, s2, s3, s4) = ThemeService.ComputeGlassStops(palette);
+        GlassStop1.Color = s1;
+        GlassStop2.Color = s2;
+        GlassStop3.Color = s3;
+        GlassStop4.Color = s4;
     }
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -212,17 +248,19 @@ public sealed partial class SettingsWindow : Window
 
     private static NavItemBrushes CreateBrushSet(ThemePalette palette, bool isSelected)
     {
+        // Dark themes: palette.Background (dark text on blue bg) — original Midnight behavior
+        // Light themes: palette.Text (dark navy on sky blue) — Frost fix
+        var selectedFg = palette.IsDark ? palette.Background : palette.Text;
+
         if (isSelected)
         {
-            // Selected item: dark text on blue/accent background — all states dark
-            var dark = palette.Background;
             return new NavItemBrushes(
-                Foreground: new SolidColorBrush(dark),
-                ForegroundPointerOver: new SolidColorBrush(dark),
-                ForegroundPressed: new SolidColorBrush(dark),
-                ForegroundSelected: new SolidColorBrush(dark),
-                ForegroundSelectedPointerOver: new SolidColorBrush(dark),
-                ForegroundSelectedPressed: new SolidColorBrush(dark));
+                Foreground: new SolidColorBrush(selectedFg),
+                ForegroundPointerOver: new SolidColorBrush(selectedFg),
+                ForegroundPressed: new SolidColorBrush(selectedFg),
+                ForegroundSelected: new SolidColorBrush(selectedFg),
+                ForegroundSelectedPointerOver: new SolidColorBrush(selectedFg),
+                ForegroundSelectedPressed: new SolidColorBrush(selectedFg));
         }
 
         // Non-selected item: 70% text normal, accent on hover, full text on press
@@ -231,9 +269,40 @@ public sealed partial class SettingsWindow : Window
             Foreground: new SolidColorBrush(normal),
             ForegroundPointerOver: new SolidColorBrush(palette.NavActive),
             ForegroundPressed: new SolidColorBrush(palette.Text),
-            ForegroundSelected: new SolidColorBrush(palette.Background),
-            ForegroundSelectedPointerOver: new SolidColorBrush(palette.Background),
-            ForegroundSelectedPressed: new SolidColorBrush(palette.Background));
+            ForegroundSelected: new SolidColorBrush(selectedFg),
+            ForegroundSelectedPointerOver: new SolidColorBrush(selectedFg),
+            ForegroundSelectedPressed: new SolidColorBrush(selectedFg));
+    }
+
+    /// <summary>
+    /// Injects WinUI control ThemeResource brushes into NavView.Resources (for nav pane controls).
+    /// </summary>
+    private void InjectControlBrushes(ThemePalette palette)
+    {
+        int count = 0;
+        foreach (var (key, color) in ThemeService.GetControlBrushValues(palette))
+        {
+            NavView.Resources[key] = new SolidColorBrush(color);
+            count++;
+        }
+        Log.Debug("SettingsWindow: InjectControlBrushes — {Count} keys into NavView.Resources", count);
+    }
+
+    /// <summary>
+    /// Injects WinUI control ThemeResource brushes into a page's Resources.
+    /// Page.Resources is checked by controls' {ThemeResource} resolution before
+    /// walking up to NavView/Application scope — fixes ComboBox/TextBox/Slider theming.
+    /// </summary>
+    private static void InjectPageBrushes(FrameworkElement page, ThemePalette palette)
+    {
+        int count = 0;
+        foreach (var (key, color) in ThemeService.GetControlBrushValues(palette))
+        {
+            page.Resources[key] = new SolidColorBrush(color);
+            count++;
+        }
+        Log.Debug("SettingsWindow: InjectPageBrushes — {Count} keys into {Page}.Resources",
+            count, page.GetType().Name);
     }
 
     /// <summary>
@@ -243,7 +312,7 @@ public sealed partial class SettingsWindow : Window
     private void ApplyNavItemColors()
     {
         var palette = ThemeService.GetPalette(_themeService.CurrentTheme);
-        var dark = palette.Background;
+        var selectedFg = palette.IsDark ? palette.Background : palette.Text;
         var normal = Color.FromArgb(0xB3, palette.Text.R, palette.Text.G, palette.Text.B);
 
         foreach (var menuItem in NavView.MenuItems)
@@ -254,21 +323,21 @@ public sealed partial class SettingsWindow : Window
 
                 if (isSelected)
                 {
-                    brushes.Foreground.Color = dark;
-                    brushes.ForegroundPointerOver.Color = dark;
-                    brushes.ForegroundPressed.Color = dark;
-                    brushes.ForegroundSelected.Color = dark;
-                    brushes.ForegroundSelectedPointerOver.Color = dark;
-                    brushes.ForegroundSelectedPressed.Color = dark;
+                    brushes.Foreground.Color = selectedFg;
+                    brushes.ForegroundPointerOver.Color = selectedFg;
+                    brushes.ForegroundPressed.Color = selectedFg;
+                    brushes.ForegroundSelected.Color = selectedFg;
+                    brushes.ForegroundSelectedPointerOver.Color = selectedFg;
+                    brushes.ForegroundSelectedPressed.Color = selectedFg;
                 }
                 else
                 {
                     brushes.Foreground.Color = normal;
                     brushes.ForegroundPointerOver.Color = palette.NavActive;
                     brushes.ForegroundPressed.Color = palette.Text;
-                    brushes.ForegroundSelected.Color = dark;
-                    brushes.ForegroundSelectedPointerOver.Color = dark;
-                    brushes.ForegroundSelectedPressed.Color = dark;
+                    brushes.ForegroundSelected.Color = selectedFg;
+                    brushes.ForegroundSelectedPointerOver.Color = selectedFg;
+                    brushes.ForegroundSelectedPressed.Color = selectedFg;
                 }
             }
         }

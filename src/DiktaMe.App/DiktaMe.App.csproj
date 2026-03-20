@@ -56,12 +56,6 @@
     <ProjectReference Include="..\DiktaMe.Core\DiktaMe.Core.csproj" />
   </ItemGroup>
 
-  <!-- Exclude palette reference files from XAML compilation (they have duplicate x:Key
-       values matching SharedResources.xaml — palette colors are applied programmatically
-       by ThemeService.cs, these files exist for designer reference only) -->
-  <ItemGroup>
-    <Page Remove="Themes\Palettes\*.xaml" />
-  </ItemGroup>
 
   <!-- Asset files -->
   <ItemGroup>

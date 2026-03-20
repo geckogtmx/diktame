@@ -16,22 +16,9 @@
     <converters:NullToVisibilityConverter x:Key="NullToVis"/>
     <converters:ApiKeyMaskConverter x:Key="ApiKeyMask"/>
 
-    <!-- ═══════════════════════════════════════════════════════════════════
-         App Theme Brushes — Fallback defaults (Midnight palette).
-         These are mutated in-place by ThemeService.ApplyTheme() at runtime.
-         ═══════════════════════════════════════════════════════════════════ -->
-    <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0A0918"/>
-    <SolidColorBrush x:Key="AppBackgroundTranslucentBrush" Color="#D00A0918"/>
-    <SolidColorBrush x:Key="AppSurfaceBrush" Color="#16152E"/>
-    <SolidColorBrush x:Key="AppSurfaceTranslucentBrush" Color="#A016152E"/>
-    <SolidColorBrush x:Key="AppSurface2Brush" Color="#1E1D38"/>
-    <SolidColorBrush x:Key="AppSurface2TranslucentBrush" Color="#701E1D38"/>
-    <SolidColorBrush x:Key="AppBorderBrush" Color="#14FFFFFF"/>
-    <SolidColorBrush x:Key="AppNavActiveBrush" Color="#3B82F6"/>
-    <SolidColorBrush x:Key="AppAccentBrush" Color="#5DEBFF"/>
-    <SolidColorBrush x:Key="AppTextBrush" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="AppTextDimBrush" Color="#99FFFFFF"/>
-    <SolidColorBrush x:Key="AppPerfGreenBrush" Color="#7aff9e"/>
+    <!-- App*Brush definitions moved to App.xaml root flat resources
+         for reliable ThemeService mutation (same object identity as
+         XAML {StaticResource} bindings). See App.xaml. -->
 
     <!-- UI Radius Overrides -->
     <CornerRadius x:Key="NavigationViewItemCornerRadius">8</CornerRadius>

@@ -389,21 +389,12 @@ public sealed partial class ControlPanelPage : Page
             _headerBarBrush.Color = Color.FromArgb(255, _baseHdrR, _baseHdrG, _baseHdrB);
         }
 
-        // Update glassmorphic gradient overlay for light/dark theme
-        if (palette.IsDark)
-        {
-            GlassStop1.Color = Color.FromArgb(0x00, 0x16, 0x15, 0x30);
-            GlassStop2.Color = Color.FromArgb(0x30, 0x66, 0x33, 0x99);
-            GlassStop3.Color = Color.FromArgb(0x20, 0x99, 0x33, 0x66);
-            GlassStop4.Color = Color.FromArgb(0x00, 0x16, 0x15, 0x30);
-        }
-        else
-        {
-            GlassStop1.Color = Color.FromArgb(0x00, 0xC0, 0xD0, 0xFF);
-            GlassStop2.Color = Color.FromArgb(0x18, 0x80, 0x90, 0xE0);
-            GlassStop3.Color = Color.FromArgb(0x10, 0xA0, 0x80, 0xD0);
-            GlassStop4.Color = Color.FromArgb(0x00, 0xC0, 0xD0, 0xFF);
-        }
+        // Update glassmorphic gradient overlay from palette (no hardcoded colors)
+        var (gs1, gs2, gs3, gs4) = ThemeService.ComputeGlassStops(palette);
+        GlassStop1.Color = gs1;
+        GlassStop2.Color = gs2;
+        GlassStop3.Color = gs3;
+        GlassStop4.Color = gs4;
 
         static byte Lerp(byte from, byte to) => (byte)(from + (int)((to - from) * 0.6));
     }

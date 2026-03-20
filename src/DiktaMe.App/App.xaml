@@ -14,17 +14,39 @@
                 <ResourceDictionary Source="ms-appx:///Themes/Styles/SegmentedButtonStyle.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- ── WinUI Control ThemeResource Overrides ─────────────────────
-                 WinUI controls use ThemeResource (not StaticResource) to resolve
-                 styling keys. ThemeResource resolves from ThemeDictionaries BEFORE
-                 flat resources. XamlControlsResources defines its defaults in
-                 ThemeDictionaries, so our overrides MUST also live here to win.
+            <!-- ── App Theme Brush Placeholders ──────────────────────────────
+                 These live at the ROOT flat level (not in a MergedDictionary)
+                 so ThemeService.ApplyTheme() can find and mutate them via
+                 resources.TryGetValue() — guaranteed same object identity as
+                 what XAML {StaticResource} bindings hold.
+                 Initial values match Midnight palette as safe fallback.
+                 DO NOT tune colors here — edit ThemePalette in ThemeService.cs.
+                 ─────────────────────────────────────────────────────────────── -->
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0A0918"/>
+            <SolidColorBrush x:Key="AppBackgroundTranslucentBrush" Color="#D00A0918"/>
+            <SolidColorBrush x:Key="AppSurfaceBrush" Color="#16152E"/>
+            <SolidColorBrush x:Key="AppSurfaceTranslucentBrush" Color="#A016152E"/>
+            <SolidColorBrush x:Key="AppSurface2Brush" Color="#1E1D38"/>
+            <SolidColorBrush x:Key="AppSurface2TranslucentBrush" Color="#701E1D38"/>
+            <SolidColorBrush x:Key="AppBorderBrush" Color="#14FFFFFF"/>
+            <SolidColorBrush x:Key="AppNavActiveBrush" Color="#3B82F6"/>
+            <SolidColorBrush x:Key="AppAccentBrush" Color="#5DEBFF"/>
+            <SolidColorBrush x:Key="AppTextBrush" Color="#FFFFFF"/>
+            <SolidColorBrush x:Key="AppTextDimBrush" Color="#99FFFFFF"/>
+            <SolidColorBrush x:Key="AppPerfGreenBrush" Color="#7aff9e"/>
 
-                 Without this, the Windows system accent color (e.g. yellow/gold)
-                 bleeds into ListView selection, NavigationView hover, toggles, etc.
+            <!-- ── WinUI Control ThemeResource Placeholder Brushes ─────────────
+                 These brush objects exist SOLELY as mutation targets for ThemeService.
+                 Their initial color values are overwritten by ThemeService.ApplyTheme()
+                 before the UI becomes visible (called during app startup).
 
-                 ThemeService.ApplyTheme() mutates these brush Colors in-place
-                 at runtime for live theme switching.
+                 DO NOT manually tune colors here. All color definitions live in
+                 ThemeService.Palettes (ThemePalette records in ThemeService.cs).
+                 Adding a new theme requires ONLY a new ThemePalette entry there.
+
+                 Both "Default" and "Light" dictionaries must contain the same keys
+                 so ThemeService can find and mutate brushes regardless of which
+                 ElementTheme is currently active.
                  ─────────────────────────────────────────────────────────────── -->
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Default">

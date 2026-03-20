@@ -108,10 +108,10 @@
     <Border IsHitTestVisible="False">
         <Border.Background>
             <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
-                <GradientStop x:Name="GlassStop1" Color="#00161530" Offset="0.0"/>
-                <GradientStop x:Name="GlassStop2" Color="#30663399" Offset="0.35"/>
-                <GradientStop x:Name="GlassStop3" Color="#20993366" Offset="0.6"/>
-                <GradientStop x:Name="GlassStop4" Color="#00161530" Offset="1.0"/>
+                <GradientStop x:Name="GlassStop1" Color="Transparent" Offset="0.0"/>
+                <GradientStop x:Name="GlassStop2" Color="Transparent" Offset="0.35"/>
+                <GradientStop x:Name="GlassStop3" Color="Transparent" Offset="0.6"/>
+                <GradientStop x:Name="GlassStop4" Color="Transparent" Offset="1.0"/>
             </LinearGradientBrush>
         </Border.Background>
     </Border>

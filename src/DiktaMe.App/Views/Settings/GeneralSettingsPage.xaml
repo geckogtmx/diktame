@@ -63,12 +63,9 @@
                                    Foreground="{StaticResource AppTextBrush}"/>
                         <TextBlock Text="Choose the color palette for the app." FontSize="12"
                                    Foreground="{StaticResource AppTextDimBrush}"/>
-                        <RadioButtons SelectedIndex="{x:Bind ViewModel.SelectedThemeIndex, Mode=TwoWay}"
-                                      MaxColumns="3">
-                            <RadioButton Content="Midnight"/>
-                            <RadioButton Content="Ember"/>
-                            <RadioButton Content="Frost"/>
-                        </RadioButtons>
+                        <ComboBox ItemsSource="{x:Bind ViewModel.ThemeNames}"
+                                  SelectedIndex="{x:Bind ViewModel.SelectedThemeIndex, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"/>
                     </StackPanel>
                 </Border>
 

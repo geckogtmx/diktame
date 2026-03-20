@@ -6,6 +6,7 @@
 
     <ScrollViewer Padding="24,24,24,32">
         <StackPanel Spacing="16" MaxWidth="600">
+
             <TextBlock l:Uids.Uid="Settings_About_Title" FontSize="24" FontWeight="SemiBold"
                        Foreground="{StaticResource AppTextBrush}"/>
 
@@ -21,6 +22,10 @@
                     <TextBlock l:Uids.Uid="Settings_About_Version" FontSize="16"
                                HorizontalAlignment="Center"
                                Foreground="{StaticResource AppTextDimBrush}"/>
+
+                    <TextBlock Text="UI DEBUG BUILD [v19]" FontSize="11"
+                               HorizontalAlignment="Center"
+                               Foreground="Red" FontWeight="Bold"/>
 
                     <TextBlock l:Uids.Uid="Settings_About_Description" TextWrapping="Wrap" FontSize="13"
                                Foreground="{StaticResource AppTextDimBrush}"/>
