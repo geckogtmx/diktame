@@ -1715,9 +1715,9 @@ Format microdollars as USD: `(micro / 1_000_000).toFixed(2)`.
 ---
 
 ### Session 7 Checklist
-- [ ] D.3: Sales page + API route (LemonSqueezy + Ko-fi data)
-- [ ] D.4: Users page + API route (search, pagination, user detail)
-- [ ] `.env.local.example` updated with `LEMON_SQUEEZY_API_KEY`
+- [x] D.3: Sales page + API route (LemonSqueezy + Ko-fi data)
+- [x] D.4: Users page + API route (search, pagination, user detail)
+- [x] `.env.local.example` updated with `LEMON_SQUEEZY_API_KEY`
 - [ ] Commit: `feat(admin): sales dashboard + user management [D.3,D.4]`
 
 ---
