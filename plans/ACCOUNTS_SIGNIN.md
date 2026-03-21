@@ -1646,9 +1646,9 @@ Format microdollars as USD: `(micro / 1_000_000).toFixed(2)`.
 ---
 
 ### Session 6 Checklist
-- [ ] D.1: Migration 008 deployed, `is_admin` column exists, your profile set to admin, layout guard works
-- [ ] D.7: `lib/admin.ts` with `requireAdmin()` utility
-- [ ] D.2: Admin overview page with KPI cards + recent signups
+- [x] D.1: Migration 008 created, admin layout guard with `is_admin` check (**manual step**: deploy migration + set `is_admin=true`)
+- [x] D.7: `lib/admin.ts` with `requireAdmin()` utility
+- [x] D.2: Admin overview page with KPI cards + recent signups
 - [ ] Commit: `feat(admin): admin role, layout guard, overview dashboard [D.1,D.2,D.7]`
 
 ---
