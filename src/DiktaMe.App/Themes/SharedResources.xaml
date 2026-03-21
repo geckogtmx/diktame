@@ -24,6 +24,9 @@
     <CornerRadius x:Key="NavigationViewItemCornerRadius">8</CornerRadius>
     <CornerRadius x:Key="ControlCornerRadius">6</CornerRadius>
 
+    <!-- NavigationView left indentation — increased from default 4,2,4,2 to match design mock -->
+    <Thickness x:Key="NavigationViewItemButtonMargin">12,2,4,2</Thickness>
+
     <!-- ── Reusable Styles ──────────────────────────────────────────────── -->
 
     <!-- Settings card — translucent bordered container -->

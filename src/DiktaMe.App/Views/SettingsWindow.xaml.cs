@@ -15,9 +15,10 @@ namespace DiktaMe.App.Views;
 /// </summary>
 public sealed partial class SettingsWindow : Window
 {
+    private bool _isPaneOpen = true;
     private bool _suppressNextSelection;
-    private object? _selectionBeforeClick; // the item that was selected before the current click
-    private object? _currentSelection;     // the currently selected item
+    private object? _previousSelection;  // tracks selection before last click (for double-tap revert)
+    private object? _currentSelection;
     private readonly ThemeService _themeService;
     private readonly Dictionary<NavigationViewItem, NavItemBrushes> _navBrushes = new();
 
@@ -77,6 +78,10 @@ public sealed partial class SettingsWindow : Window
         // This bypasses the ThemeDictionary brush-identity mismatch bug.
         InjectControlBrushes(initPalette);
 
+        // Initialize pane toggle visual state and chevron icon color
+        UpdatePaneVisualState();
+        PaneToggleIcon.Foreground = new SolidColorBrush(initPalette.TextDim);
+
         // Inject brushes into each page as it navigates into the ContentFrame.
         // Page.Resources is checked by controls' {ThemeResource} resolution before
         // walking up to NavView or Application.Resources.
@@ -111,6 +116,7 @@ public sealed partial class SettingsWindow : Window
                 ApplyGlassmorphicGradient(palette);
                 ApplyGradientBackground(palette);
                 ApplyNavItemColors();
+                PaneToggleIcon.Foreground = new SolidColorBrush(palette.TextDim);
             });
         };
 
@@ -162,8 +168,7 @@ public sealed partial class SettingsWindow : Window
             return;
         }
 
-        // Track the previous selection so DoubleTapped can revert cross-item double-clicks
-        _selectionBeforeClick = _currentSelection;
+        _previousSelection = _currentSelection;
         _currentSelection = args.SelectedItem;
 
         if (args.SelectedItem is not NavigationViewItem item)
@@ -199,7 +204,14 @@ public sealed partial class SettingsWindow : Window
         ApplyNavItemColors();
     }
 
-    private void NavView_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+    // ── Pane collapse/expand toggle ──
+
+    private void PaneToggleButton_Click(object sender, RoutedEventArgs e)
+    {
+        TogglePane();
+    }
+
+    private void NavView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
         // Walk up from the tapped element to see if it's inside a NavigationViewItem
         var source = e.OriginalSource as DependencyObject;
@@ -213,16 +225,44 @@ public sealed partial class SettingsWindow : Window
             return;
         }
 
-        NavView.IsPaneOpen = !NavView.IsPaneOpen;
+        // Toggle pane
+        TogglePane();
 
         // If the first click of the double-click changed selection, revert it
-        if (_selectionBeforeClick is not null && NavView.SelectedItem != _selectionBeforeClick)
+        if (_previousSelection is not null && NavView.SelectedItem != _previousSelection)
         {
             _suppressNextSelection = true;
-            NavView.SelectedItem = _selectionBeforeClick;
+            NavView.SelectedItem = _previousSelection;
         }
 
         e.Handled = true;
+    }
+
+    /// <summary>Shared logic for toggle button click and double-tap.</summary>
+    private void TogglePane()
+    {
+        NavView.IsPaneOpen = !NavView.IsPaneOpen;
+        _isPaneOpen = NavView.IsPaneOpen;
+        UpdatePaneVisualState();
+    }
+
+    private void UpdatePaneVisualState()
+    {
+        // Chevron direction: left when open (collapse), right when closed (expand)
+        PaneToggleIcon.Glyph = _isPaneOpen ? "\uE76B" : "\uE76C";
+
+        // Logo text: visible only when expanded
+        LogoText.Visibility = _isPaneOpen ? Visibility.Visible : Visibility.Collapsed;
+
+        // Logo icon: full size when expanded, ~30% smaller when collapsed
+        LogoIcon.Width = _isPaneOpen ? 28 : 20;
+        LogoIcon.Height = _isPaneOpen ? 28 : 20;
+
+        // Overlay margin: keep logo icon center fixed at x=35 in both states (zero shift)
+        // Expanded: 21 + 14 = 35 center. Collapsed: 25 + 10 = 35 center.
+        LogoChevronPanel.Margin = _isPaneOpen
+            ? new Thickness(21, 22, 0, 0)
+            : new Thickness(25, 22, 0, 0);
     }
 
     // ── Nav item foreground colors (per-item local ThemeResource overrides) ──
