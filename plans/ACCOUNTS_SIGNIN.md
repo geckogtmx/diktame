@@ -2008,10 +2008,10 @@ Full end-to-end test of the complete flow:
 ---
 
 ### Session 9 Checklist
-- [ ] D.6: Support placeholder page
-- [ ] D.9: All env vars added to `.env.local.example` + Vercel
-- [ ] T.2: All 10 API endpoints verified
-- [ ] T.3: Full E2E sign-in flow verified
+- [x] D.6: Support placeholder page
+- [x] D.9: All env vars added to `.env.local.example` (**manual step**: add values to Vercel + Supabase)
+- [ ] T.2: All 10 API endpoints verified (**manual testing step**)
+- [ ] T.3: Full E2E sign-in flow verified (**manual testing step**)
 - [ ] Commit: `feat(admin): support placeholder + env vars [D.6,D.9]`
 
 ---
