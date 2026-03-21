@@ -13,6 +13,7 @@ paths = [
   '''website/QUICKSTART\.md''',
   '''src/DiktaMe\.App/Themes/SharedResources\.xaml''',
   '''src/DiktaMe\.App/Themes/Palettes/.*\.xaml''',
+  '''src/DiktaMe\.App/App\.xaml''',
 ]
 regexTarget = "secret"
 regexes = [
