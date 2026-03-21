@@ -1,11 +1,23 @@
 import { createApiClient } from '@/lib/supabase/api';
 import { NextResponse } from 'next/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+/** Query the latest wallet balance for a user. */
+async function getWalletBalance(supabase: SupabaseClient, userId: string): Promise<number> {
+  const { data: row } = await supabase
+    .from('wallet_ledger')
+    .select('balance_after_micro')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+  return row?.balance_after_micro ?? 0;
+}
 
 export async function GET(request: Request) {
   try {
     const supabase = await createApiClient(request);
 
-    // Get the authenticated user
     const {
       data: { user },
       error: authError,
@@ -15,7 +27,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch the user's profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -26,13 +37,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    // Return profile with user info
+    const walletBalanceMicro = await getWalletBalance(supabase, user.id);
+
     return NextResponse.json({
       id: user.id,
       email: user.email,
       name: profile.name,
-      trialWordsQuota: profile.trial_words_quota,
-      trialExpiresAt: profile.trial_expires_at,
+      walletBalanceMicro,
       hasCustomGeminiKey: !!profile.custom_gemini_key,
       createdAt: profile.created_at,
       updatedAt: profile.updated_at,
@@ -47,7 +58,6 @@ export async function PATCH(request: Request) {
   try {
     const supabase = await createApiClient(request);
 
-    // Get the authenticated user
     const {
       data: { user },
       error: authError,
@@ -57,11 +67,9 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse the request body
     const body = await request.json();
     const { name, customGeminiKey } = body;
 
-    // Build update object
     const updates: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
@@ -71,11 +79,9 @@ export async function PATCH(request: Request) {
     }
 
     if (customGeminiKey !== undefined) {
-      // If customGeminiKey is empty string, set to null
       updates.custom_gemini_key = customGeminiKey === '' ? null : customGeminiKey;
     }
 
-    // Update the profile
     const { data: updatedProfile, error: updateError } = await supabase
       .from('profiles')
       .update(updates)
@@ -88,12 +94,13 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
     }
 
+    const walletBalanceMicro = await getWalletBalance(supabase, user.id);
+
     return NextResponse.json({
       id: user.id,
       email: user.email,
       name: updatedProfile.name,
-      trialWordsQuota: updatedProfile.trial_words_quota,
-      trialExpiresAt: updatedProfile.trial_expires_at,
+      walletBalanceMicro,
       hasCustomGeminiKey: !!updatedProfile.custom_gemini_key,
       createdAt: updatedProfile.created_at,
       updatedAt: updatedProfile.updated_at,
@@ -108,7 +115,6 @@ export async function DELETE(request: Request) {
   try {
     const supabase = await createApiClient(request);
 
-    // Get the authenticated user
     const {
       data: { user },
       error: authError,
@@ -118,7 +124,6 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Delete the user's profile (cascades to api_usage and budget_tracker via RLS)
     const { error: deleteError } = await supabase.from('profiles').delete().eq('id', user.id);
 
     if (deleteError) {
@@ -126,7 +131,6 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Failed to delete profile' }, { status: 500 });
     }
 
-    // Sign out the user
     await supabase.auth.signOut();
 
     return NextResponse.json({ success: true, message: 'Account deleted successfully' });

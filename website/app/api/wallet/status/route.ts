@@ -1,5 +1,6 @@
-// Trial status endpoint — now returns wallet balance instead of word quotas.
-// Legacy response fields are zeroed for backward compatibility.
+// Wallet balance endpoint — returns current balance in microdollars.
+// Supports both Bearer token (C# app) and cookie auth (web dashboard).
+// Backup for the wallet-status Edge Function.
 
 import { createApiClient } from '@/lib/supabase/api';
 import { NextResponse } from 'next/server';
@@ -7,7 +8,6 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   try {
     const supabase = await createApiClient(request);
-
     const {
       data: { user },
       error: authError,
@@ -17,7 +17,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Wallet balance replaces trial word quota
     const { data: row } = await supabase
       .from('wallet_ledger')
       .select('balance_after_micro')
@@ -26,22 +25,11 @@ export async function GET(request: Request) {
       .limit(1)
       .single();
 
-    const balanceMicro = row?.balance_after_micro ?? 0;
-
     return NextResponse.json({
-      // Legacy fields (zeroed — trial system disabled)
-      wordsUsed: 0,
-      wordsQuota: 0,
-      daysRemaining: 0,
-      expiresAt: null,
-      trialActive: false,
-      hasCustomKey: false,
-      // Wallet fields
-      walletBalanceMicro: balanceMicro,
-      walletActive: balanceMicro > 10000, // $0.01 minimum (matches deduct_wallet_balance threshold)
+      balance_micro: row?.balance_after_micro ?? 0,
     });
   } catch (error) {
-    console.error('Trial status error:', error);
+    console.error('Wallet status error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

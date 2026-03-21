@@ -10,7 +10,12 @@ export async function GET() {
   } = await supabase.auth.getSession();
 
   if (session) {
-    return NextResponse.redirect(`diktame://auth?token=${session.access_token}`);
+    const deeplink = new URL('diktame://auth');
+    deeplink.searchParams.set('token', session.access_token);
+    if (session.refresh_token) {
+      deeplink.searchParams.set('refresh_token', session.refresh_token);
+    }
+    return NextResponse.redirect(deeplink.toString());
   }
 
   // Not signed in — redirect to login with mode=app so the OAuth flow fires
