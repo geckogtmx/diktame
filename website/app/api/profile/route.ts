@@ -10,7 +10,7 @@ async function getWalletBalance(supabase: SupabaseClient, userId: string): Promi
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
   return row?.balance_after_micro ?? 0;
 }
 

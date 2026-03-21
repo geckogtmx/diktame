@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -40,6 +39,10 @@ export default function ProfilePage() {
       setLoading(true);
       const response = await fetch('/api/profile');
 
+      if (response.status === 401) {
+        router.push('/login');
+        return;
+      }
       if (!response.ok) {
         throw new Error('Failed to fetch profile');
       }
