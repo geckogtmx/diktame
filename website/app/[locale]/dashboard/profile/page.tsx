@@ -10,9 +10,7 @@ interface Profile {
   id: string;
   email: string | undefined;
   name: string | null;
-  trialWordsQuota: number;
-  trialExpiresAt: string;
-
+  walletBalanceMicro: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -111,33 +109,24 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background text-white flex items-center justify-center">
+      <div className="px-6 py-8 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted">{t('loading')}</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">{t('loading')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-white">
+    <div className="px-6 py-8 max-w-4xl">
       {/* Header */}
-      <div className="border-b border-white/10 bg-black/20">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="text-primary hover:text-white mb-4 flex items-center gap-2"
-          >
-            {t('backToDashboard')}
-          </button>
-          <h1 className="text-3xl font-bold">{t('pageTitle')}</h1>
-          <p className="text-muted mt-2">{t('pageSubtitle')}</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">{t('pageTitle')}</h1>
+        <p className="text-gray-400 text-sm mt-1">{t('pageSubtitle')}</p>
       </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div>
         {error && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
             {error}
@@ -237,3 +226,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
