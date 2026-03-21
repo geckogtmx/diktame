@@ -2042,3 +2042,15 @@ Full end-to-end test of the complete flow:
 | 7 | D.3, D.4 | Admin sales + users | Session 6 (admin layout + guard) |
 | 8 | D.5, D.8 | License gifting + Ko-fi webhook | Session 6 + Session 5 (licenses table) |
 | 9 | D.6, D.9, T.2, T.3 | Support + env vars + testing | All prior sessions |
+
+---
+
+## Bonus: OAuth Signup Admin Notification
+
+**Status**: Not started
+**Priority**: Low (nice-to-have)
+**Discovered**: 2026-03-21 — Kevin Notar signed up via Google OAuth, no admin notification was sent (only waitlist signups trigger notifications)
+
+**Problem**: The `handle_new_user` trigger (migration 008) creates profiles + grants wallet credit on OAuth signup, but does NOT send any email notification. The waitlist welcome email + admin notification only fires on `waiting_list` INSERT (migration 004 trigger). This means organic signups via the login page go unnoticed.
+
+**Proposed fix**: Add a `pg_net.http_post()` call to the `handle_new_user` trigger that calls a new `signup-notification` Edge Function (or reuses `waitlist-welcome` with a different payload shape). The Edge Function sends an admin-only email via Resend: "New User Signup: {name} ({email}) via {provider}".

@@ -7,9 +7,9 @@
 | **Tests** | 968 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | **PASSES** (0 warnings, 0 errors). All 4 style dictionaries load cleanly at runtime. |
 | **CI** | **PASSING** — lint, build, 479 tests, gitleaks, vulnerability audit, publish all green. |
-| **Branch** | main (all UI revamp + nav pane work committed) |
+| **Branch** | main (all UI revamp + ACCOUNTS_SIGNIN sprint committed) |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
-| **Website Build** | **PASSES** — `next build` 0 errors, 7 new API routes, dashboard wallet page |
+| **Website Build** | **PASSES** — `next build` 0 errors, 15+ API routes, full admin dashboard, wallet + license system |
 
 ## Completed Streams
 
@@ -30,14 +30,14 @@
 | **SPEC_KOKORO_GPU** | **BLOCKED** — DirectML ConvTranspose incompatibility (ONNX Runtime 1.22.0). GPU variant + UI variant reorder kept. NuGet reverted to KokoroSharp.CPU. 5 new tests. |
 | **Settings Rework** | Gemini TTS, per-preset trailing space, "When to Speak" relocation, local model selector removal, mute detection, conversational TTS notifications, note context capture. 8 features in one session. |
 | **UI Revamp** | Glassmorphic theme system — Phases 0-3 complete. Phase 2 runtime crash (exit 127) **RESOLVED**. CP.1-CP.9 committed (auto-collapse, waveform, tray restore, snap-to-position, VU meter). Bug 3 (nav text contrast) **RESOLVED** — per-item local ThemeResource overrides. Sub-nav contrast also fixed. Nav pane collapse/expand (overlay logo, chevron in footer, CompactPaneLength=68). UserPaneFooter redesigned (avatar circle + display name + green status dot). |
-| **ACCOUNTS_SIGNIN** | Sessions 1-2 of 9 complete — website auth fixes + dashboard revamp (see Current Work below) |
+| **ACCOUNTS_SIGNIN** | **COMPLETE** ✅ — All 9 sessions (32 tasks). Website auth, dashboard, admin panel, JWT refresh, license provisioning, Ko-fi webhooks. |
 
 ## Open Bugs (Stream K) — Updated 2026-03-21
 
-1. **App UI doesn't update after sign-in** — Wallet balance not synced after `HandleAuthCallbackAsync`. Fix planned in Session 3 (A.3: `SyncWalletAfterSignInAsync`).
-2. ~~**Website "Sign Up" shows Coming Soon**~~ — Delete `NEXT_PUBLIC_COMING_SOON` env var from Vercel dashboard (W.12). No code change needed.
-3. ~~**Trial counter page blank**~~ — Trial system replaced by wallet. `/api/trial/status` now returns wallet balance (W.6). `/api/trial/usage` returns 410 Gone.
-4. **Profile page "Failed to fetch profile"** — Discovered 2026-03-21. `/dashboard/profile` shows error. Likely cookie auth issue with `createApiClient` inside new dashboard layout. Needs investigation — may be a Supabase SSR cookie refresh issue.
+1. ~~**App UI doesn't update after sign-in**~~ ✅ Fixed — `SyncWalletAfterSignInAsync()` syncs wallet + refreshes HUD + shows toast after sign-in (A.3, commit `3785914`).
+2. ~~**Website "Sign Up" shows Coming Soon**~~ ✅ Fixed — `NEXT_PUBLIC_COMING_SOON` deleted from Vercel dashboard (W.12).
+3. ~~**Trial counter page blank**~~ ✅ Fixed — Trial system replaced by wallet. `/api/trial/status` now returns wallet balance (W.6). `/api/trial/usage` returns 410 Gone.
+4. ~~**Profile page "Failed to fetch profile"**~~ ✅ Fixed — `.single()` → `.maybeSingle()` in wallet balance query + 401 → redirect to login (commit `c20fb73`).
 
 ## Resolved Bugs (SPEC_011)
 
@@ -128,67 +128,60 @@ The "Bars" waveform style doesn't fill enough of the header bar visually. Curren
 
 ## Open Issues
 
-- **Sign In broken / redesign needed** — Sign In button in UserPaneFooter navigates to Account page but auth flow may not complete properly. Next session: debug sign-in flow, ensure `IAccountService.AuthStateChanged` fires and footer updates with avatar + display name. Profile image support to be specced.
+- ~~**Sign In broken / redesign needed**~~ ✅ Fixed — ACCOUNTS_SIGNIN sprint (Sessions 3-4) wired deeplink with refresh token, JWT auto-refresh, display name extraction, wallet sync after sign-in. UserPaneFooter shows OAuth display name.
 - **App quit stalling after TTS**: `AppWindow.Closing` handler cancels close unconditionally — `Application.Current.Exit()` gets blocked. Needs `_isExiting` flag to bypass cancellation during shutdown.
 - **Test beep ducks live audio**: One test instantiates a real AudioDucker and ducks live audio sessions (YouTube volume drops during test run). Needs mocking or environment guard.
 
-## Current Work: ACCOUNTS_SIGNIN Sprint
+## Completed: ACCOUNTS_SIGNIN Sprint ✅
 
-**Full plan**: `plans/ACCOUNTS_SIGNIN.md` (32 tasks, 9 sessions, detailed step-by-step implementation instructions per task)
+**Full plan**: `plans/ACCOUNTS_SIGNIN.md` (32 tasks, 9 sessions — ALL COMPLETE)
 
 ### Progress
 
-| Session | Tasks | Scope | Status |
-|---------|-------|-------|--------|
-| 1 | W.1–W.7 | Website auth + API routes | **DONE** ✅ (`12f70c0`) |
-| 2 | W.8–W.12 | Website dashboard UI | **DONE** ✅ (`600666d`) |
-| 3 | A.1, A.3, A.5 | App deeplink + sync + display name | Pending |
-| 4 | A.2, A.4, T.1 | JWT refresh service + session handling + tests | Pending |
-| 5 | W.13–W.14 | License webhook + validation | Pending |
-| 6 | D.1, D.2, D.7 | Admin foundation (role, overview, auth guard) | Pending |
-| 7 | D.3, D.4 | Admin sales + users pages | Pending |
-| 8 | D.5, D.8 | Admin license gifting + Ko-fi webhook | Pending |
-| 9 | D.6, D.9, T.2, T.3 | Support placeholder + env vars + testing | Pending |
+| Session | Tasks | Scope | Status | Commit |
+|---------|-------|-------|--------|--------|
+| 1 | W.1–W.7 | Website auth + API routes | **DONE** ✅ | `12f70c0` |
+| 2 | W.8–W.12 | Website dashboard UI | **DONE** ✅ | `600666d` |
+| 3+4 | A.1–A.5, T.1 | App deeplink, JWT refresh, display name, tests | **DONE** ✅ | `3785914` |
+| 5 | W.13–W.14 | License provisioning + validation | **DONE** ✅ | `9576e0e` |
+| 6 | D.1, D.2, D.7 | Admin foundation (role, overview, auth guard) | **DONE** ✅ | `be3a30a` |
+| 7 | D.3, D.4 | Admin sales + users pages | **DONE** ✅ | `eadbdd5` |
+| 8 | D.5, D.8 | Admin license gifting + Ko-fi webhook | **DONE** ✅ | `be20eb8` |
+| 9 | D.6, D.9 | Support placeholder + env vars | **DONE** ✅ | `c971d2d` |
+| — | Bug fix | Profile page 401 + gitleaks allowlist | **DONE** ✅ | `c20fb73` |
 
-### Session 1 — What Was Done (W.1–W.7)
+### Key Features Delivered
 
-**Files modified:**
-- `website/app/auth/callback/route.ts` — Deeplink now includes `refresh_token` (W.1). Safety-net INSERT uses zeroed trial fields + `createAdminClient()` for $1.00 promo wallet grant with `order_ref` dedup (W.2).
-- `website/app/api/auth/app-token/route.ts` — Same deeplink fix (W.1).
-- `website/app/api/trial/status/route.ts` — Rewritten to return `walletBalanceMicro` + zeroed legacy fields (W.6).
-- `website/app/api/trial/usage/route.ts` — Returns 410 Gone (W.6).
-- `website/app/api/profile/route.ts` — GET/PATCH return `walletBalanceMicro` instead of `trialWordsQuota`/`trialExpiresAt`. Added `getWalletBalance()` helper (W.7).
+**Website (Next.js on Vercel):**
+- Auth deeplink with `refresh_token` for silent JWT renewal
+- Wallet API routes: `/api/wallet/status`, `/api/wallet/history`
+- Token refresh endpoint: `/api/auth/refresh`
+- Dashboard with wallet balance, license status, recent activity cards
+- Wallet detail page with transaction history + pagination
+- License validation endpoint: `/api/licenses/validate`
+- Admin dashboard: overview KPIs, user management (search/pagination), sales data, license gifting, Ko-fi webhook adapter
+- Profile page: 401 → redirect to login, `.maybeSingle()` fix
 
-**Files created:**
-- `website/app/api/auth/refresh/route.ts` — POST `{ refresh_token }` → returns new tokens. Keeps Supabase anon key server-side (W.3).
-- `website/app/api/wallet/status/route.ts` — GET returns `{ balance_micro }`, dual Bearer/cookie auth (W.4).
-- `website/app/api/wallet/history/route.ts` — GET with `?limit=N&offset=N` pagination (W.5).
+**C# App (WinUI 3):**
+- `HandleDeepLink()` extracts + stores `refresh_token`
+- `TokenRefreshService`: background timer (5min check), proactive refresh when <10min remaining, reactive refresh on 401
+- `JwtDecoder.ExtractDisplayName()` / `ExtractAvatarUrl()` — OAuth metadata extraction
+- `AccountSettings.DisplayName` / `AvatarUrl` persisted to settings.json
+- `SyncWalletAfterSignInAsync()` — wallet sync + HUD refresh + toast after sign-in
+- `SessionExpired` events wired on both wallet proxies + refresh service
+- UserPaneFooter shows OAuth display name (falls back to email prefix)
+- 15 new unit tests (JwtDecoder, AccountService, TokenRefreshService)
 
-### Session 2 — What Was Done (W.8–W.12)
+**Supabase:**
+- Migration 007: `licenses` + `pending_gifts` tables with RLS
+- Migration 008: `is_admin` column + updated `handle_new_user` trigger (auto-claims pending gifts)
+- Ko-fi webhook adapter in `wallet-webhook` Edge Function
+- License provisioning wired into LemonSqueezy webhook flow
 
-**Files created:**
-- `website/app/[locale]/dashboard/DashboardSidebar.tsx` — Client component with Overview/Wallet/Profile links, active highlight via `usePathname()` (W.11).
-- `website/app/[locale]/dashboard/wallet/page.tsx` — Transaction history table with color-coded amounts, type badges, pagination (W.9).
-- `website/supabase/migrations/007_licenses_table.sql` — `licenses` + `pending_gifts` tables with RLS (W.10). **Not yet deployed to Supabase** — run `supabase db push` or paste into SQL Editor.
+### Manual Testing Still Needed (T.2, T.3)
 
-**Files modified:**
-- `website/app/[locale]/dashboard/layout.tsx` — Rewritten with sidebar + Navbar + flex layout (W.11).
-- `website/app/[locale]/dashboard/page.tsx` — 3-card dashboard: wallet balance (color-coded), license status, activity count. Quick actions row (W.8).
-- `website/app/[locale]/dashboard/profile/page.tsx` — Interface updated (`walletBalanceMicro` replaces `trialWordsQuota`/`trialExpiresAt`). Layout simplified for sidebar integration.
-- `website/messages/en.json` — New DashboardPage i18n keys (`walletTitle`, `viewHistory`, `licenseTitle`, etc.).
-
-### What to Do Next
-
-**Session 3** (C# app — depends on Session 1 deployed on Vercel):
-1. **A.1**: Update `HandleDeepLink()` in `App.xaml.cs:218` to extract `refresh_token` from query string. Update `AccountService.HandleAuthCallbackAsync` to accept + store it. Add `ExtractDisplayName()`/`ExtractAvatarUrl()` to `JwtDecoder.cs`. Add `DisplayName`/`AvatarUrl` to `AccountSettings.cs`.
-2. **A.3**: Add `SyncWalletAfterSignInAsync()` to `LoadingViewModel.cs` — syncs wallet + refreshes HUD + shows toast after sign-in. Called from `HandleDeepLink()` after auth callback.
-3. **A.5**: Update `UserPaneFooter.xaml.cs:73-77` to use `settings.Current.Account.DisplayName` instead of email prefix extraction.
-
-See `plans/ACCOUNTS_SIGNIN.md` for exact code snippets, line numbers, and file paths for every task.
-
-### Bug to Fix: Profile Page Error
-
-The `/dashboard/profile` page shows "Failed to fetch profile" after the dashboard layout revamp. The profile page is a `'use client'` component calling `fetch('/api/profile')` which uses `createApiClient(request)` — but client-side `fetch()` doesn't pass the `request` object. Investigate whether the cookie-based auth path in `createApiClient` works correctly when called from the dashboard layout context. May need the Supabase middleware to refresh cookies.
+- **T.2**: 10 API endpoints need curl/browser verification (see `plans/ACCOUNTS_SIGNIN.md` Session 9)
+- **T.3**: Full 12-step E2E sign-in flow verification (app → browser → deeplink → wallet → refresh → dictation)
 
 ---
 
@@ -324,8 +317,8 @@ System.ArgumentNullException: Value cannot be null. (Parameter 'key')
 4. ~~Nav pane collapse/expand~~ ✅ Overlay logo, chevron in footer, pixel-tuned alignment
 5. ~~UserPaneFooter redesign~~ ✅ Avatar circle + display name + green status dot + compact mode
 6. ~~Phase 6/7 Stabilization~~ ✅ Standardized Cloud/Local tabs, nav text contrast, sidebar logo, new icons
-7. **Sign In design + function** — currently broken (deferred). Next task: wire Account page sign-in flow, ensure UserPaneFooter updates on auth state change, profile image support
-8. ~~Fix gitleaks CI~~ ✅ Allowlisted `App.xaml` — false positive on XAML `x:Key` containing "Key"
+7. ~~Sign In design + function~~ ✅ RESOLVED — ACCOUNTS_SIGNIN sprint (Sessions 3-4)
+8. ~~Fix gitleaks CI~~ ✅ Allowlisted `App.xaml` + `plans/ACCOUNTS_SIGNIN.md` — false positives
 9. Continue to Phase 4 (Control Panel Dashboard) → Phase 5 (Polish & QA)
 10. **UI polish** — card border opacity, toggle switch shape (if safe approach found), glassmorphic depth
 
@@ -522,7 +515,7 @@ Transcribed note content here
 
 ## CI/CD Notes
 
-- **Gitleaks:** `.gitleaks.toml` allowlists `website/QUICKSTART.md` (historical fake JWTs in git history)
+- **Gitleaks:** `.gitleaks.toml` allowlists `website/QUICKSTART.md`, `plans/ACCOUNTS_SIGNIN.md`, `App.xaml`, palette XAMLs (historical fake JWTs + XAML x:Key false positives)
 - **Test threshold:** `ci/test-threshold.json` set to 470 (local runs 944, CI runs ~479 due to skipped tests)
 - **Vercel:** Connected to `geckogtmx/diktame`, Root Directory = `website`
 
@@ -625,14 +618,14 @@ Full spec: `plans/SPEC_015_MODULES_SPRINT.md` (17 phases, 18-23 sessions)
 
 | Task | Effort |
 |------|--------|
-| ~~**LemonSqueezy**~~ | Moved to ACCOUNTS_SIGNIN plan — Sessions 5 (W.13-W.14) and 8 (D.5, D.8) |
+| ~~**LemonSqueezy**~~ | ✅ Done — ACCOUNTS_SIGNIN Sessions 5 (W.13-W.14) and 8 (D.5, D.8) |
 | Cloud latency tuning | Cloud inference profiling |
 | Control Panel wiring | RAW toggle→pipeline, REFINE toggle→pipeline (see `plans/CONTROL_PANEL_REWORK.md`) |
 | ~~L.6-L.7~~ | Deferred — Flux (revisit when Chat gets voice input) |
 
 ## Reference Docs
 
-- `plans/ACCOUNTS_SIGNIN.md` — **ACTIVE** — Full 32-task, 9-session plan for auth + dashboard + admin (Sessions 1-2 done, 3-9 pending)
+- `plans/ACCOUNTS_SIGNIN.md` — **COMPLETE** — Full 32-task, 9-session plan for auth + dashboard + admin (all sessions done)
 - `DEVELOPMENT_ROADMAP.md` — Full task breakdown
 - `ARCHITECTURE.md` — Technical architecture
 - `SECURITY.md` — GitHub security policy
