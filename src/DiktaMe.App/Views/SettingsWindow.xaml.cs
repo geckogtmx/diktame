@@ -258,11 +258,11 @@ public sealed partial class SettingsWindow : Window
         LogoIcon.Width = _isPaneOpen ? 28 : 20;
         LogoIcon.Height = _isPaneOpen ? 28 : 20;
 
-        // Overlay margin: keep logo icon center fixed at x=35 in both states (zero shift)
-        // Expanded: 21 + 14 = 35 center. Collapsed: 25 + 10 = 35 center.
-        LogoChevronPanel.Margin = _isPaneOpen
+        // Logo overlay margin: keep icon center fixed at ~35 in both states
+        // Expanded: 21 + 14 = 35. Collapsed (64px pane): 26 + 10 = 36 (close enough).
+        LogoPanel.Margin = _isPaneOpen
             ? new Thickness(21, 22, 0, 0)
-            : new Thickness(25, 22, 0, 0);
+            : new Thickness(26, 22, 0, 0);
     }
 
     // ── Nav item foreground colors (per-item local ThemeResource overrides) ──

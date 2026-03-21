@@ -25,7 +25,7 @@
     <CornerRadius x:Key="ControlCornerRadius">6</CornerRadius>
 
     <!-- NavigationView left indentation — increased from default 4,2,4,2 to match design mock -->
-    <Thickness x:Key="NavigationViewItemButtonMargin">12,2,4,2</Thickness>
+    <Thickness x:Key="NavigationViewItemButtonMargin">5,2,4,2</Thickness>
 
     <!-- ── Reusable Styles ──────────────────────────────────────────────── -->
 

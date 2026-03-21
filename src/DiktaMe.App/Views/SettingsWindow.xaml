@@ -23,15 +23,25 @@
                          SelectionChanged="NavView_SelectionChanged"
                          DoubleTapped="NavView_DoubleTapped"
                          OpenPaneLength="250"
-                         CompactPaneLength="56"
+                         CompactPaneLength="68"
                          Background="{StaticResource AppBackgroundTranslucentBrush}"
                          FontFamily="{StaticResource AppFont}">
         <muxc:NavigationView.PaneFooter>
-            <settings:UserPaneFooter x:Name="UserFooter"/>
+            <StackPanel>
+                <Button x:Name="PaneToggleButton"
+                        Click="PaneToggleButton_Click"
+                        Background="Transparent" BorderThickness="0"
+                        Padding="6" Margin="16,4,0,4"
+                        Width="32" Height="32"
+                        HorizontalAlignment="Left">
+                    <FontIcon x:Name="PaneToggleIcon" Glyph="&#xE76B;" FontSize="12"/>
+                </Button>
+                <settings:UserPaneFooter x:Name="UserFooter"/>
+            </StackPanel>
         </muxc:NavigationView.PaneFooter>
-        <!-- Spacer pushes menu items below the overlaid logo + chevron -->
+        <!-- Spacer pushes menu items below the overlaid logo -->
         <muxc:NavigationView.PaneCustomContent>
-            <Border Height="88"/>
+            <Border Height="56"/>
         </muxc:NavigationView.PaneCustomContent>
         <muxc:NavigationView.MenuItems>
             <muxc:NavigationViewItem l:Uids.Uid="Nav_General" Tag="general">
@@ -87,26 +97,17 @@
                VerticalAlignment="Stretch"/>
     </muxc:NavigationView>
 
-    <!-- Logo + chevron overlay — outside NavigationView so it never gets clipped -->
-    <StackPanel x:Name="LogoChevronPanel"
+    <!-- Logo overlay — outside NavigationView so it never gets clipped -->
+    <StackPanel x:Name="LogoPanel"
+                Orientation="Horizontal" Spacing="8"
                 HorizontalAlignment="Left" VerticalAlignment="Top"
                 Margin="21,22,0,0">
-        <StackPanel x:Name="LogoPanel" Orientation="Horizontal" Spacing="8">
-            <ImageIcon x:Name="LogoIcon" Source="ms-appx:///Assets/icon.png"
-                       Width="28" Height="28" VerticalAlignment="Center"/>
-            <TextBlock x:Name="LogoText" Text="dIKta.me" FontSize="20"
-                       FontFamily="{StaticResource AppFontSemiBold}"
-                       Foreground="{StaticResource AppAccentBrush}"
-                       VerticalAlignment="Center"/>
-        </StackPanel>
-        <Button x:Name="PaneToggleButton"
-                Click="PaneToggleButton_Click"
-                Background="Transparent" BorderThickness="0"
-                Padding="6" Margin="0,8,0,0"
-                Width="32" Height="32"
-                HorizontalAlignment="Left">
-            <FontIcon x:Name="PaneToggleIcon" Glyph="&#xE76B;" FontSize="12"/>
-        </Button>
+        <ImageIcon x:Name="LogoIcon" Source="ms-appx:///Assets/icon.png"
+                   Width="28" Height="28" VerticalAlignment="Center"/>
+        <TextBlock x:Name="LogoText" Text="dIKta.me" FontSize="20"
+                   FontFamily="{StaticResource AppFontSemiBold}"
+                   Foreground="{StaticResource AppAccentBrush}"
+                   VerticalAlignment="Center"/>
     </StackPanel>
 
     <!-- Subtle accent glow overlay in the top right -->
