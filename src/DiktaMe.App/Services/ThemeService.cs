@@ -390,10 +390,10 @@ public sealed class ThemeService
                     }
                 }
 
-                if (inFlat) foundFlat++;
-                if (inTheme) foundTheme++;
-                if (inMergedTheme) foundMergedTheme++;
-                if (inMergedFlat) foundMergedFlat++;
+                if (inFlat) { foundFlat++; }
+                if (inTheme) { foundTheme++; }
+                if (inMergedTheme) { foundMergedTheme++; }
+                if (inMergedFlat) { foundMergedFlat++; }
                 if (!found)
                 {
                     notFound++;

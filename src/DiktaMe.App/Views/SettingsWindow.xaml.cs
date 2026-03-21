@@ -259,10 +259,13 @@ public sealed partial class SettingsWindow : Window
         LogoIcon.Height = _isPaneOpen ? 28 : 20;
 
         // Logo overlay margin: keep icon center fixed at ~35 in both states
-        // Expanded: 21 + 14 = 35. Collapsed (64px pane): 26 + 10 = 36 (close enough).
+        // Expanded: 21 + 14 = 35. Collapsed (68px pane): 26 + 10 = 36 (close enough).
         LogoPanel.Margin = _isPaneOpen
             ? new Thickness(21, 22, 0, 0)
             : new Thickness(26, 22, 0, 0);
+
+        // Sync footer compact/expanded layout
+        UserFooter.SetCompactMode(!_isPaneOpen);
     }
 
     // ── Nav item foreground colors (per-item local ThemeResource overrides) ──
