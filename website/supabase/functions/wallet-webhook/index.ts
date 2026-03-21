@@ -19,6 +19,7 @@ import {
   validateSignature,
 } from "./adapters/lemonsqueezy.ts";
 import { parseManualGrant, validateAdminSecret } from "./adapters/manual.ts";
+import { parseKofiEvent, validateKofiToken } from "./adapters/kofi.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -44,6 +45,12 @@ Deno.serve(async (req: Request) => {
       gateway = "lemonsqueezy";
     } else if (req.headers.has("x-admin-secret")) {
       gateway = "manual";
+    } else if (
+      (req.headers.get("content-type") ?? "").includes(
+        "application/x-www-form-urlencoded",
+      )
+    ) {
+      gateway = "kofi";
     } else {
       return jsonResponse(
         { error: "Missing gateway parameter or detection header" },
@@ -101,6 +108,27 @@ Deno.serve(async (req: Request) => {
           { ...result, license_key: licenseKey },
           result.success ? 200 : 422,
         );
+      }
+
+      case "kofi": {
+        // ── Ko-fi ────────────────────────────────────────────────────
+        const credit = await parseKofiEvent(rawBody);
+        if (!credit) {
+          return jsonResponse({ ok: true, skipped: true }, 200);
+        }
+
+        // Validate verification token from parsed body
+        const params = new URLSearchParams(rawBody);
+        const dataStr = params.get("data");
+        if (dataStr) {
+          const data = JSON.parse(dataStr);
+          if (!validateKofiToken(data.verification_token ?? "")) {
+            return jsonResponse({ error: "Invalid verification token" }, 401);
+          }
+        }
+
+        const kofiResult = await processCredit(credit);
+        return jsonResponse(kofiResult, kofiResult.success ? 200 : 422);
       }
 
       case "manual": {

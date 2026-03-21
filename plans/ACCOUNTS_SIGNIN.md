@@ -1912,9 +1912,9 @@ case "kofi": {
 ---
 
 ### Session 8 Checklist
-- [ ] D.5: License management page + gift form + pending gifts
-- [ ] D.8: Ko-fi webhook adapter + registered in router
-- [ ] `.env.local.example` updated with `KOFI_VERIFICATION_TOKEN`, `KOFI_API_TOKEN`
+- [x] D.5: License management page + gift form + pending gifts
+- [x] D.8: Ko-fi webhook adapter + registered in router
+- [x] `.env.local.example` updated with `KOFI_VERIFICATION_TOKEN`, `RESEND_API_KEY`
 - [ ] Commit: `feat(admin): license gifting + Ko-fi webhook adapter [D.5,D.8]`
 
 ---
