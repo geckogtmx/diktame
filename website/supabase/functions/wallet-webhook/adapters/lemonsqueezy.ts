@@ -15,6 +15,17 @@ const PRODUCT_CREDIT_MAP: Record<string, number> = {
   // Power: $50.00 credit ($60.00 checkout)
 };
 
+/** Product ID → license tier mapping. */
+const PRODUCT_TIER_MAP: Record<string, string> = {
+  // Populate when LemonSqueezy products are created:
+  // "product_id": "starter" | "power"
+};
+
+/** Returns the license tier for a product, or null if not a license product. */
+export function getProductTier(productId: string): string | null {
+  return PRODUCT_TIER_MAP[productId] ?? null;
+}
+
 /**
  * Validate a LemonSqueezy webhook signature using HMAC-SHA256.
  * @param rawBody The raw request body as string

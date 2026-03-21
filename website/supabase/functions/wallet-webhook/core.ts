@@ -116,3 +116,53 @@ export async function resolveUserByEmail(
 
   return profile?.id ?? null;
 }
+
+/**
+ * Generate a formatted license key: DKTM-XXXX-XXXX-XXXX
+ * Uses an unambiguous character set (no I/O/0/1).
+ */
+function generateLicenseKey(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let key = "DKTM";
+  for (let i = 0; i < 3; i++) {
+    key += "-";
+    for (let j = 0; j < 4; j++) {
+      key += chars[Math.floor(Math.random() * chars.length)];
+    }
+  }
+  return key;
+}
+
+/**
+ * Provision a license for a user after a purchase.
+ * Inserts into the `licenses` table. Idempotent via order_ref.
+ */
+export async function provisionLicense(
+  userId: string,
+  tier: string,
+  orderRef: string,
+): Promise<{ key: string; duplicate: boolean }> {
+  const db = createServiceClient();
+
+  // Dedup: check if license already exists for this order
+  const { data: existing } = await db
+    .from("licenses")
+    .select("key")
+    .eq("order_ref", orderRef)
+    .maybeSingle();
+
+  if (existing) {
+    return { key: existing.key, duplicate: true };
+  }
+
+  const key = generateLicenseKey();
+  await db.from("licenses").insert({
+    user_id: userId,
+    key,
+    status: "active",
+    tier,
+    order_ref: orderRef,
+  });
+
+  return { key, duplicate: false };
+}

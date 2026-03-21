@@ -12,8 +12,9 @@
 // 2. Add route in this file
 // 3. No changes to core handler or C# app
 
-import { processCredit } from "./core.ts";
+import { processCredit, provisionLicense } from "./core.ts";
 import {
+  getProductTier,
   parseLemonSqueezyEvent,
   validateSignature,
 } from "./adapters/lemonsqueezy.ts";
@@ -81,7 +82,25 @@ Deno.serve(async (req: Request) => {
         }
 
         const result = await processCredit(credit);
-        return jsonResponse(result, result.success ? 200 : 422);
+
+        // Provision license if product maps to a tier
+        const tier = getProductTier(
+          String(credit.metadata.product_id ?? ""),
+        );
+        let licenseKey: string | undefined;
+        if (tier && result.success) {
+          const license = await provisionLicense(
+            credit.user_id,
+            tier,
+            credit.order_ref,
+          );
+          licenseKey = license.key;
+        }
+
+        return jsonResponse(
+          { ...result, license_key: licenseKey },
+          result.success ? 200 : 422,
+        );
       }
 
       case "manual": {

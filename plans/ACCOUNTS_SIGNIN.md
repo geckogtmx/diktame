@@ -1408,9 +1408,9 @@ export async function GET(request: Request) {
 ---
 
 ### Session 5 Checklist
-- [ ] W.10: Migration 007 deployed (if not done in Session 2)
-- [ ] W.13: `provisionLicense()` in core, tier mapping in LemonSqueezy adapter, webhook calls it
-- [ ] W.14: `/api/licenses/validate` route created
+- [ ] W.10: Migration 007 deployed (**manual step**: run `007_licenses_table.sql` in Supabase SQL Editor)
+- [x] W.13: `provisionLicense()` in core, tier mapping in LemonSqueezy adapter, webhook calls it
+- [x] W.14: `/api/licenses/validate` route created
 - [ ] Commit: `feat(licenses): license provisioning via webhook + validation endpoint [W.13-W.14]`
 
 ---
