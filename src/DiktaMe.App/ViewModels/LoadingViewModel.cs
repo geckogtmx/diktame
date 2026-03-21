@@ -644,6 +644,9 @@ public sealed partial class LoadingViewModel : ObservableObject
     {
         await SyncWalletBalanceAsync().ConfigureAwait(false);
 
+        // Sync server-side profile (picks up avatar_url for email/password users)
+        await _accountService.SyncProfileFromServerAsync().ConfigureAwait(false);
+
         // Refresh ControlPanel HUD on UI thread
         _uiDispatcher?.TryEnqueue(() =>
         {

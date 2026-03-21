@@ -4,6 +4,7 @@ using DiktaMe.Core.Config;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace DiktaMe.App.Views.Settings;
 public sealed partial class UserPaneFooter : UserControl
@@ -82,11 +83,37 @@ public sealed partial class UserPaneFooter : UserControl
                 displayName = atIndex > 0 ? email[..atIndex] : email;
             }
 
-            // Avatar initial
+            // Avatar initial (always set as fallback)
             string initial = displayName.Length > 0
                 ? displayName[0].ToString().ToUpperInvariant()
                 : "?";
             AvatarInitial.Text = initial;
+
+            // Show real avatar image if URL is available, otherwise show initial
+            string avatarUrl = settings.Current.Account.AvatarUrl;
+            if (!string.IsNullOrEmpty(avatarUrl))
+            {
+                try
+                {
+                    AvatarImageBrush.ImageSource = new BitmapImage(new Uri(avatarUrl));
+                    AvatarImage.Visibility = Visibility.Visible;
+                    AvatarEllipse.Visibility = Visibility.Collapsed;
+                    AvatarInitial.Visibility = Visibility.Collapsed;
+                }
+                catch
+                {
+                    // Malformed URI — fall back to initial
+                    AvatarImage.Visibility = Visibility.Collapsed;
+                    AvatarEllipse.Visibility = Visibility.Visible;
+                    AvatarInitial.Visibility = Visibility.Visible;
+                }
+            }
+            else
+            {
+                AvatarImage.Visibility = Visibility.Collapsed;
+                AvatarEllipse.Visibility = Visibility.Visible;
+                AvatarInitial.Visibility = Visibility.Visible;
+            }
 
             // Show avatar + status dot, hide person icon
             AvatarContainer.Visibility = Visibility.Visible;

@@ -766,7 +766,14 @@
     "deleteConfirm": "¿Estás absolutamente seguro?",
     "deleteConfirmYes": "Sí, Eliminar Mi Cuenta",
     "deleting": "Eliminando...",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "clickToUpload": "Clic para cambiar foto",
+    "avatarUpdated": "¡Foto de perfil actualizada!",
+    "fileTooLarge": "Archivo demasiado grande (máx 2MB)",
+    "cropTitle": "Recorta tu foto",
+    "cropZoom": "Zoom",
+    "cropSave": "Guardar",
+    "cropCancel": "Cancelar"
   },
   "NotFoundPage": {
     "title": "404",

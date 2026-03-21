@@ -37,4 +37,10 @@ public interface IAccountService
     /// True = signed in, false = signed out.
     /// </summary>
     event Action<bool>? AuthStateChanged;
+
+    /// <summary>
+    /// Fetches the server-side profile to sync fields not in the JWT
+    /// (e.g. avatar_url for email/password users who uploaded via the website).
+    /// </summary>
+    Task SyncProfileFromServerAsync(CancellationToken cancellationToken = default);
 }

@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useTranslations } from 'next-intl';
+import { AvatarCropModal } from '@/app/components/AvatarCropModal';
 
 interface Profile {
   id: string;
   email: string | undefined;
   name: string | null;
+  avatarUrl: string | null;
   walletBalanceMicro: number;
   createdAt: string;
   updatedAt: string;
@@ -24,6 +26,11 @@ export default function ProfilePage() {
 
   // Form state
   const [name, setName] = useState('');
+
+  // Avatar crop state
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -110,6 +117,58 @@ export default function ProfilePage() {
     }
   }
 
+  function onFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate size client-side (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError(t('fileTooLarge'));
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setSelectedImageSrc(objectUrl);
+    setCropModalOpen(true);
+
+    // Reset input so the same file can be re-selected
+    e.target.value = '';
+  }
+
+  async function handleAvatarSave(blob: Blob) {
+    setError(null);
+    setSuccess(null);
+
+    const formData = new FormData();
+    formData.append('avatar', blob, 'avatar.webp');
+
+    const response = await fetch('/api/profile/avatar', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to upload avatar');
+    }
+
+    const { avatarUrl: newUrl } = await response.json();
+    setProfile((prev) => prev ? { ...prev, avatarUrl: newUrl } : prev);
+    setCropModalOpen(false);
+    if (selectedImageSrc) URL.revokeObjectURL(selectedImageSrc);
+    setSelectedImageSrc(null);
+    setSuccess(t('avatarUpdated'));
+  }
+
+  function handleCropCancel() {
+    setCropModalOpen(false);
+    if (selectedImageSrc) URL.revokeObjectURL(selectedImageSrc);
+    setSelectedImageSrc(null);
+  }
+
+  // Avatar initial letter
+  const avatarInitial = (profile?.name || profile?.email || '?')[0].toUpperCase();
+
   if (loading) {
     return (
       <div className="px-6 py-8 flex items-center justify-center">
@@ -140,6 +199,57 @@ export default function ProfilePage() {
           <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
             {success}
           </div>
+        )}
+
+        {/* Avatar Section */}
+        <div className="card p-6 mb-6 flex flex-col items-center">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="relative group cursor-pointer rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#0a0a1a]"
+          >
+            {profile?.avatarUrl ? (
+              <img
+                src={profile.avatarUrl}
+                alt="Profile"
+                className="w-24 h-24 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-blue-600/20 flex items-center justify-center text-3xl font-bold text-blue-400">
+                {avatarInitial}
+              </div>
+            )}
+            {/* Hover overlay */}
+            <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+              </svg>
+            </div>
+          </button>
+          <p className="text-xs text-gray-500 mt-3">{t('clickToUpload')}</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="hidden"
+            onChange={onFileSelected}
+          />
+        </div>
+
+        {/* Avatar Crop Modal */}
+        {cropModalOpen && selectedImageSrc && (
+          <AvatarCropModal
+            imageSrc={selectedImageSrc}
+            onSave={handleAvatarSave}
+            onCancel={handleCropCancel}
+            labels={{
+              title: t('cropTitle'),
+              zoom: t('cropZoom'),
+              save: t('cropSave'),
+              cancel: t('cropCancel'),
+            }}
+          />
         )}
 
         {/* Account Information */}
@@ -229,4 +339,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

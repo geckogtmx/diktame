@@ -43,6 +43,7 @@ export async function GET(request: Request) {
       id: user.id,
       email: user.email,
       name: profile.name,
+      avatarUrl: profile.avatar_url ?? null,
       walletBalanceMicro,
       hasCustomGeminiKey: !!profile.custom_gemini_key,
       createdAt: profile.created_at,
@@ -68,7 +69,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { name, customGeminiKey } = body;
+    const { name, customGeminiKey, avatarUrl } = body;
 
     const updates: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
@@ -80,6 +81,10 @@ export async function PATCH(request: Request) {
 
     if (customGeminiKey !== undefined) {
       updates.custom_gemini_key = customGeminiKey === '' ? null : customGeminiKey;
+    }
+
+    if (avatarUrl !== undefined) {
+      updates.avatar_url = avatarUrl === '' ? null : avatarUrl;
     }
 
     const { data: updatedProfile, error: updateError } = await supabase
@@ -100,6 +105,7 @@ export async function PATCH(request: Request) {
       id: user.id,
       email: user.email,
       name: updatedProfile.name,
+      avatarUrl: updatedProfile.avatar_url ?? null,
       walletBalanceMicro,
       hasCustomGeminiKey: !!updatedProfile.custom_gemini_key,
       createdAt: updatedProfile.created_at,
@@ -123,6 +129,9 @@ export async function DELETE(request: Request) {
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Clean up avatar from storage before deleting profile
+    await supabase.storage.from('avatars').remove([`${user.id}.webp`]);
 
     const { error: deleteError } = await supabase.from('profiles').delete().eq('id', user.id);
 

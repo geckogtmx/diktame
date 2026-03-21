@@ -1,5 +1,8 @@
 
 using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Security;
 using Serilog;
@@ -88,6 +91,57 @@ public sealed class AccountService : IAccountService, IDisposable
 
         // Notify UI immediately
         AuthStateChanged?.Invoke(true);
+    }
+
+    // ── Server Profile Sync ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Fetches the server-side profile to sync fields that aren't in the JWT
+    /// (e.g. avatar_url for email/password users who uploaded via the website).
+    /// Non-fatal — logs warnings on failure.
+    /// </summary>
+    public async Task SyncProfileFromServerAsync(CancellationToken cancellationToken = default)
+    {
+        string? token = _secureStorage.RetrieveKey(TokenKey);
+        if (token is null)
+        {
+            return;
+        }
+
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await http.GetAsync("https://dikta.me/api/account/me", cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                Log.Warning("AccountService: profile sync returned {StatusCode}", response.StatusCode);
+                return;
+            }
+
+            string json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            string? serverAvatarUrl = root.TryGetProperty("avatarUrl", out var av) && av.ValueKind == JsonValueKind.String
+                ? av.GetString() : null;
+
+            // Only update if the server has a different (non-empty) avatar URL
+            string currentAvatar = _settings.Current.Account.AvatarUrl;
+            if (!string.IsNullOrEmpty(serverAvatarUrl) && !string.Equals(serverAvatarUrl, currentAvatar, StringComparison.Ordinal))
+            {
+                await _settings.UpdateAsync(_settings.Current with
+                {
+                    Account = _settings.Current.Account with { AvatarUrl = serverAvatarUrl },
+                }, cancellationToken).ConfigureAwait(false);
+                Log.Information("AccountService: synced avatar URL from server");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "AccountService: profile sync failed (non-fatal)");
+        }
     }
 
     // ── Logout ────────────────────────────────────────────────────────────────

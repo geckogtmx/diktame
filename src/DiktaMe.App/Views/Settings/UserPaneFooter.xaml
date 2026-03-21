@@ -18,12 +18,19 @@
             <!-- Signed-in: avatar circle with initial + green status dot -->
             <Grid x:Name="AvatarContainer" Visibility="Collapsed">
                 <Grid x:Name="AvatarCircle" Width="28" Height="28">
-                    <Ellipse Fill="{ThemeResource AccentFillColorDefaultBrush}"/>
+                    <!-- Fallback: colored circle with initial letter -->
+                    <Ellipse x:Name="AvatarEllipse" Fill="{ThemeResource AccentFillColorDefaultBrush}"/>
                     <TextBlock x:Name="AvatarInitial" Text=""
                                FontSize="13" FontWeight="SemiBold"
                                Foreground="White"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"/>
+                    <!-- Actual avatar image (hidden until URL is set) -->
+                    <Ellipse x:Name="AvatarImage" Visibility="Collapsed">
+                        <Ellipse.Fill>
+                            <ImageBrush x:Name="AvatarImageBrush" Stretch="UniformToFill"/>
+                        </Ellipse.Fill>
+                    </Ellipse>
                 </Grid>
                 <!-- Green online status dot -->
                 <Ellipse x:Name="StatusDot"

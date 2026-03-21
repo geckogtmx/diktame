@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('name, custom_gemini_key, license_tier, created_at, updated_at')
+      .select('name, custom_gemini_key, license_tier, avatar_url, created_at, updated_at')
       .eq('id', user.id)
       .single();
 
@@ -24,6 +24,7 @@ export async function GET(request: Request) {
       id: user.id,
       email: user.email,
       name: profile?.name ?? '',
+      avatarUrl: profile?.avatar_url ?? null,
       createdAt: profile?.created_at ?? user.created_at,
       hasCustomGeminiKey: !!profile?.custom_gemini_key,
       licenseTier: profile?.license_tier ?? 'free',
