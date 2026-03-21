@@ -1,4 +1,4 @@
-# ACCOUNTS_SIGNIN Sprint Plan
+ # ACCOUNTS_SIGNIN Sprint Plan
 
 ## Context
 
@@ -414,15 +414,15 @@ return NextResponse.json({
 ---
 
 ### Session 1 Checklist
-- [ ] W.1: `refresh_token` in deeplink (2 files)
-- [ ] W.2: Safety-net profile INSERT fixed + wallet grant
-- [ ] W.3: `/api/auth/refresh` route created
-- [ ] W.4: `/api/wallet/status` route created
-- [ ] W.5: `/api/wallet/history` route created
-- [ ] W.6: Trial routes cleaned up (status rewritten, usage → 410)
-- [ ] W.7: Profile API returns wallet balance
-- [ ] Commit: `fix(auth): add refresh_token to deeplink, clean up trial routes [W.1-W.7]`
-- [ ] Push + verify on Vercel preview deploy
+- [x] W.1: `refresh_token` in deeplink (2 files)
+- [x] W.2: Safety-net profile INSERT fixed + wallet grant
+- [x] W.3: `/api/auth/refresh` route created
+- [x] W.4: `/api/wallet/status` route created
+- [x] W.5: `/api/wallet/history` route created
+- [x] W.6: Trial routes cleaned up (status rewritten, usage → 410)
+- [x] W.7: Profile API returns wallet balance
+- [x] Commit: `feat(auth): add refresh_token to deeplink, wallet API routes, clean up trial [W.1-W.7]` (`12f70c0`)
+- [x] Push + verify on Vercel preview deploy
 
 ---
 
@@ -607,12 +607,28 @@ The sidebar should use `usePathname()` (client component) to highlight the activ
 ---
 
 ### Session 2 Checklist
-- [ ] W.8: Dashboard page with 3 wallet/license/activity cards
-- [ ] W.9: Wallet detail page with transaction history table
-- [ ] W.10: `007_licenses_table.sql` migration deployed
-- [ ] W.11: Dashboard sidebar navigation + profile page updated
-- [ ] W.12: `NEXT_PUBLIC_COMING_SOON` deleted from Vercel
-- [ ] Commit: `feat(dashboard): wallet balance, license cards, transaction history [W.8-W.12]`
+- [x] W.8: Dashboard page with 3 wallet/license/activity cards
+- [x] W.9: Wallet detail page with transaction history table
+- [x] W.10: `007_licenses_table.sql` migration created (**not yet deployed to Supabase**)
+- [x] W.11: Dashboard sidebar navigation + profile page updated
+- [ ] W.12: `NEXT_PUBLIC_COMING_SOON` deleted from Vercel (manual step)
+- [x] Commit: `feat(dashboard): wallet cards, transaction history, sidebar nav, licenses migration [W.8-W.12]` (`600666d`)
+
+---
+
+## Bug Fix: Profile Page "Failed to fetch profile" (discovered 2026-03-21)
+
+**Root cause investigation** (Session 3 pre-work):
+
+The profile page (`website/app/[locale]/dashboard/profile/page.tsx`) is a `'use client'` component that calls `fetch('/api/profile')`. The API route uses `createApiClient(request)` which falls back to `createCookieClient()` for browser requests (cookie-based auth). This code path is **unchanged** from when it was working — `api.ts` was last modified in commit `8aee820` (pre-Session 2).
+
+**Likely cause**: Stale Supabase session cookie. The middleware at `website/middleware.ts` calls `supabase.auth.getUser()` to refresh cookies, but if the refresh token in the cookie is stale (e.g. rotated by another client, or expired), `getUser()` returns an auth error → profile API returns 401 → page shows "Failed to fetch profile".
+
+**Fixes applied**:
+1. `website/app/api/profile/route.ts`: `getWalletBalance()` changed `.single()` → `.maybeSingle()` — `.single()` returns an error when no wallet rows exist (new users), `.maybeSingle()` returns null cleanly
+2. `website/app/[locale]/dashboard/profile/page.tsx`: Added 401 → redirect to `/login` instead of showing generic error. Removed dead `export const dynamic = 'force-dynamic'` (only applies to server components, not `'use client'`)
+
+- [x] Done
 
 ---
 

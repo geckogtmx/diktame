@@ -46,8 +46,8 @@ public sealed class SecureStorage
         "openai", "deepgram", "gemini", "anthropic", "openrouter",
         // TTS cloud providers (Phase E)
         "inworld",
-        // Internal (trial auth JWT)
-        "trial_token",
+        // Internal (auth JWT + refresh token)
+        "trial_token", "refresh_token",
     };
 
     // ── Public API ────────────────────────────────────────────────────────────

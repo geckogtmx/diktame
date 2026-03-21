@@ -216,6 +216,7 @@ public partial class App : Application
 
             var query = HttpUtility.ParseQueryString(parsed.Query);
             string? token = query["token"];
+            string? refreshToken = query["refresh_token"];
             if (string.IsNullOrWhiteSpace(token))
             {
                 Log.Warning("App: deeplink missing token parameter");
@@ -230,7 +231,21 @@ public partial class App : Application
 
             Log.Information("App: processing auth deeplink");
             var accountService = Services.GetRequiredService<IAccountService>();
-            await accountService.HandleAuthCallbackAsync(token).ConfigureAwait(false);
+            await accountService.HandleAuthCallbackAsync(token, refreshToken).ConfigureAwait(false);
+
+            // Sync wallet balance + refresh HUD after sign-in
+            var loadingVm = Services.GetRequiredService<ViewModels.LoadingViewModel>();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await loadingVm.SyncWalletAfterSignInAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "App: post-sign-in wallet sync failed");
+                }
+            });
         }
         catch (UriFormatException ex)
         {
@@ -550,6 +565,7 @@ public partial class App : Application
         // ── Account (K.2 / K.8) ──────────────────────────────────────────────
         services.AddSingleton<AccountService>();
         services.AddSingleton<IAccountService>(sp => sp.GetRequiredService<AccountService>());
+        services.AddSingleton<TokenRefreshService>();
 
         // ── Data (E.2 + SPEC_007 + K.9) ─────────────────────────────────────
         services.AddSingleton<HistoryManager>();

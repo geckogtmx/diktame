@@ -227,6 +227,13 @@ public sealed partial class LoadingViewModel : ObservableObject
                 await SyncWalletBalanceAsync();
             }
 
+            // Start JWT refresh timer (if signed in)
+            if (_accountService.HasValidToken)
+            {
+                var tokenRefresh = App.Current.Services.GetRequiredService<TokenRefreshService>();
+                tokenRefresh.Start();
+            }
+
             // Wire post-pipeline balance updates from wallet proxy events
             WireWalletBalanceEvents();
             Progress = 90;
@@ -630,6 +637,25 @@ public sealed partial class LoadingViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Public entry point for post-sign-in wallet sync.
+    /// Called from App.xaml.cs HandleDeepLink after auth callback completes.
+    /// </summary>
+    public async Task SyncWalletAfterSignInAsync()
+    {
+        await SyncWalletBalanceAsync().ConfigureAwait(false);
+
+        // Refresh ControlPanel HUD on UI thread
+        _uiDispatcher?.TryEnqueue(() =>
+        {
+            _controlPanel.LoadFromSettings(_settings.Current);
+
+            // Show toast confirming sign-in
+            string email = _accountService.Email ?? "Unknown";
+            _notifications.ShowToast("Sign In", $"Signed in as {email}", suppressTts: true);
+        });
+    }
+
+    /// <summary>
     /// Subscribes to the WalletGeminiProxy.BalanceUpdated event to keep the
     /// HUD balance badge in sync after each proxy response.
     /// </summary>
@@ -654,6 +680,29 @@ public sealed partial class LoadingViewModel : ObservableObject
                 }
             });
         };
+
+        // Subscribe to session expiry — attempt refresh before showing error
+        var walletStt = App.Current.Services.GetRequiredService<WalletDeepgramProxy>();
+        var tokenRefresh = App.Current.Services.GetRequiredService<TokenRefreshService>();
+
+        void HandleSessionExpired()
+        {
+            _ = Task.Run(async () =>
+            {
+                bool refreshed = await tokenRefresh.TryRefreshAsync().ConfigureAwait(false);
+                if (!refreshed)
+                {
+                    _uiDispatcher?.TryEnqueue(() =>
+                    {
+                        _notifications.ShowToast("Session Expired", "Please sign in again.", suppressTts: true);
+                    });
+                }
+            });
+        }
+
+        walletStt.SessionExpired += HandleSessionExpired;
+        _walletProxy.SessionExpired += HandleSessionExpired;
+        tokenRefresh.SessionExpired += HandleSessionExpired;
     }
 
     /// <summary>

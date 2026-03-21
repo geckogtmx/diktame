@@ -9,6 +9,12 @@ public sealed record AccountSettings
     /// <summary>Email address of the signed-in user.</summary>
     public string Email { get; init; } = string.Empty;
 
+    /// <summary>Display name from OAuth provider (or email prefix fallback).</summary>
+    public string DisplayName { get; init; } = string.Empty;
+
+    /// <summary>Avatar URL from OAuth provider (Google/GitHub profile picture).</summary>
+    public string AvatarUrl { get; init; } = string.Empty;
+
     /// <summary>ISO 8601 timestamp of the last sync with the server.</summary>
     public string LastSynced { get; init; } = string.Empty;
 

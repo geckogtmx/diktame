@@ -15,7 +15,7 @@ public interface IAccountService
     /// Processes the JWT received from the <c>diktame://auth?token=...</c> deeplink.
     /// Stores the token, extracts email, sets <see cref="Config.AuthMode.Wallet"/>.
     /// </summary>
-    Task HandleAuthCallbackAsync(string token, CancellationToken cancellationToken = default);
+    Task HandleAuthCallbackAsync(string token, string? refreshToken = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Clears the JWT token and resets auth state.

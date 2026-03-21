@@ -1,5 +1,6 @@
 
 using DiktaMe.Core.Account;
+using DiktaMe.Core.Config;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -72,9 +73,14 @@ public sealed partial class UserPaneFooter : UserControl
         {
             string email = _accountService.Email!;
 
-            // Extract display name from email prefix
-            int atIndex = email.IndexOf('@', StringComparison.Ordinal);
-            string displayName = atIndex > 0 ? email[..atIndex] : email;
+            // Use OAuth display name if available, fall back to email prefix
+            var settings = App.Current.Services.GetRequiredService<SettingsManager>();
+            string displayName = settings.Current.Account.DisplayName;
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                int atIndex = email.IndexOf('@', StringComparison.Ordinal);
+                displayName = atIndex > 0 ? email[..atIndex] : email;
+            }
 
             // Avatar initial
             string initial = displayName.Length > 0

@@ -48,6 +48,76 @@ internal static class JwtDecoder
     }
 
     /// <summary>
+    /// Extracts a display name from the JWT. Tries <c>user_metadata.full_name</c>,
+    /// then <c>user_metadata.name</c>, then falls back to the email prefix.
+    /// </summary>
+    public static string? ExtractDisplayName(string jwt)
+    {
+        var payload = DecodePayload(jwt);
+        if (payload is null)
+        {
+            return null;
+        }
+
+        using var doc = JsonDocument.Parse(payload);
+        var root = doc.RootElement;
+
+        // Try user_metadata.full_name → user_metadata.name
+        if (root.TryGetProperty("user_metadata", out var meta))
+        {
+            if (meta.TryGetProperty("full_name", out var fn) && fn.ValueKind == JsonValueKind.String)
+            {
+                string name = fn.GetString() ?? "";
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    return name;
+                }
+            }
+
+            if (meta.TryGetProperty("name", out var n) && n.ValueKind == JsonValueKind.String)
+            {
+                string name = n.GetString() ?? "";
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    return name;
+                }
+            }
+        }
+
+        // Fall back to email prefix
+        if (root.TryGetProperty("email", out var emailEl) && emailEl.ValueKind == JsonValueKind.String)
+        {
+            string email = emailEl.GetString() ?? "";
+            int at = email.IndexOf('@', StringComparison.Ordinal);
+            return at > 0 ? email[..at] : email;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts the avatar URL from <c>user_metadata.avatar_url</c> (set by Google/GitHub OAuth).
+    /// </summary>
+    public static string? ExtractAvatarUrl(string jwt)
+    {
+        var payload = DecodePayload(jwt);
+        if (payload is null)
+        {
+            return null;
+        }
+
+        using var doc = JsonDocument.Parse(payload);
+        if (doc.RootElement.TryGetProperty("user_metadata", out var meta) &&
+            meta.TryGetProperty("avatar_url", out var url) &&
+            url.ValueKind == JsonValueKind.String)
+        {
+            return url.GetString();
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Decodes the base64url-encoded payload (middle segment) of a JWT.
     /// </summary>
     private static string? DecodePayload(string jwt)

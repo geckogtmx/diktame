@@ -13,6 +13,7 @@ namespace DiktaMe.Core.Account;
 public sealed class AccountService : IAccountService, IDisposable
 {
     private const string TokenKey = "trial_token"; // kept for backward compat with existing keys.dat
+    private const string RefreshTokenKey = "refresh_token";
     private const string LoginUrl = "https://dikta.me/login?mode=app";
 
     private readonly SecureStorage _secureStorage;
@@ -52,23 +53,37 @@ public sealed class AccountService : IAccountService, IDisposable
     // ── Auth Callback ─────────────────────────────────────────────────────────
 
     /// <inheritdoc />
-    public async Task HandleAuthCallbackAsync(string token, CancellationToken cancellationToken = default)
+    public async Task HandleAuthCallbackAsync(string token, string? refreshToken = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(token);
 
         // Store JWT in encrypted storage
         _secureStorage.StoreKey(TokenKey, token);
 
-        // Extract email from JWT payload
+        // Store refresh token for silent JWT renewal
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+        {
+            _secureStorage.StoreKey(RefreshTokenKey, refreshToken);
+        }
+
+        // Extract claims from JWT payload
         string? email = JwtDecoder.ExtractEmail(token);
-        Log.Information("AccountService: auth callback — email={Email}", email ?? "(none)");
+        string? displayName = JwtDecoder.ExtractDisplayName(token);
+        string? avatarUrl = JwtDecoder.ExtractAvatarUrl(token);
+        Log.Information("AccountService: auth callback — email={Email}, displayName={DisplayName}",
+            email ?? "(none)", displayName ?? "(none)");
 
         // Set AuthMode.Wallet — all signed-in users are wallet users.
         // Wallet balance sync happens separately via WalletManager.
         await _settings.UpdateAsync(_settings.Current with
         {
             AuthMode = AuthMode.Wallet,
-            Account = _settings.Current.Account with { Email = email ?? string.Empty },
+            Account = _settings.Current.Account with
+            {
+                Email = email ?? string.Empty,
+                DisplayName = displayName ?? string.Empty,
+                AvatarUrl = avatarUrl ?? string.Empty,
+            },
         }, cancellationToken).ConfigureAwait(false);
 
         // Notify UI immediately
@@ -81,6 +96,7 @@ public sealed class AccountService : IAccountService, IDisposable
     public async Task LogoutAsync(CancellationToken cancellationToken = default)
     {
         _secureStorage.DeleteKey(TokenKey);
+        _secureStorage.DeleteKey(RefreshTokenKey);
 
         await _settings.UpdateAsync(_settings.Current with
         {
