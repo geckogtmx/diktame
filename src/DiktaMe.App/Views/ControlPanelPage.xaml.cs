@@ -215,6 +215,19 @@ public sealed partial class ControlPanelPage : Page
 
         // Apply initial bar position from saved settings
         SnapToPosition(ViewModel.BarPosition);
+
+        // Footer row drag: hold-to-drag (150ms threshold) via Win32 ReleaseCapture + HTCAPTION.
+        // A quick click is ignored; only a sustained press initiates the drag.
+        var footerDragTimer = DispatcherQueue.CreateTimer();
+        footerDragTimer.Interval = TimeSpan.FromMilliseconds(150);
+        footerDragTimer.IsRepeating = false;
+        footerDragTimer.Tick += (_, _) =>
+        {
+            (App.Current.MainWindow as MainWindow)?.StartDrag();
+        };
+        FooterRow.PointerPressed += (_, _) => footerDragTimer.Start();
+        FooterRow.PointerReleased += (_, _) => footerDragTimer.Stop();
+        FooterRow.PointerCaptureLost += (_, _) => footerDragTimer.Stop();
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
