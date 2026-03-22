@@ -4,12 +4,12 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 968 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
+| **Tests** | 988 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | **PASSES** (0 warnings, 0 errors). All 4 style dictionaries load cleanly at runtime. |
 | **CI** | **PASSING** — lint, build, 479 tests, gitleaks, vulnerability audit, publish all green. |
 | **Branch** | main (all UI revamp + ACCOUNTS_SIGNIN sprint committed) |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
-| **Website Build** | **PASSES** — `next build` 0 errors, 15+ API routes, full admin dashboard, wallet + license system |
+| **Website Build** | **PASSES** — `next build` 0 errors, 15+ API routes, admin dashboard (at `/hqbackstage`), wallet + license system |
 
 ## Completed Streams
 
@@ -30,7 +30,8 @@
 | **SPEC_KOKORO_GPU** | **BLOCKED** — DirectML ConvTranspose incompatibility (ONNX Runtime 1.22.0). GPU variant + UI variant reorder kept. NuGet reverted to KokoroSharp.CPU. 5 new tests. |
 | **Settings Rework** | Gemini TTS, per-preset trailing space, "When to Speak" relocation, local model selector removal, mute detection, conversational TTS notifications, note context capture. 8 features in one session. |
 | **UI Revamp** | Glassmorphic theme system — Phases 0-3 complete. Phase 2 runtime crash (exit 127) **RESOLVED**. CP.1-CP.9 committed (auto-collapse, waveform, tray restore, snap-to-position, VU meter). Bug 3 (nav text contrast) **RESOLVED** — per-item local ThemeResource overrides. Sub-nav contrast also fixed. Nav pane collapse/expand (overlay logo, chevron in footer, CompactPaneLength=68). UserPaneFooter redesigned (avatar circle + display name + green status dot). |
-| **ACCOUNTS_SIGNIN** | **COMPLETE** ✅ — All 9 sessions (32 tasks). Website auth, dashboard, admin panel, JWT refresh, license provisioning, Ko-fi webhooks. |
+| **ACCOUNTS_SIGNIN** | **COMPLETE** ✅ — All 9 sessions (32 tasks). Website auth, dashboard, admin panel (at `/hqbackstage`), JWT refresh, license provisioning, Ko-fi webhooks. |
+| **AVATAR** | **COMPLETE** ✅ — Profile pic upload with circle crop (react-easy-crop), Supabase Storage bucket, C# app sync + display. Migration 009 (avatar_url column). Branded deeplink page. Admin URL obfuscation (`/admin` → `/hqbackstage`). Auth deeplink bugfix (middleware matcher + HTML redirect for custom URL schemes). |
 
 ## Open Bugs (Stream K) — Updated 2026-03-21
 
@@ -159,8 +160,8 @@ The "Bars" waveform style doesn't fill enough of the header bar visually. Curren
 - Dashboard with wallet balance, license status, recent activity cards
 - Wallet detail page with transaction history + pagination
 - License validation endpoint: `/api/licenses/validate`
-- Admin dashboard: overview KPIs, user management (search/pagination), sales data, license gifting, Ko-fi webhook adapter
-- Profile page: 401 → redirect to login, `.maybeSingle()` fix
+- Admin dashboard (at `/hqbackstage`): overview KPIs, user management (search/pagination), sales data, license gifting, Ko-fi webhook adapter
+- Profile page: 401 → redirect to login, `.maybeSingle()` fix, avatar upload with circle crop
 
 **C# App (WinUI 3):**
 - `HandleDeepLink()` extracts + stores `refresh_token`
@@ -182,6 +183,46 @@ The "Bars" waveform style doesn't fill enough of the header bar visually. Curren
 
 - **T.2**: 10 API endpoints need curl/browser verification (see `plans/ACCOUNTS_SIGNIN.md` Session 9)
 - **T.3**: Full 12-step E2E sign-in flow verification (app → browser → deeplink → wallet → refresh → dictation)
+
+---
+
+## Completed: Avatar Upload + Auth Polish ✅
+
+**Commits**: `45e182b`, `177e07b`, `f98e86c`
+
+### Key Features Delivered
+
+**Website (Next.js on Vercel):**
+- Profile pic upload with circle crop (`react-easy-crop`) — 256x256 WebP output
+- Supabase Storage bucket `avatars` (public, 2MB limit, RLS for user-scoped upload/delete)
+- `/api/profile/avatar` endpoint (POST upload, DELETE remove)
+- `avatarUrl` field added to `/api/profile` (GET/PATCH) and `/api/account/me` (for C# app)
+- Branded deeplink redirect page (logo, dark theme, "Go to Dashboard" button) — replaces plain "Redirecting..." text
+- Admin URL obfuscated: `/admin` → `/hqbackstage` (all pages + API routes renamed)
+- Auth deeplink bugfix: middleware matcher excludes `api|auth` paths, HTML meta-refresh for `diktame://` custom URL scheme
+
+**C# App (WinUI 3):**
+- `AccountService.SyncProfileFromServerAsync()` — fetches `/api/account/me` to sync avatar URL for email/password users
+- `UserPaneFooter` displays actual avatar image via `Ellipse + ImageBrush` (falls back to initial letter)
+- Avatar alignment: `Padding=16,8`, `Margin=5,2,4,2`, `CornerRadius=8` — matches NavigationViewItem metrics exactly
+
+**Supabase:**
+- Migration 009: `avatar_url TEXT` column on profiles, backfill OAuth users, updated `handle_new_user()` trigger
+- Storage bucket `avatars` with RLS policies (user upload/update/delete own, public read)
+
+### Open Issue
+- **Profile page "Save Changes" returns 500** — "Failed to update profile" error on PATCH to `/api/profile`. RLS policies exist (SELECT + UPDATE for own profile). Diagnostic error detail added to response — needs reproduction to capture actual Supabase error message.
+
+### Key Files
+
+| Directory | Files |
+|-----------|-------|
+| `website/lib/auth/` | `deeplink-page.ts` (branded HTML redirect template) |
+| `website/app/api/profile/avatar/` | `route.ts` (POST upload, DELETE remove) |
+| `website/app/components/` | `AvatarCropModal.tsx` (react-easy-crop with circular mask) |
+| `website/supabase/migrations/` | `009_avatar_url.sql` |
+| `src/DiktaMe.Core/Account/` | `AccountService.cs` (SyncProfileFromServerAsync), `IAccountService.cs` |
+| `src/DiktaMe.App/Views/Settings/` | `UserPaneFooter.xaml/.cs` (avatar image display) |
 
 ---
 

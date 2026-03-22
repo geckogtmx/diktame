@@ -2054,3 +2054,24 @@ Full end-to-end test of the complete flow:
 **Problem**: The `handle_new_user` trigger (migration 008) creates profiles + grants wallet credit on OAuth signup, but does NOT send any email notification. The waitlist welcome email + admin notification only fires on `waiting_list` INSERT (migration 004 trigger). This means organic signups via the login page go unnoticed.
 
 **Proposed fix**: Add a `pg_net.http_post()` call to the `handle_new_user` trigger that calls a new `signup-notification` Edge Function (or reuses `waitlist-welcome` with a different payload shape). The Edge Function sends an admin-only email via Resend: "New User Signup: {name} ({email}) via {provider}".
+
+---
+
+## Post-Sprint: Avatar Upload + Auth Polish ✅
+
+**Commits**: `45e182b`, `177e07b`, `f98e86c`
+**Date**: 2026-03-21
+
+### What was delivered
+
+1. **Profile pic upload with circle crop** — `react-easy-crop` on website profile page, 256x256 WebP output, Supabase Storage bucket `avatars` with RLS
+2. **Migration 009** — `avatar_url TEXT` column on profiles, backfill existing OAuth users from `auth.users.raw_user_meta_data`, updated `handle_new_user()` trigger
+3. **C# app avatar sync** — `AccountService.SyncProfileFromServerAsync()` fetches `/api/account/me` after sign-in, `UserPaneFooter` shows actual avatar image via `Ellipse + ImageBrush`
+4. **Auth deeplink bugfix** — middleware matcher now excludes `api|auth` paths (was causing 404 on `/api/auth/app-token`), HTML meta-refresh for `diktame://` custom URL scheme (NextResponse.redirect rejects custom schemes)
+5. **Branded deeplink page** — styled HTML with logo, dark theme, green checkmark, "Go to Dashboard" + "Close this tab" buttons (replaces plain "Redirecting to dIKta.me app..." text)
+6. **Admin URL obfuscation** — `/admin` → `/hqbackstage` (all page routes + API routes + sidebar links renamed)
+7. **Avatar alignment** — UserPaneFooter `Padding=16,8`, `Margin=5,2,4,2`, `CornerRadius=8` matches `NavigationViewItemButtonMargin` exactly
+
+### Open issue
+
+- **Profile page "Save Changes" returns 500** — PATCH to `/api/profile` fails. RLS policies exist (SELECT + UPDATE). Diagnostic error detail added to response (commit `f98e86c`). Needs reproduction to capture actual Supabase error message.

@@ -1,16 +1,16 @@
 # dIKta.me V2 — Development Roadmap (C# + WinUI 3 Rewrite)
 
 **Status:** Feature Complete (Streams A–L + TTS complete; H.1 remaining for release)
-**Date:** 2026-03-16
+**Date:** 2026-03-21
 **Parent:** V1 `SPEC_039_STRATEGIC_ROADMAP.md` (in diktate repo)
 **Supersedes:** Python modular split approach (deemed throwaway work)
 **Target:** Native Windows app — single process, modular architecture, self-contained installer
 
 ---
 
-## Next 10 Steps (2026-03-16)
+## Next 10 Steps (2026-03-21)
 
-> **Context:** Core engine is feature-complete with 968 tests. SPEC_009 FIX-1 through FIX-16 done (15/17). SPEC_008 (Wallet) and SPEC_004 (i18n) verified complete. SPEC_015 (Modules Sprint) fully spec'd as DRAFT. The items below are ordered to maximize shippability — steps 1-4 close all loose ends and produce a releasable V2.0, steps 5-10 build the SPEC_015 modules.
+> **Context:** Core engine is feature-complete with 988 tests. SPEC_009 FIX-1 through FIX-16 done (15/17). SPEC_008 (Wallet) and SPEC_004 (i18n) verified complete. ACCOUNTS_SIGNIN sprint complete (9 sessions, 32 tasks). Avatar upload + C# sync delivered. SPEC_015 (Modules Sprint) fully spec'd as DRAFT. The items below are ordered to maximize shippability — steps 1-4 close all loose ends and produce a releasable V2.0, steps 5-10 build the SPEC_015 modules.
 
 | # | Task | Scope | Rationale |
 |---|------|-------|-----------|
