@@ -189,7 +189,10 @@ public sealed partial class QuickChatWindow : Window
     /// </summary>
     private void InjectControlBrushes(ThemePalette palette)
     {
-        if (Content is not FrameworkElement root) return;
+        if (Content is not FrameworkElement root)
+        {
+            return;
+        }
         foreach (var (key, color) in ThemeService.GetControlBrushValues(palette))
         {
             root.Resources[key] = new SolidColorBrush(color);
