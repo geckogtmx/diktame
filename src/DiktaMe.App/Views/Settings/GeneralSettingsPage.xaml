@@ -271,6 +271,22 @@
                                 <RadioButton l:Uids.Uid="Settings_Waveform_Style_Off"/>
                             </RadioButtons>
                         </StackPanel>
+
+                        <!-- Idle Branding Animation (independent of visual effects toggle) -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock l:Uids.Uid="Settings_IdleRoll_Enable_Label" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                <TextBlock l:Uids.Uid="Settings_IdleRoll_Enable_Description" FontSize="12"
+                                           Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.IdleRollEnabled, Mode=TwoWay}"
+                                          VerticalAlignment="Center"/>
+                        </Grid>
                     </StackPanel>
                 </Border>
 

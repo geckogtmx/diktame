@@ -14,6 +14,7 @@ using DiktaMe.Core.Security;
 using DiktaMe.Core.STT;
 using DiktaMe.Core.SystemManagement;
 using DiktaMe.Core.TTS;
+using DiktaMe.Core.Weather;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -450,6 +451,7 @@ public partial class App : Application
         services.AddSingleton<MuteDetector>();
         services.AddSingleton<TextInjector>();
         services.AddSingleton<HotkeyManager>();
+        services.AddSingleton<WeatherService>();
 
         // ── STT providers ────────────────────────────────────────────────────
         // Local Whisper (no API key needed — requires model download)

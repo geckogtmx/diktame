@@ -498,6 +498,9 @@
   <data name="Settings_Waveform_Style_Bars.Content" xml:space="preserve"><value>Barras de Amplitud</value></data>
   <data name="Settings_Waveform_Style_Off.Content" xml:space="preserve"><value>Desactivado</value></data>
 
+  <data name="Settings_IdleRoll_Enable_Label.Text" xml:space="preserve"><value>Animación de marca en reposo</value></data>
+  <data name="Settings_IdleRoll_Enable_Description.Text" xml:space="preserve"><value>Cuando está colapsado e inactivo, alterna entre estado, logo con reloj y clima</value></data>
+
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > General > Auto-Collapse
        ══════════════════════════════════════════════════════════════════════ -->

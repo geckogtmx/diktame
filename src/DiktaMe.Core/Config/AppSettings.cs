@@ -215,6 +215,9 @@ public sealed record ControlPanelSettings
 
     /// <summary>Seconds of idle before fade starts. 0 = Never.</summary>
     public int AutoHideDelaySeconds { get; init; } = 30;
+
+    /// <summary>Idle branding roll: cycles status → logo+clock → weather when collapsed and idle.</summary>
+    public bool IdleRollEnabled { get; init; } = true;
 }
 
 /// <summary>

@@ -106,6 +106,11 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _barPosition = "TopRight";
 
+    // ── Idle roll animation ─────────────────────────────────────────
+
+    [ObservableProperty]
+    private bool _idleRollEnabled = true;
+
     // ── Language fields ──────────────────────────────────────────────────
 
     [ObservableProperty]
@@ -219,6 +224,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         AutoCollapseDelayIndex = Array.IndexOf(AutoCollapseDelayValues, cp.AutoCollapseDelaySeconds) is var ac and >= 0 ? ac : 1; // default 10s
         WaveformStyleIndex = Array.IndexOf(WaveformStyleValues, cp.WaveformStyle) is var ws and >= 0 ? ws : 0; // default Wave
         BarPosition = cp.BarPosition ?? "TopRight";
+        IdleRollEnabled = cp.IdleRollEnabled;
 
         _isLoading = false;
     }
@@ -249,6 +255,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     partial void OnAutoCollapseDelayIndexChanged(int value) => Save();
     partial void OnWaveformStyleIndexChanged(int value) => Save();
     partial void OnBarPositionChanged(string value) => Save();
+    partial void OnIdleRollEnabledChanged(bool value) => Save();
 
     partial void OnSelectedThemeIndexChanged(int value)
     {
@@ -295,6 +302,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
                 // Enforce constraint: hide delay ≥ collapse delay when both enabled
                 AutoHideDelaySeconds = EnforceHideDelay(),
                 BarPosition = BarPosition,
+                IdleRollEnabled = IdleRollEnabled,
             }
         };
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>

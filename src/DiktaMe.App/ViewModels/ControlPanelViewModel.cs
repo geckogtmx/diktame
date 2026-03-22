@@ -325,6 +325,17 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [ObservableProperty]
     private int _autoHideDelaySeconds = 30;
 
+    // ── Idle roll animation (read-only, consumed by code-behind timer) ──
+
+    [ObservableProperty]
+    private bool _idleRollEnabled = true;
+
+    [ObservableProperty]
+    private string _weatherText = "";
+
+    [ObservableProperty]
+    private string _weatherIcon = "";
+
     // ── Wallet balance HUD ──────────────────────────────────────────────
 
     [ObservableProperty]
@@ -865,6 +876,25 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Refreshes weather data from the given service and updates display properties.
+    /// Fire-and-forget safe — all errors are caught inside WeatherService.
+    /// </summary>
+    public async Task RefreshWeatherAsync(Core.Weather.WeatherService weatherService, CancellationToken cancellationToken)
+    {
+        var data = await weatherService.GetCurrentWeatherAsync(cancellationToken).ConfigureAwait(false);
+        if (data is not null)
+        {
+            _dispatcher.TryEnqueue(() =>
+            {
+                WeatherIcon = data.Icon;
+                WeatherText = string.IsNullOrEmpty(data.Region)
+                    ? $"{data.TemperatureCelsius:F0}°C"
+                    : $"{data.TemperatureCelsius:F0}°C · {data.Region}";
+            });
+        }
+    }
+
     // ── Private helpers ─────────────────────────────────────────────────────
 
     private void OnRecordingStarted(object? sender, RecordingStartedEventArgs e)
@@ -948,6 +978,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         WaveformStyle = settings.ControlPanel.WaveformStyle;
         AutoHideEnabled = settings.ControlPanel.AutoHideEnabled;
         AutoHideDelaySeconds = settings.ControlPanel.AutoHideDelaySeconds;
+        IdleRollEnabled = settings.ControlPanel.IdleRollEnabled;
 
         // Hotkey display
         HotkeyDictate = settings.Hotkeys.Dictate;

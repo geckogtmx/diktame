@@ -1,6 +1,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Threading;
 using DiktaMe.App.Services;
 using DiktaMe.App.ViewModels;
 using DiktaMe.Core.Audio;
@@ -77,6 +78,19 @@ public sealed partial class ControlPanelPage : Page
     private string _waveformStyleCached = "Wave";
     private Rectangle[]? _barElements;
     private bool _barsGradientDirty = true;
+
+    // ── Cylinder roll idle animation ─────────────────────────────────────
+    private enum CylinderRollPhase { Idle, RollingAtoB, HoldB, RollingBtoC, HoldC, RollingCtoA, HoldA }
+    private CylinderRollPhase _rollPhase = CylinderRollPhase.Idle;
+    private int _rollTickCounter;
+    private int _rollIdleWaitTicks;
+    private const int RollTransitionTicks = 15;   // ~500ms at 33ms/tick
+    private const int RollHoldTicks = 90;          // ~3s
+    private const int RollStartDelayTicks = 60;    // ~2s after collapse before first roll
+    private int _lastTimeUpdateSecond = -1;
+    private Core.Weather.WeatherService? _weatherService;
+    private DateTime _lastWeatherRefresh = DateTime.MinValue;
+    private static readonly TimeSpan WeatherRefreshInterval = TimeSpan.FromMinutes(30);
 
     // Base colors (idle) → Bright colors (max glow) — derived from current theme palette
     private byte _baseBgR, _baseBgG, _baseBgB;
@@ -351,6 +365,22 @@ public sealed partial class ControlPanelPage : Page
                 DispatcherQueue.TryEnqueue(() => RestoreOpacity());
             };
         }
+
+        // Cylinder roll: logo for branding layer
+        BrandingLogo.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(
+            new Uri("ms-appx:///Assets/icon.png"));
+
+        // Clip the roll container to prevent overflow during transitions
+        StatusRollContainer.SizeChanged += (_, e) =>
+        {
+            StatusRollContainer.Clip = new Microsoft.UI.Xaml.Media.RectangleGeometry
+            {
+                Rect = new Windows.Foundation.Rect(0, 0, e.NewSize.Width, e.NewSize.Height),
+            };
+        };
+
+        // Weather service for Layer C
+        _weatherService = App.Current.Services.GetService<Core.Weather.WeatherService>();
     }
 
     /// <summary>
@@ -406,6 +436,7 @@ public sealed partial class ControlPanelPage : Page
         // Two-stage idle: collapse + hide. Runs independently of visual effects.
         TickIdleBehavior();
         TickCollapseAnimation();
+        TickCylinderRoll();
 
         if (!ViewModel.VisualEffectsEnabled)
         {
@@ -651,6 +682,234 @@ public sealed partial class ControlPanelPage : Page
     }
 
     private static double EaseOut(double t) => 1.0 - Math.Pow(1.0 - t, 3);
+
+    // ── Cylinder roll idle animation ──────────────────────────────────────
+
+    private void TickCylinderRoll()
+    {
+        // Precondition check — if any fail, snap to idle
+        bool canRoll = _isBarCollapsed
+            && !_isBarCollapsing
+            && !_isBarExpanding
+            && ViewModel.CurrentState == PipelineState.Idle
+            && (_levelMonitor?.IsActive != true)
+            && ViewModel.IdleRollEnabled;
+
+        if (!canRoll)
+        {
+            if (_rollPhase != CylinderRollPhase.Idle)
+            {
+                ResetCylinderRoll();
+            }
+            _rollIdleWaitTicks = 0;
+            return;
+        }
+
+        // Startup delay: wait before first roll after becoming eligible
+        if (_rollPhase == CylinderRollPhase.Idle)
+        {
+            _rollIdleWaitTicks++;
+            if (_rollIdleWaitTicks < RollStartDelayTicks)
+            {
+                return;
+            }
+
+            // Trigger initial weather fetch
+            TryRefreshWeather();
+
+            _rollPhase = CylinderRollPhase.RollingAtoB;
+            _rollTickCounter = 0;
+            return;
+        }
+
+        _rollTickCounter++;
+
+        switch (_rollPhase)
+        {
+            case CylinderRollPhase.RollingAtoB:
+                AnimateRoll(LayerATransform, StatusLayerA, LayerBTransform, StatusLayerB,
+                    (double)_rollTickCounter / RollTransitionTicks);
+                if (_rollTickCounter >= RollTransitionTicks)
+                {
+                    FinishRollTransition(LayerATransform, StatusLayerA, LayerBTransform, StatusLayerB);
+                    _rollPhase = CylinderRollPhase.HoldB;
+                    _rollTickCounter = 0;
+                    _lastTimeUpdateSecond = -1;
+                }
+                break;
+
+            case CylinderRollPhase.HoldB:
+                UpdateBrandingTime();
+                if (_rollTickCounter >= RollHoldTicks)
+                {
+                    // Skip weather layer if no data available
+                    if (string.IsNullOrEmpty(ViewModel.WeatherText))
+                    {
+                        _rollPhase = CylinderRollPhase.RollingCtoA;
+                        _rollTickCounter = 0;
+                        // Roll B→A directly (reuse C→A path: B departs, A arrives)
+                        // We need to roll from B back to A, so swap the semantics:
+                        // Actually, let's just go RollingBtoC which will try to show C,
+                        // but since C is empty, go straight to rolling back to A
+                        _rollPhase = CylinderRollPhase.RollingBtoC;
+                    }
+                    else
+                    {
+                        _rollPhase = CylinderRollPhase.RollingBtoC;
+                    }
+                    _rollTickCounter = 0;
+                }
+                break;
+
+            case CylinderRollPhase.RollingBtoC:
+                if (string.IsNullOrEmpty(ViewModel.WeatherText))
+                {
+                    // No weather data — roll B directly back to A
+                    AnimateRoll(LayerBTransform, StatusLayerB, LayerATransform, StatusLayerA,
+                        (double)_rollTickCounter / RollTransitionTicks);
+                    if (_rollTickCounter >= RollTransitionTicks)
+                    {
+                        FinishRollTransition(LayerBTransform, StatusLayerB, LayerATransform, StatusLayerA);
+                        // Also reset C to hidden state
+                        ResetLayer(LayerCTransform, StatusLayerC);
+                        _rollPhase = CylinderRollPhase.HoldA;
+                        _rollTickCounter = 0;
+                    }
+                }
+                else
+                {
+                    AnimateRoll(LayerBTransform, StatusLayerB, LayerCTransform, StatusLayerC,
+                        (double)_rollTickCounter / RollTransitionTicks);
+                    if (_rollTickCounter >= RollTransitionTicks)
+                    {
+                        FinishRollTransition(LayerBTransform, StatusLayerB, LayerCTransform, StatusLayerC);
+                        _rollPhase = CylinderRollPhase.HoldC;
+                        _rollTickCounter = 0;
+                    }
+                }
+                break;
+
+            case CylinderRollPhase.HoldC:
+                TryRefreshWeather();
+                if (_rollTickCounter >= RollHoldTicks)
+                {
+                    _rollPhase = CylinderRollPhase.RollingCtoA;
+                    _rollTickCounter = 0;
+                }
+                break;
+
+            case CylinderRollPhase.RollingCtoA:
+                AnimateRoll(LayerCTransform, StatusLayerC, LayerATransform, StatusLayerA,
+                    (double)_rollTickCounter / RollTransitionTicks);
+                if (_rollTickCounter >= RollTransitionTicks)
+                {
+                    FinishRollTransition(LayerCTransform, StatusLayerC, LayerATransform, StatusLayerA);
+                    // Reset B to hidden state
+                    ResetLayer(LayerBTransform, StatusLayerB);
+                    _rollPhase = CylinderRollPhase.HoldA;
+                    _rollTickCounter = 0;
+                }
+                break;
+
+            case CylinderRollPhase.HoldA:
+                if (_rollTickCounter >= RollHoldTicks)
+                {
+                    _rollPhase = CylinderRollPhase.RollingAtoB;
+                    _rollTickCounter = 0;
+                }
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Animates a cylinder roll between two layers. The departing layer rolls up and compresses;
+    /// the arriving layer rolls in from below and expands.
+    /// </summary>
+    private void AnimateRoll(
+        CompositeTransform departTransform, StackPanel departLayer,
+        CompositeTransform arriveTransform, StackPanel arriveLayer,
+        double progress)
+    {
+        double t = EaseOut(Math.Min(1.0, progress));
+        double h = StatusRollContainer.ActualHeight > 0 ? StatusRollContainer.ActualHeight : 20;
+
+        // Departing layer: rolls up and away
+        departTransform.TranslateY = -h * t;
+        departTransform.ScaleY = 1.0 - 0.7 * t;
+        departLayer.Opacity = 1.0 - t;
+
+        // Arriving layer: rolls in from below
+        arriveTransform.TranslateY = h * (1.0 - t);
+        arriveTransform.ScaleY = 0.3 + 0.7 * t;
+        arriveLayer.Opacity = t;
+    }
+
+    /// <summary>
+    /// Snaps a completed roll transition to final values (avoid floating-point drift).
+    /// </summary>
+    private static void FinishRollTransition(
+        CompositeTransform departTransform, StackPanel departLayer,
+        CompositeTransform arriveTransform, StackPanel arriveLayer)
+    {
+        departTransform.TranslateY = -20;
+        departTransform.ScaleY = 0.3;
+        departLayer.Opacity = 0;
+
+        arriveTransform.TranslateY = 0;
+        arriveTransform.ScaleY = 1.0;
+        arriveLayer.Opacity = 1.0;
+    }
+
+    /// <summary>Resets a layer to its hidden (off-screen below) state.</summary>
+    private static void ResetLayer(CompositeTransform transform, StackPanel layer)
+    {
+        transform.TranslateY = 20;
+        transform.ScaleY = 0.3;
+        layer.Opacity = 0;
+    }
+
+    private void ResetCylinderRoll()
+    {
+        _rollPhase = CylinderRollPhase.Idle;
+        _rollTickCounter = 0;
+        _rollIdleWaitTicks = 0;
+        _lastTimeUpdateSecond = -1;
+
+        // Snap Layer A visible, B+C hidden
+        LayerATransform.TranslateY = 0;
+        LayerATransform.ScaleY = 1.0;
+        StatusLayerA.Opacity = 1.0;
+
+        ResetLayer(LayerBTransform, StatusLayerB);
+        ResetLayer(LayerCTransform, StatusLayerC);
+    }
+
+    private void UpdateBrandingTime()
+    {
+        int sec = DateTime.Now.Second;
+        if (sec != _lastTimeUpdateSecond)
+        {
+            _lastTimeUpdateSecond = sec;
+            BrandingTimeText.Text = DateTime.Now.ToString("HH:mm:ss",
+                System.Globalization.CultureInfo.InvariantCulture);
+        }
+    }
+
+    private void TryRefreshWeather()
+    {
+        if (_weatherService is null)
+        {
+            return;
+        }
+
+        if (DateTime.UtcNow - _lastWeatherRefresh < WeatherRefreshInterval)
+        {
+            return;
+        }
+
+        _lastWeatherRefresh = DateTime.UtcNow;
+        _ = ViewModel.RefreshWeatherAsync(_weatherService, CancellationToken.None);
+    }
 
     // ── Glow effects ─────────────────────────────────────────────────────
 
