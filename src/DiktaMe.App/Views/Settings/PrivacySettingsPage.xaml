@@ -4,8 +4,8 @@
       xmlns:l="using:WinUI3Localizer"
       Background="Transparent">
 
-    <ScrollViewer Padding="24,24,24,32">
-        <StackPanel Spacing="16" MaxWidth="600">
+    <ScrollViewer Padding="32,24,32,32">
+        <StackPanel Spacing="16">
             <TextBlock l:Uids.Uid="Settings_Privacy_Title" FontSize="24" FontWeight="SemiBold"
                        Foreground="{StaticResource AppTextBrush}"/>
 

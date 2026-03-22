@@ -972,7 +972,11 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         VisualEffectsEnabled = settings.ControlPanel.VisualEffectsEnabled;
         VisualEffectsWholeApp = !string.Equals(settings.ControlPanel.VisualEffectsScope, "TopBarOnly", StringComparison.Ordinal);
         VisualEffectsIntensity = settings.ControlPanel.VisualEffectsIntensity;
-        BarPosition = settings.ControlPanel.BarPosition ?? "TopRight";
+        string newBarPos = settings.ControlPanel.BarPosition ?? "TopRight";
+        BarPosition = newBarPos;
+        // Force re-snap even if the position string hasn't changed (e.g., user clicked
+        // the same position button to reset after dragging the bar manually).
+        OnPropertyChanged(nameof(BarPosition));
         AutoCollapseEnabled = settings.ControlPanel.AutoCollapseEnabled;
         AutoCollapseDelaySeconds = settings.ControlPanel.AutoCollapseDelaySeconds;
         WaveformStyle = settings.ControlPanel.WaveformStyle;

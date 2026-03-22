@@ -30,7 +30,7 @@
             <!-- Bold status heading (WARMING UP, LOADING SETTINGS, etc.) -->
             <TextBlock Grid.Row="3" x:Name="StatusHeading"
                        Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
-                       FontSize="22" FontWeight="Bold"
+                       FontSize="15" FontWeight="Bold"
                        Foreground="{StaticResource AppTextBrush}" CharacterSpacing="80"
                        HorizontalAlignment="Center"
                        TextAlignment="Center"/>

@@ -108,17 +108,17 @@
                     <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="Transparent"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="Transparent"/>
                     <SolidColorBrush x:Key="ToggleSwitchFillOffPressed" Color="Transparent"/>
-                    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#3B82F6"/>
-                    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#3B82F6"/>
-                    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#3B82F6"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#70E0FF"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#70E0FF"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#70E0FF"/>
 
                     <!-- ToggleSwitch — track stroke -->
                     <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#14FFFFFF"/>
                     <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="#99FFFFFF"/>
                     <SolidColorBrush x:Key="ToggleSwitchStrokeOffPressed" Color="#99FFFFFF"/>
-                    <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#3B82F6"/>
-                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#3B82F6"/>
-                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#3B82F6"/>
+                    <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#70E0FF"/>
+                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#70E0FF"/>
+                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#70E0FF"/>
 
                     <!-- ToggleSwitch — knob fill -->
                     <SolidColorBrush x:Key="ToggleSwitchKnobFillOff" Color="#99FFFFFF"/>
