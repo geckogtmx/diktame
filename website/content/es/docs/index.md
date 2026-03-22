@@ -1,0 +1,24 @@
+# Guía de Usuario de dIKta.me
+
+¡Hola! 👋 Bienvenido al manual.
+
+**dIKta.me** está diseñado para ser invisible hasta que lo necesites. Pero cuando sea así, vale la pena conocer un par de trucos. Usa esta guía para dominar tus nuevos superpoderes de voz.
+
+## 📚 ¿Por dónde empezar?
+
+- **[Primeros Pasos](getting-started.md)**: Instalado en exactamente 2 minutos.
+- **[Solución de Problemas](troubleshooting.md)**: Si algo parece no funcionar, busca aquí primero.
+- **[Ajustes](settings.md)**: Hazlo a tu medida.
+
+## 🌟 Las Funciones
+
+- **[Dictado](features/dictation.md)**: Lo fundamental. Habla, y el programa escribe.
+- **[Refinar](features/refine.md)**: Deja que la IA arregle tu gramática o reescriba tus ideas desordenadas.
+- **[Fragmentos de Voz (Snippets)](features/snippets.md)**: Frases mágicas que se expanden en textos completos.
+- **[Preguntar (Ask)](features/ask.md)**: Una línea directa con tu IA para preguntas rápidas.
+- **[Traducir](features/translate.md)**: Habla en un idioma, escribe en otro al instante.
+- **[Chat Rápido](features/quick-chat.md)**: Un asistente flotante para cuando necesitas una segunda opinión.
+- **[Nota](features/note.md)**: Captura pensamientos a un archivo de texto sin perder el foco.
+
+---
+*¿Atascado? Echa un vistazo a nuestros [Problemas en GitHub](https://github.com/geckogtmx/diktame/issues) para ver si otros ya han encontrado una solución.*

@@ -1,27 +1,27 @@
-# Solución de problemas
+# Solución de Problemas
 
-A veces las cosas fallan. Vamos a arreglarlas.
+A veces las cosas se rompen. Arreglémoslas.
 
-## 🎤 "No te escucho"
+## 🎤 "No puedo escucharte"
 
-**Síntoma**: Presionas la tecla de acceso rápido, pero no pasa nada. O el icono de la bandeja se queda gris.
-- **Verificación 1**: ¿Está conectado tu micrófono? (Suena tonto, pero pasa).
-- **Verificación 2**: Permisos de Windows. Ve a **Configuración > Privacidad > Micrófono** y asegúrate de que las aplicaciones tengan permiso para escuchar.
-- **Verificación 3**: ¿Elegiste el micrófono correcto en la configuración de dIKta.me?
+**Síntoma**: Presionas la tecla de acceso rápido, pero no pasa nada. O el ícono de la bandeja se queda gris.
+- **Chequeo 1**: ¿Está conectado tu micrófono? (Suena tonto, pero pasa).
+- **Chequeo 2**: Permisos de Windows. Ve a **Ajustes > Privacidad > Micrófono** y asegúrate de que las aplicaciones tengan permiso para escuchar en tu sistema.
+- **Chequeo 3**: ¿Elegiste el micrófono correcto en los ajustes de dIKta.me?
 
 ## ⌨️ "Mis teclas de acceso rápido no funcionan"
 
-**Síntoma**: Presionas `Ctrl+Alt+D` y se abre Discord en su lugar (o no pasa nada).
-- **Solución**: Otra aplicación se apropió de la tecla de acceso rápido. Haz clic derecho en dIKta.me > **Configuración > Teclas de acceso rápido** y cámbiala por una combinación única.
+**Síntoma**: Presionas `Ctrl+Alt+D` y se abre Discord en su lugar (o no pasa nada en absoluto).
+- **Solución**: Otra aplicación robó el atajo global. Haz clic derecho en el icono de dIKta.me > **Settings (Ajustes) > Hotkeys (Teclas rápidas)** y cámbialo a algo único.
 
-## ☁️ "Clave API no válida"
+## ☁️ "Clave API Inválida"
 
-**Síntoma**: Aparece "Error de autenticación".
-- **Solución**: Probablemente te faltó un carácter al copiar. Asegúrate de haber copiado la clave completa (normalmente empieza con `sk-` o `AIza-`). Cuidado con los espacios accidentales al inicio o al final.
+**Síntoma**: Dice "Auth Error" (Error de Autenticación).
+- **Solución**: Probablemente perdiste un carácter al copiar. Asegúrate de haber copiado toda la clave (usualmente empieza con `sk-` o `AIza-`). Especial cuidado con los espacios accidentales al principio o al final de la entrada.
 
-## 🐢 "Va demasiado lento"
+## 🐢 "Es demasiado lento"
 
-- **Solución**: Los modos en la nube dependen de tu conexión a internet. Si tu WiFi es inestable, prueba el modo **Whisper local** (si tu ordenador es lo suficientemente potente). Es consistentemente rápido y funciona sin conexión.
+- **Solución**: Los modos en la Nube (Cloud) dependen de tu velocidad de internet. Si tu WiFi es inestable, prueba el modo **Local Whisper** (si tu computadora es lo suficientemente potente). Es constantemente rápido y funciona sin conexión a internet.
 
 ---
-*¿Sigues atascado? Escríbenos en GitHub.*
+*¿Sigues atascado? Déjanos un mensaje en nuestros foros de GitHub.*
