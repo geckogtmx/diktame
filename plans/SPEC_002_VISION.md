@@ -394,6 +394,7 @@ Configurable in VisionSettings. Default: Inject (matches all other modes).
 - **No new NuGet packages required for MVP** — `System.Drawing.Common` is already a transitive dependency for icon handling
 - **Optional:** `SixLabors.ImageSharp` if we need cross-platform image processing (not needed for Windows-only)
 - **Ollama vision models** require user to `ollama pull llava` or similar — not bundled
+- **LFM2.5-VL-1.6B** (Liquid AI) is a recommended local vision model: 1.6B params (~1.2–1.5GB VRAM quantized), strong OCR + real-world QA benchmarks, multi-image support, multilingual. Fits comfortably within the VRAM budget (§3) — potentially allows concurrent STT + Vision on 8GB without model swapping. Same OpenAI-compatible format as LLaVA/Moondream; zero extra integration work once available via `ollama pull lfm2.5-vl`. Tag in `ModelListService` as a known vision-capable model alongside `llava` and `moondream`.
 
 ---
 

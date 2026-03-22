@@ -502,7 +502,46 @@ All transcription is **batch/post-meeting** — the full audio file is submitted
 
 ---
 
-## 11. References
+## 11. LFM2.5 Vision — Visual Context Enrichment
+
+Liquid AI's **LFM2.5-VL-1.6B** (March 2026) is worth considering for Phase N (session-bound captures). Key points:
+
+### Opportunity: Periodic Screen Capture During Sessions
+
+While audio records, dIKta.me can snapshot the screen periodically (every N minutes, or on manual trigger via `Ctrl+Alt+S` — which stays available during sessions since it uses no mic). The vision model describes slides, diagrams, whiteboards, or shared screens → this visual context is timestamped and injected into the synthesis prompt alongside the audio transcript.
+
+Example artifact enrichment: *"At 14:32, a slide showing Q3 revenue projections was on screen while the team discussed budget"* — far more useful than audio context alone.
+
+### VRAM Budget Fit
+
+At 1.6B params (~1–1.5GB VRAM quantized), LFM2.5-VL fits comfortably alongside a full local-mode meeting stack:
+```
+System/Display:      ~1.0 GB
+Whisper (STT):       ~1.5 GB
+Ollama LLM (text):   ~1.5-3.5 GB
+LFM2.5-VL (vision):  ~1.0-1.5 GB
+───────────────────────────────
+Total:               ~5.0-7.5 GB  ← fits 8GB VRAM, no model swapping
+```
+
+This is the key advantage over larger vision models (LLaVA-7B, etc.) — concurrent operation without eviction.
+
+### WebGPU Note
+
+"Live camera detection with WebGPU" is a browser-based paradigm — not applicable here. The equivalent in the native Windows app is periodic `ScreenCapture` (Win32/WinRT, already planned in SPEC_002) + Ollama inference. Same capability, no browser dependency.
+
+### Implementation Path
+
+Zero new architecture needed — this piggybacks on:
+- `ScreenCapture` + `VisionPipeline` from SPEC_002
+- `SessionManager` timestamps for visual context anchoring
+- Synthesis prompt in §4.3 — add `{{visual_context}}` block alongside `{{transcript}}` and `{{typed_notes}}`
+
+Recommend adding this as a Phase 4 item: "Visual context enrichment — periodic screen capture during session, annotated with timestamps, included in synthesis prompt."
+
+---
+
+## 12. References
 
 - V1 Spec: `E:\git\diktate\docs\internal\specs\deferred\SPEC_003_SCRIBE_LAYER.md`
 - Granola: https://www.granola.ai — Features, pricing ($0/$14/$35), MCP support
