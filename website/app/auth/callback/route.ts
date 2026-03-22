@@ -58,14 +58,18 @@ export async function GET(request: Request) {
         const {
           data: { session },
         } = await supabase.auth.getSession();
+        console.log('[auth/callback] mode=app, session?', !!session);
         if (session) {
-          // Redirect to app deeplink with session tokens
-          const deeplink = new URL('diktame://auth');
-          deeplink.searchParams.set('token', session.access_token);
-          if (session.refresh_token) {
-            deeplink.searchParams.set('refresh_token', session.refresh_token);
-          }
-          return NextResponse.redirect(deeplink.toString());
+          // Use HTML redirect — NextResponse.redirect() rejects custom URL schemes
+          const deeplinkUrl = `diktame://auth?token=${session.access_token}${session.refresh_token ? `&refresh_token=${session.refresh_token}` : ''}`;
+          console.log('[auth/callback] redirecting to deeplink, token length:', session.access_token.length);
+          return new NextResponse(
+            `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${deeplinkUrl}"/></head><body><p>Redirecting to dIKta.me app...</p><script>window.location.href=${JSON.stringify(deeplinkUrl)};</script></body></html>`,
+            {
+              status: 200,
+              headers: { 'Content-Type': 'text/html' },
+            },
+          );
         }
       }
 
