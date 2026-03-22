@@ -337,6 +337,13 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     private void SetBarPosition(string position)
     {
         BarPosition = position;
+
+        // Auto-sync expand direction: Top* → Down (0), Bottom* → Up (1)
+        int expectedIndex = position.StartsWith("Bottom", StringComparison.Ordinal) ? 1 : 0;
+        if (ExpandDirectionIndex != expectedIndex)
+        {
+            ExpandDirectionIndex = expectedIndex;
+        }
     }
 
     [RelayCommand]
