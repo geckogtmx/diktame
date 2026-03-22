@@ -26,10 +26,6 @@ public sealed partial class MainWindow : Window
     private const int LWA_ALPHA = 0x2;
     private IntPtr _hWnd;
 
-    // Win32 drag via footer row (ReleaseCapture + WM_NCLBUTTONDOWN HTCAPTION)
-    private const int WM_NCLBUTTONDOWN = 0x00A1;
-    private const int HTCAPTION = 0x2;
-
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
@@ -42,13 +38,6 @@ public sealed partial class MainWindow : Window
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SetLayeredWindowAttributes(IntPtr hWnd, uint crKey, byte bAlpha, uint dwFlags);
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool ReleaseCapture();
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
     public MainWindow()
     {
@@ -116,20 +105,6 @@ public sealed partial class MainWindow : Window
         var exStyle = (int)GetWindowLongPtr(_hWnd, GWL_EXSTYLE);
         SetWindowLongPtr(_hWnd, GWL_EXSTYLE, (IntPtr)(exStyle | WS_EX_LAYERED));
         SetLayeredWindowAttributes(_hWnd, 0, 255, LWA_ALPHA);
-    }
-
-    /// <summary>
-    /// Initiates a window drag from a non-title-bar element (e.g., the footer row).
-    /// Uses ReleaseCapture + WM_NCLBUTTONDOWN HTCAPTION — the standard Win32
-    /// pattern for custom drag regions.
-    /// </summary>
-    public void StartDrag()
-    {
-        if (_hWnd != IntPtr.Zero)
-        {
-            ReleaseCapture();
-            SendMessage(_hWnd, WM_NCLBUTTONDOWN, (IntPtr)HTCAPTION, IntPtr.Zero);
-        }
     }
 
     /// <summary>

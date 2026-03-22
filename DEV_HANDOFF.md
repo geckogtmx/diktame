@@ -4,10 +4,10 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 988 passing locally (479 on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
+| **Tests** | 1010 passing locally (479+ on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | **PASSES** (0 warnings, 0 errors). All 4 style dictionaries load cleanly at runtime. |
-| **CI** | **PASSING** — lint, build, 479 tests, gitleaks, vulnerability audit, publish all green. |
-| **Branch** | main (all UI revamp + ACCOUNTS_SIGNIN sprint committed) |
+| **CI** | **PASSING** — lint, build, tests, gitleaks, vulnerability audit, publish all green. |
+| **Branch** | main (all UI revamp + ACCOUNTS_SIGNIN + auth polish committed) |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
 | **Website Build** | **PASSES** — `next build` 0 errors, 15+ API routes, admin dashboard (at `/hqbackstage`), wallet + license system |
 
@@ -32,8 +32,11 @@
 | **UI Revamp** | Glassmorphic theme system — Phases 0-3 complete. Phase 2 runtime crash (exit 127) **RESOLVED**. CP.1-CP.9 committed (auto-collapse, waveform, tray restore, snap-to-position, VU meter). Bug 3 (nav text contrast) **RESOLVED** — per-item local ThemeResource overrides. Sub-nav contrast also fixed. Nav pane collapse/expand (overlay logo, chevron in footer, CompactPaneLength=68). UserPaneFooter redesigned (avatar circle + display name + green status dot). |
 | **ACCOUNTS_SIGNIN** | **COMPLETE** ✅ — All 9 sessions (32 tasks). Website auth, dashboard, admin panel (at `/hqbackstage`), JWT refresh, license provisioning, Ko-fi webhooks. |
 | **AVATAR** | **COMPLETE** ✅ — Profile pic upload with circle crop (react-easy-crop), Supabase Storage bucket, C# app sync + display. Migration 009 (avatar_url column). Branded deeplink page. Admin URL obfuscation (`/admin` → `/hqbackstage`). Auth deeplink bugfix (middleware matcher + HTML redirect for custom URL schemes). |
+| **UI_REVAMP_SCROLL_CP** | **COMPLETE** ✅ — 3-layer cylinder roll idle animation (status→logo+clock→weather), WeatherService (Open-Meteo + IP geolocation). 1010 tests. |
+| **Chat Theming** | **COMPLETE** ✅ — QuickChatWindow migrated to App*Brush theme system (StaticResource + InjectControlBrushes + live switching). MarkdownTextBlock fully themed. Dead `ChatSettings.Theme` property removed. |
+| **Auth Reliability** | **COMPLETE** ✅ — JWT refresh on startup before wallet sync (fixes "Session Expired" toast). Timer dueTime→Zero. Avatar sync on every launch via `SyncProfileFromServerAsync()`. Sign-in no longer forces `AuthMode.Wallet` (preserves user setting). Account page layout centered. |
 
-## Open Bugs (Stream K) — Updated 2026-03-21
+## Open Bugs (Stream K) — Updated 2026-03-22
 
 1. ~~**App UI doesn't update after sign-in**~~ ✅ Fixed — `SyncWalletAfterSignInAsync()` syncs wallet + refreshes HUD + shows toast after sign-in (A.3, commit `3785914`).
 2. ~~**Website "Sign Up" shows Coming Soon**~~ ✅ Fixed — `NEXT_PUBLIC_COMING_SOON` deleted from Vercel dashboard (W.12).
@@ -130,6 +133,7 @@ The "Bars" waveform style doesn't fill enough of the header bar visually. Curren
 ## Open Issues
 
 - ~~**Sign In broken / redesign needed**~~ ✅ Fixed — ACCOUNTS_SIGNIN sprint (Sessions 3-4) wired deeplink with refresh token, JWT auto-refresh, display name extraction, wallet sync after sign-in. UserPaneFooter shows OAuth display name.
+- ~~**"Session Expired" toast on startup**~~ ✅ Fixed — JWT refresh now runs before wallet sync. Timer dueTime changed to Zero. Avatar sync added to startup. Sign-in no longer forces `AuthMode.Wallet`.
 - **App quit stalling after TTS**: `AppWindow.Closing` handler cancels close unconditionally — `Application.Current.Exit()` gets blocked. Needs `_isExiting` flag to bypass cancellation during shutdown.
 - **Test beep ducks live audio**: One test instantiates a real AudioDucker and ducks live audio sessions (YouTube volume drops during test run). Needs mocking or environment guard.
 
@@ -165,7 +169,7 @@ The "Bars" waveform style doesn't fill enough of the header bar visually. Curren
 
 **C# App (WinUI 3):**
 - `HandleDeepLink()` extracts + stores `refresh_token`
-- `TokenRefreshService`: background timer (5min check), proactive refresh when <10min remaining, reactive refresh on 401
+- `TokenRefreshService`: background timer (5min check, immediate first tick), proactive refresh when <10min remaining, reactive refresh on 401. Startup: explicit `CheckAndRefreshAsync()` before wallet sync ensures fresh JWT.
 - `JwtDecoder.ExtractDisplayName()` / `ExtractAvatarUrl()` — OAuth metadata extraction
 - `AccountSettings.DisplayName` / `AvatarUrl` persisted to settings.json
 - `SyncWalletAfterSignInAsync()` — wallet sync + HUD refresh + toast after sign-in
