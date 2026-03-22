@@ -8,8 +8,9 @@
             HorizontalContentAlignment="Left"
             Background="Transparent"
             BorderThickness="0"
-            Padding="12,8"
-            Margin="4,4">
+            CornerRadius="8"
+            Padding="16,8"
+            Margin="5,2,4,2">
         <StackPanel Orientation="Horizontal" Spacing="10">
             <!-- Signed-out: person outline icon -->
             <FontIcon x:Name="SignedOutIcon" Glyph="&#xE77B;"

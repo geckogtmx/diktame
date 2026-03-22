@@ -4,11 +4,11 @@ import { usePathname } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 
 const navItems = [
-  { href: '/admin', label: 'Overview', icon: ChartIcon },
-  { href: '/admin/users', label: 'Users', icon: UsersIcon },
-  { href: '/admin/licenses', label: 'Licenses', icon: KeyIcon },
-  { href: '/admin/sales', label: 'Sales', icon: DollarIcon },
-  { href: '/admin/support', label: 'Support', icon: ChatIcon },
+  { href: '/hqbackstage', label: 'Overview', icon: ChartIcon },
+  { href: '/hqbackstage/users', label: 'Users', icon: UsersIcon },
+  { href: '/hqbackstage/licenses', label: 'Licenses', icon: KeyIcon },
+  { href: '/hqbackstage/sales', label: 'Sales', icon: DollarIcon },
+  { href: '/hqbackstage/support', label: 'Support', icon: ChatIcon },
 ];
 
 export function AdminSidebar() {
@@ -20,8 +20,8 @@ export function AdminSidebar() {
       <h2 className="text-lg font-bold mb-4 px-3 text-white/80">Admin</h2>
       {navItems.map(({ href, label, icon: Icon }) => {
         const isActive =
-          href === '/admin'
-            ? strippedPath === '/admin'
+          href === '/hqbackstage'
+            ? strippedPath === '/hqbackstage'
             : strippedPath.startsWith(href);
         return (
           <Link

@@ -96,7 +96,10 @@ export async function PATCH(request: Request) {
 
     if (updateError) {
       console.error('Profile PATCH error:', updateError);
-      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Failed to update profile', detail: updateError.message, code: updateError.code },
+        { status: 500 },
+      );
     }
 
     const walletBalanceMicro = await getWalletBalance(supabase, user.id);

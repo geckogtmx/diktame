@@ -17,7 +17,7 @@ export function LicenseGiftForm() {
     try {
       const walletCreditMicro = creditUsd ? Math.round(parseFloat(creditUsd) * 1_000_000) : 0;
 
-      const res = await fetch('/api/admin/licenses/gift', {
+      const res = await fetch('/api/hqbackstage/licenses/gift', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, tier, walletCreditMicro }),

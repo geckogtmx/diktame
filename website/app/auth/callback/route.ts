@@ -1,6 +1,7 @@
 // SPEC_042: OAuth callback handler
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { buildDeeplinkPage } from '@/lib/auth/deeplink-page';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -58,18 +59,12 @@ export async function GET(request: Request) {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        console.log('[auth/callback] mode=app, session?', !!session);
         if (session) {
-          // Use HTML redirect — NextResponse.redirect() rejects custom URL schemes
           const deeplinkUrl = `diktame://auth?token=${session.access_token}${session.refresh_token ? `&refresh_token=${session.refresh_token}` : ''}`;
-          console.log('[auth/callback] redirecting to deeplink, token length:', session.access_token.length);
-          return new NextResponse(
-            `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${deeplinkUrl}"/></head><body><p>Redirecting to dIKta.me app...</p><script>window.location.href=${JSON.stringify(deeplinkUrl)};</script></body></html>`,
-            {
-              status: 200,
-              headers: { 'Content-Type': 'text/html' },
-            },
-          );
+          return new NextResponse(buildDeeplinkPage(deeplinkUrl), {
+            status: 200,
+            headers: { 'Content-Type': 'text/html' },
+          });
         }
       }
 

@@ -81,7 +81,8 @@ export default function ProfilePage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update profile');
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || errData.error || 'Failed to update profile');
       }
 
       const updatedProfile = await response.json();
