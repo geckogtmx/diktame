@@ -33,7 +33,7 @@
   },
   "Footer": {
     "copyright": "© 2026 dIKta.me. Todos los derechos reservados.",
-    "credit": "Co-creado por Humano e IA (Gemini Studio, Antigravity, Claude Code)",
+    "credit": "Co-creado por Humanos e IA (Gemini + Claude + Antigravity)",
     "about": "Acerca de",
     "privacy": "Privacidad",
     "terms": "Términos",
@@ -74,10 +74,8 @@
     "flavor02Title": "Notas",
     "flavor02Hotkey": "Ctrl+Alt+N",
     "flavor02Desc": "Captura ideas con marcas de tiempo y metatags automáticos. Formato secuencial listo para procesamiento por lotes.",
-    "visionTeaser": "Visión",
-    "visionTeaserDesc": "Contexto de pantalla como entrada — próximamente.",
-    "connectorsTeaser": "Conectores",
-    "connectorsTeaserDesc": "Envía resultados a Notion, Slack, webhooks y más."
+    "comingSoonTeaser": "Visión y Conectores",
+    "comingSoonDesc": "Contexto de pantalla como entrada. Envía resultados a Notion, Slack, webhooks y más."
   },
   "VersusSection": {
     "title": "dIKta.me Versus La Nube.",

@@ -33,7 +33,7 @@
   },
   "Footer": {
     "copyright": "© 2026 dIKta.me. All rights reserved.",
-    "credit": "Co-authored by Human & AI (Gemini Studio, Antigravity, Claude Code)",
+    "credit": "Co-authored by Humans & AI (Gemini + Claude + Antigravity)",
     "about": "About",
     "privacy": "Privacy",
     "terms": "Terms",
@@ -74,10 +74,8 @@
     "flavor02Title": "Notes",
     "flavor02Hotkey": "Ctrl+Alt+N",
     "flavor02Desc": "Capture thoughts with automatic timestamps and metatags. Sequential formatting ready for batch processing.",
-    "visionTeaser": "Vision",
-    "visionTeaserDesc": "Screen context as input — coming soon.",
-    "connectorsTeaser": "Connectors",
-    "connectorsTeaserDesc": "Route output to Notion, Slack, webhooks, and more."
+    "comingSoonTeaser": "Vision & Connectors",
+    "comingSoonDesc": "Screen context as input. Route output to Notion, Slack, webhooks, and more."
   },
   "VersusSection": {
     "title": "dIKta.me Versus The Cloud.",
