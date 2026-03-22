@@ -93,17 +93,18 @@ public sealed partial class ControlPanelPage : Page
     private static readonly TimeSpan WeatherRefreshInterval = TimeSpan.FromMinutes(30);
 
     // Base colors (idle) → Bright colors (max glow) — derived from current theme palette
-    private byte _baseBgR, _baseBgG, _baseBgB;
+    // Alpha channels are preserved so translucent brushes (e.g. Border at 8% white) stay correct
+    private byte _baseBgA, _baseBgR, _baseBgG, _baseBgB;
     private byte _brightBgR, _brightBgG, _brightBgB;
-    private byte _baseHdrR, _baseHdrG, _baseHdrB;
+    private byte _baseHdrA, _baseHdrR, _baseHdrG, _baseHdrB;
     private byte _brightHdrR, _brightHdrG, _brightHdrB;
-    private byte _baseBrdR, _baseBrdG, _baseBrdB;
+    private byte _baseBrdA, _baseBrdR, _baseBrdG, _baseBrdB;
     private byte _brightBrdR, _brightBrdG, _brightBrdB;
-    private byte _baseTxtR, _baseTxtG, _baseTxtB;
+    private byte _baseTxtA, _baseTxtR, _baseTxtG, _baseTxtB;
     private byte _brightTxtR, _brightTxtG, _brightTxtB;
-    private byte _baseTxt2R, _baseTxt2G, _baseTxt2B;
+    private byte _baseTxt2A, _baseTxt2R, _baseTxt2G, _baseTxt2B;
     private byte _brightTxt2R, _brightTxt2G, _brightTxt2B;
-    private byte _baseGrnR, _baseGrnG, _baseGrnB;
+    private byte _baseGrnA, _baseGrnR, _baseGrnG, _baseGrnB;
     private byte _brightGrnR, _brightGrnG, _brightGrnB;
 
     public ControlPanelPage()
@@ -392,13 +393,13 @@ public sealed partial class ControlPanelPage : Page
     {
         var palette = Services.ThemeService.GetPalette(_themeService?.CurrentTheme ?? "Midnight");
 
-        // Base colors from palette
-        _baseBgR = palette.Background.R; _baseBgG = palette.Background.G; _baseBgB = palette.Background.B;
-        _baseHdrR = palette.Surface.R; _baseHdrG = palette.Surface.G; _baseHdrB = palette.Surface.B;
-        _baseBrdR = palette.Border.R; _baseBrdG = palette.Border.G; _baseBrdB = palette.Border.B;
-        _baseTxtR = palette.Text.R; _baseTxtG = palette.Text.G; _baseTxtB = palette.Text.B;
-        _baseTxt2R = palette.TextDim.R; _baseTxt2G = palette.TextDim.G; _baseTxt2B = palette.TextDim.B;
-        _baseGrnR = palette.PerfGreen.R; _baseGrnG = palette.PerfGreen.G; _baseGrnB = palette.PerfGreen.B;
+        // Base colors from palette (including alpha — Border is typically translucent)
+        _baseBgA = palette.Background.A; _baseBgR = palette.Background.R; _baseBgG = palette.Background.G; _baseBgB = palette.Background.B;
+        _baseHdrA = palette.Surface.A; _baseHdrR = palette.Surface.R; _baseHdrG = palette.Surface.G; _baseHdrB = palette.Surface.B;
+        _baseBrdA = palette.Border.A; _baseBrdR = palette.Border.R; _baseBrdG = palette.Border.G; _baseBrdB = palette.Border.B;
+        _baseTxtA = palette.Text.A; _baseTxtR = palette.Text.R; _baseTxtG = palette.Text.G; _baseTxtB = palette.Text.B;
+        _baseTxt2A = palette.TextDim.A; _baseTxt2R = palette.TextDim.R; _baseTxt2G = palette.TextDim.G; _baseTxt2B = palette.TextDim.B;
+        _baseGrnA = palette.PerfGreen.A; _baseGrnR = palette.PerfGreen.R; _baseGrnG = palette.PerfGreen.G; _baseGrnB = palette.PerfGreen.B;
 
         // Bright colors: lerp 60% toward accent color for glow effect
         var a = palette.Accent;
@@ -948,15 +949,15 @@ public sealed partial class ControlPanelPage : Page
         // Always modulate text brightness — text reacts regardless of scope
         if (_textPrimary is not null)
         {
-            _textPrimary.Color = LerpColor(_baseTxtR, _baseTxtG, _baseTxtB, _brightTxtR, _brightTxtG, _brightTxtB, t);
+            _textPrimary.Color = LerpColor(_baseTxtA, _baseTxtR, _baseTxtG, _baseTxtB, _brightTxtR, _brightTxtG, _brightTxtB, t);
         }
         if (_textSecondary is not null)
         {
-            _textSecondary.Color = LerpColor(_baseTxt2R, _baseTxt2G, _baseTxt2B, _brightTxt2R, _brightTxt2G, _brightTxt2B, t);
+            _textSecondary.Color = LerpColor(_baseTxt2A, _baseTxt2R, _baseTxt2G, _baseTxt2B, _brightTxt2R, _brightTxt2G, _brightTxt2B, t);
         }
         if (_perfGreen is not null)
         {
-            _perfGreen.Color = LerpColor(_baseGrnR, _baseGrnG, _baseGrnB, _brightGrnR, _brightGrnG, _brightGrnB, t);
+            _perfGreen.Color = LerpColor(_baseGrnA, _baseGrnR, _baseGrnG, _baseGrnB, _brightGrnR, _brightGrnG, _brightGrnB, t);
         }
 
         if (wholeApp)
@@ -964,15 +965,15 @@ public sealed partial class ControlPanelPage : Page
             // Modulate all three teal tones — every element using these brushes updates automatically
             if (_bgBrush is not null)
             {
-                _bgBrush.Color = LerpColor(_baseBgR, _baseBgG, _baseBgB, _brightBgR, _brightBgG, _brightBgB, t);
+                _bgBrush.Color = LerpColor(_baseBgA, _baseBgR, _baseBgG, _baseBgB, _brightBgR, _brightBgG, _brightBgB, t);
             }
             if (_hdrBrush is not null)
             {
-                _hdrBrush.Color = LerpColor(_baseHdrR, _baseHdrG, _baseHdrB, _brightHdrR, _brightHdrG, _brightHdrB, t);
+                _hdrBrush.Color = LerpColor(_baseHdrA, _baseHdrR, _baseHdrG, _baseHdrB, _brightHdrR, _brightHdrG, _brightHdrB, t);
             }
             if (_borderBrush is not null)
             {
-                _borderBrush.Color = LerpColor(_baseBrdR, _baseBrdG, _baseBrdB, _brightBrdR, _brightBrdG, _brightBrdB, t);
+                _borderBrush.Color = LerpColor(_baseBrdA, _baseBrdR, _baseBrdG, _baseBrdB, _brightBrdR, _brightBrdG, _brightBrdB, t);
             }
             // Ensure HeaderBar uses the shared brush in whole-app mode
             HeaderBar.Background = _hdrBrush;
@@ -983,29 +984,29 @@ public sealed partial class ControlPanelPage : Page
             // use dedicated brush for HeaderBar to glow only the top bar
             if (_bgBrush is not null)
             {
-                _bgBrush.Color = Color.FromArgb(255, _baseBgR, _baseBgG, _baseBgB);
+                _bgBrush.Color = Color.FromArgb(_baseBgA, _baseBgR, _baseBgG, _baseBgB);
             }
             if (_hdrBrush is not null)
             {
-                _hdrBrush.Color = Color.FromArgb(255, _baseHdrR, _baseHdrG, _baseHdrB);
+                _hdrBrush.Color = Color.FromArgb(_baseHdrA, _baseHdrR, _baseHdrG, _baseHdrB);
             }
             if (_borderBrush is not null)
             {
-                _borderBrush.Color = Color.FromArgb(255, _baseBrdR, _baseBrdG, _baseBrdB);
+                _borderBrush.Color = Color.FromArgb(_baseBrdA, _baseBrdR, _baseBrdG, _baseBrdB);
             }
             // Modulate the dedicated header brush — only HeaderBar glows
             if (_headerBarBrush is not null)
             {
-                _headerBarBrush.Color = LerpColor(_baseHdrR, _baseHdrG, _baseHdrB, _brightHdrR, _brightHdrG, _brightHdrB, t);
+                _headerBarBrush.Color = LerpColor(_baseHdrA, _baseHdrR, _baseHdrG, _baseHdrB, _brightHdrR, _brightHdrG, _brightHdrB, t);
                 HeaderBar.Background = _headerBarBrush;
             }
         }
     }
 
-    private static Color LerpColor(byte r1, byte g1, byte b1, byte r2, byte g2, byte b2, double t)
+    private static Color LerpColor(byte a, byte r1, byte g1, byte b1, byte r2, byte g2, byte b2, double t)
     {
         return Color.FromArgb(
-            255,
+            a,
             (byte)(r1 + (r2 - r1) * t),
             (byte)(g1 + (g2 - g1) * t),
             (byte)(b1 + (b2 - b1) * t));
@@ -1043,27 +1044,27 @@ public sealed partial class ControlPanelPage : Page
         _currentGlowLevel = 0;
         if (_bgBrush is not null)
         {
-            _bgBrush.Color = Color.FromArgb(255, _baseBgR, _baseBgG, _baseBgB);
+            _bgBrush.Color = Color.FromArgb(_baseBgA, _baseBgR, _baseBgG, _baseBgB);
         }
         if (_hdrBrush is not null)
         {
-            _hdrBrush.Color = Color.FromArgb(255, _baseHdrR, _baseHdrG, _baseHdrB);
+            _hdrBrush.Color = Color.FromArgb(_baseHdrA, _baseHdrR, _baseHdrG, _baseHdrB);
         }
         if (_borderBrush is not null)
         {
-            _borderBrush.Color = Color.FromArgb(255, _baseBrdR, _baseBrdG, _baseBrdB);
+            _borderBrush.Color = Color.FromArgb(_baseBrdA, _baseBrdR, _baseBrdG, _baseBrdB);
         }
         if (_textPrimary is not null)
         {
-            _textPrimary.Color = Color.FromArgb(255, _baseTxtR, _baseTxtG, _baseTxtB);
+            _textPrimary.Color = Color.FromArgb(_baseTxtA, _baseTxtR, _baseTxtG, _baseTxtB);
         }
         if (_textSecondary is not null)
         {
-            _textSecondary.Color = Color.FromArgb(255, _baseTxt2R, _baseTxt2G, _baseTxt2B);
+            _textSecondary.Color = Color.FromArgb(_baseTxt2A, _baseTxt2R, _baseTxt2G, _baseTxt2B);
         }
         if (_perfGreen is not null)
         {
-            _perfGreen.Color = Color.FromArgb(255, _baseGrnR, _baseGrnG, _baseGrnB);
+            _perfGreen.Color = Color.FromArgb(_baseGrnA, _baseGrnR, _baseGrnG, _baseGrnB);
         }
         // Restore header to shared brush
         HeaderBar.Background = _hdrBrush;
