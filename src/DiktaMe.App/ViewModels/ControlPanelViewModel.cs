@@ -51,9 +51,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private readonly DispatcherQueue _dispatcher;
 
     // Badge indicator brushes (local/cloud/off) — theme-aware, updated on theme change
-    private readonly SolidColorBrush BadgeLocalBrush;
-    private readonly SolidColorBrush BadgeCloudBrush;
-    private readonly SolidColorBrush BadgeOffBrush;
+    private readonly SolidColorBrush _badgeLocalBrush;
+    private readonly SolidColorBrush _badgeCloudBrush;
+    private readonly SolidColorBrush _badgeOffBrush;
 
     // Active-state colors (V1 palette)
     private const string ActiveBgHex = "#00607a";   // --dark-teal-3
@@ -230,24 +230,24 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     // ── Toggle state color brushes (for cycle buttons) ──────────────────
 
-    public SolidColorBrush SttStateBrush => IsLocalStt ? BadgeLocalBrush : BadgeCloudBrush;
+    public SolidColorBrush SttStateBrush => IsLocalStt ? _badgeLocalBrush : _badgeCloudBrush;
     public SolidColorBrush LlmStateBrush => LlmMode switch
     {
-        LlmMode.Local => BadgeLocalBrush,
-        LlmMode.Cloud => BadgeCloudBrush,
-        LlmMode.Off => BadgeOffBrush,
-        _ => BadgeCloudBrush,
+        LlmMode.Local => _badgeLocalBrush,
+        LlmMode.Cloud => _badgeCloudBrush,
+        LlmMode.Off => _badgeOffBrush,
+        _ => _badgeCloudBrush,
     };
     public SolidColorBrush TtsStateBrush => TtsMode switch
     {
-        TtsMode.Local => BadgeLocalBrush,
-        TtsMode.Cloud => BadgeCloudBrush,
-        TtsMode.Off => BadgeOffBrush,
-        _ => BadgeOffBrush,
+        TtsMode.Local => _badgeLocalBrush,
+        TtsMode.Cloud => _badgeCloudBrush,
+        TtsMode.Off => _badgeOffBrush,
+        _ => _badgeOffBrush,
     };
-    public SolidColorBrush SoundStateBrush => IsSoundEnabled ? BadgeLocalBrush : BadgeOffBrush;
-    public SolidColorBrush KeyStateBrush => string.IsNullOrEmpty(AdditionalKeyValue) ? BadgeOffBrush : BadgeLocalBrush;
-    public SolidColorBrush RefineStateBrush => IsRefineVoice ? BadgeLocalBrush : BadgeCloudBrush;
+    public SolidColorBrush SoundStateBrush => IsSoundEnabled ? _badgeLocalBrush : _badgeOffBrush;
+    public SolidColorBrush KeyStateBrush => string.IsNullOrEmpty(AdditionalKeyValue) ? _badgeOffBrush : _badgeLocalBrush;
+    public SolidColorBrush RefineStateBrush => IsRefineVoice ? _badgeLocalBrush : _badgeCloudBrush;
 
     // ── Hotkey display ────────────────────────────────────────────────────
 
@@ -376,20 +376,20 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
         // Initialize badge brushes based on current theme
         bool isDark = ThemeService.GetPalette(_themeService.CurrentTheme).IsDark;
-        BadgeLocalBrush = new SolidColorBrush(isDark
+        _badgeLocalBrush = new SolidColorBrush(isDark
             ? ColorHelper.FromArgb(255, 122, 255, 158)   // #7AFF9E bright green (dark themes)
             : ColorHelper.FromArgb(255, 4, 120, 87));    // #047857 dark emerald (Frost)
-        BadgeCloudBrush = new SolidColorBrush(isDark
+        _badgeCloudBrush = new SolidColorBrush(isDark
             ? ColorHelper.FromArgb(255, 78, 168, 222)    // #4EA8DE bright blue (dark themes)
             : ColorHelper.FromArgb(255, 29, 78, 216));   // #1D4ED8 dark blue (Frost)
-        BadgeOffBrush = new SolidColorBrush(isDark
+        _badgeOffBrush = new SolidColorBrush(isDark
             ? ColorHelper.FromArgb(255, 255, 68, 68)     // #FF4444 bright red (dark themes)
             : ColorHelper.FromArgb(255, 185, 28, 28));   // #B91C1C dark red (Frost)
 
         // Initialize observable badge brushes with defaults (updated by LoadFromSettings → UpdateBadgeBrushes)
-        _sttBadgeBrush = BadgeCloudBrush;
-        _llmBadgeBrush = BadgeCloudBrush;
-        _ttsBadgeBrush = BadgeOffBrush;
+        _sttBadgeBrush = _badgeCloudBrush;
+        _llmBadgeBrush = _badgeCloudBrush;
+        _ttsBadgeBrush = _badgeOffBrush;
 
         // Subscribe to recorder events
         _recorder.RecordingStarted += OnRecordingStarted;
@@ -614,20 +614,20 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private void UpdateBadgeBrushes()
     {
         // STT: green = local (Whisper), blue = cloud (Deepgram). Never red.
-        SttBadgeBrush = IsLocalStt ? BadgeLocalBrush : BadgeCloudBrush;
+        SttBadgeBrush = IsLocalStt ? _badgeLocalBrush : _badgeCloudBrush;
 
         // LLM: red = off (RAW mode), green = local (Ollama), blue = cloud
         switch (LlmMode)
         {
             case LlmMode.Off:
-                LlmBadgeBrush = BadgeOffBrush;
+                LlmBadgeBrush = _badgeOffBrush;
                 LlmProviderName = "Disabled (RAW)";
                 break;
             case LlmMode.Local:
-                LlmBadgeBrush = BadgeLocalBrush;
+                LlmBadgeBrush = _badgeLocalBrush;
                 break;
             case LlmMode.Cloud:
-                LlmBadgeBrush = BadgeCloudBrush;
+                LlmBadgeBrush = _badgeCloudBrush;
                 break;
         }
 
@@ -635,15 +635,15 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         switch (TtsMode)
         {
             case TtsMode.Off:
-                TtsBadgeBrush = BadgeOffBrush;
+                TtsBadgeBrush = _badgeOffBrush;
                 TtsProviderName = "Disabled";
                 break;
             case TtsMode.Local:
-                TtsBadgeBrush = BadgeLocalBrush;
+                TtsBadgeBrush = _badgeLocalBrush;
                 TtsProviderName = "Kokoro (local)";
                 break;
             case TtsMode.Cloud:
-                TtsBadgeBrush = BadgeCloudBrush;
+                TtsBadgeBrush = _badgeCloudBrush;
                 string provider = _settings.Current.Tts.Provider;
                 TtsProviderName = provider.ToLowerInvariant() switch
                 {
@@ -946,13 +946,13 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         _dispatcher.TryEnqueue(() =>
         {
             bool isDark = ThemeService.GetPalette(themeName).IsDark;
-            BadgeLocalBrush.Color = isDark
+            _badgeLocalBrush.Color = isDark
                 ? ColorHelper.FromArgb(255, 122, 255, 158)   // #7AFF9E
                 : ColorHelper.FromArgb(255, 4, 120, 87);     // #047857
-            BadgeCloudBrush.Color = isDark
+            _badgeCloudBrush.Color = isDark
                 ? ColorHelper.FromArgb(255, 78, 168, 222)    // #4EA8DE
                 : ColorHelper.FromArgb(255, 29, 78, 216);    // #1D4ED8
-            BadgeOffBrush.Color = isDark
+            _badgeOffBrush.Color = isDark
                 ? ColorHelper.FromArgb(255, 255, 68, 68)     // #FF4444
                 : ColorHelper.FromArgb(255, 185, 28, 28);    // #B91C1C
 
