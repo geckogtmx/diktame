@@ -81,13 +81,16 @@ public sealed class AccountServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleAuthCallback_SetsAuthModeWallet()
+    public async Task HandleAuthCallback_PreservesExistingAuthMode()
     {
-        string jwt = BuildJwt(new { email = "test@example.com" });
+        // Pre-set AuthMode to something other than None
+        await _settings.UpdateAsync(_settings.Current with { AuthMode = AuthMode.Account });
 
+        string jwt = BuildJwt(new { email = "test@example.com" });
         await _sut.HandleAuthCallbackAsync(jwt);
 
-        _settings.Current.AuthMode.Should().Be(AuthMode.Wallet);
+        // Sign-in should NOT override the user's AuthMode setting
+        _settings.Current.AuthMode.Should().Be(AuthMode.Account);
         _settings.Current.Account.Email.Should().Be("test@example.com");
     }
 

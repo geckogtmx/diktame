@@ -76,8 +76,6 @@
   <data name="Settings_Chat_FontSize_Description.Text" xml:space="preserve"><value>Tama&#241;o del texto de mensajes del chat (en puntos)</value></data>
   <data name="Settings_Chat_WindowOpacity_Label.Text" xml:space="preserve"><value>Opacidad de Ventana</value></data>
   <data name="Settings_Chat_WindowOpacity_Description.Text" xml:space="preserve"><value>Transparencia de la ventana del chat (1.0 = totalmente opaco)</value></data>
-  <data name="Settings_Chat_Theme_Label.Text" xml:space="preserve"><value>Tema</value></data>
-  <data name="Settings_Chat_Theme_Description.Text" xml:space="preserve"><value>Esquema de color de la ventana de chat</value></data>
   <data name="Settings_Chat_ForgetOnClose_Label.Text" xml:space="preserve"><value>Olvidar al Cerrar</value></data>
   <data name="Settings_Chat_ForgetOnClose_Description.Text" xml:space="preserve"><value>Borrar historial del chat al cerrar la ventana (modo privacidad)</value></data>
   <data name="Settings_Chat_MaxHistory_Label.Text" xml:space="preserve"><value>M&#225;ximo de Mensajes en Historial</value></data>
@@ -235,9 +233,6 @@
   <data name="Settings_Modes_AskOutput_ClipboardOnly" xml:space="preserve"><value>Solo Portapapeles</value></data>
   <data name="Settings_Modes_AskOutput_InjectOnly" xml:space="preserve"><value>Solo Inyectar</value></data>
   <data name="Settings_Modes_AskOutput_ClipboardToast" xml:space="preserve"><value>Portapapeles + Notificaci&#243;n</value></data>
-  <data name="Settings_Modes_ChatTheme_System" xml:space="preserve"><value>Sistema</value></data>
-  <data name="Settings_Modes_ChatTheme_Light" xml:space="preserve"><value>Claro</value></data>
-  <data name="Settings_Modes_ChatTheme_Dark" xml:space="preserve"><value>Oscuro</value></data>
   <data name="Settings_Modes_ModelDefault_Cloud" xml:space="preserve"><value>(Predeterminado &#8212; usar modelo del proveedor)</value></data>
   <data name="Settings_Modes_ModelDefault_Local" xml:space="preserve"><value>(Predeterminado &#8212; modelo global de Ollama)</value></data>
 

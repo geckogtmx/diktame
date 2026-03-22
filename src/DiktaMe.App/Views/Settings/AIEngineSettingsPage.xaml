@@ -997,14 +997,6 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <StackPanel Spacing="4">
-                            <TextBlock l:Uids.Uid="Settings_Chat_Theme_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                            <TextBlock l:Uids.Uid="Settings_Chat_Theme_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
-                            <ComboBox ItemsSource="{x:Bind ViewModel.Pipelines.ChatThemeOptions}"
-                                      SelectedIndex="{x:Bind ViewModel.Pipelines.ChatSelectedThemeIndex, Mode=TwoWay}"
-                                      HorizontalAlignment="Stretch"/>
-                        </StackPanel>
-
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>

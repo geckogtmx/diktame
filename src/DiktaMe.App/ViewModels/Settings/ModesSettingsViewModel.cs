@@ -101,16 +101,6 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
     private double _chatWindowOpacity = 0.95;
 
     [ObservableProperty]
-    private int _chatSelectedThemeIndex;
-
-    public string[] ChatThemeOptions => [
-        _loc.GetString("Settings_Modes_ChatTheme_System"),
-        _loc.GetString("Settings_Modes_ChatTheme_Light"),
-        _loc.GetString("Settings_Modes_ChatTheme_Dark"),
-    ];
-    private static readonly string[] ChatThemeCodes = ["System", "Light", "Dark"];
-
-    [ObservableProperty]
     private bool _chatForgetOnClose;
 
     [ObservableProperty]
@@ -411,8 +401,6 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                 SyncChatModelIndex();
                 ChatDefaultSystemPrompt = chatSettings.DefaultSystemPrompt ?? "";
                 ChatWebSearchEnabled = chatSettings.WebSearchEnabled;
-                ChatSelectedThemeIndex = Array.IndexOf(ChatThemeCodes, chatSettings.Theme);
-                if (ChatSelectedThemeIndex < 0) { ChatSelectedThemeIndex = 0; }
                 break;
         }
     }
@@ -493,9 +481,6 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                         DefaultModelId = string.IsNullOrWhiteSpace(ChatDefaultModelId) ? null : ChatDefaultModelId,
                         DefaultSystemPrompt = string.IsNullOrWhiteSpace(ChatDefaultSystemPrompt) ? null : ChatDefaultSystemPrompt,
                         WebSearchEnabled = ChatWebSearchEnabled,
-                        Theme = ChatSelectedThemeIndex >= 0 && ChatSelectedThemeIndex < ChatThemeCodes.Length
-                            ? ChatThemeCodes[ChatSelectedThemeIndex]
-                            : "System",
                     };
                     var newSettingsChat = _settings.Current with { Chat = newChatSettings };
                     await _settings.UpdateAsync(newSettingsChat).ConfigureAwait(false);
@@ -547,7 +532,6 @@ public sealed partial class ModesSettingsViewModel : ObservableObject
                 SyncChatModelIndex();
                 ChatDefaultSystemPrompt = chatDefaults.DefaultSystemPrompt ?? "";
                 ChatWebSearchEnabled = chatDefaults.WebSearchEnabled;
-                ChatSelectedThemeIndex = Array.IndexOf(ChatThemeCodes, chatDefaults.Theme);
                 CloudSystemPrompt = PromptDefaults.Chat;
                 LocalSystemPrompt = PromptDefaults.Chat;
                 break;

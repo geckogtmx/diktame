@@ -220,18 +220,20 @@ public sealed partial class LoadingViewModel : ObservableObject
             }
             Progress = 85;
 
-            // Step 5: Sync wallet balance (if signed in)
+            // Step 5: Refresh JWT + sync wallet balance + profile (if signed in)
             if (_accountService.HasValidToken)
             {
                 StatusText = _loc.GetString("Loading_Account");
-                await SyncWalletBalanceAsync();
-            }
 
-            // Start JWT refresh timer (if signed in)
-            if (_accountService.HasValidToken)
-            {
+                // Ensure JWT is fresh before any wallet/profile calls
                 var tokenRefresh = App.Current.Services.GetRequiredService<TokenRefreshService>();
+                await tokenRefresh.CheckAndRefreshAsync();
                 tokenRefresh.Start();
+
+                await SyncWalletBalanceAsync();
+
+                // Sync server-side profile (picks up avatar changes from website)
+                await _accountService.SyncProfileFromServerAsync();
             }
 
             // Wire post-pipeline balance updates from wallet proxy events

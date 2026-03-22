@@ -19,7 +19,7 @@
 
         <!-- Toolbar -->
         <Grid Grid.Row="0" Padding="12,8" ColumnSpacing="8"
-              Background="{ThemeResource LayerOnMicaBaseAltFillColorSecondaryBrush}">
+              Background="{StaticResource AppSurfaceBrush}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -43,6 +43,7 @@
                        Text="{x:Bind ViewModel.ConversationTitle, Mode=OneWay}"
                        VerticalAlignment="Center" HorizontalAlignment="Center"
                        FontSize="13" FontWeight="SemiBold"
+                       Foreground="{StaticResource AppTextBrush}"
                        TextTrimming="CharacterEllipsis" MaxWidth="200"/>
 
             <Button Grid.Column="2"
@@ -147,7 +148,7 @@
         <!-- System prompt (collapsible) -->
         <Grid Grid.Row="1" Padding="12,4"
               Visibility="{x:Bind ViewModel.IsSystemPromptVisible, Mode=OneWay}"
-              Background="{ThemeResource LayerOnMicaBaseAltFillColorTertiaryBrush}">
+              Background="{StaticResource AppSurface2Brush}">
             <TextBox Text="{x:Bind ViewModel.SystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      PlaceholderText="System prompt..."
                      TextWrapping="Wrap" AcceptsReturn="True"
@@ -173,19 +174,32 @@
                         <Border Padding="12,8" CornerRadius="12,12,4,12"
                                 HorizontalAlignment="Right"
                                 Visibility="{x:Bind UserVisibility}"
-                                Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                Background="{StaticResource AppAccentBrush}">
                             <TextBlock Text="{x:Bind Text, Mode=OneWay}" TextWrapping="Wrap"
-                                       FontSize="13" Foreground="White"/>
+                                       FontSize="13" Foreground="{StaticResource AppBackgroundBrush}"/>
                         </Border>
 
                         <!-- Assistant message: left-aligned, subtle background -->
                         <StackPanel HorizontalAlignment="Left"
                                     Visibility="{x:Bind AssistantVisibility}">
                             <Border Padding="12,8" CornerRadius="12,12,12,4"
-                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                                    Background="{StaticResource AppSurface2Brush}">
                                 <controls:MarkdownTextBlock Text="{x:Bind Text, Mode=OneWay}"
                                            FontSize="13"
+                                           Foreground="{StaticResource AppTextBrush}"
                                            Background="Transparent"
+                                           CodeBackground="{StaticResource AppSurfaceBrush}"
+                                           CodeForeground="{StaticResource AppTextBrush}"
+                                           CodeBorderBrush="{StaticResource AppBorderBrush}"
+                                           InlineCodeBackground="{StaticResource AppSurfaceBrush}"
+                                           InlineCodeForeground="{StaticResource AppAccentBrush}"
+                                           InlineCodeBorderBrush="{StaticResource AppBorderBrush}"
+                                           QuoteBackground="Transparent"
+                                           QuoteForeground="{StaticResource AppTextDimBrush}"
+                                           QuoteBorderBrush="{StaticResource AppAccentBrush}"
+                                           TableBorderBrush="{StaticResource AppBorderBrush}"
+                                           HorizontalRuleBrush="{StaticResource AppBorderBrush}"
+                                           LinkForeground="{StaticResource AppAccentBrush}"
                                            IsTextSelectionEnabled="True"
                                            LinkClicked="MarkdownText_LinkClicked"/>
                             </Border>
@@ -198,7 +212,7 @@
                                     <ToolTipService.ToolTip>
                                         <ToolTip l:Uids.Uid="QuickChat_Tooltip_Copy" />
                                     </ToolTipService.ToolTip>
-                                    <FontIcon Glyph="&#xE8C8;" FontSize="11" Opacity="0.5"/>
+                                    <FontIcon Glyph="&#xE8C8;" FontSize="11" Foreground="{StaticResource AppTextDimBrush}"/>
                                 </Button>
                             </StackPanel>
                         </StackPanel>
@@ -214,16 +228,17 @@
                     Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay}">
             <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
                           Width="16" Height="16"/>
-            <TextBlock Text="Thinking..." FontSize="12" Opacity="0.6"
+            <TextBlock Text="Thinking..." FontSize="12"
+                       Foreground="{StaticResource AppTextDimBrush}"
                        VerticalAlignment="Center"/>
         </StackPanel>
 
         <!-- Clipboard attachment badge -->
         <Border Grid.Row="3" Padding="12,6,12,0"
                 Visibility="{x:Bind ViewModel.HasClipboardAttachment, Mode=OneWay}"
-                Background="{ThemeResource LayerOnMicaBaseAltFillColorSecondaryBrush}">
+                Background="{StaticResource AppSurfaceBrush}">
             <Border Padding="8,4" CornerRadius="6"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    Background="{StaticResource AppSurface2Brush}"
                     HorizontalAlignment="Left" MaxWidth="400">
                 <Grid ColumnSpacing="6">
                     <Grid.ColumnDefinitions>
@@ -232,10 +247,10 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <FontIcon Glyph="&#xE8C8;" FontSize="12" VerticalAlignment="Center"
-                              Opacity="0.7"/>
+                              Foreground="{StaticResource AppTextDimBrush}"/>
                     <TextBlock Grid.Column="1"
                                Text="{x:Bind ViewModel.ClipboardPreview, Mode=OneWay}"
-                               FontSize="11" Opacity="0.7"
+                               FontSize="11" Foreground="{StaticResource AppTextDimBrush}"
                                TextTrimming="CharacterEllipsis"
                                VerticalAlignment="Center"/>
                     <Button Grid.Column="2"
@@ -253,7 +268,7 @@
 
         <!-- Input row -->
         <Grid Grid.Row="4" Padding="12,8,12,12" ColumnSpacing="8"
-              Background="{ThemeResource LayerOnMicaBaseAltFillColorSecondaryBrush}">
+              Background="{StaticResource AppSurfaceBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -291,7 +306,7 @@
 
             <TextBlock Grid.Row="1" Grid.Column="1"
                        Text="{x:Bind ViewModel.TokenCountText, Mode=OneWay}"
-                       FontSize="10" Opacity="0.4"
+                       FontSize="10" Foreground="{StaticResource AppTextDimBrush}"
                        HorizontalAlignment="Right" Margin="0,2,0,0"/>
         </Grid>
     </Grid>

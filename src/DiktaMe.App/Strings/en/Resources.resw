@@ -169,12 +169,6 @@
   <data name="Settings_Chat_WindowOpacity_Description.Text" xml:space="preserve">
     <value>Chat window transparency (1.0 = fully opaque)</value>
   </data>
-  <data name="Settings_Chat_Theme_Label.Text" xml:space="preserve">
-    <value>Theme</value>
-  </data>
-  <data name="Settings_Chat_Theme_Description.Text" xml:space="preserve">
-    <value>Chat overlay color scheme</value>
-  </data>
   <data name="Settings_Chat_ForgetOnClose_Label.Text" xml:space="preserve">
     <value>Forget on Close</value>
   </data>
@@ -609,15 +603,6 @@
   </data>
   <data name="Settings_Modes_AskOutput_ClipboardToast" xml:space="preserve">
     <value>Clipboard + Toast</value>
-  </data>
-  <data name="Settings_Modes_ChatTheme_System" xml:space="preserve">
-    <value>System</value>
-  </data>
-  <data name="Settings_Modes_ChatTheme_Light" xml:space="preserve">
-    <value>Light</value>
-  </data>
-  <data name="Settings_Modes_ChatTheme_Dark" xml:space="preserve">
-    <value>Dark</value>
   </data>
   <data name="Settings_Modes_ModelDefault_Cloud" xml:space="preserve">
     <value>(Default &#8212; use provider default)</value>

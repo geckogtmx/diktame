@@ -1,9 +1,11 @@
 
+using DiktaMe.App.Services;
 using DiktaMe.App.ViewModels;
 using DiktaMe.Core.Config;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Windows.Storage.Pickers;
 using Windows.System;
 using WinRT.Interop;
@@ -17,6 +19,35 @@ public sealed partial class QuickChatWindow : Window
     {
         ViewModel = App.Current.Services.GetRequiredService<QuickChatViewModel>();
         this.InitializeComponent();
+
+        // ── Theme integration ──
+        var themeService = App.Current.Services.GetRequiredService<ThemeService>();
+        var initPalette = ThemeService.GetPalette(themeService.CurrentTheme);
+
+        // Set RequestedTheme so {ThemeResource} keys resolve from the correct dictionary.
+        // This window is created after ApplyTheme() already ran, so we must set it explicitly.
+        if (Content is FrameworkElement rootElement)
+        {
+            rootElement.RequestedTheme = initPalette.IsDark ? ElementTheme.Dark : ElementTheme.Light;
+        }
+
+        // Inject WinUI control ThemeResource overrides (ComboBox, TextBox, Button, ListView)
+        // at the root content scope, bypassing the ThemeDictionary brush-identity mismatch bug.
+        InjectControlBrushes(initPalette);
+
+        // Live theme switching
+        themeService.ThemeChanged += (_, themeName) =>
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                var palette = ThemeService.GetPalette(themeName);
+                if (Content is FrameworkElement root)
+                {
+                    root.RequestedTheme = palette.IsDark ? ElementTheme.Dark : ElementTheme.Light;
+                }
+                InjectControlBrushes(palette);
+            });
+        };
 
         // Window sizing from settings
         var settings = App.Current.Services.GetRequiredService<SettingsManager>();
@@ -149,6 +180,19 @@ public sealed partial class QuickChatWindow : Window
         {
             string markdown = ViewModel.ExportAsMarkdown();
             await Windows.Storage.FileIO.WriteTextAsync(file, markdown);
+        }
+    }
+
+    /// <summary>
+    /// Injects WinUI control ThemeResource brushes into the root content's Resources,
+    /// so controls inside this window resolve themed colors from the palette.
+    /// </summary>
+    private void InjectControlBrushes(ThemePalette palette)
+    {
+        if (Content is not FrameworkElement root) return;
+        foreach (var (key, color) in ThemeService.GetControlBrushValues(palette))
+        {
+            root.Resources[key] = new SolidColorBrush(color);
         }
     }
 }

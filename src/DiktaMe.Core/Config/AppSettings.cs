@@ -327,9 +327,6 @@ public sealed record ChatSettings
     /// <summary>Enable markdown rendering in chat messages.</summary>
     public bool EnableMarkdown { get; init; } = true;
 
-    /// <summary>Theme for chat UI ("Light", "Dark", "System").</summary>
-    public string Theme { get; init; } = "System";
-
     /// <summary>
     /// Default LLM model ID for new conversations (e.g., "gpt-4o-mini", "gemini-2.5-flash").
     /// When null, uses the profile's default model.

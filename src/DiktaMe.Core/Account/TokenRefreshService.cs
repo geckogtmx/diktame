@@ -40,7 +40,7 @@ public sealed class TokenRefreshService : IDisposable
     public void Start()
     {
         _timer?.Dispose();
-        _timer = new Timer(_ => _ = CheckAndRefreshAsync(), null, CheckInterval, CheckInterval);
+        _timer = new Timer(_ => _ = CheckAndRefreshAsync(), null, TimeSpan.Zero, CheckInterval);
         Log.Information("TokenRefreshService: started (check every {Interval})", CheckInterval);
     }
 

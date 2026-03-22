@@ -76,11 +76,10 @@ public sealed class AccountService : IAccountService, IDisposable
         Log.Information("AccountService: auth callback — email={Email}, displayName={DisplayName}",
             email ?? "(none)", displayName ?? "(none)");
 
-        // Set AuthMode.Wallet — all signed-in users are wallet users.
+        // Update account info from JWT claims (preserve existing AuthMode).
         // Wallet balance sync happens separately via WalletManager.
         await _settings.UpdateAsync(_settings.Current with
         {
-            AuthMode = AuthMode.Wallet,
             Account = _settings.Current.Account with
             {
                 Email = email ?? string.Empty,
