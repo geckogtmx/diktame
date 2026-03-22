@@ -1026,4 +1026,53 @@ After this sprint, V2's feature set is **locked**:
 
 ---
 
+## 19. Research Notes
+
+### SurfSense (github.com/MODSetter/SurfSense) — 2026-03-22
+
+Open-source NotebookLM/Perplexity alternative. Python FastAPI + Next.js + LangGraph. Researched for patterns applicable to SPEC_014 (Memory) and SPEC_015 (Plugin Architecture).
+
+**Applicable patterns for Memory Plugin (Phases O–Q):**
+- **Hierarchical indexing**: Documents stored with both summary-level AND chunk-level embeddings. Could apply to dictation sessions (session summary + per-segment chunks).
+- **4-category memory**: `preference`, `fact`, `instruction`, `context` — stored with pgvector embeddings. Agent decides when to save/recall. Relevant for auto-extracting correction patterns, vocabulary, domain terms.
+- **Hybrid search with RRF**: Semantic vector search + full-text search merged via Reciprocal Rank Fusion (k=60). For local: SQLite FTS5 + VSS with simpler RRF.
+- **Content hashing for dedup**: `compute_content_hash()` + `compute_unique_identifier_hash()` prevent duplicate indexing. Good for incremental updates.
+- **Capped memory with LRU eviction**: 100 memories per user, oldest evicted. Simple but effective for bounded memory.
+
+**Applicable patterns for Plugin Architecture (Phase 0B):**
+- **Tool Registry**: `ToolDefinition` dataclass + factory + dependency injection + enable/disable + hidden/WIP. Maps well to C# `IPlugin` + DI.
+- **MCP (Model Context Protocol)**: Dynamically loads tools from external servers (stdio/HTTP). Forward-looking extensibility — could expose pipeline stages as MCP tools.
+- **Connector indexer pattern**: authenticate → fetch → convert to common format → index. Mirrors our connector output pattern.
+
+**What SurfSense does NOT have:**
+- No dedicated translation pipeline (language = LLM system prompt instruction only).
+- Server-centric architecture (PostgreSQL + Celery). Our local-first approach needs same abstractions backed by SQLite.
+
+**Notable shared tech:** Kokoro for TTS (9 lang codes), faster-whisper for STT with auto language detection.
+
+**Potential future idea: Help Agent via Chat window** — SurfSense's knowledge base + hybrid search pattern could power an in-app help agent. Index all app docs/knowledge into the Memory Plugin, then the Chat window queries it via semantic search to answer user questions about the app. See "Help Agent" section below.
+
+### Help Agent Concept (Future — post-SPEC_015)
+
+Use the Memory Plugin's vector store + hybrid search to power an in-app help agent accessible via the existing Chat window. Index all app documentation, feature descriptions, and usage guides into a dedicated "help" memory partition. When the user asks a question in Chat, the system:
+1. Detects help-intent (or user toggles "Help Mode")
+2. Searches the help knowledge base via semantic similarity
+3. Injects top-K relevant doc chunks into the LLM system prompt
+4. LLM responds with app-specific guidance grounded in actual docs
+
+This is a **RAG (Retrieval-Augmented Generation)** pattern applied to self-help. The knowledge base could be:
+- Bundled markdown files shipped with the app (features, settings explanations, troubleshooting)
+- Auto-indexed from the FeaturesModal content and settings descriptions
+- Versioned with the app (re-index on update)
+
+Advantages over a static FAQ: understands paraphrased questions, can combine knowledge from multiple docs, stays current with the app version.
+
+**Implementation sketch (depends on Memory Plugin Phase O being complete):**
+- New `HelpKnowledgeBase` class that indexes bundled `.md` files on first launch
+- `ChatPipeline` gains a `HelpMode` toggle: when active, prepends help context to system prompt
+- Small dedicated SQLite table (or partition in memory.db) for help vectors
+- No cloud dependency — runs entirely via local embeddings + local or cloud LLM
+
+---
+
 *End of SPEC_015*
