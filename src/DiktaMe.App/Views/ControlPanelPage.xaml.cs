@@ -80,12 +80,12 @@ public sealed partial class ControlPanelPage : Page
     private bool _barsGradientDirty = true;
 
     // ── Cylinder roll idle animation ─────────────────────────────────────
-    private enum CylinderRollPhase { Idle, RollingAtoB, HoldB, RollingBtoC, HoldC, RollingCtoA, HoldA }
+    private enum CylinderRollPhase { Idle, RollingAtoB, HoldB, RollingBtoC, HoldC, RollingCtoA, HoldA, RollingAtoC }
     private CylinderRollPhase _rollPhase = CylinderRollPhase.Idle;
     private int _rollTickCounter;
     private int _rollIdleWaitTicks;
     private const int RollTransitionTicks = 15;   // ~500ms at 33ms/tick
-    private const int RollHoldTicks = 90;          // ~3s
+    private int RollHoldTicks => Math.Max(1, (int)(ViewModel.IdleRollHoldSeconds * 1000.0 / 33.0));
     private const int RollStartDelayTicks = 60;    // ~2s after collapse before first roll
     private int _lastTimeUpdateSecond = -1;
     private Core.Weather.WeatherService? _weatherService;
@@ -685,6 +685,9 @@ public sealed partial class ControlPanelPage : Page
 
     // ── Cylinder roll idle animation ──────────────────────────────────────
 
+    private bool CanShowClock => ViewModel.IdleRollShowClock;
+    private bool CanShowWeather => ViewModel.IdleRollShowWeather && !string.IsNullOrEmpty(ViewModel.WeatherText);
+
     private void TickCylinderRoll()
     {
         // Precondition check — if any fail, snap to idle
@@ -693,7 +696,8 @@ public sealed partial class ControlPanelPage : Page
             && !_isBarExpanding
             && ViewModel.CurrentState == PipelineState.Idle
             && (_levelMonitor?.IsActive != true)
-            && ViewModel.IdleRollEnabled;
+            && ViewModel.IdleRollEnabled
+            && (CanShowClock || CanShowWeather); // need at least one layer to roll to
 
         if (!canRoll)
         {
@@ -717,7 +721,8 @@ public sealed partial class ControlPanelPage : Page
             // Trigger initial weather fetch
             TryRefreshWeather();
 
-            _rollPhase = CylinderRollPhase.RollingAtoB;
+            // Pick first target: clock if enabled, else weather
+            _rollPhase = CanShowClock ? CylinderRollPhase.RollingAtoB : CylinderRollPhase.RollingAtoC;
             _rollTickCounter = 0;
             return;
         }
@@ -742,35 +747,21 @@ public sealed partial class ControlPanelPage : Page
                 UpdateBrandingTime();
                 if (_rollTickCounter >= RollHoldTicks)
                 {
-                    // Skip weather layer if no data available
-                    if (string.IsNullOrEmpty(ViewModel.WeatherText))
-                    {
-                        _rollPhase = CylinderRollPhase.RollingCtoA;
-                        _rollTickCounter = 0;
-                        // Roll B→A directly (reuse C→A path: B departs, A arrives)
-                        // We need to roll from B back to A, so swap the semantics:
-                        // Actually, let's just go RollingBtoC which will try to show C,
-                        // but since C is empty, go straight to rolling back to A
-                        _rollPhase = CylinderRollPhase.RollingBtoC;
-                    }
-                    else
-                    {
-                        _rollPhase = CylinderRollPhase.RollingBtoC;
-                    }
+                    // After clock: show weather if available, else roll back to A
+                    _rollPhase = CylinderRollPhase.RollingBtoC;
                     _rollTickCounter = 0;
                 }
                 break;
 
             case CylinderRollPhase.RollingBtoC:
-                if (string.IsNullOrEmpty(ViewModel.WeatherText))
+                if (!CanShowWeather)
                 {
-                    // No weather data — roll B directly back to A
+                    // No weather — roll B directly back to A
                     AnimateRoll(LayerBTransform, StatusLayerB, LayerATransform, StatusLayerA,
                         (double)_rollTickCounter / RollTransitionTicks);
                     if (_rollTickCounter >= RollTransitionTicks)
                     {
                         FinishRollTransition(LayerBTransform, StatusLayerB, LayerATransform, StatusLayerA);
-                        // Also reset C to hidden state
                         ResetLayer(LayerCTransform, StatusLayerC);
                         _rollPhase = CylinderRollPhase.HoldA;
                         _rollTickCounter = 0;
@@ -789,6 +780,18 @@ public sealed partial class ControlPanelPage : Page
                 }
                 break;
 
+            case CylinderRollPhase.RollingAtoC:
+                AnimateRoll(LayerATransform, StatusLayerA, LayerCTransform, StatusLayerC,
+                    (double)_rollTickCounter / RollTransitionTicks);
+                if (_rollTickCounter >= RollTransitionTicks)
+                {
+                    FinishRollTransition(LayerATransform, StatusLayerA, LayerCTransform, StatusLayerC);
+                    ResetLayer(LayerBTransform, StatusLayerB);
+                    _rollPhase = CylinderRollPhase.HoldC;
+                    _rollTickCounter = 0;
+                }
+                break;
+
             case CylinderRollPhase.HoldC:
                 TryRefreshWeather();
                 if (_rollTickCounter >= RollHoldTicks)
@@ -804,7 +807,6 @@ public sealed partial class ControlPanelPage : Page
                 if (_rollTickCounter >= RollTransitionTicks)
                 {
                     FinishRollTransition(LayerCTransform, StatusLayerC, LayerATransform, StatusLayerA);
-                    // Reset B to hidden state
                     ResetLayer(LayerBTransform, StatusLayerB);
                     _rollPhase = CylinderRollPhase.HoldA;
                     _rollTickCounter = 0;
@@ -814,7 +816,8 @@ public sealed partial class ControlPanelPage : Page
             case CylinderRollPhase.HoldA:
                 if (_rollTickCounter >= RollHoldTicks)
                 {
-                    _rollPhase = CylinderRollPhase.RollingAtoB;
+                    // Pick next target: clock if enabled, else weather
+                    _rollPhase = CanShowClock ? CylinderRollPhase.RollingAtoB : CylinderRollPhase.RollingAtoC;
                     _rollTickCounter = 0;
                 }
                 break;
@@ -886,12 +889,14 @@ public sealed partial class ControlPanelPage : Page
 
     private void UpdateBrandingTime()
     {
-        int sec = DateTime.Now.Second;
-        if (sec != _lastTimeUpdateSecond)
+        string fmt = ViewModel.IdleRollClockFormat ?? "ddd M/d HH:mm";
+        bool hasSeconds = fmt.Contains('s', StringComparison.Ordinal);
+        int key = hasSeconds ? DateTime.Now.Second : DateTime.Now.Minute;
+        if (key != _lastTimeUpdateSecond)
         {
-            _lastTimeUpdateSecond = sec;
-            BrandingTimeText.Text = DateTime.Now.ToString("HH:mm:ss",
-                System.Globalization.CultureInfo.InvariantCulture);
+            _lastTimeUpdateSecond = key;
+            BrandingTimeText.Text = DateTime.Now.ToString(fmt,
+                System.Globalization.CultureInfo.CurrentCulture);
         }
     }
 

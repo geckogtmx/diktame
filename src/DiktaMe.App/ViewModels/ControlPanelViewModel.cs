@@ -332,6 +332,18 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private bool _idleRollEnabled = true;
 
     [ObservableProperty]
+    private bool _idleRollShowClock = true;
+
+    [ObservableProperty]
+    private bool _idleRollShowWeather = true;
+
+    [ObservableProperty]
+    private string _idleRollClockFormat = "ddd M/d HH:mm";
+
+    [ObservableProperty]
+    private int _idleRollHoldSeconds = 5;
+
+    [ObservableProperty]
     private string _weatherText = "";
 
     [ObservableProperty]
@@ -1032,6 +1044,10 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         AutoHideEnabled = settings.ControlPanel.AutoHideEnabled;
         AutoHideDelaySeconds = settings.ControlPanel.AutoHideDelaySeconds;
         IdleRollEnabled = settings.ControlPanel.IdleRollEnabled;
+        IdleRollShowClock = settings.ControlPanel.IdleRollShowClock;
+        IdleRollShowWeather = settings.ControlPanel.IdleRollShowWeather;
+        IdleRollClockFormat = settings.ControlPanel.IdleRollClockFormat;
+        IdleRollHoldSeconds = settings.ControlPanel.IdleRollHoldSeconds;
 
         // Hotkey display
         HotkeyDictate = settings.Hotkeys.Dictate;

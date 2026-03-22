@@ -495,8 +495,19 @@
   <data name="Settings_Waveform_Style_Bars.Content" xml:space="preserve"><value>Barras de Amplitud</value></data>
   <data name="Settings_Waveform_Style_Off.Content" xml:space="preserve"><value>Desactivado</value></data>
 
+  <data name="Settings_IdleRoller_Title.Text" xml:space="preserve"><value>Rodillo en reposo</value></data>
+  <data name="Settings_IdleRoller_Description.Text" xml:space="preserve"><value>Controla lo que muestra la barra minimizada en reposo</value></data>
   <data name="Settings_IdleRoll_Enable_Label.Text" xml:space="preserve"><value>Animación de marca en reposo</value></data>
   <data name="Settings_IdleRoll_Enable_Description.Text" xml:space="preserve"><value>Cuando está colapsado e inactivo, alterna entre estado, logo con reloj y clima</value></data>
+  <data name="Settings_IdleRoll_ShowClock_Label.Text" xml:space="preserve"><value>Mostrar reloj</value></data>
+  <data name="Settings_IdleRoll_ShowWeather_Label.Text" xml:space="preserve"><value>Mostrar clima</value></data>
+  <data name="Settings_IdleRoll_ClockFormat_Label.Text" xml:space="preserve"><value>Formato de reloj</value></data>
+  <data name="Settings_IdleRoll_ClockFmt_DayDateTime" xml:space="preserve"><value>Dom 22/3 16:34</value></data>
+  <data name="Settings_IdleRoll_ClockFmt_Time24" xml:space="preserve"><value>16:34:30</value></data>
+  <data name="Settings_IdleRoll_ClockFmt_Time12" xml:space="preserve"><value>4:34 PM</value></data>
+  <data name="Settings_IdleRoll_ClockFmt_DayTime" xml:space="preserve"><value>Dom 16:34</value></data>
+  <data name="Settings_IdleRoll_HoldDuration_Label.Text" xml:space="preserve"><value>Duración de pausa</value></data>
+  <data name="Settings_IdleRoll_HoldDuration_Description.Text" xml:space="preserve"><value>Segundos que cada capa permanece visible (5–20)</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > General > Auto-Collapse

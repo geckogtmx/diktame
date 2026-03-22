@@ -1313,11 +1313,44 @@
     <value>Off</value>
   </data>
 
+  <data name="Settings_IdleRoller_Title.Text" xml:space="preserve">
+    <value>Idle Roller</value>
+  </data>
+  <data name="Settings_IdleRoller_Description.Text" xml:space="preserve">
+    <value>Controls what the collapsed bar shows when idle</value>
+  </data>
   <data name="Settings_IdleRoll_Enable_Label.Text" xml:space="preserve">
     <value>Idle Branding Animation</value>
   </data>
   <data name="Settings_IdleRoll_Enable_Description.Text" xml:space="preserve">
     <value>When collapsed and idle, cycles between status, logo with clock, and weather</value>
+  </data>
+  <data name="Settings_IdleRoll_ShowClock_Label.Text" xml:space="preserve">
+    <value>Show Clock</value>
+  </data>
+  <data name="Settings_IdleRoll_ShowWeather_Label.Text" xml:space="preserve">
+    <value>Show Weather</value>
+  </data>
+  <data name="Settings_IdleRoll_ClockFormat_Label.Text" xml:space="preserve">
+    <value>Clock Format</value>
+  </data>
+  <data name="Settings_IdleRoll_ClockFmt_DayDateTime" xml:space="preserve">
+    <value>Sun 3/22 16:34</value>
+  </data>
+  <data name="Settings_IdleRoll_ClockFmt_Time24" xml:space="preserve">
+    <value>16:34:30</value>
+  </data>
+  <data name="Settings_IdleRoll_ClockFmt_Time12" xml:space="preserve">
+    <value>4:34 PM</value>
+  </data>
+  <data name="Settings_IdleRoll_ClockFmt_DayTime" xml:space="preserve">
+    <value>Sun 16:34</value>
+  </data>
+  <data name="Settings_IdleRoll_HoldDuration_Label.Text" xml:space="preserve">
+    <value>Hold Duration</value>
+  </data>
+  <data name="Settings_IdleRoll_HoldDuration_Description.Text" xml:space="preserve">
+    <value>Seconds each layer stays visible (5–20)</value>
   </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════

@@ -119,6 +119,27 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _idleRollEnabled = true;
 
+    [ObservableProperty]
+    private bool _idleRollShowClock = true;
+
+    [ObservableProperty]
+    private bool _idleRollShowWeather = true;
+
+    [ObservableProperty]
+    private int _idleRollClockFormatIndex; // 0="ddd M/d HH:mm", 1="HH:mm:ss", 2="hh:mm tt", 3="ddd HH:mm"
+
+    [ObservableProperty]
+    private double _idleRollHoldSeconds = 5; // Slider 5–20, step 1
+
+    public string[] ClockFormatValues { get; } = ["ddd M/d HH:mm", "HH:mm:ss", "hh:mm tt", "ddd HH:mm"];
+
+    public string[] ClockFormatLabels => [
+        _loc.GetString("Settings_IdleRoll_ClockFmt_DayDateTime"),
+        _loc.GetString("Settings_IdleRoll_ClockFmt_Time24"),
+        _loc.GetString("Settings_IdleRoll_ClockFmt_Time12"),
+        _loc.GetString("Settings_IdleRoll_ClockFmt_DayTime"),
+    ];
+
     // ── Language fields ──────────────────────────────────────────────────
 
     [ObservableProperty]
@@ -240,6 +261,10 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         WaveformStyleIndex = Array.IndexOf(WaveformStyleValues, cp.WaveformStyle) is var ws and >= 0 ? ws : 0; // default Wave
         BarPosition = cp.BarPosition ?? "TopRight";
         IdleRollEnabled = cp.IdleRollEnabled;
+        IdleRollShowClock = cp.IdleRollShowClock;
+        IdleRollShowWeather = cp.IdleRollShowWeather;
+        IdleRollClockFormatIndex = Array.IndexOf(ClockFormatValues, cp.IdleRollClockFormat) is var cf and >= 0 ? cf : 0;
+        IdleRollHoldSeconds = Math.Clamp(cp.IdleRollHoldSeconds, 5, 20);
 
         _isLoading = false;
     }
@@ -271,6 +296,10 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     partial void OnWaveformStyleIndexChanged(int value) => Save();
     partial void OnBarPositionChanged(string value) => Save();
     partial void OnIdleRollEnabledChanged(bool value) => Save();
+    partial void OnIdleRollShowClockChanged(bool value) => Save();
+    partial void OnIdleRollShowWeatherChanged(bool value) => Save();
+    partial void OnIdleRollClockFormatIndexChanged(int value) => Save();
+    partial void OnIdleRollHoldSecondsChanged(double value) => Save();
 
     partial void OnSelectedThemeIndexChanged(int value)
     {
@@ -318,6 +347,11 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
                 AutoHideDelaySeconds = EnforceHideDelay(),
                 BarPosition = BarPosition,
                 IdleRollEnabled = IdleRollEnabled,
+                IdleRollShowClock = IdleRollShowClock,
+                IdleRollShowWeather = IdleRollShowWeather,
+                IdleRollClockFormat = IdleRollClockFormatIndex >= 0 && IdleRollClockFormatIndex < ClockFormatValues.Length
+                    ? ClockFormatValues[IdleRollClockFormatIndex] : "ddd M/d HH:mm",
+                IdleRollHoldSeconds = (int)Math.Clamp(IdleRollHoldSeconds, 5, 20),
             }
         };
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>

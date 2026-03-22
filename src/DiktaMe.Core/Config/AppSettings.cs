@@ -218,6 +218,18 @@ public sealed record ControlPanelSettings
 
     /// <summary>Idle branding roll: cycles status → logo+clock → weather when collapsed and idle.</summary>
     public bool IdleRollEnabled { get; init; } = true;
+
+    /// <summary>Show clock layer in idle roll.</summary>
+    public bool IdleRollShowClock { get; init; } = true;
+
+    /// <summary>Show weather layer in idle roll.</summary>
+    public bool IdleRollShowWeather { get; init; } = true;
+
+    /// <summary>Clock format preset for idle roll: "ddd M/d HH:mm", "HH:mm:ss", "hh:mm tt", "ddd HH:mm".</summary>
+    public string IdleRollClockFormat { get; init; } = "ddd M/d HH:mm";
+
+    /// <summary>Seconds each layer is held during idle roll (5–20).</summary>
+    public int IdleRollHoldSeconds { get; init; } = 5;
 }
 
 /// <summary>
