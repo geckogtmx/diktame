@@ -76,7 +76,7 @@ export function CoreArsenalSection() {
             {/* Flavors: Ask, Notes, Vision teaser — compact row */}
             <div
               id="core-pair-2"
-              className={`grid grid-cols-1 sm:grid-cols-3 gap-4 transition-all duration-1000 ease-out will-change-transform ${
+              className={`grid grid-cols-2 sm:grid-cols-4 gap-4 transition-all duration-1000 ease-out will-change-transform ${
                 activePair >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
               }`}
             >
@@ -127,6 +127,24 @@ export function CoreArsenalSection() {
                     <span className="text-[9px] font-mono text-muted/60 border border-white/5 px-1.5 py-0.5 rounded">Soon</span>
                   </div>
                   <p className="text-xs text-muted/60 leading-relaxed">{t('visionTeaserDesc')}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 bg-white/5 border border-white/10 border-dashed rounded-xl p-4">
+                <div className="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center text-muted shrink-0 mt-0.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label="Connectors — coming soon">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-bold text-white/40">{t('connectorsTeaser')}</span>
+                    <span className="text-[9px] font-mono text-muted/60 border border-white/5 px-1.5 py-0.5 rounded">Soon</span>
+                  </div>
+                  <p className="text-xs text-muted/60 leading-relaxed">{t('connectorsTeaserDesc')}</p>
                 </div>
               </div>
             </div>

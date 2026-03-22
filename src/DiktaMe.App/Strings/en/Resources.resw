@@ -87,7 +87,7 @@
     <value>About</value>
   </data>
   <data name="Nav_Hardware.Content" xml:space="preserve">
-    <value>Audio &amp; Hotkeys</value>
+    <value>Audio &amp; Mic</value>
   </data>
   <data name="Nav_Workflows.Content" xml:space="preserve">
     <value>Pipelines</value>
@@ -100,7 +100,7 @@
        Settings > Hardware (SPEC_012)
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_Hardware_Title.Text" xml:space="preserve">
-    <value>Audio &amp; Hotkeys</value>
+    <value>Audio &amp; Mic</value>
   </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════

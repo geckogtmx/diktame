@@ -43,14 +43,14 @@
   <data name="Nav_Snippets.Content" xml:space="preserve"><value>Snippets</value></data>
   <data name="Nav_ControlPanel.Content" xml:space="preserve"><value>Panel de Control</value></data>
   <data name="Nav_About.Content" xml:space="preserve"><value>Acerca de</value></data>
-  <data name="Nav_Hardware.Content" xml:space="preserve"><value>Audio y Atajos</value></data>
+  <data name="Nav_Hardware.Content" xml:space="preserve"><value>Audio y Mic</value></data>
   <data name="Nav_Workflows.Content" xml:space="preserve"><value>Pipelines</value></data>
   <data name="Nav_Account.Content" xml:space="preserve"><value>Cuenta</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Hardware (SPEC_012)
        ══════════════════════════════════════════════════════════════════════ -->
-  <data name="Settings_Hardware_Title.Text" xml:space="preserve"><value>Audio y Atajos</value></data>
+  <data name="Settings_Hardware_Title.Text" xml:space="preserve"><value>Audio y Mic</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Workflows (SPEC_012)

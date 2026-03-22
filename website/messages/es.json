@@ -3,7 +3,7 @@
     "title": "dIKta.me - Dictado por Voz con IA Privada para Windows",
     "description": "Dictado por voz con IA local y de código abierto para Windows. Reconocimiento de voz con Whisper y LLMs locales, sin nube, sin suscripciones, sin comprometer tu privacidad.",
     "featuresTitle": "Funciones - dIKta.me",
-    "featuresDescription": "Explora más de 45 funciones incluyendo STT local con Whisper, edición con IA, snippets de voz, traducción en tiempo real y texto a voz — todo ejecutándose de forma privada en tu PC con Windows.",
+    "featuresDescription": "Explora más de 48 funciones incluyendo STT local con Whisper, edición con IA, snippets de voz, traducción en tiempo real y texto a voz — todo ejecutándose de forma privada en tu PC con Windows.",
     "aboutTitle": "Acerca de - dIKta.me",
     "aboutDescription": "dIKta.me es un motor de dictado por voz local y privado para Windows. Construido por un desarrollador indie en solitario, impulsado por IA en tu dispositivo.",
     "pricingTitle": "Precios - dIKta.me",
@@ -75,7 +75,9 @@
     "flavor02Hotkey": "Ctrl+Alt+N",
     "flavor02Desc": "Captura ideas con marcas de tiempo y metatags automáticos. Formato secuencial listo para procesamiento por lotes.",
     "visionTeaser": "Visión",
-    "visionTeaserDesc": "Contexto de pantalla como entrada — próximamente."
+    "visionTeaserDesc": "Contexto de pantalla como entrada — próximamente.",
+    "connectorsTeaser": "Conectores",
+    "connectorsTeaserDesc": "Envía resultados a Notion, Slack, webhooks y más."
   },
   "VersusSection": {
     "title": "dIKta.me Versus La Nube.",
@@ -188,7 +190,9 @@
     "g3f7Desc": "Respuestas de IA y traducciones leídas en voz alta vía notificaciones del sistema. Escucha sin mirar.",
     "g3f8Label": "Transparencia",
     "g3f8Title": "Código Disponible",
-    "g3f8Desc": "Inspecciona cada línea. Sin cajas negras, sin telemetría, sin llamadas de red ocultas. Construido en abierto."
+    "g3f8Desc": "Inspecciona cada línea. Sin cajas negras, sin telemetría, sin llamadas de red ocultas. Construido en abierto.",
+    "seeAllFeatures": "Ver las 48+ Funciones",
+    "seeAllFeaturesArrow": "→"
   },
   "BilingualSection": {
     "badge": "NUEVA FUNCIÓN",
@@ -358,7 +362,7 @@
     "powerF5Prefix": "+Key",
     "powerF5End": " (Auto-Enter/Tab)",
     "powerF6": "Licencia Source-Available",
-    "powerFeaturesLink": "+ Ver las 45+ funciones",
+    "powerFeaturesLink": "+ Ver las 48+ funciones",
     "powerCta": "Obtener Power",
     "powerNote": "Pago único. Para siempre.",
     "buildTitle": "Constrúyelo Tú Mismo",
@@ -554,7 +558,7 @@
     "supportKoFi": "Apoyar en Ko-Fi"
   },
   "FeaturesPage": {
-    "heroTitle": "45+ Funciones Poderosas",
+    "heroTitle": "48+ Funciones Poderosas",
     "heroSubtitle": "Todo lo que necesitas para revolucionar tu flujo de trabajo. Rápido, inteligente y completamente privado.",
     "catCoreModes": "Modos Principales",
     "catIntelligence": "Inteligencia",

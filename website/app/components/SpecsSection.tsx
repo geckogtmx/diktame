@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { useSpecsScroll } from '@/lib/animations/useSpecsScroll';
 import { useTranslations } from 'next-intl';
+import { FeaturesModal } from './FeaturesModal';
 
 export function SpecsSection() {
   const { activeGroup } = useSpecsScroll();
   const t = useTranslations('SpecsSection');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div id="specs-track" className="relative h-[300vh]">
@@ -244,8 +247,19 @@ export function SpecsSection() {
               }`}
             ></div>
           </div>
+
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="text-sm text-primary/70 hover:text-primary transition-colors cursor-pointer font-mono tracking-wide flex items-center gap-2"
+            >
+              {t('seeAllFeatures')} {t('seeAllFeaturesArrow')}
+            </button>
+          </div>
         </div>
       </div>
+
+      <FeaturesModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }

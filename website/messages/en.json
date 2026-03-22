@@ -3,7 +3,7 @@
     "title": "dIKta.me - Private AI Voice Dictation for Windows",
     "description": "Open-source local AI voice dictation for Windows. Whisper-powered speech-to-text with local LLMs, no cloud, no subscriptions, no compromise on privacy.",
     "featuresTitle": "Features - dIKta.me",
-    "featuresDescription": "Explore 45+ features including local Whisper STT, AI-powered editing, voice snippets, real-time translation, and text-to-speech — all running privately on your Windows PC.",
+    "featuresDescription": "Explore 48+ features including local Whisper STT, AI-powered editing, voice snippets, real-time translation, and text-to-speech — all running privately on your Windows PC.",
     "aboutTitle": "About - dIKta.me",
     "aboutDescription": "dIKta.me is a local-first, privacy-first voice dictation engine for Windows. Built by a solo indie developer, powered by on-device AI.",
     "pricingTitle": "Pricing - dIKta.me",
@@ -75,7 +75,9 @@
     "flavor02Hotkey": "Ctrl+Alt+N",
     "flavor02Desc": "Capture thoughts with automatic timestamps and metatags. Sequential formatting ready for batch processing.",
     "visionTeaser": "Vision",
-    "visionTeaserDesc": "Screen context as input — coming soon."
+    "visionTeaserDesc": "Screen context as input — coming soon.",
+    "connectorsTeaser": "Connectors",
+    "connectorsTeaserDesc": "Route output to Notion, Slack, webhooks, and more."
   },
   "VersusSection": {
     "title": "dIKta.me Versus The Cloud.",
@@ -188,7 +190,9 @@
     "g3f7Desc": "AI responses and translations read aloud via system notifications. Hear answers without looking.",
     "g3f8Label": "Transparency",
     "g3f8Title": "Source Available",
-    "g3f8Desc": "Inspect every line. No black boxes, no telemetry, no hidden network calls. Built in the open."
+    "g3f8Desc": "Inspect every line. No black boxes, no telemetry, no hidden network calls. Built in the open.",
+    "seeAllFeatures": "See All 48+ Features",
+    "seeAllFeaturesArrow": "→"
   },
   "BilingualSection": {
     "badge": "NEW FEATURE",
@@ -358,7 +362,7 @@
     "powerF5Prefix": "+Key",
     "powerF5End": " (Auto-Enter/Tab)",
     "powerF6": "Source-Available License",
-    "powerFeaturesLink": "+ See all 45+ features",
+    "powerFeaturesLink": "+ See all 48+ features",
     "powerCta": "Get Power",
     "powerNote": "One-time payment. Forever.",
     "buildTitle": "Build It Yourself",
@@ -554,7 +558,7 @@
     "supportKoFi": "Support on Ko-Fi"
   },
   "FeaturesPage": {
-    "heroTitle": "45+ Powerful Features",
+    "heroTitle": "48+ Powerful Features",
     "heroSubtitle": "Everything you need to revolutionize your workflow. Fast, smart, and completely private.",
     "catCoreModes": "Core Modes",
     "catIntelligence": "Intelligence",
