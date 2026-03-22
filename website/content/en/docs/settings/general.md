@@ -11,7 +11,6 @@ The **General** tab in the dIKta.me Control Panel settings houses the core appli
 
 These options customize *how* the text lands in your target application.
 
-*   **Add space after injection**: Automatically appends a single trailing whitespace after the dictated text is pasted. This allows for fluid, uninterrupted dictation across multiple sentences.
 *   **Append key after injection**: Allows you to simulate a keyboard press immediately after the text lands.
     *   `None`: Dictation stops precisely at the end of the text.
     *   `Enter`: Automatically submits the text (perfect for chat applications like Slack, Teams, or Discord).

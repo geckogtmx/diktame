@@ -15,6 +15,7 @@ Depending on how you intend to use the app, dIKta.me allows you to declare how y
 ## Profile Management
 
 *   **Log In**: Authenticate your dIKta.me account seamlessly via your web browser to access your Wallet balance across multiple PCs securely.
+*   **Avatar Customization**: Personalize your dIKta.me HUD by uploading a custom profile picture. The settings interface includes a built-in circular cropping tool to ensure your avatar fits perfectly on your dashboard and user pane.
 *   **Balance Top-Up**: Purchase additional compute credits that are credited to your active session instantly without interrupting your workflow.
 *   **Sign Out**: Safely purge your active authorization tokens and revert to an Unauthenticated state. 
 

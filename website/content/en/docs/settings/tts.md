@@ -21,6 +21,11 @@ dIKta.me offers multiple TTS providers ranging from local offline inference to u
 * **Privacy:** 100% Offline
 * The Kokoro provider uses a highly optimized ONNX model downloaded directly to your machine. It requires an initial download (88 MB for the standard variant) and then runs on your CPU without ever sending data to the cloud.
 
+### Gemini TTS (Cloud)
+* **Status:** Cloud Alternative
+* **Cost:** Requires Gemini API Key
+* Leverage Google's ultra-realistic voices for your Text-to-Speech responses. If you use Gemini for dictation, you can recycle your key to power highly natural spoken feedback.
+
 ### Deepgram Aura-2 (Cloud)
 * **Status:** Cloud Alternative
 * **Cost:** Requires Deepgram API Key (billed by usage)

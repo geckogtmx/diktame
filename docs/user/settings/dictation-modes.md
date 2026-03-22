@@ -31,5 +31,8 @@ Because these are lightweight models designed to run quickly on a consumer GPU, 
 *Example Local Prompt:*
 > "Format strictly as a technical C# comment. Do not output conversational filler. Ensure spelling accuracy."
 
+## Advanced Preset Options
+*   **Per-Preset Trailing Space**: You can configure whether a white space is automatically added after injection on a *per-preset* basis. This granular control allows your "Standard Dictation" preset to add spaces for fluid typing, while your "Terminal Commands" or "Code Snippets" presets can omit the space to prevent formatting errors.
+
 ## Why separate them?
 By having two distinct prompts for every preset, dIKta.me ensures that no matter whether you are running in Cloud Mode (for complex formatting) or Local Mode (for absolute privacy without the internet), your preset will seamlessly execute without missing a beat. You simply flip the "Cloud/Local" switch on the Control Panel and the AI knows exactly which of the two instructions to use silently in the background.
