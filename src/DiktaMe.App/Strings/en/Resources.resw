@@ -209,6 +209,12 @@
   <data name="Settings_General_Sub_Application" xml:space="preserve">
     <value>Application</value>
   </data>
+  <data name="Settings_General_Sub_ControlPanel" xml:space="preserve">
+    <value>Control Panel</value>
+  </data>
+  <data name="Settings_General_Sub_Hotkeys" xml:space="preserve">
+    <value>Keyboard Shortcuts</value>
+  </data>
   <data name="Settings_General_Sub_Language" xml:space="preserve">
     <value>Language</value>
   </data>
@@ -1221,7 +1227,7 @@
     <value>Always On Top</value>
   </data>
   <data name="Settings_ControlPanel_AlwaysOnTop_Description.Text" xml:space="preserve">
-    <value>Keep the control panel above other windows</value>
+    <value>Keeps the control panel window above all other windows at all times, regardless of which rows are visible</value>
   </data>
   <data name="Settings_ControlPanel_ExpandDirection_Label.Text" xml:space="preserve">
     <value>Expand Direction</value>

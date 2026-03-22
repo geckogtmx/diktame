@@ -5,13 +5,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace DiktaMe.App.ViewModels.Settings;
 
 /// <summary>
-/// Host ViewModel for the Audio &amp; Hotkeys settings page.
-/// Aggregates AudioSettingsViewModel (microphone, ducking, sounds) and HotkeysSettingsViewModel (keyboard shortcuts).
+/// Host ViewModel for the Hardware settings page.
+/// Aggregates AudioSettingsViewModel (microphone, ducking, sounds).
 /// </summary>
 public sealed partial class HardwareSettingsViewModel : ObservableObject
 {
     public AudioSettingsViewModel Audio { get; }
-    public HotkeysSettingsViewModel Hotkeys { get; }
 
     public ObservableCollection<ModeListItem> SubItems { get; } = [];
 
@@ -27,15 +26,9 @@ public sealed partial class HardwareSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isSoundFeedbackSelected;
 
-    [ObservableProperty]
-    private bool _isHotkeysSelected;
-
-    public HardwareSettingsViewModel(
-        AudioSettingsViewModel audio,
-        HotkeysSettingsViewModel hotkeys)
+    public HardwareSettingsViewModel(AudioSettingsViewModel audio)
     {
         Audio = audio;
-        Hotkeys = hotkeys;
 
         LoadSubItems();
 
@@ -62,13 +55,6 @@ public sealed partial class HardwareSettingsViewModel : ObservableObject
             IsDictationMode = false,
             IsSeparator = false,
         });
-        SubItems.Add(new ModeListItem
-        {
-            Id = "hotkeys",
-            Title = "Keyboard Shortcuts",
-            IsDictationMode = false,
-            IsSeparator = false,
-        });
     }
 
     partial void OnSelectedIndexChanged(int value)
@@ -79,13 +65,11 @@ public sealed partial class HardwareSettingsViewModel : ObservableObject
         {
             IsMicrophoneSelected = false;
             IsSoundFeedbackSelected = false;
-            IsHotkeysSelected = false;
             return;
         }
 
         string id = SubItems[value].Id;
         IsMicrophoneSelected = id == "microphone";
         IsSoundFeedbackSelected = id == "soundfeedback";
-        IsHotkeysSelected = id == "hotkeys";
     }
 }

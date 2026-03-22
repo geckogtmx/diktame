@@ -307,7 +307,7 @@ public sealed partial class TtsSettingsViewModel : ObservableObject
         if (!_isLoading)
         {
             RefreshVoiceList();
-            SelectedVoiceIndex = AvailableVoices.Count > 0 ? 0 : -1;
+            SelectVoice(_settings.Current.Tts.VoiceId);
         }
 
         OnPropertyChanged(nameof(IsKokoroSelected));

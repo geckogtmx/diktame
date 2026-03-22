@@ -89,7 +89,7 @@ public sealed class ThemeService
             Accent: ColorFrom(0x0E, 0xA5, 0xE9),
             Text: ColorFrom(0x1A, 0x1A, 0x2E),
             TextDim: ColorFrom(0x6B, 0x72, 0x80),
-            PerfGreen: ColorFrom(0x05, 0x96, 0x69),
+            PerfGreen: ColorFrom(0x04, 0x78, 0x57),
             IsDark: false),
     };
 

@@ -18,9 +18,9 @@ export function PricingSection() {
             {t('subtitle')}
           </p>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto w-full mb-12">
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto w-full mb-12">
             {/* Free Trial Version ($0) */}
-            <div className="card !overflow-visible p-8 border-2 border-white/10 relative text-left flex flex-col  delay-200">
+            <div className="card !overflow-visible p-5 md:p-8 border-2 border-white/10 relative text-left flex flex-col  delay-200">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-background border border-white/20 px-4 py-1 rounded-full text-xs font-medium uppercase tracking-widest text-white">
                 {t('freeTrialBadge')}
               </div>
@@ -56,7 +56,7 @@ export function PricingSection() {
               <p className="text-xs text-muted mt-4 text-center">{t('freeTrialNote')}</p>
             </div>
             {/* Power Version ($25) */}
-            <div className="card !overflow-visible p-8 border-2 border-primary relative text-left flex flex-col  delay-300 shadow-glow">
+            <div className="card !overflow-visible p-5 md:p-8 border-2 border-primary relative text-left flex flex-col  delay-300 shadow-glow">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-cta text-white border border-cta px-4 py-1 rounded-full text-xs font-medium uppercase tracking-widest animate-pulse">
                 {t('earlyBirdBadge')}
               </div>
@@ -103,7 +103,7 @@ export function PricingSection() {
           </div>
 
           {/* Bottom Banner: Build It Yourself ($0) */}
-          <div className="w-full max-w-4xl mx-auto p-8 md:p-12 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors flex flex-col md:flex-row items-center gap-8 text-left  delay-300">
+          <div className="w-full max-w-4xl mx-auto p-5 md:p-12 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors flex flex-col md:flex-row items-center gap-6 md:gap-8 text-left  delay-300">
             <div className="flex-1">
               <h3 className="text-2xl font-bold mb-2 text-white">{t('buildTitle')}</h3>
               <div className="text-muted mb-4 text-sm">
@@ -119,7 +119,7 @@ export function PricingSection() {
               </ul>
             </div>
 
-            <div className="text-center md:text-right flex flex-col items-center md:items-end min-w-[200px]">
+            <div className="text-center md:text-right flex flex-col items-center md:items-end md:min-w-[200px]">
 
               <Link
                 href="/waitlist"

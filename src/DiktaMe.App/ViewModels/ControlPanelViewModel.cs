@@ -47,12 +47,13 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private readonly AudioRecorder _recorder;
     private readonly MetricsCollector _metrics;
     private readonly LocalizationService _loc;
+    private readonly ThemeService _themeService;
     private readonly DispatcherQueue _dispatcher;
 
-    // Badge indicator brushes (local/cloud/off)
-    private static readonly SolidColorBrush BadgeLocalBrush = new(ColorHelper.FromArgb(255, 122, 255, 158)); // #7AFF9E green
-    private static readonly SolidColorBrush BadgeCloudBrush = new(ColorHelper.FromArgb(255, 78, 168, 222));  // #4EA8DE blue
-    private static readonly SolidColorBrush BadgeOffBrush = new(ColorHelper.FromArgb(255, 255, 68, 68));   // #FF4444 red
+    // Badge indicator brushes (local/cloud/off) — theme-aware, updated on theme change
+    private readonly SolidColorBrush BadgeLocalBrush;
+    private readonly SolidColorBrush BadgeCloudBrush;
+    private readonly SolidColorBrush BadgeOffBrush;
 
     // Active-state colors (V1 palette)
     private const string ActiveBgHex = "#00607a";   // --dark-teal-3
@@ -150,13 +151,13 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private string _ttsProviderName = "--";
 
     [ObservableProperty]
-    private SolidColorBrush _sttBadgeBrush = BadgeCloudBrush;
+    private SolidColorBrush _sttBadgeBrush = null!; // set in constructor
 
     [ObservableProperty]
-    private SolidColorBrush _llmBadgeBrush = BadgeCloudBrush;
+    private SolidColorBrush _llmBadgeBrush = null!; // set in constructor
 
     [ObservableProperty]
-    private SolidColorBrush _ttsBadgeBrush = BadgeOffBrush;
+    private SolidColorBrush _ttsBadgeBrush = null!; // set in constructor
 
     private bool _suppressSave;
 
@@ -361,15 +362,34 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         DictationModeManager dictationModes,
         AudioRecorder recorder,
         MetricsCollector metrics,
-        LocalizationService loc)
+        LocalizationService loc,
+        ThemeService themeService)
     {
         _settings = settings;
         _dictationModes = dictationModes;
         _recorder = recorder;
         _metrics = metrics;
         _loc = loc;
+        _themeService = themeService;
         _dispatcher = DispatcherQueue.GetForCurrentThread();
         _statusText = _loc.GetString("ControlPanel_State_Ready");
+
+        // Initialize badge brushes based on current theme
+        bool isDark = ThemeService.GetPalette(_themeService.CurrentTheme).IsDark;
+        BadgeLocalBrush = new SolidColorBrush(isDark
+            ? ColorHelper.FromArgb(255, 122, 255, 158)   // #7AFF9E bright green (dark themes)
+            : ColorHelper.FromArgb(255, 4, 120, 87));    // #047857 dark emerald (Frost)
+        BadgeCloudBrush = new SolidColorBrush(isDark
+            ? ColorHelper.FromArgb(255, 78, 168, 222)    // #4EA8DE bright blue (dark themes)
+            : ColorHelper.FromArgb(255, 29, 78, 216));   // #1D4ED8 dark blue (Frost)
+        BadgeOffBrush = new SolidColorBrush(isDark
+            ? ColorHelper.FromArgb(255, 255, 68, 68)     // #FF4444 bright red (dark themes)
+            : ColorHelper.FromArgb(255, 185, 28, 28));   // #B91C1C dark red (Frost)
+
+        // Initialize observable badge brushes with defaults (updated by LoadFromSettings → UpdateBadgeBrushes)
+        _sttBadgeBrush = BadgeCloudBrush;
+        _llmBadgeBrush = BadgeCloudBrush;
+        _ttsBadgeBrush = BadgeOffBrush;
 
         // Subscribe to recorder events
         _recorder.RecordingStarted += OnRecordingStarted;
@@ -377,6 +397,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
         // Subscribe to settings changes
         _settings.SettingsChanged += OnSettingsChanged;
+
+        // Subscribe to theme changes for badge brush updates
+        _themeService.ThemeChanged += OnThemeChanged;
 
         // Load initial state from settings (suppress saves to prevent premature settings.json creation)
         _suppressSave = true;
@@ -915,6 +938,32 @@ public sealed partial class ControlPanelViewModel : ObservableObject
                 CurrentState = PipelineState.Idle;
                 StatusText = _loc.GetString("ControlPanel_State_Ready");
             }
+        });
+    }
+
+    private void OnThemeChanged(object? sender, string themeName)
+    {
+        _dispatcher.TryEnqueue(() =>
+        {
+            bool isDark = ThemeService.GetPalette(themeName).IsDark;
+            BadgeLocalBrush.Color = isDark
+                ? ColorHelper.FromArgb(255, 122, 255, 158)   // #7AFF9E
+                : ColorHelper.FromArgb(255, 4, 120, 87);     // #047857
+            BadgeCloudBrush.Color = isDark
+                ? ColorHelper.FromArgb(255, 78, 168, 222)    // #4EA8DE
+                : ColorHelper.FromArgb(255, 29, 78, 216);    // #1D4ED8
+            BadgeOffBrush.Color = isDark
+                ? ColorHelper.FromArgb(255, 255, 68, 68)     // #FF4444
+                : ColorHelper.FromArgb(255, 185, 28, 28);    // #B91C1C
+
+            // Force re-evaluation of all badge brush properties
+            UpdateBadgeBrushes();
+            OnPropertyChanged(nameof(SttStateBrush));
+            OnPropertyChanged(nameof(LlmStateBrush));
+            OnPropertyChanged(nameof(TtsStateBrush));
+            OnPropertyChanged(nameof(SoundStateBrush));
+            OnPropertyChanged(nameof(KeyStateBrush));
+            OnPropertyChanged(nameof(RefineStateBrush));
         });
     }
 

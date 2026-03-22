@@ -8,7 +8,7 @@ export function BilingualSection() {
   const t = useTranslations('BilingualSection');
 
   return (
-    <div id="biling-track" className="relative h-[200vh]">
+    <div id="biling-track" className="relative h-[150vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-30" aria-hidden="true"></div>
         <div className="section-container grid md:grid-cols-2 gap-12 items-center relative z-10">

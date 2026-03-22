@@ -8,12 +8,12 @@ export function AskModeSection() {
   const { inputWidth, outputWidth, showInputCursor, showOutputCursor } = useAskModeScroll();
 
   return (
-    <div id="ask-track" className="relative h-[200vh]">
+    <div id="ask-track" className="relative h-[150vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-l from-primary/5 to-transparent opacity-30" aria-hidden="true"></div>
-        <div className="section-container grid md:grid-cols-2 gap-12 items-center relative z-10">
+        <div className="section-container grid md:grid-cols-2 gap-6 md:gap-12 items-center relative z-10">
           {/* Card (Left) */}
-          <div className="card border-primary/20 bg-black/50 p-8 font-mono text-sm leading-loose shadow-2xl order-last md:order-first relative overflow-hidden">
+          <div className="card border-primary/20 bg-black/50 p-5 md:p-8 font-mono text-sm leading-loose shadow-2xl order-last md:order-first relative overflow-hidden">
             <div className="absolute -top-3 -right-3 w-24 h-24 bg-primary/20 blur-2xl rounded-full" aria-hidden="true"></div>
             <div className="text-muted mb-4 border-b border-white/10 pb-2 flex justify-between">
               <span>{t('inputLabel')}</span>
@@ -48,7 +48,7 @@ export function AskModeSection() {
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white text-balance">
               {t('title')}
             </h2>
-            <p className="text-xl text-muted mb-8">
+            <p className="text-lg md:text-xl text-muted mb-6 md:mb-8">
               {t('subtitle')}
             </p>
             <ul className="space-y-4 text-muted">

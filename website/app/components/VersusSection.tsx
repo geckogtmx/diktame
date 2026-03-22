@@ -8,7 +8,7 @@ export function VersusSection() {
   const t = useTranslations('VersusSection');
 
   return (
-    <div id="versus-track" className="relative h-[250vh]">
+    <div id="versus-track" className="relative h-[180vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         <div className="section-container relative z-10 w-full max-w-5xl">
           <div className="text-center mb-12">
@@ -21,79 +21,79 @@ export function VersusSection() {
               <caption className="sr-only">{t('tableCaption')}</caption>
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
-                  <th className="py-4 px-6 text-sm font-mono uppercase tracking-widest text-muted">{t('headerFeature')}</th>
-                  <th className="py-4 px-6 text-sm font-mono uppercase tracking-widest text-muted">{t('headerOthers')}</th>
-                  <th className="py-4 px-6 text-sm font-mono uppercase tracking-widest text-primary">{t('headerDiktaMe')}</th>
+                  <th className="py-2 px-2 md:py-4 md:px-6 text-[10px] md:text-sm font-mono uppercase tracking-widest text-muted">{t('headerFeature')}</th>
+                  <th className="py-2 px-2 md:py-4 md:px-6 text-[10px] md:text-sm font-mono uppercase tracking-widest text-muted">{t('headerOthers')}</th>
+                  <th className="py-2 px-2 md:py-4 md:px-6 text-[10px] md:text-sm font-mono uppercase tracking-widest text-primary">{t('headerDiktaMe')}</th>
                 </tr>
               </thead>
-              <tbody className="text-sm md:text-base">
+              <tbody className="text-xs md:text-base">
                 <tr
                   id="vs-row-1"
                   className={`border-b border-white/5 transition-all duration-500 ${visibleRows >= 1 ? 'opacity-100 bg-white/5' : 'opacity-20'
                     }`}
                 >
-                  <td className="py-4 px-6 text-white font-medium">{t('row1Feature')}</td>
-                  <td className="py-4 px-6 text-muted">{t('row1Others')}</td>
-                  <td className="py-4 px-6 text-primary font-bold">{t('row1DiktaMe')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-white font-medium">{t('row1Feature')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-muted">{t('row1Others')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-primary font-bold">{t('row1DiktaMe')}</td>
                 </tr>
                 <tr
                   id="vs-row-2"
                   className={`border-b border-white/5 transition-all duration-500 ${visibleRows >= 2 ? 'opacity-100 bg-white/5' : 'opacity-20'
                     }`}
                 >
-                  <td className="py-4 px-6 text-white font-medium">{t('row2Feature')}</td>
-                  <td className="py-4 px-6 text-muted">{t('row2Others')}</td>
-                  <td className="py-4 px-6 text-primary font-bold">{t('row2DiktaMe')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-white font-medium">{t('row2Feature')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-muted">{t('row2Others')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-primary font-bold">{t('row2DiktaMe')}</td>
                 </tr>
                 <tr
                   id="vs-row-3"
                   className={`border-b border-white/5 transition-all duration-500 ${visibleRows >= 3 ? 'opacity-100 bg-white/5' : 'opacity-20'
                     }`}
                 >
-                  <td className="py-4 px-6 text-white font-medium">{t('row3Feature')}</td>
-                  <td className="py-4 px-6 text-muted">{t('row3Others')}</td>
-                  <td className="py-4 px-6 text-primary font-bold">{t('row3DiktaMe')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-white font-medium">{t('row3Feature')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-muted">{t('row3Others')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-primary font-bold">{t('row3DiktaMe')}</td>
                 </tr>
                 <tr
                   id="vs-row-4"
                   className={`border-b border-white/5 transition-all duration-500 ${visibleRows >= 4 ? 'opacity-100 bg-white/5' : 'opacity-20'
                     }`}
                 >
-                  <td className="py-4 px-6 text-white font-medium">{t('row4Feature')}</td>
-                  <td className="py-4 px-6 text-muted">{t('row4Others')}</td>
-                  <td className="py-4 px-6 text-primary font-bold">{t('row4DiktaMe')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-white font-medium">{t('row4Feature')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-muted">{t('row4Others')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-primary font-bold">{t('row4DiktaMe')}</td>
                 </tr>
                 <tr
                   id="vs-row-5"
                   className={`border-b border-white/5 transition-all duration-500 ${visibleRows >= 5 ? 'opacity-100 bg-white/5' : 'opacity-20'
                     }`}
                 >
-                  <td className="py-4 px-6 text-white font-medium">{t('row5Feature')}</td>
-                  <td className="py-4 px-6 text-muted">{t('row5Others')}</td>
-                  <td className="py-4 px-6 text-primary font-bold">{t('row5DiktaMe')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-white font-medium">{t('row5Feature')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-muted">{t('row5Others')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-primary font-bold">{t('row5DiktaMe')}</td>
                 </tr>
                 <tr
                   id="vs-row-6"
                   className={`border-b border-white/5 transition-all duration-500 ${visibleRows >= 6 ? 'opacity-100 bg-white/5' : 'opacity-20'
                     }`}
                 >
-                  <td className="py-4 px-6 text-white font-medium">{t('row6Feature')}</td>
-                  <td className="py-4 px-6 text-muted">{t('row6Others')}</td>
-                  <td className="py-4 px-6 text-primary font-bold">{t('row6DiktaMe')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-white font-medium">{t('row6Feature')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-muted">{t('row6Others')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-primary font-bold">{t('row6DiktaMe')}</td>
                 </tr>
                 <tr
                   id="vs-row-7"
                   className={`transition-all duration-500 ${visibleRows >= 7 ? 'opacity-100 bg-white/5' : 'opacity-20'
                     }`}
                 >
-                  <td className="py-4 px-6 text-white font-medium">{t('row7Feature')}</td>
-                  <td className="py-4 px-6 text-muted">{t('row7Others')}</td>
-                  <td className="py-4 px-6 text-primary font-bold">{t('row7DiktaMe')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-white font-medium">{t('row7Feature')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-muted">{t('row7Others')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-primary font-bold">{t('row7DiktaMe')}</td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={3} className="py-3 px-6 text-xs text-muted/60 italic">
+                  <td colSpan={3} className="py-2 px-2 md:py-3 md:px-6 text-[10px] md:text-xs text-muted/60 italic">
                     {t('footnote')}
                   </td>
                 </tr>

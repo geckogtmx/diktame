@@ -20,10 +20,10 @@ export function QuickChatSection() {
   const user2Chars = Math.floor(userMsg2Progress * USER_MSG_2.length);
 
   return (
-    <div id="quickchat-track" className="relative h-[300vh]">
+    <div id="quickchat-track" className="relative h-[220vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-30" aria-hidden="true"></div>
-        <div className="section-container grid md:grid-cols-2 gap-12 items-center relative z-10">
+        <div className="section-container grid md:grid-cols-2 gap-6 md:gap-12 items-center relative z-10">
           {/* Text (Left) */}
           <div>
             <div className="inline-block mb-4 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-white text-[10px] font-mono tracking-widest">
@@ -32,7 +32,7 @@ export function QuickChatSection() {
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white text-balance">
               {t('title')}
             </h2>
-            <p className="text-xl text-muted mb-8">
+            <p className="text-lg md:text-xl text-muted mb-6 md:mb-8">
               {t('subtitle')}
             </p>
             <ul className="space-y-4 text-muted">

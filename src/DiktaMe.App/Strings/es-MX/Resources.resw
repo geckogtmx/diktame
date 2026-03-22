@@ -92,6 +92,8 @@
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_General_Title.Text" xml:space="preserve"><value>General</value></data>
   <data name="Settings_General_Sub_Application" xml:space="preserve"><value>Aplicaci&#243;n</value></data>
+  <data name="Settings_General_Sub_ControlPanel" xml:space="preserve"><value>Panel de Control</value></data>
+  <data name="Settings_General_Sub_Hotkeys" xml:space="preserve"><value>Atajos de Teclado</value></data>
   <data name="Settings_General_Sub_Language" xml:space="preserve"><value>Idioma</value></data>
   <data name="Settings_General_UiLanguage_Label.Text" xml:space="preserve"><value>Idioma de la Interfaz</value></data>
   <data name="Settings_General_UiLanguage_Description.Text" xml:space="preserve"><value>Idioma de la interfaz (requiere reinicio)</value></data>
@@ -462,7 +464,7 @@
   <data name="Settings_ControlPanel_ShowPerformanceStats_Label.Text" xml:space="preserve"><value>Mostrar Estad&#237;sticas de Rendimiento</value></data>
   <data name="Settings_ControlPanel_ShowPerformanceStats_Description.Text" xml:space="preserve"><value>Latencias por etapa REC, TRANS, PROC, INJ</value></data>
   <data name="Settings_ControlPanel_AlwaysOnTop_Label.Text" xml:space="preserve"><value>Siempre Encima</value></data>
-  <data name="Settings_ControlPanel_AlwaysOnTop_Description.Text" xml:space="preserve"><value>Mantener el panel de control encima de otras ventanas</value></data>
+  <data name="Settings_ControlPanel_AlwaysOnTop_Description.Text" xml:space="preserve"><value>Mantiene la ventana del panel de control siempre encima de todas las dem&#225;s ventanas, sin importar qu&#233; filas est&#233;n visibles</value></data>
   <data name="Settings_ControlPanel_ExpandDirection_Label.Text" xml:space="preserve"><value>Dirección de Expansión</value></data>
   <data name="Settings_ControlPanel_ExpandDirection_Description.Text" xml:space="preserve"><value>Elige si el panel se expande hacia abajo o arriba desde la barra. Tip: mantén presionado el botón de colapsar para invertir.</value></data>
   <data name="Settings_ControlPanel_ExpandDirection_Down.Content" xml:space="preserve"><value>Abajo (barra arriba)</value></data>

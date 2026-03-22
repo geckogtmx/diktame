@@ -29,7 +29,7 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
       <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={onClose}></div>
       <div className="relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
         {/* Modal Header */}
-        <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
+        <div className="p-4 md:p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
           <div>
             <h3 className="text-2xl font-bold text-white">{t('title')}</h3>
             <p className="text-sm text-muted">{t('subtitle')}</p>

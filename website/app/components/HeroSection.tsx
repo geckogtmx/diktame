@@ -31,7 +31,7 @@ export function HeroSection() {
               <div>{t('titleLine1')}</div>
 
               {/* Row 2 */}
-              <div className="flex justify-center gap-[0.2em] relative left-[29px]">
+              <div className="flex justify-center gap-[0.2em] relative left-[16px] md:left-[29px]">
                 {/* START text */}
                 <span>{t('titleLine2Start')}</span>
 

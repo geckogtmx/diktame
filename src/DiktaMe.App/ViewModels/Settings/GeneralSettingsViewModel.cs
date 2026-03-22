@@ -16,6 +16,8 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     private readonly ThemeService _themeService;
     private bool _isLoading;
 
+    public HotkeysSettingsViewModel Hotkeys { get; }
+
     // ── Inner list ───────────────────────────────────────────────────────
 
     public ObservableCollection<ModeListItem> SubItems { get; } = [];
@@ -28,6 +30,12 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isApplicationSelected;
+
+    [ObservableProperty]
+    private bool _isControlPanelSelected;
+
+    [ObservableProperty]
+    private bool _isHotkeysSelected;
 
     [ObservableProperty]
     private bool _isLanguageSelected;
@@ -123,11 +131,12 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
 
     public string[] ThemeNames => ThemeService.AvailableThemes;
 
-    public GeneralSettingsViewModel(SettingsManager settings, LocalizationService loc, ThemeService themeService)
+    public GeneralSettingsViewModel(SettingsManager settings, LocalizationService loc, ThemeService themeService, HotkeysSettingsViewModel hotkeys)
     {
         _settings = settings;
         _loc = loc;
         _themeService = themeService;
+        Hotkeys = hotkeys;
 
         LoadSubItems();
         LoadFromSettings();
@@ -177,6 +186,8 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     {
         SubItems.Clear();
         SubItems.Add(new ModeListItem { Id = "application", Title = _loc.GetString("Settings_General_Sub_Application"), IsDictationMode = false, IsSeparator = false });
+        SubItems.Add(new ModeListItem { Id = "controlpanel", Title = _loc.GetString("Settings_General_Sub_ControlPanel"), IsDictationMode = false, IsSeparator = false });
+        SubItems.Add(new ModeListItem { Id = "hotkeys", Title = _loc.GetString("Settings_General_Sub_Hotkeys"), IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "language", Title = _loc.GetString("Settings_General_Sub_Language"), IsDictationMode = false, IsSeparator = false });
     }
 
@@ -187,12 +198,16 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         if (!HasSelection)
         {
             IsApplicationSelected = false;
+            IsControlPanelSelected = false;
+            IsHotkeysSelected = false;
             IsLanguageSelected = false;
             return;
         }
 
         string id = SubItems[value].Id;
         IsApplicationSelected = id == "application";
+        IsControlPanelSelected = id == "controlpanel";
+        IsHotkeysSelected = id == "hotkeys";
         IsLanguageSelected = id == "language";
     }
 

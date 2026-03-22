@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Hook for Core Arsenal section pair reveal animation
- * Reveals card pairs based on scroll progress through 400vh section
- * Extracted from sitex scroll logic
+ * Hook for Core Arsenal section reveal animation
+ * Reveals pillars first, then flavors row based on scroll progress through 300vh section
  */
 export function useCoreArsenalScroll() {
   const [activePair, setActivePair] = useState(0);
@@ -27,14 +26,14 @@ export function useCoreArsenalScroll() {
       }
 
       if (scrollTop > scrollableHeight) {
-        setActivePair(2); // Both pairs visible
+        setActivePair(2); // Everything visible
         return;
       }
 
       const progress = scrollTop / scrollableHeight;
 
-      // Reveal pair 1 at 0-0.5, pair 2 at 0.5-1.0
-      if (progress < 0.5) {
+      // Reveal pillars at 0-0.4, flavors at 0.4-1.0
+      if (progress < 0.4) {
         setActivePair(1);
       } else {
         setActivePair(2);

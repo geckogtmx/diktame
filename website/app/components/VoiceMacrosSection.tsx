@@ -25,10 +25,10 @@ export function VoiceMacrosSection() {
   const showOutputCursor = outputProgress > 0 && outputProgress < 1;
 
   return (
-    <div id="macros-track" className="relative h-[300vh]">
+    <div id="macros-track" className="relative h-[220vh]">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-l from-primary/5 to-transparent opacity-30" aria-hidden="true"></div>
-        <div className="section-container grid md:grid-cols-2 gap-12 items-center relative z-10">
+        <div className="section-container grid md:grid-cols-2 gap-6 md:gap-12 items-center relative z-10">
           {/* Text (Left) */}
           <div>
             <div className="inline-block mb-4 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-white text-[10px] font-mono tracking-widest">
@@ -37,7 +37,7 @@ export function VoiceMacrosSection() {
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white text-balance">
               {t('title')}
             </h2>
-            <p className="text-xl text-muted mb-8">
+            <p className="text-lg md:text-xl text-muted mb-6 md:mb-8">
               {t('subtitle')}
             </p>
             <ul className="space-y-4 text-muted">
@@ -54,7 +54,7 @@ export function VoiceMacrosSection() {
           </div>
 
           {/* Card (Right) */}
-          <div className="card border-primary/20 bg-black/50 p-6 font-mono text-xs shadow-2xl relative overflow-hidden flex flex-col gap-4">
+          <div className="card border-primary/20 bg-black/50 p-4 md:p-6 font-mono text-xs shadow-2xl relative overflow-hidden flex flex-col gap-4">
             <div className="flex justify-between items-center border-b border-white/10 pb-2">
               <span className="text-muted uppercase tracking-widest">{t('cardLabel')}</span>
               <span className={`w-3 h-3 rounded-full transition-colors duration-300 ${

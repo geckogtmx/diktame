@@ -85,13 +85,19 @@
                         <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.AutoStart, Mode=TwoWay}" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
+            </StackPanel>
 
-                <!-- Control Panel Configuration -->
-                <TextBlock l:Uids.Uid="Settings_ControlPanel_Title" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"
+            <!-- ═══════════════════════════════════════════════════════════════
+                 Control Panel
+                 ═══════════════════════════════════════════════════════════════ -->
+            <StackPanel Spacing="16" MaxWidth="600"
+                        Visibility="{x:Bind ViewModel.IsControlPanelSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <TextBlock l:Uids.Uid="Settings_ControlPanel_Title" FontSize="20" FontWeight="SemiBold"
                            Foreground="{StaticResource AppTextBrush}"/>
                 <TextBlock l:Uids.Uid="Settings_ControlPanel_Description" FontSize="13"
                            Foreground="{StaticResource AppTextDimBrush}"/>
 
+                <!-- ── General: Rows & Stats ─────────────────────────────── -->
                 <Border Style="{StaticResource SettingsCardStyle}">
                     <StackPanel Spacing="16">
                         <Grid>
@@ -149,7 +155,12 @@
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ShowPerformanceStats, Mode=TwoWay}" VerticalAlignment="Center"/>
                         </Grid>
+                    </StackPanel>
+                </Border>
 
+                <!-- ── Bar: Position, Layout & Behavior ──────────────────── -->
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="16">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -359,6 +370,177 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
+            </StackPanel>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 Keyboard Shortcuts
+                 ═══════════════════════════════════════════════════════════════ -->
+            <StackPanel Spacing="16" MaxWidth="600"
+                        Visibility="{x:Bind ViewModel.IsHotkeysSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Keyboard Shortcuts" FontSize="20" FontWeight="SemiBold"
+                           Foreground="{StaticResource AppTextBrush}"/>
+
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel Spacing="20">
+                        <!-- Dictate -->
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Label" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Dictate_Description" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="DictateBox" Grid.Column="0"
+                                         Text="{x:Bind ViewModel.Hotkeys.Dictate, Mode=TwoWay}"
+                                         IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                         BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                <Button Grid.Column="1" Content="Record" Click="RecordDictate_Click" MinWidth="80"/>
+                                <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetDictateCommand}" MinWidth="70"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Refine -->
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Refine_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="RefineBox" Grid.Column="0"
+                                         Text="{x:Bind ViewModel.Hotkeys.Refine, Mode=TwoWay}"
+                                         IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                         BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                <Button Grid.Column="1" Content="Record" Click="RecordRefine_Click" MinWidth="80"/>
+                                <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetRefineCommand}" MinWidth="70"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Ask -->
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Ask_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="AskBox" Grid.Column="0"
+                                         Text="{x:Bind ViewModel.Hotkeys.Ask, Mode=TwoWay}"
+                                         IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                         BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                <Button Grid.Column="1" Content="Record" Click="RecordAsk_Click" MinWidth="80"/>
+                                <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetAskCommand}" MinWidth="70"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Translate -->
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Translate_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="TranslateBox" Grid.Column="0"
+                                         Text="{x:Bind ViewModel.Hotkeys.Translate, Mode=TwoWay}"
+                                         IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                         BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                <Button Grid.Column="1" Content="Record" Click="RecordTranslate_Click" MinWidth="80"/>
+                                <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetTranslateCommand}" MinWidth="70"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Oops -->
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Oops_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="OopsBox" Grid.Column="0"
+                                         Text="{x:Bind ViewModel.Hotkeys.Oops, Mode=TwoWay}"
+                                         IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                         BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                <Button Grid.Column="1" Content="Record" Click="RecordOops_Click" MinWidth="80"/>
+                                <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetOopsCommand}" MinWidth="70"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Note -->
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Note_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="NoteBox" Grid.Column="0"
+                                         Text="{x:Bind ViewModel.Hotkeys.Note, Mode=TwoWay}"
+                                         IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                         BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                <Button Grid.Column="1" Content="Record" Click="RecordNote_Click" MinWidth="80"/>
+                                <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetNoteCommand}" MinWidth="70"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Chat -->
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Chat_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="ChatBox" Grid.Column="0"
+                                         Text="{x:Bind ViewModel.Hotkeys.Chat, Mode=TwoWay}"
+                                         IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                         BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                <Button Grid.Column="1" Content="Record" Click="RecordChat_Click" MinWidth="80"/>
+                                <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetChatCommand}" MinWidth="70"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Read Selection -->
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_ReadSelection_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_ReadSelection_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="ReadSelectionBox" Grid.Column="0"
+                                         Text="{x:Bind ViewModel.Hotkeys.ReadSelection, Mode=TwoWay}"
+                                         IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                         BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                <Button Grid.Column="1" Content="Record" Click="RecordReadSelection_Click" MinWidth="80"/>
+                                <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetReadSelectionCommand}" MinWidth="70"/>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <InfoBar l:Uids.Uid="Settings_Hotkeys_InfoBar" Severity="Informational"
+                         IsOpen="True"
+                         IsClosable="False"/>
             </StackPanel>
 
             <!-- ═══════════════════════════════════════════════════════════════
