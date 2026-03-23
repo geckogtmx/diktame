@@ -93,6 +93,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
     {
         try
         {
+            var sw = Stopwatch.StartNew();
             Log.Debug("OllamaProvider: warming up model '{Model}'", _model);
             string body = BuildRequestJson(
                 _model,
@@ -108,11 +109,11 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
 
             if (response.IsSuccessStatusCode)
             {
-                Log.Information("OllamaProvider: model '{Model}' warmed up", _model);
+                Log.Information("OllamaProvider: model '{Model}' warmed up in {Ms}ms", _model, sw.ElapsedMilliseconds);
             }
             else
             {
-                Log.Warning("OllamaProvider: warmup returned status {S}", (int)response.StatusCode);
+                Log.Warning("OllamaProvider: warmup returned status {S} after {Ms}ms", (int)response.StatusCode, sw.ElapsedMilliseconds);
             }
         }
         catch (Exception ex)

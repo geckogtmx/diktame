@@ -198,4 +198,80 @@ public sealed class PipelineFactoryTests
         sttFactory.Verify(f => f.CreateProvider("gemini-audio", It.IsAny<string>()), Times.Once);
     }
 
+    // ── Warmup tests ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task WarmUpLocalProviders_OllamaMode_CallsCreateProvider()
+    {
+        var settings = new AppSettings
+        {
+            ModeProfiles = new Dictionary<string, ModeSettings>
+            {
+                ["dictate_0"] = new ModeSettings { LlmProvider = "ollama", UseLlm = true, LlmModel = "gemma3:4b" },
+            },
+        };
+        var (factory, _, llmFactory) = MakeFactory(settings);
+
+        // Default mock returns ILLMProvider (not OllamaProvider), so WarmUpAsync won't
+        // be called — but we can verify CreateProvider IS called with the right args.
+        await factory.WarmUpLocalProvidersAsync("dictate");
+
+        llmFactory.Verify(f => f.CreateProvider("ollama", It.IsAny<string>(), "gemma3:4b"), Times.Once);
+    }
+
+    [Fact]
+    public async Task WarmUpLocalProviders_CloudMode_SkipsWarmUp()
+    {
+        var settings = new AppSettings
+        {
+            ModeProfiles = new Dictionary<string, ModeSettings>
+            {
+                ["dictate_0"] = new ModeSettings { LlmProvider = "gemini", UseLlm = true },
+            },
+        };
+        var (factory, _, llmFactory) = MakeFactory(settings);
+
+        await factory.WarmUpLocalProvidersAsync("dictate");
+
+        llmFactory.Verify(f => f.CreateProvider(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task WarmUpLocalProviders_WalletMode_SkipsWarmUp()
+    {
+        var settings = new AppSettings
+        {
+            AuthMode = AuthMode.Wallet,
+            ModeProfiles = new Dictionary<string, ModeSettings>
+            {
+                ["dictate_0"] = new ModeSettings { LlmProvider = "ollama", UseLlm = true },
+            },
+        };
+        var (factory, _, llmFactory) = MakeFactory(settings);
+
+        await factory.WarmUpLocalProvidersAsync("dictate");
+
+        llmFactory.Verify(f => f.CreateProvider(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task WarmUpLocalProviders_LlmDisabled_SkipsWarmUp()
+    {
+        var settings = new AppSettings
+        {
+            ModeProfiles = new Dictionary<string, ModeSettings>
+            {
+                ["dictate_0"] = new ModeSettings { LlmProvider = "ollama", UseLlm = false },
+            },
+        };
+        var (factory, _, llmFactory) = MakeFactory(settings);
+
+        await factory.WarmUpLocalProvidersAsync("dictate");
+
+        llmFactory.Verify(f => f.CreateProvider(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
 }

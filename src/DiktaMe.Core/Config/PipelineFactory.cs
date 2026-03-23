@@ -4,6 +4,7 @@ using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
 using DiktaMe.Core.STT;
 using DiktaMe.Core.TTS;
+using Serilog;
 
 namespace DiktaMe.Core.Config;
 /// <summary>
@@ -133,6 +134,38 @@ public sealed class PipelineFactory
         }
 
         return new StreamingDictationPipeline(streaming, _injector, _snippets);
+    }
+
+    // ── Warmup ─────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Fire-and-forget warmup for local providers. Call at recording start to
+    /// pre-load Ollama model into VRAM while the user is still speaking.
+    /// </summary>
+    public async Task WarmUpLocalProvidersAsync(string mode)
+    {
+        try
+        {
+            if (_settings.Current.AuthMode == AuthMode.Wallet)
+            {
+                return;
+            }
+
+            ModeSettings ms = _profiles.GetModeSettings(mode);
+
+            if (ms.UseLlm && string.Equals(ms.LlmProvider, "ollama", StringComparison.OrdinalIgnoreCase))
+            {
+                var provider = _llmFactory.CreateProvider(ms.LlmProvider, model: ms.LlmModel);
+                if (provider is OllamaProvider ollama)
+                {
+                    await ollama.WarmUpAsync().ConfigureAwait(false);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Recording warmup failed (non-fatal)");
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

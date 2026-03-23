@@ -953,6 +953,9 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             Log.Information("Starting Dictate pipeline...");
 
+            // Pre-load local LLM into VRAM while recording (fire-and-forget)
+            _ = Task.Run(() => _pipelineFactory.WarmUpLocalProvidersAsync("dictate"));
+
             // Record audio (waits for auto-stop event)
             var (audioFile, recordingDurationMs) = await RecordAudioAsync("Dictate", isDictate: true);
             if (audioFile == null)
@@ -1121,6 +1124,9 @@ public sealed partial class LoadingViewModel : ObservableObject
         try
         {
             Log.Information("Starting Refine Voice pipeline (sourceHwnd=0x{Hwnd:X})...", sourceWindow);
+
+            // Pre-load local LLM into VRAM while recording (fire-and-forget)
+            _ = Task.Run(() => _pipelineFactory.WarmUpLocalProvidersAsync("refine"));
 
             // Record audio (waits for auto-stop event)
             var (audioFile, recordingDurationMs) = await RecordAudioAsync("Refine", isDictate: false);
