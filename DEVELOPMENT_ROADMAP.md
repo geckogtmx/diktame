@@ -1,7 +1,7 @@
 # dIKta.me V2 — Development Roadmap (C# + WinUI 3 Rewrite)
 
 **Status:** Feature Complete (Streams A–L + TTS complete; H.1 remaining for release)
-**Date:** 2026-03-21
+**Date:** 2026-03-23 (last audit)
 **Parent:** V1 `SPEC_039_STRATEGIC_ROADMAP.md` (in diktate repo)
 **Supersedes:** Python modular split approach (deemed throwaway work)
 **Target:** Native Windows app — single process, modular architecture, self-contained installer
@@ -10,13 +10,13 @@
 
 ## Next 10 Steps (2026-03-21)
 
-> **Context:** Core engine is feature-complete with 988 tests. SPEC_009 FIX-1 through FIX-16 done (15/17). SPEC_008 (Wallet) and SPEC_004 (i18n) verified complete. ACCOUNTS_SIGNIN sprint complete (9 sessions, 32 tasks). Avatar upload + C# sync delivered. SPEC_015 (Modules Sprint) fully spec'd as DRAFT. The items below are ordered to maximize shippability — steps 1-4 close all loose ends and produce a releasable V2.0, steps 5-10 build the SPEC_015 modules.
+> **Context:** Core engine is feature-complete with 1014 tests. SPEC_009 FIX-1 through FIX-17 done (15/17). SPEC_008 (Wallet) and SPEC_004 (i18n) verified complete. ACCOUNTS_SIGNIN sprint complete (9 sessions, 32 tasks). Avatar upload + C# sync delivered. Post-roadmap features shipped: UI Revamp (6 phases), CP Auto-Collapse/Waveform/Snap, WeatherService, Cylinder Roll idle animation. SPEC_015 (Modules Sprint) fully spec'd as DRAFT. The items below are ordered to maximize shippability — steps 1-4 close all loose ends and produce a releasable V2.0, steps 5-10 build the SPEC_015 modules.
 
 | # | Task | Scope | Rationale |
 |---|------|-------|-----------|
 | **1** | **FIX-17: TTS wizard step** | `WizardViewModel`, new `WizardTtsPage`, `WizardWindow`, `Resources.resw` x2 | Spec + test matrix ready (`SPEC_009_WIZARD_FLOW.md`). Closes wizard TTS gap — users discover Kokoro. Local path gets fully offline (Whisper + Ollama + Kokoro). |
-| **2** | **FIX-1: Wallet terminology** | Wizard strings only | Was deferred on SPEC_008 — now COMPLETE. Quick text swap ("Trial" → "Wallet"). Closes all 17 SPEC_009 FIXes. |
-| **3** | **L.5: Streaming UI toggle** | Manual test only | Listed as pending. 15 min manual test pass, marks Stream L fully done. |
+| **2** | **FIX-1: Wallet terminology** | Wizard strings + Settings strings | ⚠️ PARTIAL — Wizard uses "Wallet" but `Resources.resw` still has "Trial Credits" (line 965) and "Trial expired" (line 984). Quick text swap needed. |
+| **3** | ~~**L.5: Streaming UI toggle**~~ | ~~Manual test only~~ | ✅ DONE — Streaming toggle exists in `AIEngineSettingsPage.xaml` (`DeepgramStreaming` ToggleSwitch). Stream L complete. |
 | **4** | **H.1: Installer (Inno Setup)** | New `installer/` directory | Only hard blocker before V2.0 ships. Enables dogfooding + beta testing while building modules. |
 | **5** | **SPEC_015 Phase 0A: Factory tests** | `STTProviderFactoryTests`, `LLMProviderFactoryTests` (~28 tests) | Closes SPEC_009 test gap. No dependencies, fast (~1 session). |
 | **6** | **SPEC_015 Phase 0B: Plugin infrastructure** | `DiktaMe.Plugin.Abstractions` project: `IPlugin`, `PipelineEventBus`, `PluginManager`, `PluginUIRegistry` | Foundation — every plugin depends on this. Nothing parallelizes until 0B is done. |
@@ -76,15 +76,15 @@ Phase 2 is a **full rewrite** of dIKta.me (formerly dIKtate) from Python + Elect
 
 ### Success Criteria
 
-- [ ] Self-contained installer (~70MB compressed)
-- [ ] All 6 workflow modes functional
-- [ ] Cloud-first: works out of the box with API key
-- [ ] Local Whisper as optional sidecar (Whisper.net or exe)
-- [ ] Local Ollama integration preserved
-- [ ] Configuration Wizard for first-run
-- [ ] Startup < 3s in cloud mode
-- [ ] Memory < 80MB idle
-- [ ] Full test suite (xUnit)
+- [ ] Self-contained installer (~70MB compressed) ← **H.1 blocker**
+- [x] All 6 workflow modes functional
+- [x] Cloud-first: works out of the box with API key
+- [x] Local Whisper as optional sidecar (Whisper.net or exe)
+- [x] Local Ollama integration preserved
+- [x] Configuration Wizard for first-run
+- [ ] Startup < 3s in cloud mode ← unverified
+- [ ] Memory < 80MB idle ← unverified
+- [x] Full test suite (xUnit) — **1014 tests passing**
 
 ---
 
@@ -195,24 +195,40 @@ DiktaMe.sln
 │   │   │   ├── PIIScrubber.cs        # PII redaction
 │   │   │   ├── SecureStorage.cs      # DPAPI for API keys
 │   │   │   └── ApiKeyValidator.cs    # Format validation
-│   │   ├── System/
+│   │   ├── SystemManagement/         # NOTE: namespace is SystemManagement (not System — avoids BCL shadow)
 │   │   │   ├── CapabilityDetector.cs # Runtime capability detection
 │   │   │   ├── SystemMonitor.cs      # CPU/GPU/memory metrics
 │   │   │   ├── StartupManager.cs     # Auto-start registration
 │   │   │   └── OllamaManager.cs      # Version sensing & model library (SPEC_031)
+│   │   ├── Account/                  # OAuth, JWT, Wallet (Stream K)
+│   │   │   ├── AccountService.cs     # Login/logout, deeplink auth
+│   │   │   ├── TokenRefreshService.cs# JWT auto-refresh (5-min timer)
+│   │   │   ├── WalletManager.cs      # SQLite ledger, balance sync
+│   │   │   ├── WalletGeminiProxy.cs  # Managed LLM via Supabase Edge Function
+│   │   │   ├── WalletDeepgramProxy.cs# Managed STT via Supabase Edge Function
+│   │   │   └── JwtDecoder.cs         # JWT payload extraction
+│   │   ├── TTS/                      # Text-to-Speech (SPEC_003_TTS_V2)
+│   │   │   ├── KokoroTtsProvider.cs  # Local TTS via KokoroSharp ONNX
+│   │   │   ├── DeepgramTtsProvider.cs# Cloud TTS
+│   │   │   ├── OpenAITtsProvider.cs  # Cloud TTS
+│   │   │   ├── GeminiTtsProvider.cs  # Cloud TTS
+│   │   │   ├── InworldTtsProvider.cs # Cloud TTS
+│   │   │   ├── TtsPlayerService.cs   # NAudio playback
+│   │   │   ├── TextCleaner.cs        # Pre-TTS text normalization
+│   │   │   └── KokoroModelManager.cs # Model download & management
+│   │   ├── Weather/
+│   │   │   └── WeatherService.cs     # Open-Meteo API + IP geolocation
 │   │   ├── Audio/AudioDucker.cs      # WASAPI audio ducking (SPEC_043d)
 │   │   └── Capabilities.cs           # CapabilityReport model
 │   │
-│   └── DiktaMe.Whisper/          # Optional: Whisper sidecar (separate exe)
-│       ├── WhisperService.cs     # Whisper.net wrapper
-│       └── Program.cs            # Standalone TCP/pipe server
 │
 ├── tests/
-│   ├── DiktaMe.Core.Tests/       # xUnit tests for business logic
-│   └── DiktaMe.App.Tests/        # UI automation tests (optional)
+│   └── DiktaMe.Core.Tests/       # xUnit tests (1014 tests)
 │
-└── installer/
-    └── setup.iss                 # Inno Setup or MSIX packaging
+├── website/                      # Next.js + Supabase (dikta.me)
+│
+└── installer/                    # TODO: H.1 — not yet created
+    └── setup.iss                 # Inno Setup (planned)
 ```
 
 ### 3.2 Technology Map (Python → C#)
@@ -761,11 +777,13 @@ input/output token counts from API usage fields.
 
 ### Work Stream G: Testing (Priority: HIGH)
 
-#### Task G.1: Core Unit Tests (xUnit) ✅ (414 tests, gaps closed)
-**Created:** `DiktaMe.Core.Tests/` — 32 test classes
+#### Task G.1: Core Unit Tests (xUnit) ✅ (1014 tests as of 2026-03-23)
+**Created:** `DiktaMe.Core.Tests/` — 60+ test files across 13 modules
 **Effort:** Built incrementally alongside each stream
 
-**Current state: 414 tests passing** (376 unit-only in CI; 1 pre-existing clipboard flake in TextInjectorTests — pre-existing, not new).
+> **Note:** The table below is a historical snapshot from when G.1 was first completed (414 tests). Subsequent streams (J, K, L, TTS, UI Revamp, Weather, etc.) added ~600 more tests. Current total: **1014 tests passing**. See `TESTING_COVERAGE.md` for the latest breakdown.
+
+**Historical state (G.1 completion): 414 tests passing** (376 unit-only in CI; 1 pre-existing clipboard flake in TextInjectorTests — pre-existing, not new).
 
 **Test coverage:**
 
@@ -873,6 +891,8 @@ Filter in CI: `dotnet test --filter "Category!=Integration&Category!=Hardware"`
 
 ## 5. Execution Timeline
 
+> **Historical Note (2026-03-23):** This was the original 23-day plan written before V2 development started (2026-02-15). Actual development took ~5 weeks (Feb 15 – Mar 23) across multiple sprints: core engine, wallet system, streaming, TTS, UI revamp, account system, and polish passes. The original Streams A–L were largely on pace, but post-roadmap features (TTS, UI revamp, weather, avatar, CP polish) added significant scope beyond the initial 23-day estimate. Preserved here as retrospective context.
+
 ```
 Day 0 (Pre-Work): A.0 — Git Repo Prep & V1 Archive
 ├── Tag V1 as v1.0.0 in diktate repo
@@ -930,30 +950,51 @@ Week 4: Testing + Distribution
 
 | Global hotkey conflicts on user machines | Low | Same risk as V1; handle gracefully with notification |
 
+### Current Risks (2026-03-23)
+
+| Risk | Impact | Status |
+|------|--------|--------|
+| **H.1 Installer not started** | **High** — sole blocker before V2.0 ships | Decision needed: Inno Setup vs MSIX |
+| **DirectML + Kokoro ONNX incompatibility** | Low | BLOCKED — `ConvTranspose` op fails. KokoroSharp.CPU works fine. GPU variant inert. See MEMORY.md. |
+| **"Trial Credits" strings still in Resources.resw** | Low | FIX-1 partial — wizard updated, Settings strings remain stale |
+| **STTProviderFactory has no dedicated tests** | Low | `PipelineFactoryTests` covers factory integration, but no `STTProviderFactoryTests.cs` |
+
 ---
 
 ## 7. Key NuGet Packages
 
 ```xml
-<!-- DiktaMe.Core -->
+<!-- DiktaMe.Core (actual as of 2026-03-23) -->
+<PackageReference Include="KokoroSharp.CPU" Version="0.6.5" />        <!-- Local TTS (ONNX) -->
 <PackageReference Include="NAudio" Version="2.*" />
+<PackageReference Include="NAudio.Wasapi" Version="2.*" />            <!-- Audio ducking -->
 <PackageReference Include="InputSimulatorStandard" Version="1.*" />
 <PackageReference Include="Microsoft.Data.Sqlite" Version="8.*" />
 <PackageReference Include="Serilog" Version="3.*" />
 <PackageReference Include="Serilog.Sinks.File" Version="5.*" />
-<PackageReference Include="Whisper.net" Version="1.*" />              <!-- Optional -->
-<PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.*" /> <!-- Optional -->
+<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.*" />
+<PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.*" />
+<PackageReference Include="HtmlAgilityPack" Version="1.*" />          <!-- Text cleaning -->
+<PackageReference Include="System.Management" Version="8.*" />        <!-- GPU detection -->
+<PackageReference Include="Whisper.net" Version="1.9.0" />            <!-- Local STT -->
+<PackageReference Include="Whisper.net.Runtime" Version="1.9.0" />
+<PackageReference Include="Whisper.net.Runtime.Vulkan" Version="1.9.0" />  <!-- Vulkan GPU -->
 
-<!-- DiktaMe.App -->
-<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.*" />
-<PackageReference Include="H.NotifyIcon.WinUI" Version="2.*" />
-<PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
-<PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.*" />
+<!-- DiktaMe.App (actual as of 2026-03-23) -->
+<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.*" />
+<PackageReference Include="H.NotifyIcon.WinUI" Version="2.1.0" />
+<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.Markdown" Version="7.1.2" />
+<PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
+<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+<PackageReference Include="Serilog.Sinks.Console" Version="5.*" />
+<PackageReference Include="WinUI3Localizer" Version="2.3.*" />        <!-- i18n -->
 
-<!-- DiktaMe.Core.Tests -->
+<!-- DiktaMe.Core.Tests (actual as of 2026-03-23) -->
 <PackageReference Include="xunit" Version="2.*" />
 <PackageReference Include="Moq" Version="4.*" />
 <PackageReference Include="FluentAssertions" Version="6.*" />
+<PackageReference Include="coverlet.collector" Version="6.*" />        <!-- Code coverage -->
 ```
 
 ---
@@ -1991,7 +2032,7 @@ The following backend components are **shared with the website** and require NO 
 > - Grace period handling for expired licenses
 > - Integration with the dIKta.me account system from Stream K
 
-### 12.6 Dependencies
+### 12.7 Dependencies
 
 - **Website repo** (`E:\git\diktate\website`): Update OAuth callback to use `diktame://` scheme
 - **Supabase**: No changes needed (existing Edge Function + DB schema)
@@ -2020,8 +2061,58 @@ The core engine (Streams A-L, TTS) is feature-complete. The final V2 development
 
 ---
 
-**Document Status:** IN PROGRESS
-**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, H.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅, Control Panel V2 rework (Phase 1–3) ✅, Session stats rework (REQ/CHAR/WORDS/WORD-MIN) ✅, Perf row reorder + tooltips ✅, Header badge truncation ✅, **K.1–K.7 (Stream K Complete ✅)**, **K.8–K.12 + M.1–M.4 (Wallet System Complete ✅)**, **L.1–L.4 (Deepgram Streaming)** ✅, L.5 ⏳ (manual test pending), **TTS (SPEC_003_TTS_V2 Complete ✅)**
-**Remaining:** FIX-17 (TTS wizard step), FIX-1 (Wallet terminology), H.1 (Installer), I.6 (Website Rebrand), L.5 (Streaming UI toggle — pending manual test), **SPEC_015 Modules Sprint (17 phases)**
-**Build:** 0 errors, 0 warnings | **Tests:** 968 passing
+## 14. Post-Roadmap Features (Shipped After Initial Plan)
+
+> These features were developed after the original roadmap was written (Streams A–L). They are documented here for completeness but their detailed specs live in `plans/archive/`.
+
+### 14.1 TTS — "dIKta.me Speaks Back" (SPEC_003_TTS_V2) ✅
+
+**Scope:** Local-first text-to-speech via KokoroSharp (ONNX), with cloud fallback (Deepgram, OpenAI, Gemini, Inworld). Read Selection hotkey, optional TTS on Ask/Chat/Translate responses. TextCleaner for pre-TTS normalization.
+
+**Files:** 8 source files in `DiktaMe.Core/TTS/` — `KokoroTtsProvider`, `DeepgramTtsProvider`, `OpenAITtsProvider`, `GeminiTtsProvider`, `InworldTtsProvider`, `TtsPlayerService`, `TextCleaner`, `KokoroModelManager`.
+
+**Note:** DirectML GPU acceleration is BLOCKED (ONNX Runtime `ConvTranspose` incompatibility). CPU-only via `KokoroSharp.CPU 0.6.5`. See MEMORY.md for details.
+
+### 14.2 UI Revamp (6 Phases) ✅
+
+**Scope:** Theme engine with runtime color mutation, Inter font, custom control styles, glassmorphic settings cards, CP dashboard glassmorphic overhaul, settings glassmorphic overhaul. ThemeService mutates WinUI ThemeResource brushes in-place.
+
+**Spec:** `plans/archive/UI_REVAMP.md`, `UI_SETTINGS_THEMES.md`
+
+### 14.3 Control Panel: Auto-Collapse, Waveform, Snap (CP.1–CP.9) ✅
+
+**Scope:** CP auto-collapses when not recording. Voice waveform visualization (Polyline). Snap-to-position (6 screen positions). Tray icon restore.
+
+**Spec:** `plans/archive/UI_REVAMP_CP.md`
+
+### 14.4 Cylinder Roll Idle Animation + WeatherService ✅
+
+**Scope:** 3-layer idle animation on CP (status → logo+clock → weather). WeatherService using Open-Meteo API + IP geolocation for location detection.
+
+**Files:** `DiktaMe.Core/Weather/WeatherService.cs` + tests.
+
+**Spec:** `plans/archive/UI_REVAMP_SCROLL_CP.md`
+
+### 14.5 ACCOUNTS_SIGNIN Sprint (9 Sessions, 32 Tasks) ✅
+
+**Scope:** Website auth (Google/GitHub OAuth), user dashboard, admin panel (`/hqbackstage`), JWT auto-refresh (`TokenRefreshService`), license provisioning, Ko-fi payment webhooks.
+
+**Spec:** `plans/archive/ACCOUNTS_SIGNIN.md`
+
+### 14.6 Avatar Upload + Auth Polish ✅
+
+**Scope:** Profile picture upload (react-easy-crop → Supabase Storage `avatars` bucket), C# avatar sync, branded deeplink page, admin panel rename (`admin` → `hqbackstage`), auth bugfixes.
+
+### 14.7 Settings Revamp (SPEC_012) — DEFERRED
+
+**Scope:** ~40-50% done. Master-detail layout on AI Engine/Workflows/Hardware/General. SoundFeedback dedup. 9-item navigation is final. Orphaned files + unsurfaced settings deprioritized.
+
+**Spec:** `plans/archive/SPEC_012_SETTINGS_REVAMP.md`
+
+---
+
+**Document Status:** IN PROGRESS (last audited 2026-03-23)
+**Completed:** A.0–A.2, B.1–B.5, C.1–C.7, D.1–D.4, E.0–E.3, F.1–F.5, G.1, G.2, H.2, I.1–I.5, I.2-UI, **J.1–J.7 (Stream J Complete ✅)**, Sound feedback settings + pipeline integration ✅, Control Panel V2 rework (Phase 1–3) ✅, Session stats rework ✅, Perf row reorder + tooltips ✅, Header badge truncation ✅, **K.1–K.7 (Stream K Complete ✅)**, **K.8–K.12 + M.1–M.4 (Wallet System Complete ✅)**, **L.1–L.5 (Deepgram Streaming Complete ✅)**, **TTS (SPEC_003_TTS_V2 Complete ✅)**, UI Revamp (6 phases) ✅, CP Auto-Collapse/Waveform/Snap (CP.1–CP.9) ✅, WeatherService + Cylinder Roll idle animation ✅, ACCOUNTS_SIGNIN sprint (9 sessions, 32 tasks) ✅, Avatar Upload + Auth Polish ✅
+**Remaining:** FIX-17 (TTS wizard step), FIX-1 (Wallet terminology — partial), H.1 (Installer — **sole ship blocker**), I.6 (Website Rebrand), **SPEC_015 Modules Sprint (17 phases, DRAFT)**
+**Build:** 0 errors, 0 warnings | **Tests:** 1014 passing
 **Modules Sprint:** [`plans/SPEC_015_MODULES_SPRINT.md`](plans/SPEC_015_MODULES_SPRINT.md)
