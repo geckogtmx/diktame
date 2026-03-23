@@ -1,6 +1,6 @@
 # Environment Setup
 
-Welcome to the dIKta.me V2 codebase! If you are migrating over from the V1 Python/Electron repository, **please read this entire guide carefully.** 
+Welcome to the dIKta.me V2 codebase! If you are migrating over from the V1 repository, **please read this entire guide carefully.** 
 
 To build and run dIKta.me V2 locally, you must have the Microsoft ecosystem tools properly configured on your machine.
 

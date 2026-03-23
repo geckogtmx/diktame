@@ -1,6 +1,6 @@
 # Configuración del Entorno (Environment Setup)
 
-¡Bienvenido al código base de dIKta.me V2! Si estás migrando desde el repositorio V1 original de Python/Electron, **por favor, lee esta guía por completo cuidadosamente.** 
+¡Bienvenido al código base de dIKta.me V2! Si estás migrando desde el repositorio V1 original, **por favor, lee esta guía por completo cuidadosamente.** 
 
 Para compilar y ejecutar dIKta.me V2 localmente, debes tener las herramientas del ecosistema de Microsoft configuradas correctamente en tu máquina de desarrollo.
 

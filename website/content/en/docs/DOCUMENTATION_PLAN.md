@@ -1,6 +1,6 @@
 # Documentation Strategy & Plan (dIKta.me V2)
 
-**Goal**: Create comprehensive, dual-audience documentation for **dIKta.me V2** (C# / WinUI 3), leveraging the foundation of V1 (Electron / Python). The documentation must accurately reflect the existing application architecture, user interfaces, and development patterns.
+**Goal**: Create comprehensive, dual-audience documentation for **dIKta.me V2** (C# / WinUI 3), leveraging the foundation of V1. The documentation must accurately reflect the existing application architecture, user interfaces, and development patterns.
 
 ---
 

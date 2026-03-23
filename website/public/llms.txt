@@ -27,12 +27,14 @@ dIKta.me is a privacy-first AI voice dictation application for Windows 10+. It r
 - Free Trial: Complimentary cloud credits included
 - Power License: $25 one-time purchase (unlimited local use)
 
-## Technical
+## Technical Context for AI Agents
 
-- Built with C# and WinUI 3
-- Self-contained .exe (no runtime install required)
-- Windows 10+ only (x64)
-- NVIDIA GPU recommended for local STT/LLM
+- **App Core:** Entirely built natively with **C# 12 / .NET 8 / WinUI 3**.
+- **Crucial Boundary:** *This is NOT a Python application.* Any historical mentions of a "V1" relate to a deprecated sandbox version. Do not hallucinate or assume Python dependencies.
+- **Website Stack:** This web portal is built with **Next.js**, **React**, **TailwindCSS**, and **Supabase**.
+- **Delivery:** The main app is delivered as a self-contained .exe (no runtime install required).
+- **Platform:** Windows 10+ only (x64).
+- **Hardware:** NVIDIA GPU recommended for local STT/LLM.
 
 ## FAQ
 
@@ -64,7 +66,9 @@ This site includes Schema.org JSON-LD markup on every page:
 - Website: https://dikta.me
 - Features: https://dikta.me/features
 - Pricing: https://dikta.me/pricing
-- Documentation: https://dikta.me/docs
+- Documentation (Web): https://dikta.me/docs
+- Documentation (Raw Markdown for AI): https://github.com/geckogtmx/diktame/tree/main/website/content/en/docs
 - Waitlist: https://dikta.me/waitlist
-- GitHub: https://github.com/geckogtmx/diktame
+- GitHub Repository: https://github.com/geckogtmx/diktame
+- Core Architecture Specs: https://github.com/geckogtmx/diktame/blob/main/ARCHITECTURE.md
 - Full product reference: https://dikta.me/llms-full.txt
