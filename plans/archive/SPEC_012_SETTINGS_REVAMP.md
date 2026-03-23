@@ -1,8 +1,8 @@
 # SPEC_012: Settings UI Revamp
 
-> **Status:** Proposed
+> **Status:** DEFERRED — superseded by incremental changes. The settings UI was reorganized during UI_REVAMP (Phases 0–6) into 9 well-structured nav items with master-detail on AI Engine, Workflows, Hardware, and General. The original 13→8 consolidation plan is no longer the target architecture. Remaining gaps (orphaned files, unsurfaced settings) are tracked below but deprioritized.
 > **Component:** `DiktaMe.App` — Views/ViewModels/Settings
-> **Goal:** Consolidate 13 disconnected navigation items into 8 structured, context-aware categories using a master-detail layout. Every existing setting field must survive migration; nothing is deleted from the data model.
+> **Goal:** ~~Consolidate 13 disconnected navigation items into 8 structured, context-aware categories using a master-detail layout.~~ Partially achieved — 9 items with master-detail pattern.
 
 ---
 
@@ -422,109 +422,53 @@ Tasks are ordered by dependency. Each can be a standalone commit.
 ---
 
 ### T1 — Reduce SettingsWindow nav items to 8
-**Files:** `SettingsWindow.xaml`, `SettingsWindow.xaml.cs`
-**Work:**
-- Replace the 13 `<NavigationViewItem>` blocks with 8 (general, hardware, aiengine, workflows, snippets, privacy, account, about).
-- Update `NavView_SelectionChanged` routing switch to match.
-- Add `account` tag. Remove the `UserPaneFooter.NavigateToAccountRequested` handler or keep it and just call `NavView.SelectedItem = accountItem` so nav state stays consistent.
-- The app will crash on startup until the new pages exist (T2, T3) — do T1 last, or do it in a feature branch.
+**Status:** DEFERRED — Current 9-item nav (General, Hardware, AI Engine, Workflows, Presets, Snippets, Privacy, Account, About) is the final structure. The Presets item was kept separate rather than nesting under Workflows for discoverability.
 
-**Done when:** App launches, all 8 nav items are present, clicking each item navigates without exception (pages may be empty stubs at this point).
+**Files:** `SettingsWindow.xaml`, `SettingsWindow.xaml.cs`
 
 ---
 
 ### T2 — Create HardwareSettingsPage + HardwareSettingsViewModel
-**Files:** `HardwareSettingsPage.xaml`, `HardwareSettingsPage.xaml.cs`, `HardwareSettingsViewModel.cs`
-**Work:**
-- `HardwareSettingsViewModel` takes `AudioSettingsViewModel` and `HotkeysSettingsViewModel` as constructor-injected dependencies and exposes them as public properties.
-- `HardwareSettingsPage.xaml` implements the inner-list + detail pattern (copy structure from `ModesSettingsPage.xaml`). Inner list: "Microphone & Recording", "Sound Feedback", "Keyboard Shortcuts".
-- Microphone & Recording detail: device ComboBox, duration ComboBox, ducking toggle + level slider — bind to `Audio.*` properties.
-- Sound Feedback detail: enable toggle, start/stop/utility ComboBoxes + preview buttons — bind to `Audio.*` properties. **Do not add a separate SoundFeedback toggle here** — it is already `Audio.SoundEnabled` in `AudioSettingsViewModel`.
-- Keyboard Shortcuts detail: copy the existing `HotkeysSettingsPage.xaml` content verbatim, bind to `Hotkeys.*` properties.
-- Register `HardwareSettingsViewModel` in DI container (`App.xaml.cs`).
+**Status:** PARTIAL (DEFERRED) — Page exists with 2 sub-items (Mic & Recording, Sound Feedback). Keyboard Shortcuts sub-item was not added; hotkeys are accessible via General page instead. Remaining work deferred.
 
-**Done when:** Navigating to Hardware shows all three sub-items. Settings save and reload correctly.
+**Files:** `HardwareSettingsPage.xaml`, `HardwareSettingsPage.xaml.cs`, `HardwareSettingsViewModel.cs`
 
 ---
 
 ### T3 — Create WorkflowsSettingsPage + WorkflowsSettingsViewModel
-**Files:** `WorkflowsSettingsPage.xaml`, `WorkflowsSettingsPage.xaml.cs`, `WorkflowsSettingsViewModel.cs`
-**Work:**
-- `WorkflowsSettingsViewModel` takes `DictationModesSettingsViewModel` and `ModesSettingsViewModel` as constructor-injected dependencies.
-- Inner list has 8 items: Dictation Behaviors, Dictation Presets, Ask, Refine (Auto), Refine (Verbal), Translate, Note, Chat.
-- "Dictation Behaviors" detail pane: `General.AdditionalKey`, `General.TrailingSpace`, `General.RawModeOverride`, `General.RefineVoiceMode`. Add these 4 fields to the ViewModel (they can stay in `GeneralSettingsViewModel` and be wired here via the settings manager, or a new lightweight VM can own them — developer's choice).
-- "Dictation Presets" detail pane: delegate entirely to `DictationModesSettingsViewModel` CRUD UI (copy from `DictationModesSettingsPage.xaml`).
-- Utility pipeline detail panes (Ask–Chat): delegate entirely to `ModesSettingsViewModel` sections (copy from `ModesSettingsPage.xaml`).
-- Add missing Chat fields to `ModesSettingsViewModel`: `AlwaysOnTop`, `DefaultModelId`, `DefaultSystemPrompt`, `WebSearchEnabled`. Wire to `AppSettings.Chat.*`. `WindowWidth`/`WindowHeight` may be left as implicit resize-and-save (no explicit UI control needed).
-- Register `WorkflowsSettingsViewModel` in DI.
+**Status:** PARTIAL (DEFERRED) — Page exists with 6 sub-items (Ask, Refine Auto, Refine Verbal, Translate, Notes, Speak/TTS). Dictation Behaviors and Dictation Presets sub-items not added (Presets has its own nav item). Unsurfaced Chat fields (AlwaysOnTop, DefaultModelId, DefaultSystemPrompt, WebSearchEnabled) remain deferred.
 
-**Done when:** All 8 inner list items navigate correctly. Dictation preset CRUD works. Utility pipeline settings save and reload. New Chat fields are visible and persist.
+**Files:** `WorkflowsSettingsPage.xaml`, `WorkflowsSettingsPage.xaml.cs`, `WorkflowsSettingsViewModel.cs`
 
 ---
 
 ### T4 — Refactor AIEngineSettingsPage to master-detail with Ollama + TTS + API Keys
-**Files:** `AIEngineSettingsPage.xaml`, `AIEngineSettingsViewModel.cs`
-**Work:**
-- Convert `AIEngineSettingsPage.xaml` from a single-column scroll to the inner-list + detail pattern.
-- Inner list: API Keys, Speech-to-Text, Local LLM, Text-to-Speech.
-- `AIEngineSettingsViewModel` becomes a thin host that injects `ApiKeysSettingsViewModel`, `OllamaSettingsViewModel`, `TtsSettingsViewModel`, and retains STT logic itself (or extracts a `SttSettingsViewModel`).
-- API Keys detail pane: copy content from `ApiKeysSettingsPage.xaml`.
-- STT detail pane: existing `AIEngineSettingsPage` content (STT mode toggle, Whisper section, Deepgram section). Add `DeepgramSettings.Dictation` field (spoken punctuation commands toggle — currently bound in the VM but verify it is exposed in XAML).
-- Ollama detail pane: copy content from `OllamaSettingsPage.xaml`.
-- TTS detail pane: copy content from `TtsSettingsPage.xaml`.
-- Do **not** add `Tts.KokoroUseGpu` to the UI (DirectML blocked — see MEMORY.md).
+**Status:** ✅ DONE — Master-detail implemented with 6 sub-items (API Keys, STT, Ollama, TTS, Chat, System Monitor). Exceeds original spec (4 sub-items).
 
-**Done when:** All 4 inner items navigate correctly. API key save/delete works. STT mode switch works. Ollama status + model pull works. TTS test play works.
+**Files:** `AIEngineSettingsPage.xaml`, `AIEngineSettingsViewModel.cs`
 
 ---
 
 ### T5 — Refactor GeneralSettingsPage
-**Files:** `GeneralSettingsPage.xaml`, `GeneralSettingsViewModel.cs`
-**Work:**
-- Convert to inner-list + detail: "Application" | "Behavior".
-- Application detail: UiLanguage (+ restart warning), AutoStart, ControlPanel toggles (ShowModesRow, ShowActionsRow, ShowSessionStats, ShowPerformanceStats).
-- Behavior detail: AdditionalKey, TrailingSpace, RawModeOverride, RefineVoiceMode.
-- Remove `SoundFeedback` from this VM and this page (it lives in Hardware now — T2 must be done first).
-- Remove `Language` (Transcription Language) from this page — it is now in Hardware > Microphone & Recording or AI Engine > STT depending on final placement decision. **Pick one and note it in a code comment.**
-- Wire `ControlPanelSettings` fields to `GeneralSettingsViewModel` (they are currently in a separate `ControlPanelConfigPage` with its own VM — check if a `ControlPanelViewModel` exists and absorb it, or just add the 4 fields directly to `GeneralSettingsViewModel`).
-- Add `RawModeOverride` and `RefineVoiceMode` observable properties + save logic.
+**Status:** PARTIAL (DEFERRED) — Page has 4 sub-items (Application, Control Panel, Hotkeys, Language). SoundFeedback deduplication done. RawModeOverride and RefineVoiceMode remain unsurfaced in UI. Functional as-is, remaining work deferred.
 
-**Done when:** General page has two sub-items. All 4 ControlPanel toggles persist. RawModeOverride and RefineVoiceMode are visible and persist. SoundFeedback is gone from this page.
+**Files:** `GeneralSettingsPage.xaml`, `GeneralSettingsViewModel.cs`
 
 ---
 
 ### T6 — Delete obsolete pages
-**Files to delete:**
-- `Views/Settings/HotkeysSettingsPage.xaml` + `.cs`
-- `Views/Settings/AudioSettingsPage.xaml` + `.cs`
-- `Views/Settings/TtsSettingsPage.xaml` + `.cs`
-- `Views/Settings/ApiKeysSettingsPage.xaml` + `.cs`
-- `Views/Settings/OllamaSettingsPage.xaml` + `.cs`
-- `Views/Settings/DictationModesSettingsPage.xaml` + `.cs`
-- `Views/Settings/ModesSettingsPage.xaml` + `.cs`
-- `Views/Settings/ControlPanelConfigPage.xaml` + `.cs`
-
-**Work:**
-- Before deleting, confirm each page's content has been fully migrated (T2–T5 done).
-- Remove any DI registrations for deleted ViewModels that have been replaced (not the sub-VMs that were kept — just host VMs that are gone).
-- Build must pass at 0 errors after deletion.
-
-**Done when:** `dotnet build DiktaMe.sln` passes cleanly. No references to deleted types remain anywhere.
+**Status:** DEFERRED — Orphaned page files still exist but are not nav-routed. They don't cause build issues or user confusion. Cleanup deferred to a future housekeeping pass.
 
 ---
 
 ### T7 — Localization strings
-**Files:** `Assets/Strings/en/Resources.resw` (and `es-MX` equivalent)
-**Work:**
-- Add string keys for all new nav items and sub-items: `Nav_Hardware`, `Nav_Workflows`, sub-item labels for inner lists.
-- Add string keys for newly surfaced fields: `Settings_General_RawModeOverride`, `Settings_General_RefineVoiceMode`, `Settings_Chat_AlwaysOnTop`, `Settings_Chat_DefaultModel`, `Settings_Chat_DefaultSystemPrompt`, `Settings_Chat_WebSearch`, `Settings_Ollama_AutoWarmup`.
-- Follow existing naming convention: `Settings_{Page}_{Field}` for labels, `Settings_{Page}_{Field}_Tip` for tooltips if needed.
-
-**Done when:** App runs in both `en` and `es-MX` without missing-key placeholders in any new UI.
+**Status:** DEFERRED — Localization for implemented nav items and sub-items was done as part of individual task commits. Remaining strings (for unsurfaced settings) deferred along with their parent tasks.
 
 ---
 
 ## 7. Success Criteria
+
+> **Note:** This spec is DEFERRED. The criteria below reflect the original plan. Partially met items are noted; remaining items are deprioritized.
 
 ### Structural
 - [ ] `SettingsWindow.xaml` has exactly 8 `NavigationViewItem` elements.

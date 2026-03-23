@@ -1,5 +1,7 @@
 # UI Revamp: Control Panel Auto-Collapse & Voice Waveform
 
+> **Status:** ✅ COMPLETE (CP.1–CP.9 all implemented and committed, code-verified 2026-03-23)
+
 This document is the comprehensive spec for two related Control Panel enhancements: **auto-collapse** (the bar shrinks to a minimal width after idle) and **voice waveform** (a live visual indicator behind the status text).
 
 ---
@@ -212,11 +214,11 @@ Only visible during activity (recording/processing). Fades in when recording sta
 
 ---
 
-**Status:** Approved Plan | **Priority:** Medium | **Target:** V2.1 UI Refresh Phase 4+
+**Status:** ✅ COMPLETE | **Priority:** Medium | **Target:** V2.1 UI Refresh Phase 4+
 
 ---
 
-## 8. CP.9 — Snap Bar to Screen Position
+## 8. CP.9 — Snap Bar to Screen Position ✅
 
 ### Overview
 

@@ -1,19 +1,10 @@
 # dIKta.me V2 — Manual Test Plan (Journey-Based)
 
-**Date:** 2026-02-25 (Updated)
+**Date:** 2026-03-23 (Updated)
 **Purpose:** Comprehensive end-to-end testing following complete user journeys
 **Approach:** Each journey follows one configuration path from setup to completion
-**Total Journeys:** 5 core paths + cross-cutting tests + audio feeder automation
-**Time Estimate:** 15-19 hours total (updated for new settings pages)
-
-**Recent Changes (2026-02-25):**
-- Added Journey 5: Comprehensive Settings Verification (all 14 tabs)
-- Added 130+ new test scenarios for Dictation Presets, Notes, and Chat settings
-- Settings tabs expanded from 10 to 14 (Modes split, plus Notes and Chat pages)
-- Added CRUD testing for dictation presets with live model discovery
-- Added Chat window feature verification (font size, opacity, forget-on-close, markdown)
-- Added Notes pipeline integration testing (custom file path, timestamp format)
-- Total test count: ~280 scenarios (up from ~125)
+**Total Journeys:** 5 core paths + 2 feature journeys + cross-cutting tests + audio feeder
+**Total Scenarios:** ~355 (280 original + 75 new feature scenarios)
 
 **Time Breakdown:**
 - Journey 1 (Cloud/Deepgram): ~3 hours
@@ -21,10 +12,12 @@
 - Journey 3 (Local/Ollama): ~2 hours
 - Journey 4 (Hybrid/Skip LLM): ~1 hour
 - Journey 5 (Settings): ~2 hours
-- Cross-Cutting: ~1 hour
+- Journey 6 (Wallet/Auth): ~1.5 hours
+- Journey 7 (TTS): ~1 hour
+- Cross-Cutting (incl. themes, CP, ReadSelection): ~1.5 hours
 - Audio Feeder: ~3-5 hours (setup + runs)
 - Bug fixes: ~4-8 hours (estimated)
-- **Total:** 18-28 hours
+- **Total:** 22-32 hours
 
 ---
 
@@ -393,7 +386,7 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 **Configuration:** Any working setup (Cloud or Local)
 **Duration:** ~2 hours
-**Goal:** Systematically verify all 14 settings tabs and persistence
+**Goal:** Systematically verify all 9 settings tabs and persistence
 
 **Prerequisites:**
 - Complete Journey 1, 2, or 3 first (need working API keys)
@@ -563,7 +556,7 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 ## 5.16: Journey 5 Complete ✅
 
-**Summary:** All 14 settings tabs verified, CRUD operations tested, persistence confirmed
+**Summary:** All 9 settings tabs verified, CRUD operations tested, persistence confirmed
 
 ---
 
@@ -602,6 +595,164 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 - [ ] **U.5** No visual glitches or layout issues
 - [ ] **U.6** Error messages are actionable and clear
 - [ ] **U.7** Loading states are visible and smooth
+
+---
+
+# Journey 6: Wallet System + Account/Auth
+
+**Configuration:** Cloud path with Wallet sign-in (OAuth via website)
+**Duration:** ~1.5 hours
+**Goal:** Validate wallet-based billing, OAuth sign-in, account features
+
+**Prerequisites:**
+- Internet connection required
+- A dIKta.me account (or ability to create one at the website)
+
+## 6.1: Account Sign-In (OAuth)
+
+- [ ] **6.1.1** Settings -> Account -> Click "Sign In" -> Browser opens dIKta.me website
+- [ ] **6.1.2** Complete OAuth sign-in on website -> Deeplink redirects back to app
+- [ ] **6.1.3** App shows signed-in state: display name, email, avatar (if set)
+- [ ] **6.1.4** Verify JWT token stored: settings show auth mode
+- [ ] **6.1.5** Restart app -> Still signed in (token persisted)
+- [ ] **6.1.6** Wait 1+ hour -> Token auto-refreshes (no sign-in prompt)
+
+## 6.2: Wallet Balance & Billing
+
+- [ ] **6.2.1** Verify wallet balance displayed in Control Panel or Settings
+- [ ] **6.2.2** Switch to Wallet auth mode (if not auto-detected)
+- [ ] **6.2.3** Dictate "Hello world" -> Text injected via wallet-routed STT
+- [ ] **6.2.4** Check wallet balance decremented after dictation
+- [ ] **6.2.5** Dictate 5 more phrases -> Balance continues to decrement
+- [ ] **6.2.6** Verify history.db shows wallet-routed entries
+
+## 6.3: Wallet Edge Cases
+
+- [ ] **6.3.1** Sign out -> Wallet mode unavailable -> Falls back to BYOK
+- [ ] **6.3.2** Invalid/expired token -> App shows sign-in prompt (not crash)
+- [ ] **6.3.3** Zero balance -> Dictation fails with clear "insufficient credits" message
+- [ ] **6.3.4** Network error during wallet call -> Graceful error notification
+
+## 6.4: Account Profile
+
+- [ ] **6.4.1** Settings -> Account -> Display name shown correctly
+- [ ] **6.4.2** Avatar shown (if uploaded on website)
+- [ ] **6.4.3** Click "Sign Out" -> Confirms -> Signed out, tokens cleared
+- [ ] **6.4.4** Restart app -> No longer signed in
+
+## 6.5: Journey 6 Complete
+
+---
+
+# Journey 7: TTS System (Text-to-Speech)
+
+**Configuration:** Any working setup + TTS enabled
+**Duration:** ~1 hour
+**Goal:** Validate local (Kokoro) and cloud TTS providers, notification TTS
+
+**Prerequisites:**
+- Working dictation setup (Journey 1 or 3 completed)
+
+## 7.1: TTS Provider Setup
+
+- [ ] **7.1.1** Settings -> TTS -> Verify provider selection (Off / Kokoro / Deepgram / OpenAI / Gemini)
+- [ ] **7.1.2** Select **Kokoro** (local) -> Verify model download UI if model not present
+- [ ] **7.1.3** Kokoro model download completes -> Status shows "Ready"
+- [ ] **7.1.4** Select **Deepgram** (cloud) -> Requires API key
+- [ ] **7.1.5** Select **OpenAI** (cloud) -> Requires API key
+- [ ] **7.1.6** Select **Off** -> TTS disabled globally
+
+## 7.2: TTS Playback
+
+- [ ] **7.2.1** Enable TTS (Kokoro) -> Dictate "Hello world" -> Text injected AND spoken aloud
+- [ ] **7.2.2** Verify audio ducking during TTS playback (if ducking enabled)
+- [ ] **7.2.3** TTS playback completes -> Audio ducking restores
+- [ ] **7.2.4** Enable TTS (cloud provider) -> Dictate -> Cloud TTS plays back
+- [ ] **7.2.5** Compare latency: Kokoro (local) vs Cloud TTS
+
+## 7.3: ReadSelection Mode (Ctrl+Alt+S)
+
+- [ ] **7.3.1** Select text in Notepad ("The quick brown fox jumps over the lazy dog")
+- [ ] **7.3.2** Press Ctrl+Alt+S -> Selected text is read aloud via TTS
+- [ ] **7.3.3** Verify audio plays to completion
+- [ ] **7.3.4** Press Ctrl+Alt+S with no selection -> Error notification or no-op
+- [ ] **7.3.5** Select very long text (500+ chars) -> TTS handles without crash
+
+## 7.4: Notification TTS
+
+- [ ] **7.4.1** Use Ask mode ("What is 2+2") -> Answer "4" spoken aloud via toast TTS
+- [ ] **7.4.2** Use Translate mode -> Translation spoken aloud
+- [ ] **7.4.3** Verify suppressTts prevents double-speak (notification + pipeline TTS)
+- [ ] **7.4.4** Disable TTS -> Ask mode -> Answer shown in toast but NOT spoken
+
+## 7.5: TTS Settings Persistence
+
+- [ ] **7.5.1** Configure TTS provider + voice settings -> Save
+- [ ] **7.5.2** Restart app -> TTS settings persist
+- [ ] **7.5.3** Verify tts_played_ms logged in history.db for TTS dictations
+
+## 7.6: Journey 7 Complete
+
+---
+
+# Cross-Cutting: UI Themes
+
+**These tests apply to any configured journey**
+
+## CT.1: Theme Switching
+
+- [ ] **CT.1.1** Settings -> Themes -> Select **Midnight** -> UI updates to dark blue palette
+- [ ] **CT.1.2** Select **Ember** -> UI updates to warm/orange palette
+- [ ] **CT.1.3** Select **Frost** -> UI updates to cool/light palette
+- [ ] **CT.1.4** Theme applies to: Settings window, Control Panel, Quick Chat
+- [ ] **CT.1.5** Restart app -> Theme persists
+- [ ] **CT.1.6** Glassmorphic effects visible on settings cards and Control Panel
+
+---
+
+# Cross-Cutting: Control Panel Features
+
+## CT.2: Control Panel Auto-Collapse
+
+- [ ] **CT.2.1** Control Panel in idle state -> Collapses to compact size (~170px)
+- [ ] **CT.2.2** Start recording -> CP expands to full size (~420px)
+- [ ] **CT.2.3** Recording ends -> CP collapses back after idle timeout
+
+## CT.3: Voice Waveform
+
+- [ ] **CT.3.1** Start recording -> Waveform visualization appears in CP
+- [ ] **CT.3.2** Settings -> CP -> Waveform style: **Wave** -> Smooth wave display
+- [ ] **CT.3.3** Waveform style: **Bars** -> Bar-style visualization
+- [ ] **CT.3.4** Waveform style: **Off** -> No waveform shown
+
+## CT.4: Snap-to-Position
+
+- [ ] **CT.4.1** CP -> Snap to **Top-Left** -> Panel moves to top-left corner
+- [ ] **CT.4.2** Snap to **Top-Right** -> Panel moves to top-right corner
+- [ ] **CT.4.3** Snap to **Bottom-Left** -> Panel moves to bottom-left corner
+- [ ] **CT.4.4** Snap to **Bottom-Right** -> Panel moves to bottom-right corner
+- [ ] **CT.4.5** Snap to **Top-Center** -> Panel moves to top-center
+- [ ] **CT.4.6** Snap to **Bottom-Center** -> Panel moves to bottom-center
+- [ ] **CT.4.7** Restart app -> Panel position persists
+
+## CT.5: Idle Animation (Cylinder Roll)
+
+- [ ] **CT.5.1** CP idle -> Layer 1: Status text displayed
+- [ ] **CT.5.2** Wait -> Layer 2: Logo + clock displayed (rolls in)
+- [ ] **CT.5.3** Wait -> Layer 3: Weather display (temperature + conditions)
+- [ ] **CT.5.4** Animation cycles through all 3 layers
+- [ ] **CT.5.5** Start recording -> Animation stops, recording UI shown
+- [ ] **CT.5.6** Recording ends -> Animation resumes after idle timeout
+
+---
+
+# Cross-Cutting: ReadSelection Mode
+
+## CT.6: ReadSelection (Ctrl+Alt+S)
+
+- [ ] **CT.6.1** Select text in any app -> Press Ctrl+Alt+S -> Text read aloud
+- [ ] **CT.6.2** No TTS configured -> Error notification
+- [ ] **CT.6.3** Empty selection -> No-op or error
 
 ---
 
@@ -663,26 +814,20 @@ Format: `- [ ] [ID] Description`
 # Testing Summary
 
 **Journeys Completed:**
-- [ ] Journey 1: Cloud (Deepgram) + LLM ✅
-- [ ] Journey 2: Cloud (Gemini Audio) + Gemini LLM ✅
-- [ ] Journey 3: Local (Whisper) + Ollama ✅
-- [ ] Journey 4: Hybrid (Cloud STT + Skip LLM) ✅
-- [ ] Journey 5: Comprehensive Settings Verification (14 tabs) ✅
-- [ ] Cross-Cutting Tests ✅
-- [ ] Audio Feeder Automation ✅
+- [ ] Journey 1: Cloud (Deepgram) + LLM
+- [ ] Journey 2: Cloud (Gemini Audio) + Gemini LLM
+- [ ] Journey 3: Local (Whisper) + Ollama
+- [ ] Journey 4: Hybrid (Cloud STT + Skip LLM)
+- [ ] Journey 5: Comprehensive Settings Verification (9 tabs)
+- [ ] Journey 6: Wallet System + Account/Auth
+- [ ] Journey 7: TTS System
+- [ ] Cross-Cutting: Themes, Control Panel, ReadSelection
+- [ ] Audio Feeder Automation
 
 **Total Time:** ___ hours
 **Bugs Found:** ___ critical, ___ important, ___ minor
 **Success Rate:** ___% scenarios passed
-**Settings Tabs Verified:** ___/14
-
-**New Features Tested (2026-02-25):**
-- [ ] Dictation Presets CRUD (create, edit, delete, reorder)
-- [ ] Live model discovery from 5 APIs (OpenAI, Anthropic, Gemini, OpenRouter, Ollama)
-- [ ] Notes settings (file path, timestamp format, LLM processing)
-- [ ] Chat settings (font size, opacity, theme, forget-on-close, markdown)
-- [ ] Ollama filter in Cloud profile (local models excluded)
-- [ ] Settings migration (auto-populate 4 modes + 5 pipelines)
+**Total Scenarios:** ~355
 
 ---
 

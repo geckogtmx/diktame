@@ -1,346 +1,139 @@
-# dIKta.me V2 — Testing Guide
+# dIKta.me V2 — Testing Index
 
-**Status:** Manual testing infrastructure ready
-**Last Updated:** 2026-02-19
-**For:** Feature-complete V2 before installer creation
+**Last Updated:** 2026-03-23
+**Status:** Pre-release — manual E2E testing in progress
 
 ---
 
-## Overview
+## At a Glance
 
-This project uses a **comprehensive multi-phase testing approach**:
-
-1. **414 Automated Unit Tests** (xUnit + Moq) — Already passing ✅
-2. **Manual End-to-End Testing** (9 sections, ~125 scenarios) — Ready to execute
-3. **Automated Voice Testing** (Audio Feeder + IPC server) — Infrastructure ready
-
-This guide covers **phases 2 & 3**.
+| Layer | Coverage | Document |
+|-------|----------|----------|
+| **Unit Tests** | 1010 tests, 60 files, 13 modules (xUnit + Moq) | [TESTING_COVERAGE.md](TESTING_COVERAGE.md) |
+| **Manual E2E** | ~280 scenarios across 5 journeys + cross-cutting | [MANUAL_TEST_PLAN.md](MANUAL_TEST_PLAN.md) |
+| **Helper Scripts** | 9 PowerShell validation scripts | [test-helpers/](test-helpers/) |
 
 ---
 
 ## Quick Start
 
-### Phase 1: Manual Testing (9.5 hours)
-
 ```powershell
-# 1. Initialize testing session
+# Unit tests (all 1010)
+dotnet test DiktaMe.sln
+
+# Start a manual test session
 .\test-helpers\New-TestSession.ps1
 
-# 2. Open master checklist
+# Open the checklist
 code MANUAL_TEST_PLAN.md
 
-# 3. Work through sections 1-9
-# - Section 1: Wizard flow (30 min)
-# - Section 2: Dictation (1 hour)
-# - Section 3: Advanced modes (1.5 hours)
-# - Sections 4-9: Audio, Settings, Data, Integration, Errors, Polish
-
-# 4. Run helper scripts as needed
-.\test-helpers\Verify-AppSettings.ps1 -SettingPath "WizardCompleted"
+# Validation helpers
+.\test-helpers\Verify-AppSettings.ps1 -SettingPath "WizardCompleted" -ExpectedValue "true"
 .\test-helpers\Verify-HistoryDb.ps1
 .\test-helpers\Get-AppState.ps1
 ```
 
-### Phase 2: Automated Voice Testing (3-5 hours)
+---
 
-```powershell
-# 1. Port audio feeder tool (2-3 hours)
-# - Invoke-AudioFeeder.ps1 (main orchestration)
-# - Download-TestAudio.ps1 (YouTube helper)
-# - IpcServer.cs or Start-IpcServer.ps1 (test control)
+## Manual Test Plan — Journey Overview
 
-# 2. Run audio feeder tests (1-3 hours)
-.\test-helpers\Download-TestAudio.ps1 -Url "https://youtube.com/watch?v=..."
-Start-Process DiktaMe.exe -ArgumentList "--enable-ipc"
-.\test-helpers\Invoke-AudioFeeder.ps1 -AudioFile "..." -SubtitleFile "..."
+The manual test plan is organized as **complete user journeys**, each following a realistic path from wizard setup through daily usage.
 
-# 3. Verify statistics and accuracy
-```
+| Journey | Configuration | Duration | Scenarios |
+|---------|--------------|----------|-----------|
+| **1. Cloud (Deepgram)** | Deepgram STT + Cloud LLM | ~3h | ~75 |
+| **2. Cloud (Gemini)** | Gemini Audio STT + Gemini LLM | ~1.5h | ~15 |
+| **3. Local (Whisper+Ollama)** | Whisper STT + Ollama LLM | ~2h | ~25 |
+| **4. Hybrid (Skip LLM)** | Cloud STT + No LLM | ~1h | ~10 |
+| **5. Settings Verification** | All 9 settings tabs + persistence | ~2h | ~95 |
+| **Cross-Cutting** | Error handling, persistence, UI polish | ~1h | ~25 |
+| **Audio Feeder** | Automated voice testing (IPC) | ~3-5h | 5 runs |
+| | **Total manual** | **~10.5h** | **~280** |
+
+Each journey tests: wizard setup, core dictation, all 6 modes, voice snippets, API keys, data/privacy, system integration, and performance.
+
+**Between journeys:** Delete `%APPDATA%\DiktaMe\settings.json` to reset.
 
 ---
 
-## Documentation Structure
+## Feature Coverage Status
 
-| File | Purpose | Time | Content |
-|------|---------|------|---------|
-| **[LIVE_TESTING_PLAN.md](plans/LIVE_TESTING_PLAN.md)** | Comprehensive strategy (permanent) | — | Full plan with rationale |
-| **[MANUAL_TEST_PLAN.md](MANUAL_TEST_PLAN.md)** | Checklist for manual testing | 9.5h | 125 test scenarios with `- [ ]` boxes |
-| **[test-helpers/](test-helpers/)** | PowerShell validation scripts | — | 8 core + 3 audio feeder scripts |
-| **[test-session-log.md](test-session-log.md)** | Your working copy (gitignored) | — | Timestamped session notes |
+Features with manual test scenarios in MANUAL_TEST_PLAN.md:
 
----
-
-## Manual Testing Sections
-
-### Section 1: First-Run Experience (30 minutes)
-**Goal:** Validate configuration wizard and initial setup
-- Delete `%APPDATA%\DiktaMe\settings.json` to simulate first launch
-- Navigate all 5 wizard steps
-- Verify settings persistence
-- **Scenarios:** 15
-
-### Section 2: Core Dictation (1 hour)
-**Goal:** Test the primary use case — voice-to-text injection
-- Basic dictation with Deepgram, Gemini, Whisper
-- With/without LLM cleanup, Raw mode
-- Trailing space, additional keys, auto-stop, audio ducking
-- Voice snippet expansion
-- **Scenarios:** 20
-
-### Section 3: Advanced Modes (1.5 hours)
-**Goal:** Validate all 6 workflow modes + Quick Chat
-- Refine (Autopilot & Instruction modes)
-- Ask (Voice Q&A)
-- Translate (EN↔ES)
-- Note (Voice → markdown file)
-- Oops (Re-inject last text)
-- Quick Chat (Floating overlay)
-- **Scenarios:** 25
-
-### Section 4: Audio System (30 minutes)
-**Goal:** Validate hardware integration
-- Device enumeration and selection
-- Mute detection
-- Audio ducking (volume reduction)
-- Auto-stop on max duration
-- Error handling (device unplugged)
-- **Scenarios:** 10
-
-### Section 5: Settings Management (2 hours)
-**Goal:** Validate all 10 settings tabs
-- General, AI Engine, Modes, Audio, Privacy
-- API Keys, Ollama, Snippets, Control Panel Config, About
-- Test all toggles, dropdowns, sliders
-- Verify persistence across restart
-- **Scenarios:** 35
-
-### Section 6: Data & Privacy (45 minutes)
-**Goal:** Validate persistence, history, and privacy compliance
-- Privacy levels (Ghost/Stats/Balanced/Full)
-- PII scrubbing
-- 90-day history pruning
-- Settings persistence
-- Corrupt file recovery
-- **Scenarios:** 12
-
-### Section 7: System Integration (1 hour)
-**Goal:** Validate OS-level integrations
-- Global hotkey registration
-- Hotkey conflicts and re-registration
-- Text injection and clipboard handling
-- Auto-start via Task Scheduler
-- Tray icon behavior
-- App minimize/exit
-- **Scenarios:** 15
-
-### Section 8: Error Handling (1.5 hours)
-**Goal:** Validate graceful degradation and error recovery
-- Invalid/missing API keys
-- STT/LLM providers offline
-- Whisper model not downloaded
-- Network timeouts
-- Corrupt files (recovery)
-- Empty/silent audio
-- App restart during operations
-- **Scenarios:** 18
-
-### Section 9: Performance & Polish (30 minutes)
-**Goal:** Validate non-functional requirements
-- Startup time (<3s in cloud mode)
-- Memory footprint (<80MB idle)
-- Recording latency (<100ms visual feedback)
-- Pipeline end-to-end latency (<5s)
-- Control Panel real-time updates
-- Settings responsiveness
-- UI polish and branding consistency
-- **Scenarios:** 10
+| Feature | Covered | Journey/Section |
+|---------|---------|-----------------|
+| Wizard (8 steps, 14 paths) | Yes | J1-J4 setup sections |
+| Core dictation (3 STT providers) | Yes | J1-J3 core sections |
+| All 6 modes + Quick Chat | Yes | J1 advanced modes |
+| Dictation Presets CRUD | Yes | J1 + J5.4 |
+| Notes settings | Yes | J1 + J5.5 |
+| Chat settings | Yes | J1 + J5.6 |
+| Live model discovery (5 APIs) | Yes | J5.4 |
+| Voice snippets | Yes | J1.5 |
+| Privacy levels (4 modes) | Yes | J1.7 + J5.9 |
+| Hotkeys (7 actions) | Yes | J5.8 |
+| Audio ducking | Yes | J5.7 |
+| Ollama management | Yes | J3.3 + J5.11 |
+| Auto-start (Task Scheduler) | Yes | J5.1 |
+| Tray icon | Yes | J1.8 |
+| **Wallet system (sign-in, balance, billing)** | **No** | Needs new journey |
+| **UI themes (Midnight/Ember/Frost)** | **No** | Needs cross-cutting section |
+| **Control Panel (waveform, snap, idle roll)** | **No** | Needs cross-cutting section |
+| **Account/Auth (OAuth, avatar, JWT refresh)** | **No** | Needs new journey |
+| **TTS system (Kokoro, cloud providers)** | **No** | Needs new journey |
+| **TTS notifications (toast speak)** | **No** | Needs cross-cutting section |
+| **ReadSelection mode (Ctrl+Alt+S)** | **No** | Needs cross-cutting section |
 
 ---
 
-## Audio Feeder Automation (Section 10)
+## Helper Scripts
 
-**Goal:** Validate transcription quality with diverse real voices and accents
+| Script | Purpose |
+|--------|---------|
+| `Verify-AppSettings.ps1` | Read and validate settings.json |
+| `Verify-HistoryDb.ps1` | Query SQLite history.db |
+| `Verify-SecureStorage.ps1` | Check DPAPI encryption of keys.dat |
+| `Verify-AutoStart.ps1` | Verify Task Scheduler entry |
+| `Verify-FileSystem.ps1` | Check file/directory existence |
+| `Verify-Snippets.ps1` | Validate snippets.json |
+| `Test-OllamaHealth.ps1` | Check Ollama connectivity |
+| `Get-AppState.ps1` | Full application state dump |
+| `New-TestSession.ps1` | Initialize timestamped test session |
 
-### How It Works
-
-1. **Download** — `Download-TestAudio.ps1` fetches YouTube video + captions via `yt-dlp`
-2. **Slice** — `Invoke-AudioFeeder.ps1` parses SRT subtitle file, creates 8-10s phrases
-3. **Play** — Audio playback through speakers via NAudio or Windows media APIs
-4. **Control** — IPC server (TCP `127.0.0.1:5005`) receives:
-   - `START` → Begin recording
-   - `STOP` → Stop recording
-   - `STATUS` → Poll for state (idle/recording/transcribing/processing/error)
-   - `PING` → Health check
-5. **Measure** — Track success rate, latency, accuracy
-
-### Test Scenarios
-
-| Video | Accent | Duration | Phrases | Expected Accuracy |
-|-------|--------|----------|---------|-------------------|
-| TED Talk | American | 10-15m | 50-100 | >90% |
-| Podcast | Casual | 5-10m | 30-60 | 80-90% |
-| BBC Documentary | British | 5m | 30 | >85% |
-| Sports Commentary | Fast Speech | 3-5m | 20-30 | 75-85% |
-| Interview/Debate | Multi-Speaker | 5m | 30 | 85-90% |
-
-### IPC Server Requirements
-
-**Implement in C# or PowerShell:**
-```csharp
-// Option A: C# TCP server in DiktaMe.Core.Testing.IpcServer
-// Option B: PowerShell TCP listener in Start-IpcServer.ps1
-// Option C: Named pipe server (Windows-native)
-
-// Security: Only enabled with --enable-ipc flag
-// Port: 127.0.0.1:5005 (configurable)
-// Commands: START, STOP, STATUS, PING
-```
+See [test-helpers/README.md](test-helpers/README.md) for usage examples.
 
 ---
 
-## PowerShell Helper Scripts
+## Unit Test Modules (1010 tests)
 
-**8 Core Validation Scripts:**
+| Module | Tests | Files | Coverage |
+|--------|-------|-------|----------|
+| TTS | 184 | 10 | 77% (10/13 classes) |
+| Config | 118 | 8 | 75% (9/12) |
+| STT | 95 | 6 | 56% (5/9) |
+| Pipeline | 89 | 4 | 100% (8/8) |
+| Data | 82 | 5 | 83% (5/6) |
+| LLM | 69 | 3 | 71% (5/7) |
+| Audio | 62 | 6 | 83% (5/6) |
+| Account | 46 | 6 | 75% (3/4) |
+| Input | 44 | 4 | 100% (4/4) |
+| System | 41 | 2 | 67% (2/3) |
+| Security | 26 | 3 | 100% (3/3) |
+| Weather | 13 | 1 | 100% (1/1) |
+| Root | 10 | 2 | — |
 
-1. **Verify-AppSettings.ps1** — Read and validate settings.json
-2. **Verify-HistoryDb.ps1** — Query history.db for recent entries
-3. **Verify-SecureStorage.ps1** — Check keys.dat encryption
-4. **Verify-AutoStart.ps1** — Verify Task Scheduler entry
-5. **Verify-FileSystem.ps1** — Check file/directory existence
-6. **Verify-Snippets.ps1** — Validate snippets.json
-7. **Test-OllamaHealth.ps1** — Check Ollama connectivity
-8. **Get-AppState.ps1** — Full app state dump for debugging
-
-**Session Management:**
-
-9. **New-TestSession.ps1** — Initialize testing session with timestamp
-
-**Audio Feeder (To Implement):**
-
-10. **Invoke-AudioFeeder.ps1** — Main orchestration (port from V1)
-11. **Download-TestAudio.ps1** — YouTube downloader wrapper
-12. **Start-IpcServer.ps1** — TCP server for automation
-
-See [test-helpers/README.md](test-helpers/README.md) for detailed documentation.
+Full details: [TESTING_COVERAGE.md](TESTING_COVERAGE.md)
 
 ---
 
-## Testing Workflow
-
-### Starting a Session
-
-```powershell
-# 1. Initialize
-.\test-helpers\New-TestSession.ps1
-
-# 2. Open checklist
-code MANUAL_TEST_PLAN.md
-
-# 3. Work through sections, checking off items
-# - Mark complete: - [x]
-# - Mark pending: - [ ]
-
-# 4. Add notes to test-session-log.md as you go
-```
-
-### Validation Methods
-
-| Type | Method | Example |
-|------|--------|---------|
-| **Visual** | Observe UI behavior | "Window appears", "Text injected" |
-| **File** | Check file existence/contents | `.\Verify-FileSystem.ps1` |
-| **Database** | Query SQLite history.db | `.\Verify-HistoryDb.ps1` |
-| **Settings** | Read settings.json | `.\Verify-AppSettings.ps1` |
-| **System** | Task Scheduler, Registry | `.\Verify-AutoStart.ps1` |
-| **App State** | Full dump for debugging | `.\Get-AppState.ps1` |
-
-### Pausing & Resuming
-
-- Markdown editor saves checklist state automatically
-- `test-session-log.md` is gitignored (won't commit)
-- Can resume anytime — unchecked boxes show remaining work
-
-### Bug Tracking
-
-When you find a bug:
-1. Document in `test-session-log.md` with `❌ BUG:` prefix
-2. Create GitHub Issue (if critical)
-3. Continue testing (don't block)
-4. Fix bugs in batch after session
-
----
-
-## Success Criteria
-
-### Manual Testing (Sections 1-9)
-- ✅ All 125 scenarios executed at least once
-- ✅ 95%+ scenarios pass (120+ / 125)
-- ✅ All critical bugs fixed
-- ✅ Non-critical bugs documented (GitHub Issues)
-- ✅ Performance targets met (<3s startup, <80MB memory)
-
-### Automated Testing (Section 10)
-- ✅ Audio feeder successfully controls app via IPC
-- ✅ TED talk scenario achieves 90%+ success rate
-- ✅ Diverse accents tested (3+ different speakers)
-- ✅ Statistics tracking accurate (success rate, latency)
-- ✅ Tool is reproducible (same audio → similar results)
-
-### Overall
-- ✅ UI is visually consistent (branding, icons, fonts)
-- ✅ Error messages are actionable
-- ✅ No crashes or data loss in normal usage
-- ✅ Settings persist correctly across restarts
-- ✅ Privacy levels work as documented
-
----
-
-## Time Estimates
-
-| Phase | Activity | Duration |
-|-------|----------|----------|
-| Setup | Create infrastructure | ✅ **Done** |
-| Manual (1-9) | Execute 125 scenarios | 9-10 hours |
-| Audio Feeder | Port V1 tool + IPC | 2-3 hours |
-| Audio Feeder | Run test scenarios | 1-3 hours |
-| Bug Fixes | Fix critical/important | 4-8 hours |
-| Polish | UI tweaks, performance | 2-4 hours |
-| **Total** | | **18-28 hours** |
-
----
-
-## Next Steps
-
-1. ✅ **Created:**
-   - `MANUAL_TEST_PLAN.md` with 125 scenarios
-   - 8 PowerShell validation helper scripts
-   - `test-helpers/README.md` documentation
-   - Updated `.gitignore` for test artifacts
-
-2. **To Implement (Section 10):**
-   - Port `audio_feeder.py` to `Invoke-AudioFeeder.ps1`
-   - Create `Download-TestAudio.ps1` (YouTube wrapper)
-   - Build IPC server (C# or PowerShell)
-   - Test with real YouTube audio
-
-3. **To Execute:**
-   - Run manual tests (Sections 1-9)
-   - Document bugs and observations
-   - Fix critical issues
-   - Run automated voice tests (Section 10)
-   - Final polish before installer
-
----
-
-## Files
+## File Structure
 
 ```
 E:\git\diktame\
-├── plans/
-│   └── LIVE_TESTING_PLAN.md         ← Comprehensive strategy
-├── TESTING.md                        ← This file
-├── MANUAL_TEST_PLAN.md               ← Checklist (125 scenarios)
-├── test-helpers/                     ← PowerShell validation scripts
+├── TESTING.md                  ← This index
+├── MANUAL_TEST_PLAN.md         ← Journey-based checklist (~280 scenarios)
+├── TESTING_COVERAGE.md         ← Unit test metrics (1010 tests, 60 files)
+├── test-helpers/               ← PowerShell validation scripts
 │   ├── README.md
 │   ├── Verify-AppSettings.ps1
 │   ├── Verify-HistoryDb.ps1
@@ -350,13 +143,19 @@ E:\git\diktame\
 │   ├── Verify-Snippets.ps1
 │   ├── Test-OllamaHealth.ps1
 │   ├── Get-AppState.ps1
-│   ├── New-TestSession.ps1
-│   ├── Invoke-AudioFeeder.ps1         ← (To implement)
-│   ├── Download-TestAudio.ps1         ← (To implement)
-│   └── Start-IpcServer.ps1            ← (To implement)
-└── test-session-log.md               ← Your working copy (gitignored)
+│   └── New-TestSession.ps1
+├── test-session-log.md         ← Working notes (gitignored)
+└── plans/archive/
+    └── LIVE_TESTING_PLAN.md    ← Original strategy doc (archived)
 ```
 
 ---
 
-**Ready to test!** Open `MANUAL_TEST_PLAN.md` and begin Section 1. 🎯
+## Pre-Release Testing Priority
+
+1. **Run unit tests** — `dotnet test DiktaMe.sln` (1010 tests, 0 failures expected)
+2. **Journey 1** (Cloud/Deepgram) — validates the primary happy path
+3. **Journey 3** (Local/Ollama) — validates fully offline workflow
+4. **Journey 5** (Settings) — validates all 9 tabs + persistence
+5. **Cross-cutting** — error handling, clipboard, tray icon
+6. **Missing features** — wallet, auth, TTS, themes, control panel (add to MANUAL_TEST_PLAN.md)

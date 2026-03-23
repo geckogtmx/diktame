@@ -2,7 +2,7 @@
 
 > **Source**: Manual testing of SPEC_009 Scenario 1 (Full Cloud, no Ollama)
 > **Date**: 2026-03-09
-> **Status**: 15/17 complete (FIX-1 deferred to SPEC_008, FIX-16 done, FIX-17 TTS wizard step pending)
+> **Status**: ARCHIVED — 15/17 complete. FIX-3 (duplicate Ollama checks) + FIX-17 (TTS wizard step) deferred to post-release.
 
 ---
 
