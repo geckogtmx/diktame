@@ -198,9 +198,61 @@ Press button 2 → recording starts → icon goes red → processing → icon re
 | Component | Path | Role in Integration |
 |-----------|------|-------------------|
 | SingleInstanceManager | `src/DiktaMe.App/Services/SingleInstanceManager.cs` | Named pipe pattern to follow |
-| LoadingViewModel | `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` | Pipeline execution entry point (lines 356-913) |
+| LoadingViewModel | `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` | Pipeline execution entry point; hotkey dispatch at lines 335-422 |
 | PipelineFactory | `src/DiktaMe.Core/Config/PipelineFactory.cs` | Creates all 8 pipeline types |
-| SettingsManager | `src/DiktaMe.Core/Config/SettingsManager.cs` | `SettingsChanged` event (line 42) |
+| SettingsManager | `src/DiktaMe.Core/Config/SettingsManager.cs` | `SettingsChanged` event (line 49) |
 | DictationModeManager | `src/DiktaMe.Core/Config/DictationModeManager.cs` | `GetAllModes()` for Property Inspector |
 | PipelineState | `src/DiktaMe.Core/Pipeline/PipelineState.cs` | State enum (Idle, Recording, Transcribing, etc.) |
 | StreamDeck-Tools | [NuGet](https://www.nuget.org/packages/StreamDeck-Tools/) | v6.4.0, .NET 8, maintained by BarRaider |
+
+---
+
+## Appendix B: Feasibility Review (2026-03-23)
+
+> Deep-dive research performed against current SDK docs, NuGet packages, and codebase state.
+
+### Blockers
+
+**None found.** The feature is buildable with current tooling.
+
+### SDK & Library Status
+
+| Item | Status | Detail |
+|------|--------|--------|
+| Elgato official SDK | JS-only | `@elgato/streamdeck` v2.0.4. No C#/.NET SDK planned. |
+| StreamDeck-Tools (BarRaider) | Active | v6.4.0 stable (.NET 8), v7.0.0-beta.3 (.NET 8/10 + SkiaSharp). 535 stars, 39.9K NuGet downloads. |
+| Stream Deck SW requirement | v6.9+ | Required for latest plugin features. |
+| `dialPress` event | Removed | Gone in SW v6.5. Must use `dialDown`/`dialUp`. **No impact** — spec doesn't use dials. |
+| New devices | Supported | Stream Deck Neo, Plus XL, SCUF, Galleon 100 SD — all handled by StreamDeck-Tools v6.4. |
+
+### Alternative C# Libraries (for reference)
+
+| Library | Notes |
+|---------|-------|
+| `streamdeck-client-csharp` (TyrenDe) | v4.3.0, minimal wrapper, Windows-only. |
+| `Stream-Deck-CSharp-Client` (Aeroverra) | Cross-platform, DI-friendly. Less adoption. |
+| `StreamDeckSharp` (OpenMacroBoard) | Low-level hardware control. Different use case. |
+| `StreamDeckToolkit` (FritzAndFriends) | Template has known build failures ([Issue #82](https://github.com/FritzAndFriends/StreamDeckToolkit/issues/82)). Avoid. |
+
+**Verdict:** StreamDeck-Tools remains the best choice. No reason to switch.
+
+### Risks
+
+| Risk | Severity | Mitigation |
+|------|----------|------------|
+| Community library dependency (not Elgato-backed) | Medium | Underlying protocol is just WebSocket + JSON — could implement directly if BarRaider disappears. |
+| v7.0 migration required (~12-18 months) | Medium | v7.0 replaces `System.Drawing` with SkiaSharp, drops .NET Standard 2.0. ~4h migration. Pin v6.4 for now. |
+| Named pipes = Windows-only | Low | DiktaMe is WinUI 3 / Windows-only. Not a real concern. |
+| Sideloaded plugins don't auto-update | Low | Fine for personal/niche feature. Marketplace submission possible later. |
+
+### Spec Gaps Found
+
+1. **Foreground window capture**: `OnHotkeyPressed()` captures `sourceWindow` via `TextInjector.GetCurrentForegroundWindow()` *before* dispatching to UI thread (line 339). A Stream Deck trigger arriving via named pipe would miss this — the foreground window would be wrong. `TriggerPipelineAsync` must capture HWND on the pipe-reader thread before dispatching.
+
+2. **Concurrent pipe connections**: `LocalApiServer` should use `MaxAllowedServerInstances` (like `SingleInstanceManager` does) to handle overlapping reconnects gracefully.
+
+3. **Oops action omitted**: `Oops` (undo last injection) is a one-liner and a natural Stream Deck button. Consider adding it as a low-cost third action type.
+
+### Broader Value of Phase 1
+
+The `LocalApiServer` + named pipe IPC is useful beyond Stream Deck. Any external tool that can write JSON to a named pipe could trigger pipelines: Talon (voice coding), Touch Portal, AutoHotkey, macro keyboards, custom scripts. Building Phase 1 first creates a general-purpose local API.
