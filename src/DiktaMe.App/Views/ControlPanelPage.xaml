@@ -88,6 +88,9 @@
                         <CompositeTransform x:Name="LayerBTransform" TranslateY="20" ScaleY="0.3"/>
                     </StackPanel.RenderTransform>
                     <Image x:Name="BrandingLogo" Width="16" Height="16" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="BrandingDateText" FontSize="12" FontWeight="Normal"
+                               Foreground="{StaticResource AppTextBrush}"
+                               CharacterSpacing="50" VerticalAlignment="Center"/>
                     <TextBlock x:Name="BrandingTimeText" FontSize="12" FontWeight="SemiBold"
                                Foreground="{StaticResource AppTextBrush}"
                                CharacterSpacing="50" VerticalAlignment="Center"/>
@@ -105,9 +108,10 @@
                                Foreground="{StaticResource AppTextBrush}"/>
                     <TextBlock x:Name="WeatherTempText"
                                Text="{x:Bind ViewModel.WeatherText, Mode=OneWay}"
-                               FontSize="12" FontWeight="SemiBold"
+                               FontSize="12" FontWeight="Normal"
                                Foreground="{StaticResource AppTextBrush}"
-                               CharacterSpacing="50" VerticalAlignment="Center"/>
+                               CharacterSpacing="50" VerticalAlignment="Center"
+                               Margin="0,1,0,0"/>
                 </StackPanel>
             </Grid>
 

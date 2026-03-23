@@ -896,8 +896,24 @@ public sealed partial class ControlPanelPage : Page
         if (key != _lastTimeUpdateSecond)
         {
             _lastTimeUpdateSecond = key;
-            BrandingTimeText.Text = DateTime.Now.ToString(fmt,
-                System.Globalization.CultureInfo.CurrentCulture);
+            var now = DateTime.Now;
+            var culture = System.Globalization.CultureInfo.CurrentCulture;
+
+            // Split format at the time boundary (first H, h, or t character)
+            int timeIdx = fmt.IndexOfAny(['H', 'h', 't']);
+            if (timeIdx > 0)
+            {
+                string dateFmt = fmt[..timeIdx].TrimEnd();
+                string timeFmt = fmt[timeIdx..];
+                BrandingDateText.Text = now.ToString(dateFmt, culture);
+                BrandingTimeText.Text = now.ToString(timeFmt, culture);
+            }
+            else
+            {
+                // No date portion found — put everything in time (bold)
+                BrandingDateText.Text = string.Empty;
+                BrandingTimeText.Text = now.ToString(fmt, culture);
+            }
         }
     }
 
