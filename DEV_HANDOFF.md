@@ -4,7 +4,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1039 passing locally (479+ on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
+| **Tests** | 1132 passing locally (479+ on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | **PASSES** (0 warnings, 0 errors). All 4 style dictionaries load cleanly at runtime. |
 | **CI** | **PASSING** — lint, build, tests, gitleaks, vulnerability audit, publish all green. |
 | **Branch** | main (all UI revamp + ACCOUNTS_SIGNIN + auth polish + Stream Deck committed) |
@@ -36,6 +36,10 @@
 | **Chat Theming** | **COMPLETE** ✅ — QuickChatWindow migrated to App*Brush theme system (StaticResource + InjectControlBrushes + live switching). MarkdownTextBlock fully themed. Dead `ChatSettings.Theme` property removed. |
 | **Auth Reliability** | **COMPLETE** ✅ — JWT refresh on startup before wallet sync (fixes "Session Expired" toast). Timer dueTime→Zero. Avatar sync on every launch via `SyncProfileFromServerAsync()`. Sign-in no longer forces `AuthMode.Wallet` (preserves user setting). Account page layout centered. |
 | **SPEC_005** | **SHELVED** — Stream Deck integration. IPC + plugin architecture complete, but button press responsiveness unresolved. Server disabled in App.xaml.cs. See `plans/SPEC_005_STREAMDECK.md` §16. |
+| **SPEC_015 Phase 0A** | **COMPLETE** ✅ — STTProviderFactory (18 tests) + LLMProviderFactory (20 tests). Closes test gap for Local Mode provider factories. |
+| **SPEC_015 Phase 0B** | **COMPLETE** ✅ — Plugin infrastructure: `DiktaMe.Plugin.Abstractions` project with IPlugin, PipelineEventBus, PluginManager, PluginUIRegistry, JsonPluginSettingsStore. Host wired: DI, 8 pipeline completion sites, Settings nav injection, tray menu injection. 24 tests. |
+| **SPEC_015 Phase 0B.19** | **COMPLETE** ✅ — BeforeLlm pipeline hooks in DictationPipeline, AskPipeline, ChatPipeline. Event bus types moved to Core.Pipeline (resolved circular dependency). |
+| **SPEC_015 Phase 0C** | **FUNCTIONAL (needs polish)** — Vision pipeline end-to-end: ScreenCapture (Win32 GDI), ImageProcessor, multimodal LLM (Gemini/Claude/OpenAI/Ollama), SnippingOverlayWindow, Ctrl+Alt+S hotkey. Active monitor capture. Screenshots saved to `%APPDATA%/DiktaMe/vision/`. 10 tests. See known issues below. |
 
 ## Open Bugs (Stream K) — Updated 2026-03-22
 
@@ -690,14 +694,27 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 
 ### Tier 3 — Modules (Steps 5-10, SPEC_015)
 
-| Task | Effort |
-|------|--------|
-| **Phase 0A** | Factory tests (~28 tests, ~1 session) |
-| **Phase 0B** | Plugin infrastructure: `IPlugin`, `PipelineEventBus`, `PluginManager`, `PluginUIRegistry` |
-| **Phase 0C** | Vision core: screenshot → AI at cursor (new hotkey TBD — `Ctrl+Alt+S` conflicts with ReadSelection) |
-| **Phases A-C** | Connectors: `IConnector` + Obsidian + Webhook/Discord/Streamer.bot |
-| **Phases O-Q** | Memory: SQLite+VSS, embedding model, pipeline hooks |
-| **Phases D-E** | Meetings: session engine + Scribe window (heaviest module, do last) |
+| Task | Effort | Status |
+|------|--------|--------|
+| **Phase 0A** | Factory tests | ✅ COMPLETE — 38 tests |
+| **Phase 0B** | Plugin infrastructure | ✅ COMPLETE — 24 tests, 15 new files |
+| **Phase 0B.19** | BeforeLlm hooks | ✅ COMPLETE |
+| **Phase 0C** | Vision core | ✅ FUNCTIONAL — needs polish (see below) |
+| **Phases A-C** | Connectors: `IConnector` + Obsidian + Webhook/Discord/Streamer.bot | Not started — unblocked |
+| **Phases O-Q** | Memory: SQLite+VSS, embedding model, pipeline hooks | Not started — unblocked |
+| **Phases D-E** | Meetings: session engine + Scribe window (heaviest module, do last) | Not started — unblocked |
+
+### Vision (Phase 0C) — Known Issues
+
+| Issue | Severity | Root Cause | Fix |
+|-------|----------|-----------|-----|
+| **Black image on 2nd+ capture** | High | Overlay window may still be visible when region capture fires. Timing race between `Close()` and `CaptureRegion()`. | Add delay after overlay close, or capture from the pre-captured monitor image instead of re-capturing |
+| **Silent pipeline failure on 2nd+ attempt** | High | Shared `_recordingCts` field — if first pipeline hasn't fully cleaned up, second attempt may get a pre-cancelled token or null reference | Use a local `CancellationTokenSource` per invocation instead of shared field |
+| **Audio ducking not restored on failure** | Medium | Ducking restore is in `finally` block but only runs if the pipeline actually reaches that point. Silent failures skip it. | Tied to the silent failure bug above |
+| **TTS reads toast notifications** | Low | Toast text triggers TTS notification speak. Vision toasts ("Analyzing image...") are being spoken. | Add `suppressTts: true` to Vision toast calls |
+| **No Vision Settings UI** | Low | No settings page for model selection, default query, output mode, temperature | Add Vision section to AI Engine + Workflows settings pages |
+| **Prompt too generic for some use cases** | Low | Default query "Describe what you see and extract any visible text" can produce verbose results | Allow user to customize default query in Settings |
+| **Image persistence is always-on** | Low | Screenshots always saved to `%APPDATA%/DiktaMe/vision/` with no cleanup | Make configurable in Settings; add retention/cleanup policy |
 
 Full spec: `plans/SPEC_015_MODULES_SPRINT.md` (17 phases, 18-23 sessions)
 
