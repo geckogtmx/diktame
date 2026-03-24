@@ -1,14 +1,16 @@
 # SPEC_002: Vision Module ("See")
 
-> **Status:** DRAFT → **Absorbed into** [`SPEC_015_MODULES_SPRINT.md`](SPEC_015_MODULES_SPRINT.md) (Module 3, Phases L–N)
-> **Date:** 2026-03-01
+> **Status:** READY FOR IMPLEMENTATION
+> **Date:** 2026-03-01 (revised 2026-03-24)
 > **Supersedes:** V1 `SPEC_004_VISIONARY_MODULE.md` (researched, never implemented)
 > **Hotkey:** `Ctrl+Alt+S` ("See")
+> **Role:** Design reference for [`SPEC_015_MODULES_SPRINT.md`](SPEC_015_MODULES_SPRINT.md) Phase 0C. This spec defines *what* and *why*; SPEC_015 defines *when* and *how* within the sprint.
+> **Phase 0B dependency:** Vision lives in Core (not a plugin) but should be built after Phase 0B so it can publish to `PipelineEventBus` from day one. This avoids retrofitting event wiring later.
 > **Related Specs:**
 > - [`SPEC_001_MEETINGS.md`](SPEC_001_MEETINGS.md) — Meetings module uses shared `ScreenCapture` for session-bound captures (Phase N)
 > - [`SPEC_013_CONNECTORS_IMPLEMENTATION.md`](SPEC_013_CONNECTORS_IMPLEMENTATION.md) — Vision outputs route through Connectors (cross-module bridge, Phase J)
 > - [`SPEC_014_MEMORY_LAYER.md`](SPEC_014_MEMORY_LAYER.md) — Vision results stored as memories for future context recall
-> - [`SPEC_015_MODULES_SPRINT.md`](SPEC_015_MODULES_SPRINT.md) — **Implementation sprint** (this spec is the design reference; SPEC_015 is the build plan)
+> - [`SPEC_015_MODULES_SPRINT.md`](SPEC_015_MODULES_SPRINT.md) — **Implementation sprint** (build plan; this spec is the design reference)
 
 ---
 
@@ -66,16 +68,31 @@ V1 SPEC_004 went through extensive research. Key decisions preserved:
 
 ### VRAM Budget (Local Mode)
 
+**Target: coexistence on 8GB GPUs.** By scoping to small vision models (~1-2GB), both the text LLM and vision model can remain loaded simultaneously — no model swapping needed.
+
 ```
+Recommended (coexistence):
 System/Display:     ~1.0 GB
-Whisper (if active): ~1.5 GB  (not needed for vision-only)
-Ollama LLM (text):  ~1.5-3.5 GB
-Ollama Vision:      ~2.0-5.5 GB  (model dependent)
+Ollama text LLM:    ~1.5-3.5 GB  (e.g., Phi-3 3.8B Q4 ≈ 2.5GB)
+Ollama Vision:      ~1.2-1.5 GB  (Moondream 2 or LFM2.5-VL)
 ────────────────────────────────
-Worst case:         ~8.0-11.5 GB (exceeds 8GB VRAM)
+Total:              ~3.7-6.0 GB  ✓ fits on 8GB GPU
+
+Advanced (requires swapping):
+Ollama Vision:      ~2.5-5.5 GB  (LLaVA-Phi3 or LLaVA 7B)
+────────────────────────────────
+Total:              ~5.0-10.0 GB (may exceed 8GB → Ollama auto-evicts)
 ```
 
-**Mitigation:** Vision tasks don't require concurrent STT. Ollama handles model swapping automatically — when a vision model is loaded, the text model may be evicted from VRAM. This is acceptable because vision is a discrete action, not a continuous pipeline.
+**Recommended local vision models (small footprint):**
+
+| Model | Params | VRAM (Q4) | Strengths | Ollama |
+|-------|--------|-----------|-----------|--------|
+| **Moondream 2** | 1.8B | ~1.2GB | Edge-optimized, fast, good OCR | `ollama pull moondream` |
+| **LFM2.5-VL** | 1.6B | ~1.2-1.5GB | Best-in-class for size, multilingual, multi-image, document understanding | GGUF on HuggingFace; Ollama community model pending official support |
+| **LLaVA-Phi3** | 3.8B | ~2.5GB | Phi-3 backbone, stronger reasoning | `ollama pull llava-phi3` (stretch — may not coexist with large text LLM) |
+
+**Mitigation for larger models:** Ollama auto-evicts the least-recently-used model when VRAM is exhausted. VisionPipeline should cancel/await any in-flight LLM request before calling a vision model to avoid concurrent VRAM pressure. See §4.6 for details.
 
 ---
 
@@ -163,7 +180,36 @@ Default implementation throws `NotSupportedException` — providers opt in by ov
 
 **Ollama** (via OpenAICompatibleProvider or native API) — same OpenAI format for LLaVA/Moondream.
 
-### 4.4 VisionPipeline
+### 4.5 LLMRouter Integration
+
+`LLMRouter` wraps `ILLMProvider` with primary/fallback routing. It needs a passthrough for the multimodal overload:
+
+```csharp
+// LLMRouter — add multimodal passthrough (same pattern as ProcessAsync)
+public async Task<LlmResult> ProcessWithImageAsync(byte[] imageData, string mimeType,
+    string text, string systemPrompt, string mode = "vision",
+    CancellationToken cancellationToken = default)
+{
+    try { return await _primary.ProcessWithImageAsync(imageData, mimeType, text, systemPrompt, mode, cancellationToken); }
+    catch when (_fallback != null) { return await _fallback.ProcessWithImageAsync(imageData, mimeType, text, systemPrompt, mode, cancellationToken); }
+}
+```
+
+### 4.6 Model Switching (Local Mode)
+
+**Happy path (recommended models):** Moondream/LFM2.5-VL (~1.2GB) + text LLM (~2-3.5GB) coexist on 8GB GPU. No swapping needed. Both models stay loaded.
+
+**Edge case (larger vision models):**
+
+1. **Cancel in-flight:** When Vision hotkey fires, cancel any active text LLM pipeline via `CancellationToken` before calling the vision model. Prevents concurrent VRAM pressure.
+2. **Ollama auto-eviction:** Ollama evicts LRU model when VRAM is full. No app-side coordination needed.
+3. **`keep_alive` tuning:** Vision model uses Ollama's `keep_alive` parameter to control VRAM residency. Default `5m` is reasonable. Expose `OllamaKeepAliveSeconds` in VisionSettings for users who want immediate unload (`keep_alive: 0`).
+
+**Loading UX:** Show toast "Loading vision model..." during first vision call (cold load = 3-10s). Subsequent calls with warm model are fast (~1s).
+
+**Cloud mode:** No model switching concerns. Skip all VRAM management.
+
+### 4.7 VisionPipeline
 
 ```
 VisionPipeline.RunAsync(screenshotData, audioFilePath?, options, cancellationToken)
@@ -217,11 +263,14 @@ A transparent, fullscreen, always-on-top WinUI 3 window:
 - Mouse down → start rect; mouse move → update rect (clear cutout); mouse up → capture region
 - Single click (no drag) → capture active window bounds
 - Esc → cancel and close overlay
-- Crosshair cursor via `CoreCursor`
+- Crosshair cursor via `InputSystemCursor` (WinUI 3) or `SetCursor` (Win32 fallback)
+
+> **WinUI 3 Note:** Transparent fullscreen overlays have known limitations in WinUI 3 (DPI scaling, multi-monitor edge cases). Primary approach: WinUI 3 `Window` with `SystemBackdrop = null` and transparent composition. Fallback: raw Win32 layered window via P/Invoke if WinUI 3 approach has issues. Evaluate during implementation.
 
 ### 5.3 Image Handling
 
-- Capture as `byte[]` PNG (via `System.Drawing` or WinRT `SoftwareBitmap`)
+- Capture via `Windows.Graphics.Capture` API (preferred, available on Windows 10 2004+ which matches our TFM `net8.0-windows10.0.19041.0`). Fallback: GDI `BitBlt` via P/Invoke.
+- Output as `byte[]` PNG (via WinRT `SoftwareBitmap` → `BitmapEncoder`)
 - Resize if larger than 2048px on longest side (reduce API payload / token cost)
 - Compress to JPEG (quality 85) if PNG > 1MB
 - Base64 encode for API transmission
@@ -278,6 +327,9 @@ public sealed record VisionSettings
     public int MaxImageDimensionPx { get; init; } = 2048;
     public bool AutoRecordQuery { get; init; } = true;  // Auto-start voice recording after capture
     public int QueryTimeoutSeconds { get; init; } = 10;
+    public int MaxResponseTokens { get; init; } = 4096;  // Vision responses need more tokens than dictation (1024)
+    public double Temperature { get; init; } = 0.3;      // Slightly higher than dictation (0.1) for creative vision tasks
+    public int OllamaKeepAliveSeconds { get; init; } = 300; // How long vision model stays in VRAM after use (0 = unload immediately)
 }
 ```
 
@@ -391,10 +443,23 @@ Configurable in VisionSettings. Default: Inject (matches all other modes).
 
 ## 12. Dependencies
 
-- **No new NuGet packages required for MVP** — `System.Drawing.Common` is already a transitive dependency for icon handling
-- **Optional:** `SixLabors.ImageSharp` if we need cross-platform image processing (not needed for Windows-only)
-- **Ollama vision models** require user to `ollama pull llava` or similar — not bundled
-- **LFM2.5-VL-1.6B** (Liquid AI) is a recommended local vision model: 1.6B params (~1.2–1.5GB VRAM quantized), strong OCR + real-world QA benchmarks, multi-image support, multilingual. Fits comfortably within the VRAM budget (§3) — potentially allows concurrent STT + Vision on 8GB without model swapping. Same OpenAI-compatible format as LLaVA/Moondream; zero extra integration work once available via `ollama pull lfm2.5-vl`. Tag in `ModelListService` as a known vision-capable model alongside `llava` and `moondream`.
+- **No new NuGet packages required for MVP** — image capture uses `Windows.Graphics.Capture` (WinRT) and GDI P/Invoke (both already available in the target TFM)
+- **Optional:** `SixLabors.ImageSharp` if we need advanced image processing (not needed for MVP — resize/compress via `BitmapEncoder` is sufficient)
+- **Ollama vision models** — user installs via `ollama pull`. Not bundled with the app.
+
+### Recommended Local Vision Models (Small Footprint)
+
+Scoped to ~1-2GB VRAM so vision + text LLM coexist on 8GB GPUs without model swapping.
+
+| Model | Params | VRAM (Q4) | Strengths | Install |
+|-------|--------|-----------|-----------|---------|
+| **Moondream 2** | 1.8B | ~1.2GB | Edge-optimized, fast inference, good OCR | `ollama pull moondream` |
+| **LFM2.5-VL** | 1.6B | ~1.2-1.5GB | Best-in-class for size: multilingual, multi-image, document understanding, strong OCR + real-world QA | GGUF on HuggingFace (`LiquidAI/LFM2.5-VL-1.6B`); Ollama community model pending official |
+| **LLaVA-Phi3** | 3.8B | ~2.5GB | Phi-3 backbone, stronger reasoning for complex analysis | `ollama pull llava-phi3` (may not coexist with large text LLMs on 8GB) |
+
+**Advanced user options (require model swapping on 8GB):** LLaVA 7B (~4.7GB), MiniCPM-V (~5.5GB). These work but Ollama will evict the text LLM from VRAM during vision calls.
+
+**ModelListService integration:** Tag known vision-capable model IDs (`moondream`, `lfm2.5-vl`, `llava-phi3`, `llava`, `minicpm-v`) so the Settings UI can filter to vision-capable models in the model selector.
 
 ---
 
