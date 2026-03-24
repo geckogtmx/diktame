@@ -24,6 +24,9 @@ export function Footer() {
           <Link href="/terms" className="text-muted hover:text-white transition-colors">
             {t('terms')}
           </Link>
+          <Link href="/roadmap" className="text-muted hover:text-white transition-colors">
+            {t('roadmap')}
+          </Link>
           <a
             href="https://github.com/geckogtmx/diktame"
             target="_blank"

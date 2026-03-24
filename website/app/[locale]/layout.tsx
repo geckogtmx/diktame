@@ -95,7 +95,7 @@ export default async function LocaleLayout({
                 inLanguage: ['en', 'es'],
                 operatingSystem: 'Windows 10+',
                 applicationCategory: 'UtilitiesApplication',
-                featureList: 'Voice dictation, Ask Mode, Refine Mode, Translate Mode, Quick Chat, Text-to-Speech, Voice Snippets, Audio Ducking, Streaming Dictation',
+                featureList: 'Voice dictation, Ask Mode, Refine Mode, Translate Mode, Quick Chat, Text-to-Speech, Voice Macros, Audio Ducking, Streaming Dictation',
                 offers: {
                   '@type': 'AggregateOffer',
                   lowPrice: '0',
