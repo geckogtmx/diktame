@@ -151,7 +151,9 @@ public partial class App : Application
         Services.GetRequiredService<Services.ThemeService>().ApplyFromSettings();
 
         // ── Start IPC API server for Stream Deck / external tool integration ─
-        Services.GetRequiredService<Services.LocalApiServer>().Start();
+        // SHELVED (SPEC_005): Stream Deck button responsiveness issues unresolved.
+        // Server code retained for future use. Re-enable by uncommenting the line below.
+        // Services.GetRequiredService<Services.LocalApiServer>().Start();
 
         // ── Wire deeplink handler ────────────────────────────────────────────
         var dispatcher = DispatcherQueue.GetForCurrentThread();

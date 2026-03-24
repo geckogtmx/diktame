@@ -842,4 +842,72 @@ private void OnPipelineStateChanged(object? sender, PipelineState state)
 2. The `_settings.PipelineType` default is "dictate" and may be overwriting the saved value
 3. The `setSettings` WebSocket event may not be persisting the `pipelineType` field
 
-**Status:** Not yet investigated. Needs debug logging in `KeyPressed` to verify what `_settings.PipelineType` contains at press time.
+**Status:** Investigated — see updated summary below.
+
+### Bug 8: AutoFlush Deadlock Regression (Connection Dead)
+
+**Symptom:** Plugin connects to pipe but shows "Offline" — never receives any data. Plugin log shows "connecting to pipe..." but no "connected" or subsequent messages. App and plugin must both be restarted.
+
+**Root Cause:** Round 3 of fixes changed StreamWriter from `bufferSize: 1` to `bufferSize: 4096` + `AutoFlush = true` on both server (`LocalApiServer.cs`) and client (`ApiPipeClient.cs`). The intent was to fix alleged message fragmentation from byte-at-a-time writes.
+
+However, `AutoFlush = true` calls `StreamWriter.Flush()` → `PipeStream.Flush()` → Win32 `FlushFileBuffers()`, which **blocks until the remote side reads pending data**. This is the exact Bug 4 deadlock.
+
+The deadlock occurs during initial handshake: server sends 3 snapshot messages (state + settings + modes) via `WriteSafe()`, each triggering `FlushFileBuffers()`. Client sends 2 queries (settings + modes) via `SendCommandAsync()`, each triggering `FlushFileBuffers()`. Both sides flush before either starts reading → mutual deadlock.
+
+The comment in the code claiming `Stream.Flush()` was a "no-op on PipeStream" was **incorrect** — directly contradicted by Bug 4's PowerShell proof.
+
+**Fix:** Revert both sides to `bufferSize: 1` (the proven Bug 4 fix). The alleged "fragmentation" from byte-at-a-time writes was a misdiagnosis — `StreamReader.ReadLineAsync()` internally buffers and correctly reassembles fragmented writes into complete lines. The truncation observed in plugin logs was the BarRaider logger truncating long strings, not pipe message fragmentation.
+
+**Status:** Fixed.
+
+---
+
+### Investigation Summary: Bugs 6 & 7 (Updated after 3 rounds)
+
+**Bug 6 (Duplicate Triggers / Sluggish Feel):**
+Three rounds of investigation established:
+1. Plugin logs confirm the SD SDK sends exactly ONE `keyDown` per physical press — no duplicates
+2. `KeyPressed` was changed from `async void` to synchronous `void` (SDK defines it as `void`)
+3. Server-side 300ms debounce was removed — it was eating legitimate presses (plugin proves no duplicates)
+4. The "sluggish feel" may partially stem from the pipe transport latency itself
+5. **Remaining:** Button responsiveness is closer to other plugins after debounce removal but user reports it still doesn't feel identical. Needs further investigation if this feature is resumed.
+
+**Bug 7 (Ask Triggers Dictate):**
+Plugin logs definitively show:
+- Constructor receives `settings count=2, pipelineType=ask` — settings load correctly
+- `KeyPressed` sends `pipelineType=ask` on every press — plugin side is correct
+- The issue is server-side: the app receives the command and may route it incorrectly, OR the first command was lost/eaten by the (now-removed) debounce
+- **Status:** Should be fixed by debounce removal (Bug 6 fix). Needs re-testing.
+
+---
+
+## 16. Feature Status: SHELVED (2026-03-24)
+
+**Decision:** Stream Deck integration shelved after 3 sessions of bug fixing. Connection and data pipeline work correctly, but button press responsiveness remains unusable.
+
+**What works:**
+- Named pipe IPC connection (bidirectional, reconnects automatically)
+- State events flow correctly (Idle → Recording → Transcribing → Processing → Injecting → Idle)
+- Settings sync (Raw, Streaming, Ducking, Engine toggles reflected in real-time)
+- Modes list delivery to PI dropdown
+- Constructor settings persistence (Ask/Dictate/Refine saved across restarts)
+
+**What doesn't work:**
+- Button presses require multiple attempts to register (user must "wrestle" the button)
+- Toggle commands sent by plugin are silently dropped by the server (settings events show no change)
+- First press on Ask button often triggers Dictate (server-side command routing issue)
+- Overall feel is "a world away" from other Stream Deck plugins
+
+**Root cause (suspected):** The issue is NOT the IPC transport — commands arrive at the server. The server-side command processing (`HandleTrigger`, `HandleToggle`) appears to silently drop or misroute commands. Needs server-side Serilog tracing to diagnose.
+
+**How to re-enable:**
+1. Uncomment `Services.GetRequiredService<Services.LocalApiServer>().Start();` in `App.xaml.cs` (line 154)
+2. Rebuild DiktaMe.App
+3. Rebuild + install Stream Deck plugin via `install-plugin.cmd`
+
+**App-side footprint (safe to leave compiled):**
+- `LocalApiServer.cs` — IPC server (self-contained, never starts without the uncommented line)
+- `ApiCommand.cs` — command parser (only used by LocalApiServer)
+- `ControlPanelViewModel.cs:70` — `ExternalStateChanged` event (declared but never raised — dead code)
+- `LoadingViewModel.cs:440-514` — `TriggerPipeline()` method (only called by LocalApiServer)
+- `App.xaml.cs:591` — DI registration (harmless, never resolved when Start isn't called)

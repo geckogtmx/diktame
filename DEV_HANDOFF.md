@@ -35,7 +35,7 @@
 | **UI_REVAMP_SCROLL_CP** | **COMPLETE** ✅ — 3-layer cylinder roll idle animation (status→logo+clock→weather), WeatherService (Open-Meteo + IP geolocation). 1010 tests. |
 | **Chat Theming** | **COMPLETE** ✅ — QuickChatWindow migrated to App*Brush theme system (StaticResource + InjectControlBrushes + live switching). MarkdownTextBlock fully themed. Dead `ChatSettings.Theme` property removed. |
 | **Auth Reliability** | **COMPLETE** ✅ — JWT refresh on startup before wallet sync (fixes "Session Expired" toast). Timer dueTime→Zero. Avatar sync on every launch via `SyncProfileFromServerAsync()`. Sign-in no longer forces `AuthMode.Wallet` (preserves user setting). Account page layout centered. |
-| **SPEC_005** | **IN PROGRESS** — Stream Deck integration. Phase 1+2 complete (plugin skeleton, IPC pipe, 4 actions, PIs). Phase 3 bugfixes partially done (7 bugs found, 5 fixed). See §SPEC_005 below. |
+| **SPEC_005** | **SHELVED** — Stream Deck integration. IPC + plugin architecture complete, but button press responsiveness unresolved. Server disabled in App.xaml.cs. See `plans/SPEC_005_STREAMDECK.md` §16. |
 
 ## Open Bugs (Stream K) — Updated 2026-03-22
 
@@ -370,7 +370,7 @@ System.ArgumentNullException: Value cannot be null. (Parameter 'key')
 
 ---
 
-## SPEC_005: Stream Deck Integration — IN PROGRESS
+## SPEC_005: Stream Deck Integration — SHELVED
 
 **Spec**: `plans/SPEC_005_STREAMDECK.md` (full bugfix record in §15)
 
@@ -383,31 +383,31 @@ System.ArgumentNullException: Value cannot be null. (Parameter 'key')
 - **App stability**: No crashes during dictation with Stream Deck connected (Bug 1 fixed)
 - **SetWindowLongPtr**: Graceful try/catch (Bug 2 fixed)
 
-### Known Bugs — Next Session Priority
+### Unresolved Bugs (feature shelved)
 
 | Bug | Summary | Status |
 |-----|---------|--------|
-| **B-6** | Button press feels sluggish (need double-click or quick-click) | **OPEN** — Removed plugin 500ms debounce, server 300ms debounce. Needs pipe latency investigation. |
-| **B-7** | Ask button triggers Dictate instead of Ask | **OPEN** — `pipelineType` setting may not survive `ReceivedSettings`/`AutoPopulateSettings` cycle. Add debug logging to `KeyPressed` to verify `_settings.PipelineType`. |
-| **PI Status** | "Connecting..." shown even when connected | **LIKELY FIXED** — Added `OnPropertyInspectorDidAppear` handler. Not retested after final build. |
+| **B-6** | Button press feels sluggish (need double-click or quick-click) | **UNRESOLVED** — 3 rounds of fixes (debounce removal, optimistic UI, sync KeyPressed). Server-side command dropping suspected. |
+| **B-7** | Ask button triggers Dictate instead of Ask | **UNRESOLVED** — Plugin sends correct `pipelineType=ask`. Server-side command routing issue. |
+| **B-8** | AutoFlush deadlock (connection dead) | **FIXED** — Reverted to `bufferSize: 1` (no `AutoFlush`). |
 
 ### Architecture (Key Files)
 
 | File | Role |
 |------|------|
-| `src/DiktaMe.App/Services/LocalApiServer.cs` | **NEW** — IPC server, ConnectedClient inner class with per-client write lock |
-| `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` | Added `TriggerPipeline()` public entry point + `_modeIdOverride` |
-| `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs` | Added `ExternalStateChanged` event |
-| `src/DiktaMe.Core/Config/ApiCommand.cs` | **NEW** — IPC command model + parser |
-| `src/DiktaMe.StreamDeck/` | **NEW** — Full plugin (4 actions, 2 PIs, pipe client, models) |
-| `test-helpers/test-ipc-pipe.ps1` | **NEW** — Manual pipe test script |
-| `tests/.../ApiCommandParserTests.cs` | **NEW** — 25 unit tests for IPC parser |
+| `src/DiktaMe.App/Services/LocalApiServer.cs` | IPC server (disabled — `Start()` commented out in App.xaml.cs) |
+| `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` | `TriggerPipeline()` entry point (dead code while server disabled) |
+| `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs` | `ExternalStateChanged` event (dead code while server disabled) |
+| `src/DiktaMe.Core/Config/ApiCommand.cs` | IPC command model + parser (compiled but unused) |
+| `src/DiktaMe.StreamDeck/` | Full plugin (4 actions, 2 PIs, pipe client, models) |
+| `test-helpers/test-ipc-pipe.ps1` | Manual pipe test script |
+| `tests/.../ApiCommandParserTests.cs` | 25 unit tests for IPC parser |
 
-### Next Steps
+### Re-enablement
 
-1. Debug B-7 (Ask→Dictate): Add `Log.Information("KeyPressed: pipelineType={Type}", _settings.PipelineType)` to confirm settings are loaded
-2. Debug B-6 (responsiveness): Profile pipe message round-trip time, consider if SD SDK event handling adds latency
-3. Once basic interactions work: display tricks (state icons, telemetry numbers on LCD keys)
+1. Uncomment `Services.GetRequiredService<Services.LocalApiServer>().Start();` in `App.xaml.cs`
+2. Rebuild DiktaMe.App + Stream Deck plugin
+3. See `plans/SPEC_005_STREAMDECK.md` §16 for full status
 
 ---
 
