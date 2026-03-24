@@ -1,3 +1,4 @@
+using DiktaMe.Core.Pipeline;
 using Serilog;
 
 namespace DiktaMe.Plugin;

@@ -1,4 +1,4 @@
-namespace DiktaMe.Plugin;
+namespace DiktaMe.Core.Pipeline;
 
 /// <summary>
 /// Mutable context passed to plugins after transcription completes.

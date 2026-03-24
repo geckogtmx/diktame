@@ -18,6 +18,7 @@ public sealed class AskPipeline
     private readonly ISTTProvider _stt;
     private readonly ILLMProvider _llm;
     private readonly SettingsManager _settings;
+    private readonly PipelineEventBus? _eventBus;
 
     /// <summary>Raised when the pipeline transitions to a new stage.</summary>
     public event EventHandler<PipelineState>? StateChanged;
@@ -25,11 +26,12 @@ public sealed class AskPipeline
     /// <summary>Raised when the pipeline completes (success or failure).</summary>
     public event EventHandler<PipelineResult>? Completed;
 
-    public AskPipeline(ISTTProvider stt, ILLMProvider llm, SettingsManager settings)
+    public AskPipeline(ISTTProvider stt, ILLMProvider llm, SettingsManager settings, PipelineEventBus? eventBus = null)
     {
         _stt = stt;
         _llm = llm;
         _settings = settings;
+        _eventBus = eventBus;
     }
 
     /// <summary>
@@ -70,11 +72,21 @@ public sealed class AskPipeline
 
             // ── Stage 2: Ask the LLM ──────────────────────────────────────
             SetState(PipelineState.Processing);
+
+            var effectivePrompt = options.SystemPrompt;
+            if (_eventBus is not null)
+            {
+                var ctx = new BeforeLlmContext { UserText = question, SystemPrompt = effectivePrompt, Mode = Mode };
+                _eventBus.PublishBeforeLlm(ctx);
+                if (ctx.AdditionalSystemContext.Length > 0)
+                    effectivePrompt = $"{effectivePrompt}\n\n{ctx.AdditionalSystemContext}";
+            }
+
             Log.Information("AskPipeline: sending to LLM ({Provider})", _llm.ProviderName);
 
             var llmSw = Stopwatch.StartNew();
             LlmResult llmResult = await _llm
-                .ProcessWithModelAsync(question, options.SystemPrompt, options.ModelName, Mode, cancellationToken)
+                .ProcessWithModelAsync(question, effectivePrompt, options.ModelName, Mode, cancellationToken)
                 .ConfigureAwait(false);
             llmSw.Stop();
             total.Stop();

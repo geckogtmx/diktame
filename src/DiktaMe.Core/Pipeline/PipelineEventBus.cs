@@ -1,7 +1,6 @@
-using DiktaMe.Core.Pipeline;
 using Serilog;
 
-namespace DiktaMe.Plugin;
+namespace DiktaMe.Core.Pipeline;
 
 public sealed class PipelineEventBus : IPipelineEventBus
 {

@@ -18,6 +18,7 @@ public sealed class DictationPipeline
     private readonly ILLMProvider? _llm;
     private readonly TextInjector _injector;
     private readonly SnippetManager? _snippets;
+    private readonly PipelineEventBus? _eventBus;
 
     // ── Events ────────────────────────────────────────────────────────────
 
@@ -37,12 +38,14 @@ public sealed class DictationPipeline
         ISTTProvider stt,
         ILLMProvider? llm,
         TextInjector injector,
-        SnippetManager? snippets = null)
+        SnippetManager? snippets = null,
+        PipelineEventBus? eventBus = null)
     {
         _stt = stt;
         _llm = llm;
         _injector = injector;
         _snippets = snippets;
+        _eventBus = eventBus;
     }
 
     /// <summary>
@@ -100,10 +103,11 @@ public sealed class DictationPipeline
             {
                 try
                 {
+                    var effectivePrompt = ApplyBeforeLlmHooks(rawText, options.SystemPrompt!, Mode);
                     Log.Information("DictationPipeline: sending to LLM ({Provider})", _llm!.ProviderName);
                     var llmSw = Stopwatch.StartNew();
                     LlmResult llmResult = await _llm!
-                        .ProcessWithModelAsync(rawText, options.SystemPrompt!, options.ModelName, Mode, cancellationToken)
+                        .ProcessWithModelAsync(rawText, effectivePrompt, options.ModelName, Mode, cancellationToken)
                         .ConfigureAwait(false);
                     llmSw.Stop();
                     processingMs = llmSw.ElapsedMilliseconds;
@@ -224,6 +228,15 @@ public sealed class DictationPipeline
         };
         Completed?.Invoke(this, result);
         return result;
+    }
+
+    private string ApplyBeforeLlmHooks(string userText, string systemPrompt, string mode)
+    {
+        if (_eventBus is null) return systemPrompt;
+        var ctx = new BeforeLlmContext { UserText = userText, SystemPrompt = systemPrompt, Mode = mode };
+        _eventBus.PublishBeforeLlm(ctx);
+        return ctx.AdditionalSystemContext.Length > 0
+            ? $"{systemPrompt}\n\n{ctx.AdditionalSystemContext}" : systemPrompt;
     }
 
     private void SetState(PipelineState state) => StateChanged?.Invoke(this, state);

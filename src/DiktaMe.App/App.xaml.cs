@@ -567,7 +567,8 @@ public partial class App : Application
             sp.GetRequiredService<SettingsManager>(),
             sp.GetRequiredService<SnippetManager>(),
             walletStt: sp.GetRequiredService<WalletDeepgramProxy>(),
-            walletLlm: sp.GetRequiredService<WalletGeminiProxy>()));
+            walletLlm: sp.GetRequiredService<WalletGeminiProxy>(),
+            eventBus: sp.GetRequiredService<DiktaMe.Core.Pipeline.PipelineEventBus>()));
 
         // ── Account (K.2 / K.8) ──────────────────────────────────────────────
         services.AddSingleton<AccountService>();
@@ -600,8 +601,8 @@ public partial class App : Application
     private static void ConfigurePlugins(IServiceCollection services)
     {
         // ── Plugin Infrastructure (SPEC_015-0B) ─────────────────────────────────
-        services.AddSingleton<DiktaMe.Plugin.PipelineEventBus>();
-        services.AddSingleton<DiktaMe.Plugin.IPipelineEventBus>(sp => sp.GetRequiredService<DiktaMe.Plugin.PipelineEventBus>());
+        services.AddSingleton<DiktaMe.Core.Pipeline.PipelineEventBus>();
+        services.AddSingleton<DiktaMe.Core.Pipeline.IPipelineEventBus>(sp => sp.GetRequiredService<DiktaMe.Core.Pipeline.PipelineEventBus>());
         services.AddSingleton<DiktaMe.Plugin.PluginUIRegistry>();
         services.AddSingleton<DiktaMe.Plugin.IPluginUIRegistry>(sp => sp.GetRequiredService<DiktaMe.Plugin.PluginUIRegistry>());
         services.AddSingleton<DiktaMe.Plugin.PluginManager>();

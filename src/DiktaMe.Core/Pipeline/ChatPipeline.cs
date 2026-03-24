@@ -38,11 +38,14 @@ public sealed class ChatPipeline
     /// Required when <see cref="ChatOptions.AudioFilePath"/> is set.
     /// Null is valid for text-only usage.
     /// </param>
-    public ChatPipeline(ILLMProvider llm, SettingsManager settings, ISTTProvider? stt = null)
+    private readonly PipelineEventBus? _eventBus;
+
+    public ChatPipeline(ILLMProvider llm, SettingsManager settings, ISTTProvider? stt = null, PipelineEventBus? eventBus = null)
     {
         _llm = llm;
         _settings = settings;
         _stt = stt;
+        _eventBus = eventBus;
     }
 
     /// <summary>
@@ -122,11 +125,21 @@ public sealed class ChatPipeline
             // ── LLM chat response ─────────────────────────────────────────
             SetState(PipelineState.Processing);
             ApplyProviderSettings(options);
+
+            var effectivePrompt = options.SystemPrompt;
+            if (_eventBus is not null)
+            {
+                var ctx = new BeforeLlmContext { UserText = question, SystemPrompt = effectivePrompt, Mode = Mode };
+                _eventBus.PublishBeforeLlm(ctx);
+                if (ctx.AdditionalSystemContext.Length > 0)
+                    effectivePrompt = $"{effectivePrompt}\n\n{ctx.AdditionalSystemContext}";
+            }
+
             Log.Information("ChatPipeline: sending to LLM ({Provider})", _llm.ProviderName);
 
             var llmSw = Stopwatch.StartNew();
             LlmResult llmResult = await _llm
-                .ProcessWithModelAsync(question, options.SystemPrompt, options.ModelName, Mode, cancellationToken)
+                .ProcessWithModelAsync(question, effectivePrompt, options.ModelName, Mode, cancellationToken)
                 .ConfigureAwait(false);
             llmSw.Stop();
             total.Stop();
@@ -212,12 +225,28 @@ public sealed class ChatPipeline
             // ── LLM conversation response ────────────────────────────────
             SetState(PipelineState.Processing);
             ApplyProviderSettings(options);
+
+            var convEffectivePrompt = options.SystemPrompt;
+            if (_eventBus is not null)
+            {
+                var lastUserContent = truncated.LastOrDefault(t => string.Equals(t.Role, "user", StringComparison.Ordinal))?.Content ?? string.Empty;
+                var ctx = new BeforeLlmContext
+                {
+                    UserText = lastUserContent,
+                    SystemPrompt = convEffectivePrompt,
+                    Mode = Mode,
+                };
+                _eventBus.PublishBeforeLlm(ctx);
+                if (ctx.AdditionalSystemContext.Length > 0)
+                    convEffectivePrompt = $"{convEffectivePrompt}\n\n{ctx.AdditionalSystemContext}";
+            }
+
             Log.Information("ChatPipeline: sending {Count} turns to LLM ({Provider})",
                 truncated.Count, _llm.ProviderName);
 
             var llmSw = Stopwatch.StartNew();
             LlmResult llmResult = await _llm
-                .ProcessConversationWithModelAsync(truncated, options.SystemPrompt,
+                .ProcessConversationWithModelAsync(truncated, convEffectivePrompt,
                     options.ModelName, Mode, cancellationToken)
                 .ConfigureAwait(false);
             llmSw.Stop();

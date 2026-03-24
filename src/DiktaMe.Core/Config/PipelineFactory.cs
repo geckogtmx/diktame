@@ -24,6 +24,7 @@ public sealed class PipelineFactory
     private readonly SnippetManager _snippets;
     private readonly ISTTProvider? _walletStt;
     private readonly ILLMProvider? _walletLlm;
+    private readonly PipelineEventBus? _eventBus;
 
     public PipelineFactory(
         ProfileManager profiles,
@@ -35,7 +36,8 @@ public sealed class PipelineFactory
         SettingsManager settings,
         SnippetManager snippets,
         ISTTProvider? walletStt = null,
-        ILLMProvider? walletLlm = null)
+        ILLMProvider? walletLlm = null,
+        PipelineEventBus? eventBus = null)
     {
         _profiles = profiles;
         _sttFactory = sttFactory;
@@ -47,6 +49,7 @@ public sealed class PipelineFactory
         _snippets = snippets;
         _walletStt = walletStt;
         _walletLlm = walletLlm;
+        _eventBus = eventBus;
     }
 
     // ── Factory methods ───────────────────────────────────────────────────────
@@ -54,7 +57,7 @@ public sealed class PipelineFactory
     public DictationPipeline CreateDictationPipeline(string? modeOverride = null)
     {
         var (stt, llm) = GetProviders("dictate", modeOverride);
-        return new DictationPipeline(stt, llm, _injector, _snippets);
+        return new DictationPipeline(stt, llm, _injector, _snippets, _eventBus);
     }
 
     public RefinePipeline CreateRefinePipeline(string? modeOverride = null)
@@ -76,7 +79,7 @@ public sealed class PipelineFactory
     public AskPipeline CreateAskPipeline(string? modeOverride = null)
     {
         var (stt, llm) = GetProviders("ask", modeOverride);
-        return new AskPipeline(stt, llm!, _settings);
+        return new AskPipeline(stt, llm!, _settings, _eventBus);
     }
 
     public TranslatePipeline CreateTranslatePipeline(string? modeOverride = null)
@@ -94,7 +97,7 @@ public sealed class PipelineFactory
     public ChatPipeline CreateChatPipeline(string? modeOverride = null)
     {
         var (stt, llm) = GetProviders("chat", modeOverride);
-        return new ChatPipeline(llm!, _settings, stt);
+        return new ChatPipeline(llm!, _settings, stt, _eventBus);
     }
 
     /// <summary>

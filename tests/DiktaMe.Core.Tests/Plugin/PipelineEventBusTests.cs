@@ -1,5 +1,4 @@
 using DiktaMe.Core.Pipeline;
-using DiktaMe.Plugin;
 using FluentAssertions;
 
 namespace DiktaMe.Core.Tests.Plugin;

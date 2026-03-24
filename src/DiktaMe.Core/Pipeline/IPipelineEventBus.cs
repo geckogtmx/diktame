@@ -1,6 +1,4 @@
-using DiktaMe.Core.Pipeline;
-
-namespace DiktaMe.Plugin;
+namespace DiktaMe.Core.Pipeline;
 
 public interface IPipelineEventBus
 {
