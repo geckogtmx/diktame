@@ -1,3 +1,5 @@
+> **Language / Idioma:** English | [Español](README.es.md)
+
 # ![dIKta.me](docs/images/ReadmeHead.png)
 
 # dIKta.me V2
