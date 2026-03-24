@@ -11,19 +11,19 @@ namespace DiktaMe.Core.Vision;
 public static class ScreenCapture
 {
     /// <summary>
-    /// Returns the screen bounds (x, y, width, height) of the foreground window.
-    /// If the foreground window belongs to our own process, walks the Z-order
-    /// to find the next visible window behind it.
+    /// Returns the screen bounds of the monitor containing the foreground window.
     /// </summary>
-    public static (int X, int Y, int Width, int Height) GetActiveWindowBounds()
+    public static (int X, int Y, int Width, int Height) GetActiveMonitorBounds()
     {
-        IntPtr hwnd = FindTargetWindow();
-        if (hwnd == IntPtr.Zero || !NativeMethods.GetWindowRect(hwnd, out NativeMethods.RECT rect))
-        {
-            return (0, 0, 0, 0);
-        }
+        IntPtr hwnd = NativeMethods.GetForegroundWindow();
+        if (hwnd == IntPtr.Zero) return (0, 0, 0, 0);
 
-        return (rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
+        IntPtr hMonitor = NativeMethods.MonitorFromWindow(hwnd, NativeMethods.MONITOR_DEFAULTTONEAREST);
+        var mi = new NativeMethods.MONITORINFO { cbSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf<NativeMethods.MONITORINFO>() };
+        if (!NativeMethods.GetMonitorInfo(hMonitor, ref mi)) return (0, 0, 0, 0);
+
+        var r = mi.rcMonitor;
+        return (r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top);
     }
 
     /// <summary>
@@ -459,5 +459,22 @@ public static class ScreenCapture
         internal static extern bool IsWindowVisible(IntPtr hWnd);
 
         internal const uint GW_HWNDNEXT = 2;
+        internal const uint MONITOR_DEFAULTTONEAREST = 2;
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct MONITORINFO
+        {
+            public uint cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
+        }
+
+        [DllImport("user32.dll")]
+        internal static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
     }
 }

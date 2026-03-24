@@ -1697,24 +1697,25 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             Log.Information("Starting Vision pipeline...");
 
-            // Step 1: Capture the active window BEFORE showing overlay
-            var bounds = DiktaMe.Core.Vision.ScreenCapture.GetActiveWindowBounds();
+            // Step 1: Capture the active monitor BEFORE showing overlay
+            var bounds = DiktaMe.Core.Vision.ScreenCapture.GetActiveMonitorBounds();
             if (bounds.Width <= 0 || bounds.Height <= 0)
             {
-                _notifications.ShowToast("Vision", "No active window found", NotificationType.Error);
+                _notifications.ShowToast("Vision", "No active monitor found", NotificationType.Error);
                 return;
             }
 
-            Log.Debug("Vision: capturing active window ({W}x{H} at {X},{Y})",
+            Log.Debug("Vision: capturing active monitor ({W}x{H} at {X},{Y})",
                 bounds.Width, bounds.Height, bounds.X, bounds.Y);
-            byte[] windowPng = await Task.Run(DiktaMe.Core.Vision.ScreenCapture.CaptureActiveWindow)
+            byte[] monitorPng = await Task.Run(
+                () => DiktaMe.Core.Vision.ScreenCapture.CaptureRegion(bounds.X, bounds.Y, bounds.Width, bounds.Height))
                 .ConfigureAwait(true);
-            Log.Debug("Vision: active window captured ({Size} bytes)", windowPng.Length);
+            Log.Debug("Vision: active monitor captured ({Size} bytes)", monitorPng.Length);
 
             // Step 2: Show snipping overlay sized to the active window
             var overlay = new Views.SnippingOverlayWindow();
             overlay.SetBounds(bounds.X, bounds.Y, bounds.Width, bounds.Height);
-            await overlay.SetBackgroundScreenshotAsync(windowPng).ConfigureAwait(true);
+            await overlay.SetBackgroundScreenshotAsync(monitorPng).ConfigureAwait(true);
             overlay.Activate();
             var snippingResult = await overlay.GetResultAsync().ConfigureAwait(true);
 
@@ -1741,7 +1742,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                 }
                 else
                 {
-                    screenshot = windowPng;
+                    screenshot = monitorPng;
                 }
 
                 Log.Debug("Vision: captured {Size} bytes, preparing for API", screenshot.Length);
