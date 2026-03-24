@@ -1,6 +1,7 @@
 
 using System.Collections.Generic;
 using DiktaMe.App.Services;
+using DiktaMe.Plugin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -131,6 +132,15 @@ public sealed partial class SettingsWindow : Window
             }
         }
 
+        // Add plugin-contributed settings pages
+        var pluginUI = App.Current.Services.GetService<PluginUIRegistry>();
+        if (pluginUI is not null)
+        {
+            AddPluginSettingsPages(pluginUI);
+            pluginUI.ContributionsChanged += (_, _) =>
+                DispatcherQueue.TryEnqueue(() => AddPluginSettingsPages(pluginUI));
+        }
+
         // Select General (first item) on load
         NavView.SelectedItem = NavView.MenuItems[0];
         ApplyNavItemColors();
@@ -177,31 +187,81 @@ public sealed partial class SettingsWindow : Window
         }
 
         string tag = item.Tag?.ToString() ?? "general";
-        Type? pageType = tag switch
-        {
-            "general" => typeof(Settings.GeneralSettingsPage),
-            "hardware" => typeof(Settings.HardwareSettingsPage),
-            "aiengine" => typeof(Settings.AIEngineSettingsPage),
-            "workflows" => typeof(Settings.WorkflowsSettingsPage),
-            "presets" => typeof(Settings.DictationPresetsSettingsPage),
-            "snippets" => typeof(Settings.SnippetsSettingsPage),
-            "privacy" => typeof(Settings.PrivacySettingsPage),
-            "account" => typeof(Settings.AccountSettingsPage),
-            "about" => typeof(Settings.AboutPage),
-            _ => typeof(Settings.GeneralSettingsPage),
-        };
 
-        try
+        // Check if this is a plugin-contributed page
+        var pluginUI = App.Current.Services.GetService<PluginUIRegistry>();
+        var pluginPage = pluginUI?.SettingsPages.FirstOrDefault(
+            p => string.Equals(p.NavigationTag, tag, StringComparison.Ordinal));
+
+        if (pluginPage is not null)
         {
-            ContentFrame.Navigate(pageType);
+            try
+            {
+                var page = pluginPage.PageFactory();
+                ContentFrame.Content = page;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "SettingsWindow: CRASH loading plugin page {Tag}", tag);
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Log.Error(ex, "SettingsWindow: CRASH navigating to {Page}", pageType?.Name);
+            Type? pageType = tag switch
+            {
+                "general" => typeof(Settings.GeneralSettingsPage),
+                "hardware" => typeof(Settings.HardwareSettingsPage),
+                "aiengine" => typeof(Settings.AIEngineSettingsPage),
+                "workflows" => typeof(Settings.WorkflowsSettingsPage),
+                "presets" => typeof(Settings.DictationPresetsSettingsPage),
+                "snippets" => typeof(Settings.SnippetsSettingsPage),
+                "privacy" => typeof(Settings.PrivacySettingsPage),
+                "account" => typeof(Settings.AccountSettingsPage),
+                "about" => typeof(Settings.AboutPage),
+                _ => typeof(Settings.GeneralSettingsPage),
+            };
+
+            try
+            {
+                ContentFrame.Navigate(pageType);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "SettingsWindow: CRASH navigating to {Page}", pageType?.Name);
+            }
         }
 
         // Update nav item foreground colors (selected = dark on blue bg, deselected = dim)
         ApplyNavItemColors();
+    }
+
+    // ── Plugin settings pages ──
+
+    private void AddPluginSettingsPages(PluginUIRegistry pluginUI)
+    {
+        // Remove previously added plugin items (tagged with "plugin:" prefix)
+        for (int i = NavView.MenuItems.Count - 1; i >= 0; i--)
+        {
+            if (NavView.MenuItems[i] is NavigationViewItem nvi
+                && nvi.Tag?.ToString()?.StartsWith("plugin:", StringComparison.Ordinal) == true)
+            {
+                NavView.MenuItems.RemoveAt(i);
+            }
+        }
+
+        // Add current plugin pages before "About" (last hardcoded item)
+        foreach (var page in pluginUI.SettingsPages)
+        {
+            var navItem = new NavigationViewItem
+            {
+                Content = page.DisplayName,
+                Tag = page.NavigationTag,
+                Icon = new FontIcon { Glyph = page.IconGlyph },
+            };
+            // Insert before About (last item)
+            int insertIdx = Math.Max(0, NavView.MenuItems.Count - 1);
+            NavView.MenuItems.Insert(insertIdx, navItem);
+        }
     }
 
     // ── Pane collapse/expand toggle ──

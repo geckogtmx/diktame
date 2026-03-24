@@ -94,6 +94,25 @@ public sealed partial class TrayIconView : UserControl, IDisposable
         {
             ViewModel.OpenSettingsCommand.Execute(null);
         }));
+        // Plugin-contributed tray menu items
+        var pluginUI = App.Current.Services.GetService<DiktaMe.Plugin.PluginUIRegistry>();
+        if (pluginUI is not null)
+        {
+            var pluginItems = pluginUI.TrayMenuItems;
+            if (pluginItems.Count > 0)
+            {
+                menu.Items.Add(new PopupMenuSeparator());
+                foreach (var item in pluginItems)
+                {
+                    if (item.IsSeparatorBefore)
+                    {
+                        menu.Items.Add(new PopupMenuSeparator());
+                    }
+                    menu.Items.Add(new PopupMenuItem(item.Label, (_, _) => item.OnClick()));
+                }
+            }
+        }
+
         menu.Items.Add(new PopupMenuSeparator());
         menu.Items.Add(new PopupMenuItem(_loc.GetString("Tray_Quit"), (_, _) =>
         {

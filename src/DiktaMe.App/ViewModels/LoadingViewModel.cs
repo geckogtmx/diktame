@@ -12,6 +12,7 @@ using DiktaMe.Core.Security;
 using DiktaMe.Core.STT;
 using DiktaMe.Core.SystemManagement;
 using DiktaMe.Core.TTS;
+using DiktaMe.Plugin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using Serilog;
@@ -44,6 +45,8 @@ public sealed partial class LoadingViewModel : ObservableObject
     private readonly AudioLevelMonitor _levelMonitor;
     private readonly MuteDetector _muteDetector;
     private readonly WalletGeminiProxy _walletProxy;
+    private readonly PipelineEventBus _pipelineEventBus;
+    private readonly PluginManager _pluginManager;
 
     [ObservableProperty] private string _statusText = "";
     [ObservableProperty] private double _progress;
@@ -85,7 +88,9 @@ public sealed partial class LoadingViewModel : ObservableObject
         TtsSpeaker ttsSpeaker,
         AudioLevelMonitor levelMonitor,
         MuteDetector muteDetector,
-        WalletGeminiProxy walletProxy)
+        WalletGeminiProxy walletProxy,
+        PipelineEventBus pipelineEventBus,
+        PluginManager pluginManager)
     {
         _settings = settings;
         _history = history;
@@ -111,6 +116,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         _levelMonitor = levelMonitor;
         _muteDetector = muteDetector;
         _walletProxy = walletProxy;
+        _pipelineEventBus = pipelineEventBus;
+        _pluginManager = pluginManager;
         _statusText = _loc.GetString("Loading_Initializing");
     }
 
@@ -249,6 +256,10 @@ public sealed partial class LoadingViewModel : ObservableObject
             // Step 6: Start hotkey manager and register hotkeys
             StatusText = _loc.GetString("Loading_Hotkeys");
             InitializeHotkeys();
+            Progress = 95;
+
+            // Step 7: Discover and load plugins (no-op if plugins/ is empty)
+            await DiscoverPluginsAsync();
             Progress = 100;
 
             StatusText = _loc.GetString("Loading_Ready");
@@ -261,6 +272,29 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
 
         LoadingComplete?.Invoke();
+    }
+
+    private async Task DiscoverPluginsAsync()
+    {
+        try
+        {
+            var pluginsDir = Path.Combine(AppContext.BaseDirectory, "plugins");
+            var context = new PluginContext
+            {
+                Services = App.Current.Services,
+                PipelineEvents = _pipelineEventBus,
+                Settings = new JsonPluginSettingsStore("_host"),
+                UI = App.Current.Services.GetRequiredService<PluginUIRegistry>(),
+                Dispatcher = action => _uiDispatcher?.TryEnqueue(() => action()),
+                Logger = Log.ForContext<PluginManager>(),
+            };
+            await _pluginManager.DiscoverAndLoadAsync(pluginsDir, context);
+            Log.Information("Plugin discovery complete: {Count} plugin(s) loaded", _pluginManager.Plugins.Count);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Plugin discovery failed — continuing without plugins");
+        }
     }
 
     private void InitializeHotkeys()
@@ -939,6 +973,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             // Wire state/completed events to ControlPanel
             streamingPipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
             streamingPipeline.Completed += _controlPanel.OnPipelineCompleted;
+            streamingPipeline.Completed += (_, result) => _pipelineEventBus.PublishCompleted(result);
 
             // Get fresh recorder
             _currentRecorder?.Dispose();
@@ -1103,8 +1138,9 @@ public sealed partial class LoadingViewModel : ObservableObject
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
 
-            // Notify ControlPanel of pipeline completion (for telemetry)
+            // Notify ControlPanel + plugins of pipeline completion
             _controlPanel.OnPipelineCompleted(this, result);
+            _pipelineEventBus.PublishCompleted(result);
 
             // Access correct PipelineResult properties
             if (result.IsSuccess)
@@ -1187,6 +1223,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             var result = await Task.Run(() => pipeline.RunAsync(null, options, _recordingCts.Token));
 
             _controlPanel.OnPipelineCompleted(this, result);
+            _pipelineEventBus.PublishCompleted(result);
             _notifications.PlayCustomSound(soundSettings.UtilitySound);
 
             if (result.IsSuccess)
@@ -1259,6 +1296,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
 
             _controlPanel.OnPipelineCompleted(this, result);
+            _pipelineEventBus.PublishCompleted(result);
 
             if (result.IsSuccess)
             {
@@ -1332,9 +1370,10 @@ public sealed partial class LoadingViewModel : ObservableObject
                 }
             }
 
-            // Notify ControlPanel of pipeline completion (for telemetry)
-            _controlPanel.OnPipelineCompleted(this,
-                ttsMs > 0 ? result with { TtsPlayedMs = ttsMs } : result);
+            // Notify ControlPanel + plugins of pipeline completion
+            var askFinalResult = ttsMs > 0 ? result with { TtsPlayedMs = ttsMs } : result;
+            _controlPanel.OnPipelineCompleted(this, askFinalResult);
+            _pipelineEventBus.PublishCompleted(askFinalResult);
 
             if (result.IsSuccess)
             {
@@ -1448,9 +1487,10 @@ public sealed partial class LoadingViewModel : ObservableObject
                 }
             }
 
-            // Notify ControlPanel of pipeline completion (for telemetry)
-            _controlPanel.OnPipelineCompleted(this,
-                ttsMs > 0 ? result with { TtsPlayedMs = ttsMs } : result);
+            // Notify ControlPanel + plugins of pipeline completion
+            var translateFinalResult = ttsMs > 0 ? result with { TtsPlayedMs = ttsMs } : result;
+            _controlPanel.OnPipelineCompleted(this, translateFinalResult);
+            _pipelineEventBus.PublishCompleted(translateFinalResult);
 
             if (result.IsSuccess)
             {
@@ -1519,8 +1559,9 @@ public sealed partial class LoadingViewModel : ObservableObject
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(audioFile, options, _recordingCts.Token);
 
-            // Notify ControlPanel of pipeline completion (for telemetry)
+            // Notify ControlPanel + plugins of pipeline completion
             _controlPanel.OnPipelineCompleted(this, result);
+            _pipelineEventBus.PublishCompleted(result);
 
             if (result.IsSuccess)
             {
@@ -1606,8 +1647,9 @@ public sealed partial class LoadingViewModel : ObservableObject
             _recordingCts = new CancellationTokenSource();
             var result = await pipeline.RunAsync(selectedText, _recordingCts.Token);
 
-            // Notify ControlPanel of pipeline completion (for telemetry)
+            // Notify ControlPanel + plugins of pipeline completion
             _controlPanel.OnPipelineCompleted(this, result);
+            _pipelineEventBus.PublishCompleted(result);
 
             if (result.IsSuccess)
             {

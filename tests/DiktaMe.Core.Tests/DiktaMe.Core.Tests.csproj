@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DiktaMe.Core\DiktaMe.Core.csproj" />
+    <ProjectReference Include="..\..\src\DiktaMe.Plugin.Abstractions\DiktaMe.Plugin.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

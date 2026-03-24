@@ -586,6 +586,8 @@ public partial class App : Application
         services.AddSingleton<OllamaSearchService>();
         services.AddSingleton<HardwareInfoService>();
 
+        ConfigurePlugins(services);
+
         // ── UI Services (F.5) ──────────────────────────────────────────────────
         services.AddSingleton<Services.LocalizationService>();
         services.AddSingleton<Services.NotificationService>();
@@ -593,6 +595,16 @@ public partial class App : Application
         services.AddSingleton<Services.LocalApiServer>();
 
         ConfigureViewModels(services);
+    }
+
+    private static void ConfigurePlugins(IServiceCollection services)
+    {
+        // ── Plugin Infrastructure (SPEC_015-0B) ─────────────────────────────────
+        services.AddSingleton<DiktaMe.Plugin.PipelineEventBus>();
+        services.AddSingleton<DiktaMe.Plugin.IPipelineEventBus>(sp => sp.GetRequiredService<DiktaMe.Plugin.PipelineEventBus>());
+        services.AddSingleton<DiktaMe.Plugin.PluginUIRegistry>();
+        services.AddSingleton<DiktaMe.Plugin.IPluginUIRegistry>(sp => sp.GetRequiredService<DiktaMe.Plugin.PluginUIRegistry>());
+        services.AddSingleton<DiktaMe.Plugin.PluginManager>();
     }
 
     private static void ConfigureViewModels(IServiceCollection services)

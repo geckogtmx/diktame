@@ -54,6 +54,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DiktaMe.Core\DiktaMe.Core.csproj" />
+    <ProjectReference Include="..\DiktaMe.Plugin.Abstractions\DiktaMe.Plugin.Abstractions.csproj" />
   </ItemGroup>
 
 
