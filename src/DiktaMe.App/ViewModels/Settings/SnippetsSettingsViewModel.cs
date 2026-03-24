@@ -39,7 +39,7 @@ public sealed partial class SnippetsSettingsViewModel : ObservableObject
     {
         IsNew = true;
         IsEditing = true;
-        EditPanelTitle = "New Snippet";
+        EditPanelTitle = "New Macro";
         EditTrigger = "";
         EditContent = "";
         SelectedSnippet = null;
@@ -55,7 +55,7 @@ public sealed partial class SnippetsSettingsViewModel : ObservableObject
 
         IsNew = false;
         IsEditing = true;
-        EditPanelTitle = "Edit Snippet";
+        EditPanelTitle = "Edit Macro";
         EditTrigger = SelectedSnippet.Trigger;
         EditContent = SelectedSnippet.Content;
     }

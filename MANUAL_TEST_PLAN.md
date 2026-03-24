@@ -166,7 +166,7 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 - [ ] **1.4.12** "Hello how are you" injected (bidirectional)
 
 ### Note Mode
-- [ ] **1.4.13** Press Ctrl+Alt+N, say "Remember to test snippets", release
+- [ ] **1.4.13** Press Ctrl+Alt+N, say "Remember to test Macros", release
 - [ ] **1.4.14** Check file at path from Notes settings has timestamp + note
 - [ ] **1.4.15** Verify timestamp matches format from Notes settings
 - [ ] **1.4.16** If LLM Processing enabled in Notes settings, verify text is formatted
@@ -191,17 +191,17 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 - [ ] **1.4.28** If "Forget on Close" disabled → Press Ctrl+Alt+C → History persists
 - [ ] **1.4.29** Test max history limit: Send (limit + 5) messages → Only last (limit) shown
 
-## 1.5: Voice Snippets (Cloud Path)
+## 1.5: Voice Macros (Cloud Path)
 
-- [ ] **1.5.1** Settings → Snippets → Add snippet: Trigger="my email", Content="test@example.com"
+- [ ] **1.5.1** Settings → Macros → Add Macro: Trigger="my email", Content="test@example.com"
 - [ ] **1.5.2** Dictate "Send to my email please" → expands to "Send to test@example.com please"
 - [ ] **1.5.3** Dictate "MY EMAIL" (uppercase) → expands (case-insensitive)
 - [ ] **1.5.4** Dictate "my email, thanks" → expands before punctuation
-- [ ] **1.5.5** Add snippet: Trigger="my phone", Content="555-1234"
+- [ ] **1.5.5** Add Macro: Trigger="my phone", Content="555-1234"
 - [ ] **1.5.6** Dictate "my email and my phone" → both expand
-- [ ] **1.5.7** Edit snippet → Changes saved
-- [ ] **1.5.8** Delete snippet → Removed
-- [ ] **1.5.9** Verify: `.\test-helpers\Verify-Snippets.ps1`
+- [ ] **1.5.7** Edit Macro → Changes saved
+- [ ] **1.5.8** Delete Macro → Removed
+- [ ] **1.5.9** Verify: `.\test-helpers\Verify-Macros.ps1`
 
 ## 1.6: API Keys & Security (Cloud Path)
 
@@ -521,14 +521,14 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 - [ ] **5.11.6** Stop Ollama → Health check shows offline
 - [ ] **5.11.7** Start Ollama → Health check shows online
 
-## 5.12: Snippets Settings Tab
-- [ ] **5.12.1** Settings → Snippets → Add snippet: "myemail" → "test@example.com"
+## 5.12: Macros Settings Tab
+- [ ] **5.12.1** Settings → Macros → Add Macro: "myemail" → "test@example.com"
 - [ ] **5.12.2** Dictate "Send to myemail" → Expands correctly
-- [ ] **5.12.3** Edit snippet → Changes persist
-- [ ] **5.12.4** Delete snippet → Removed
-- [ ] **5.12.5** Add 5 snippets → All saved
-- [ ] **5.12.6** Restart app → All snippets persist
-- [ ] **5.12.7** Verify: `.\test-helpers\Verify-Snippets.ps1`
+- [ ] **5.12.3** Edit Macro → Changes persist
+- [ ] **5.12.4** Delete Macro → Removed
+- [ ] **5.12.5** Add 5 Macros → All saved
+- [ ] **5.12.6** Restart app → All Macros persist
+- [ ] **5.12.7** Verify: `.\test-helpers\Verify-Macros.ps1`
 
 ## 5.13: Control Panel Settings Tab
 - [ ] **5.13.1** Settings → Control Panel → Verify "Show on Startup" toggle
@@ -582,7 +582,7 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 ## Settings Persistence
 
 - [ ] **P.1** Change 5 different settings → Restart → All persist
-- [ ] **P.2** Add snippet → Restart → Snippet still there
+- [ ] **P.2** Add Macro → Restart → Macro still there
 - [ ] **P.3** Change hotkey → Restart → New hotkey works
 - [ ] **P.4** Enable auto-start → Restart → Task still registered
 

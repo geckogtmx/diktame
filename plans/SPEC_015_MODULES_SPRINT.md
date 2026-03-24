@@ -220,7 +220,7 @@ Before starting new work, confirm what's done. **Code-verified 2026-03-16:**
 | Local STT + LLM (Whisper + Ollama) | SPEC_009 | **COMPLETE** (needs tests) | Code verified — all FIX-1 through FIX-16 implemented |
 | Quick Chat overlay | SPEC_042d | **COMPLETE** | — |
 | Audio Ducking | SPEC_043d | **COMPLETE** | — |
-| Voice Snippets | SPEC_026 | **COMPLETE** | — |
+| Voice Macros | SPEC_026 | **COMPLETE** | — |
 | OAuth + Wallet | SPEC_008 | **COMPLETE** | Code verified — K.8-K.12, M.1-M.4 all committed |
 | Internationalization | SPEC_004 | **COMPLETE** | Code verified — 606 strings, en-US + es-MX, WinUI3Localizer across 80 XAML files |
 | Deepgram Streaming | Stream L | **COMPLETE** | — |

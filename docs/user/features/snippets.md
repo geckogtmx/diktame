@@ -1,8 +1,8 @@
-# Voice Snippets
+# Voice Macros
 
-**Voice Snippets** are your secret weapon for speed. They turn short phrases into long blocks of text or complex commands.
+**Voice Macros** are your secret weapon for speed. They turn short phrases into long blocks of text or complex commands.
 
-## What is a Snippet?
+## What is a Macro?
 
 It's a mapping: **Trigger Phrase** → **Big Content**.
 
@@ -33,5 +33,5 @@ Tell the AI *how* to write, not just *what* to write.
 
 ## How do I add my own?
 
-Head to **Settings > Snippets**.
+Head to **Settings > Macros**.
 Keep your triggers unique (e.g., use "My Email" instead of just "Email") so you don't accidentally trigger them in conversation.

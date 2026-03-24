@@ -1,8 +1,8 @@
-# Fragmentos de Voz (Voice Snippets)
+# Macros de Voz (Voice Macros)
 
-Los **Fragmentos de Voz (Voice Snippets)** son tu arma secreta para la velocidad. Convierten frases cortas en bloques largos de texto o comandos complejos.
+Los **Macros de Voz (Voice Macros)** son tu arma secreta para la velocidad. Convierten frases cortas en bloques largos de texto o comandos complejos.
 
-## ¿Qué es un Fragmento (Snippet)?
+## ¿Qué es un Fragmento (Macro)?
 
 Es una asignación: **Frase Activadora** → **Contenido Grande**.
 
@@ -33,5 +33,5 @@ Dile a la IA *cómo* escribir, no solo *qué* escribir.
 
 ## ¿Cómo añado los míos?
 
-Dirígete a **Ajustes > Snippets**.
+Dirígete a **Ajustes > Macros**.
 Mantén tus activadores únicos (por ejemplo, usa "Mi Correo" en lugar de solo "Correo") para no activarlos accidentalmente durante una conversación normal.

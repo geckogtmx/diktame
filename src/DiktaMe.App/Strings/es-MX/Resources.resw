@@ -40,7 +40,7 @@
   <data name="Nav_Privacy.Content" xml:space="preserve"><value>Privacidad</value></data>
   <data name="Nav_ApiKeys.Content" xml:space="preserve"><value>Claves API</value></data>
   <data name="Nav_Ollama.Content" xml:space="preserve"><value>Ollama</value></data>
-  <data name="Nav_Snippets.Content" xml:space="preserve"><value>Snippets</value></data>
+  <data name="Nav_Snippets.Content" xml:space="preserve"><value>Macros</value></data>
   <data name="Nav_ControlPanel.Content" xml:space="preserve"><value>Panel de Control</value></data>
   <data name="Nav_About.Content" xml:space="preserve"><value>Acerca de</value></data>
   <data name="Nav_Hardware.Content" xml:space="preserve"><value>Audio y Mic</value></data>
@@ -171,7 +171,7 @@
   <data name="Settings_AIEngine_Deepgram_SmartFormat_Warning.Text" xml:space="preserve"><value>Agrega ~3 segundos de retraso en modo streaming al formatear entidades</value></data>
   <data name="Settings_AIEngine_Deepgram_Replace_Label.Text" xml:space="preserve"><value>Buscar y Reemplazar</value></data>
   <data name="Settings_AIEngine_Deepgram_Replace_Description.Text" xml:space="preserve"><value>Reemplazos del lado del servidor aplicados antes del LLM. Uno por l&#237;nea: buscar:reemplazar</value></data>
-  <data name="Settings_AIEngine_Deepgram_Replace_Help.Text" xml:space="preserve"><value>Los t&#233;rminos de b&#250;squeda deben ser min&#250;sculas. Complementa los Snippets (que se ejecutan despu&#233;s del LLM).</value></data>
+  <data name="Settings_AIEngine_Deepgram_Replace_Help.Text" xml:space="preserve"><value>Los t&#233;rminos de b&#250;squeda deben ser min&#250;sculas. Complementa los Macros (que se ejecutan despu&#233;s del LLM).</value></data>
   <data name="Settings_AIEngine_Deepgram_Streaming_Label.Text" xml:space="preserve"><value>Streaming en Tiempo Real</value></data>
   <data name="Settings_AIEngine_Deepgram_Streaming_Description.Text" xml:space="preserve"><value>Transmitir audio por WebSocket para transcripci&#243;n instant&#225;nea. Siempre opera en modo raw (sin LLM).</value></data>
   <data name="Settings_AIEngine_Deepgram_Nova3" xml:space="preserve"><value>nova-3 (recomendado)</value></data>
@@ -444,7 +444,7 @@
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Snippets
        ══════════════════════════════════════════════════════════════════════ -->
-  <data name="Settings_Snippets_Title.Text" xml:space="preserve"><value>Snippets de Voz</value></data>
+  <data name="Settings_Snippets_Title.Text" xml:space="preserve"><value>Macros de Voz</value></data>
   <data name="Settings_Snippets_TriggerHeader.Header" xml:space="preserve"><value>Frase activadora</value></data>
   <data name="Settings_Snippets_TriggerPlaceholder.PlaceholderText" xml:space="preserve"><value>ej. mi correo</value></data>
   <data name="Settings_Snippets_ContentHeader.Header" xml:space="preserve"><value>Contenido de expansi&#243;n</value></data>
@@ -743,7 +743,7 @@
   <data name="Loading_Initializing" xml:space="preserve"><value>Inicializando...</value></data>
   <data name="Loading_Settings" xml:space="preserve"><value>Cargando configuraci&#243;n...</value></data>
   <data name="Loading_Database" xml:space="preserve"><value>Inicializando base de datos...</value></data>
-  <data name="Loading_Snippets" xml:space="preserve"><value>Cargando snippets...</value></data>
+  <data name="Loading_Snippets" xml:space="preserve"><value>Cargando macros...</value></data>
   <data name="Loading_DownloadingWhisper" xml:space="preserve"><value>Descargando modelo Whisper...</value></data>
   <data name="Loading_WhisperFailed_Title" xml:space="preserve"><value>Error al descargar Whisper</value></data>
   <data name="Loading_WhisperFailed_Message" xml:space="preserve"><value>No se pudo descargar el modelo Whisper. Verifique su conexión a internet y reinicie la aplicación para reintentar.</value></data>

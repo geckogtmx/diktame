@@ -32,7 +32,7 @@ This spec defines a **3-tier memory model** inspired by two external architectur
 
 The Memory Layer is **invisible infrastructure**, not a user-facing search feature. Every module consumes it transparently via `IMemoryLayer` (DI) and `PipelineEventBus` hooks. Users interact with it only through a settings page where they can review, edit, or delete what memory "knows."
 
-A thin dictation-level vocabulary/correction layer (STT hints, common error patterns) is noted as a future lightweight derivative — it is not part of this spec.
+A **Teach-by-Correction** feature is included in this spec (Section 7) — a user-initiated hotkey flow that captures manual text corrections and stores them as persistent vocabulary/formatting memories.
 
 ### Platform Architecture: Memory at the Center
 
@@ -417,31 +417,107 @@ Chaviz session: user asks to "draft an email to Sarah about the budget" → Chav
 
 ---
 
-## 7. User Experience
+## 7. Teach-by-Correction
 
-### 7.1 Invisible by Default
+A user-initiated learning feature that lets users teach dIKta.me their preferred vocabulary, formatting, and spelling through natural correction — **fix it once, it remembers forever**.
+
+### 7.1 Concept
+
+During dictation, the pipeline may inject text that doesn't match the user's intended formatting — brand names, technical jargon, domain-specific casing, acronyms, foreign words, etc. Today the user manually corrects these every time. With Teach-by-Correction, one correction is enough:
+
+1. User dictates → pipeline injects `"Dictame"` (wrong)
+2. User manually corrects it to `"dIKta.me"` (right)
+3. User selects the corrected text and presses the **Teach hotkey**
+4. System retrieves the original injection from the **Oops clipboard** (already tracked)
+5. LLM diffs original vs. correction → extracts the correction rule
+6. Stored as a persistent `instruction` observation in the Memory Layer
+7. Future pipeline LLM prompts include this rule → correct formatting from now on
+
+### 7.2 Architecture
+
+```
+User selects corrected text → Teach Hotkey pressed
+    │
+    ├──► [1] CAPTURE
+    │       "After" = selected text (from clipboard/selection API)
+    │       "Before" = last injected text (from Oops buffer)
+    │
+    ├──► [2] DIFF + RULE EXTRACTION (LLM call)
+    │       Prompt: "Compare these two texts. Identify what the user
+    │                corrected and extract a formatting/vocabulary rule."
+    │       Input:  { before: "...", after: "..." }
+    │       Output: { trigger: "dictame", correction: "dIKta.me",
+    │                 rule: "Brand name, always use this exact casing",
+    │                 scope: "global" }
+    │
+    ├──► [3] STORE AS OBSERVATION
+    │       Type: instruction
+    │       Content: "When user says 'dictame', format as 'dIKta.me'"
+    │       Mode scope: from LLM extraction (global or mode-specific)
+    │       Confidence: 1.0 (user-initiated = highest confidence)
+    │       Tag: source_type = "teach_correction"
+    │
+    └──► [4] CONFIRMATION
+            Toast notification: "Learned: dictame → dIKta.me ✓"
+```
+
+### 7.3 Memory Integration
+
+Teach-by-Correction observations are standard `instruction`-type Tier 2 observations with a `teach_correction` source tag. They are:
+
+- **Injected** into future LLM prompts via the existing `OnBeforeLlmProcessing` hook alongside other memory context
+- **Retrievable** via semantic search ("how does the user format brand names?")
+- **Manageable** through the Memory Settings page (user can review, edit, or delete learned corrections)
+- **Consolidatable** — recurring corrections may be promoted to Tier 3 User Profile entries (e.g., "User has specific brand formatting preferences")
+
+### 7.4 Key Design Decisions
+
+| Decision | Rationale |
+|----------|----------|
+| **Oops buffer as "before" source** | Already implemented, zero new infrastructure needed |
+| **LLM diff, not string diff** | The user may correct only part of the injected text; the LLM can identify the meaningful change within a larger text block |
+| **Confidence = 1.0** | User explicitly initiated the correction — this is the highest-signal memory source |
+| **Stored as `instruction` type** | Corrections are directives ("always format X as Y"), not preferences or facts |
+| **Global scope by default** | Vocabulary corrections typically apply across all modes unless the LLM detects mode-specific context |
+
+### 7.5 Examples
+
+| Spoken | Pipeline Output | User Correction | Learned Rule |
+|--------|----------------|-----------------|-------------|
+| "dictame" | Dictame | dIKta.me | Brand name: always `dIKta.me` |
+| "kubernetes" | kubernetes | Kubernetes | Capitalize product name |
+| "c sharp" | C Sharp | C# | Programming language shorthand |
+| "my company acme corp" | ACME Corp | Acme Corporation | Company name: full form, title case |
+| "doctor smith" | Doctor Smith | Dr. Smith | Use abbreviated title |
+
+---
+
+## 8. User Experience
+
+### 8.1 Invisible by Default
 
 Memory is **background infrastructure**. The user does not interact with it during normal use. AI just "remembers" — prompts are richer, responses are more relevant, corrections are learned.
 
-### 7.2 Memory Settings Page
+### 8.2 Memory Settings Page
 
-The only user-facing surface (contributed via `IPluginUIRegistry.AddSettingsPage()`):
+The primary user-facing surface (contributed via `IPluginUIRegistry.AddSettingsPage()`):
 
 - **Master toggle**: Enable/Disable memory (default: disabled — opt-in)
 - **User Profile browser**: What memory "knows" about the user (Tier 3). Editable, deletable.
 - **Observation browser**: Searchable list of Tier 2 observations. User can delete individual entries.
+- **Learned Corrections browser**: View/edit/delete Teach-by-Correction rules (filtered by `teach_correction` tag)
 - **Stats**: Total observations, embeddings count, storage size, oldest/newest entry
 - **Retention slider**: Days to retain observations (default: 365)
 - **Consolidation**: Manual trigger button, last run timestamp, pending review items
 - **Clear All**: With confirmation dialog
 
-### 7.3 Future: Memory Search (Optional)
+### 8.3 Future: Memory Search (Optional)
 
 An optional search textbox in the Memory Settings page — query top-5 similar past interactions. Not a primary feature; the value is in automatic context injection, not manual search.
 
 ---
 
-## 8. Implementation Phases
+## 9. Implementation Phases
 
 Mapped to SPEC_015 Phases O-Q:
 
@@ -460,7 +536,7 @@ Mapped to SPEC_015 Phases O-Q:
 | O.9 | Novelty detection (embedding similarity dedup) |
 | O.10 | Unit tests: store/search/delete, tiers, privacy, similarity, dedup |
 
-### Phase P: Pipeline Hooks + Extraction [SPEC_015-P]
+### Phase P: Pipeline Hooks + Extraction + Teach-by-Correction [SPEC_015-P]
 
 | Task | Description |
 |------|-------------|
@@ -471,6 +547,10 @@ Mapped to SPEC_015 Phases O-Q:
 | P.5 | Embedding throttling via `Channel<T>` queue |
 | P.6 | Consolidation process (background, configurable trigger) |
 | P.7 | Unit tests: extraction, injection format, dedup, consolidation, profile update |
+| P.8 | **Teach-by-Correction hotkey handler**: capture selection + retrieve Oops buffer → send to LLM for diff/rule extraction → store as `instruction` observation with `teach_correction` tag |
+| P.9 | **Teach-by-Correction LLM prompt**: structured extraction of trigger word, correction, rule description, and scope from before/after text pair |
+| P.10 | **Teach-by-Correction toast confirmation**: visual feedback on successful correction learning |
+| P.11 | Unit tests: teach-by-correction flow, rule extraction, storage, injection into future prompts |
 
 ### Phase Q: Memory Settings Page [SPEC_015-Q]
 
@@ -486,7 +566,7 @@ Mapped to SPEC_015 Phases O-Q:
 
 ---
 
-## 9. Relationship to Existing Systems
+## 10. Relationship to Existing Systems
 
 | System | Purpose | Relationship to Memory Layer |
 |--------|---------|------------------------------|
@@ -500,7 +580,7 @@ Mapped to SPEC_015 Phases O-Q:
 
 ---
 
-## 10. Explicit Scope Exclusions
+## 11. Explicit Scope Exclusions
 
 ### What NOT to Build
 
@@ -519,13 +599,13 @@ Mapped to SPEC_015 Phases O-Q:
 - Cross-World explicit authorization protocol (simple mode-based tagging suffices)
 
 **Deferred:**
-- Dictation vocabulary/correction thin layer (future lightweight derivative — separate from this spec)
+- ~~Dictation vocabulary/correction thin layer~~ → **Superseded by Section 7: Teach-by-Correction** (now part of this spec)
 - MCP-based memory access for external agents (future, after SPEC_015 plugin architecture proves out)
 - Memory export/import (future, post-V2)
 
 ---
 
-## 11. Open Questions
+## 12. Open Questions
 
 1. **Observation extraction timing**: Synchronous (simple, immediate) vs. asynchronous (zero latency impact, delayed availability)? Both approaches documented — decision deferred to implementation.
 
@@ -537,9 +617,13 @@ Mapped to SPEC_015 Phases O-Q:
 
 5. **Profile injection size**: How much Tier 3 profile content can be injected without bloating the LLM prompt? Recommend: cap at ~500 tokens, prioritize by relevance to current mode.
 
+6. **Teach-by-Correction hotkey assignment**: Should this be a dedicated global hotkey, or reuse the existing hotkey system with a modifier? Recommend: configurable in Settings, default to `Ctrl+Shift+T` or similar.
+
+7. **Partial corrections**: What if the user only corrects one word within a longer injection? The LLM diff handles this, but should we store the full context or just the atomic correction? Recommend: store only the atomic correction rule, but include the surrounding context as metadata for retrieval.
+
 ---
 
-## 12. Research Attribution
+## 13. Research Attribution
 
 ### Honcho (github.com/plastic-labs/honcho)
 
@@ -581,7 +665,7 @@ Governance-first 4-layer memory hierarchy for long-horizon AI collaboration.
 
 ---
 
-## 13. Implementation Readiness
+## 14. Implementation Readiness
 
 This specification builds upon:
 - Existing SQLite infrastructure (HistoryManager, ConversationManager)

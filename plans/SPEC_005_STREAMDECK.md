@@ -751,7 +751,7 @@ src/DiktaMe.StreamDeck/
 ### 14.2 Future Phase 3: Touch Screen & Dials (Stream Deck Plus)
 
 Not implemented. Potential additions:
-- **LCD touch strip:** Show pipeline state text, last transcription snippet, or telemetry
+- **LCD touch strip:** Show pipeline state text, last transcription Macro, or telemetry
 - **Dials:** Audio ducking level, microphone gain, TTS speed/volume
 - **Encoder actions:** Requires `EncoderBase` from StreamDeck-Tools (instead of `KeypadBase`)
 

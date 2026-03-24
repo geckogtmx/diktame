@@ -18,7 +18,7 @@ Located at `website/content/{locale}/docs/`
 - `refine.md` - Text polishing and formatting.
 - `note.md` - Background note-taking mode.
 - `quick-chat.md` - Overlay chat window for back-and-forth LLM interactions.
-- `snippets.md` - Custom text expansion and templating.
+- `Macros.md` - Custom text expansion and templating.
 - `tts.md` - Text-to-Speech playback of responses.
 - `oops.md` - Undo/Redo formatting stack.
 

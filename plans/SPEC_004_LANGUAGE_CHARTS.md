@@ -386,7 +386,7 @@ With the complete linguistic pipeline mapped (STT → LLM → TTS), dIKta.me is 
 ### 9.6 Multilingual Accessibility Board (AAC Communication)
 **The Need:** Assisting users with speech impairments (e.g., ALS, aphasia) to communicate while traveling or in multi-cultural environments.
 **The Solution:**
-- The user types rapidly in their native language (or triggers predefined text snippets).
+- The user types rapidly in their native language (or triggers predefined text Macros).
 - The LLM translates the text to the local language of the environment and Kokoro/Inworld TTS synthesizes it aloud. This turns the laptop/tablet into a localized communication device.
 
 ---

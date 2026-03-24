@@ -54,9 +54,9 @@ PowerShell scripts for validating application state during manual testing.
 .\Verify-FileSystem.ps1 -Path "%APPDATA%\DiktaMe\logs" -Type Directory
 ```
 
-#### 6. **Verify-Snippets.ps1** — Validate snippets.json
+#### 6. **Verify-Macros.ps1** — Validate Macros.json
 ```powershell
-.\Verify-Snippets.ps1  # Check snippet count and structure
+.\Verify-Macros.ps1  # Check Macro count and structure
 ```
 
 #### 7. **Test-OllamaHealth.ps1** — Check Ollama connectivity and models

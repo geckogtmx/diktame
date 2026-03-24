@@ -14,7 +14,7 @@
 
 - **[Dictado](features/dictation.md)**: Lo fundamental. Habla, y el programa escribe.
 - **[Refinar](features/refine.md)**: Deja que la IA arregle tu gramática o reescriba tus ideas desordenadas.
-- **[Fragmentos de Voz (Snippets)](features/snippets.md)**: Frases mágicas que se expanden en textos completos.
+- **[Macros de Voz](features/Macros.md)**: Frases mágicas que se expanden en textos completos.
 - **[Preguntar (Ask)](features/ask.md)**: Una línea directa con tu IA para preguntas rápidas.
 - **[Traducir](features/translate.md)**: Habla en un idioma, escribe en otro al instante.
 - **[Chat Rápido](features/quick-chat.md)**: Un asistente flotante para cuando necesitas una segunda opinión.

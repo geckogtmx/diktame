@@ -57,7 +57,7 @@ This document tracks all the screenshots needed to complete the dIKta.me V2 User
 | `settings-dictation-modes.png`| Dictation| Showing the CRUD view for custom dictionary/dictation presets. |
 | `settings-modes.png` | Modes | Showing the Utility Pipelines configuration. |
 | `settings-hotkeys.png` | Hotkeys | Showing the keybindings (Dictate, Refine, Oops, etc.). |
-| `settings-snippets.png` | Snippets | Showing the text-expansion / find-and-replace grid. |
+| `settings-Macros.png` | Macros | Showing the text-expansion / find-and-replace grid. |
 | `settings-ollama.png` | Ollama | Showing local engine configuration and model downloading lists. |
 | `settings-privacy.png` | Privacy | Showing the Privacy Level slider (Ghost/Stats/Balanced/Full). |
 | `settings-control-panel.png`| HUD | Showing the visibility toggles for the main control panel. |

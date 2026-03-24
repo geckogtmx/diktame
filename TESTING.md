@@ -50,7 +50,7 @@ The manual test plan is organized as **complete user journeys**, each following 
 | **Audio Feeder** | Automated voice testing (IPC) | ~3-5h | 5 runs |
 | | **Total manual** | **~10.5h** | **~280** |
 
-Each journey tests: wizard setup, core dictation, all 6 modes, voice snippets, API keys, data/privacy, system integration, and performance.
+Each journey tests: wizard setup, core dictation, all 6 modes, voice macros, API keys, data/privacy, system integration, and performance.
 
 **Between journeys:** Delete `%APPDATA%\DiktaMe\settings.json` to reset.
 
@@ -69,7 +69,7 @@ Features with manual test scenarios in MANUAL_TEST_PLAN.md:
 | Notes settings | Yes | J1 + J5.5 |
 | Chat settings | Yes | J1 + J5.6 |
 | Live model discovery (5 APIs) | Yes | J5.4 |
-| Voice snippets | Yes | J1.5 |
+| Voice macros | Yes | J1.5 |
 | Privacy levels (4 modes) | Yes | J1.7 + J5.9 |
 | Hotkeys (7 actions) | Yes | J5.8 |
 | Audio ducking | Yes | J5.7 |

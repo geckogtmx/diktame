@@ -78,7 +78,7 @@
     <value>Ollama</value>
   </data>
   <data name="Nav_Snippets.Content" xml:space="preserve">
-    <value>Snippets</value>
+    <value>Macros</value>
   </data>
   <data name="Nav_ControlPanel.Content" xml:space="preserve">
     <value>Control Panel</value>
@@ -432,7 +432,7 @@
     <value>Server-side replacements applied before LLM. One per line: find:replace</value>
   </data>
   <data name="Settings_AIEngine_Deepgram_Replace_Help.Text" xml:space="preserve">
-    <value>Find terms must be lowercase. Complements Snippets (which run after LLM).</value>
+    <value>Find terms must be lowercase. Complements Macros (which run after LLM).</value>
   </data>
   <data name="Settings_AIEngine_Deepgram_Streaming_Label.Text" xml:space="preserve">
     <value>Real-Time Streaming</value>
@@ -1175,7 +1175,7 @@
        Settings > Snippets
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_Snippets_Title.Text" xml:space="preserve">
-    <value>Voice Snippets</value>
+    <value>Voice Macros</value>
   </data>
   <data name="Settings_Snippets_TriggerHeader.Header" xml:space="preserve">
     <value>Trigger phrase</value>
@@ -2007,7 +2007,7 @@
     <value>Initializing database...</value>
   </data>
   <data name="Loading_Snippets" xml:space="preserve">
-    <value>Loading snippets...</value>
+    <value>Loading macros...</value>
   </data>
   <data name="Loading_DownloadingWhisper" xml:space="preserve">
     <value>Downloading Whisper model...</value>

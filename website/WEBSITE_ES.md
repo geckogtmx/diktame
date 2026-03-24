@@ -856,7 +856,7 @@ You don't need to translate everything at launch. Here are the priorities:
 
 **P2 — Nice to have (can launch without):**
 - All other settings docs
-- `features/note.md`, `features/oops.md`, `features/tts.md`, `features/snippets.md`
+- `features/note.md`, `features/oops.md`, `features/tts.md`, `features/Macros.md`
 
 **Skip entirely:**
 - Everything in `dev/` — developer docs stay English-only

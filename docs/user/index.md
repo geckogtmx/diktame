@@ -34,7 +34,7 @@ A deep dive into everything you can configure within the multi-tab Settings Wind
 *   [Custom Dictation Modes](settings/dictation-modes.md)
 *   [Utility Modes Configuration](settings/modes.md)
 *   [Global Hotkeys](settings/hotkeys.md)
-*   [Text Snippets](settings/snippets.md)
+*   [Text Macros](settings/Macros.md)
 *   [Text-to-Speech](settings/tts.md)
 *   [Ollama Local Inference](settings/ollama.md)
 *   [Privacy Controls & History](settings/privacy.md)

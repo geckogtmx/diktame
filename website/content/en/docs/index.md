@@ -14,7 +14,7 @@ Hi there! 👋 Welcome to the manual.
 
 - **[Dictation](features/dictation.md)**: The bread and butter. Talk, and it types.
 - **[Refine](features/refine.md)**: Let AI fix your grammar or rewrite your messy thoughts.
-- **[Voice Snippets](features/snippets.md)**: Magic phrases that expand into full text.
+- **[Voice Macros](features/Macros.md)**: Magic phrases that expand into full text.
 - **[Ask](features/ask.md)**: A direct line to your AI for quick questions.
 - **[Translate](features/translate.md)**: Speak English, type Spanish (and vice versa).
 - **[Quick Chat](features/quick-chat.md)**: A floating assistant for when you need a second opinion.

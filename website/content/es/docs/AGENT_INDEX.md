@@ -18,7 +18,7 @@ Ubicados en `website/content/{locale}/docs/`
 - `refine.md` - Pulido y formato de texto.
 - `note.md` - Modo de toma de notas en segundo plano.
 - `quick-chat.md` - Ventana de chat superpuesta para interacciones LLM fluidas.
-- `snippets.md` - Expansiones de texto personalizadas y uso de plantillas.
+- `Macros.md` - Expansiones de texto personalizadas y uso de plantillas.
 - `tts.md` - Reproducción de Texto a Voz de las respuestas generadas.
 - `oops.md` - Pila de formato e historial para Deshacer/Rehacer.
 

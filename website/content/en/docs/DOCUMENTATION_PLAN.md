@@ -30,7 +30,7 @@ Focuses on how to use the dIKta.me desktop application, configuring settings, an
     *   `dictation-modes.md`: Managing CRUD operations for custom dictation presets.
     *   `modes.md`: Configuring utility pipelines (Ask, Refine, Translate).
     *   `hotkeys.md`: Mapping global keybindings.
-    *   `snippets.md`: Managing local text expansion and auto-corrections.
+    *   `Macros.md`: Managing local text expansion and auto-corrections.
     *   `ollama.md`: Local inference settings (Models, Keep-alive, Context Windows).
     *   `privacy.md`: History retention, PII scrubbing (Levels 0-3), and logging.
     *   `control-panel.md`: HUD visibility toggles.
@@ -72,7 +72,7 @@ Focuses on how to build, extend, and maintain the dIKta.me V2 codebase.
 | **Phase 4: Settings Exhaustive Guide** | DOC-4.1 | Draft settings fundamentals (`general.md`, `audio.md`, `control-panel.md`, `hotkeys.md`). | ✅ Done |
 | | DOC-4.2 | Draft LLM/STT configurations (`ai-engine.md`, `api-keys.md`, `ollama.md`). | ✅ Done |
 | | DOC-4.3 | Draft Modes config (`dictation-modes.md` presets, `modes.md` utility profiles). | ✅ Done |
-| | DOC-4.4 | Draft Account & Privacy (`account.md`, `privacy.md`, `snippets.md`). | ✅ Done |
+| | DOC-4.4 | Draft Account & Privacy (`account.md`, `privacy.md`, `Macros.md`). | ✅ Done |
 | **Phase 5: Developer Fundamentals**| DOC-5.1 | Draft `setup.md` (VS2022 setup, Windows App SDK). | ⏳ Pending |
 | | DOC-5.2 | Draft `architecture/audio-pipeline.md` & `architecture/ui-mvvm.md`.| ⏳ Pending |
 | **Phase 6: API & Extensibility** | DOC-6.1 | Draft `api/stt-providers.md` (`ISTTProvider`, `STTRouter`). | ⏳ Pending |

@@ -274,7 +274,7 @@ The "Bars" waveform style doesn't fill enough of the header bar visually. Curren
 
 **Phase 3 — Settings Visual Refresh (COMPLETE):**
 - Applied `SettingsCardStyle` card wrapping to all 9 settings pages
-- Pages: General, Account, Privacy, Hardware, AIEngine, Workflows, DictationPresets, Snippets, About
+- Pages: General, Account, Privacy, Hardware, AIEngine, Workflows, DictationPresets, Macros, About
 - Pattern: `<Border Style="{StaticResource SettingsCardStyle}">` wrapping related settings groups
 - Build: 0 warnings, 0 errors. Tests: 968/968 passing.
 

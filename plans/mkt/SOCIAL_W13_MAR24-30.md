@@ -80,7 +80,7 @@
 >
 > dIKta.me breaks that pattern by giving you two native inputs with infinite output:
 > - 🎤 **Voice** — Dictate, ask questions, translate, take voice notes
-> - ⌨️ **Text** — Refine selected text, expand snippets, chat with a floating AI overlay
+> - ⌨️ **Text** — Refine selected text, expand Macros, chat with a floating AI overlay
 >
 > 7 distinct workflow modes. One global hotkey each. Works inside *any* application — VS Code, Slack, Excel, Chrome, Discord, WhatsApp.
 >
@@ -97,7 +97,7 @@
 >
 > dIKta.me rompe ese patrón dándote dos entradas nativas con output infinito:
 > - 🎤 **Voz** — Dicta, pregunta, traduce, toma notas de voz
-> - ⌨️ **Texto** — Refina texto seleccionado, expande snippets, chatea con un overlay flotante de IA
+> - ⌨️ **Texto** — Refina texto seleccionado, expande Macros, chatea con un overlay flotante de IA
 >
 > 7 modos de flujo de trabajo distintos. Un atajo global cada uno. Funciona dentro de *cualquier* aplicación — VS Code, Slack, Excel, Chrome, Discord, WhatsApp.
 >
