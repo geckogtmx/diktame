@@ -39,7 +39,7 @@
 | **SPEC_015 Phase 0A** | **COMPLETE** ✅ — STTProviderFactory (18 tests) + LLMProviderFactory (20 tests). Closes test gap for Local Mode provider factories. |
 | **SPEC_015 Phase 0B** | **COMPLETE** ✅ — Plugin infrastructure: `DiktaMe.Plugin.Abstractions` project with IPlugin, PipelineEventBus, PluginManager, PluginUIRegistry, JsonPluginSettingsStore. Host wired: DI, 8 pipeline completion sites, Settings nav injection, tray menu injection. 24 tests. |
 | **SPEC_015 Phase 0B.19** | **COMPLETE** ✅ — BeforeLlm pipeline hooks in DictationPipeline, AskPipeline, ChatPipeline. Event bus types moved to Core.Pipeline (resolved circular dependency). |
-| **SPEC_015 Phase 0C** | **FUNCTIONAL (needs polish)** — Vision pipeline end-to-end: ScreenCapture (Win32 GDI), ImageProcessor, multimodal LLM (Gemini/Claude/OpenAI/Ollama), SnippingOverlayWindow, Ctrl+Alt+S hotkey. Active monitor capture. Screenshots saved to `%APPDATA%/DiktaMe/vision/`. 10 tests. See known issues below. |
+| **SPEC_015 Phase 0C** | **FUNCTIONAL (needs polish)** — Vision pipeline end-to-end: ScreenCapture (Win32 GDI), ImageProcessor, multimodal LLM (Gemini/Claude/OpenAI/Ollama), SnippingOverlayWindow, Ctrl+Alt+S hotkey. Active monitor capture. Screenshots saved to `%APPDATA%/DiktaMe/vision/`. Vision Settings page (provider/model/query/output mode). Default: local-first with Ollama + Moondream. 10 tests. See known issues below. |
 
 ## Open Bugs (Stream K) — Updated 2026-03-22
 
