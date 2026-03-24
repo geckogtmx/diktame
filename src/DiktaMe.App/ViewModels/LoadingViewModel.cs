@@ -1772,7 +1772,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             _notifications.ShowToast("Vision", "Analyzing image...", NotificationType.Info);
             var options = new DiktaMe.Core.Vision.VisionOptions
             {
-                SystemPrompt = "You are a vision assistant. Analyze the image and respond to the user's query.",
+                SystemPrompt = "You are a concise vision assistant. Respond briefly and directly. Do not describe the UI chrome, window decorations, or layout — focus only on the meaningful content. Keep responses under 200 words unless the user asks for more detail.",
                 DefaultQuery = visionSettings.DefaultQuery,
                 MaxImageDimensionPx = visionSettings.MaxImageDimensionPx,
                 MaxResponseTokens = visionSettings.MaxResponseTokens,
@@ -1822,6 +1822,10 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         finally
         {
+            // Restore audio ducking (Vision triggers Processing state which ducks audio)
+            try { await _audioDucker.RestoreAsync().ConfigureAwait(false); }
+            catch (Exception ex) { Log.Debug(ex, "Vision: ducking restore failed (non-fatal)"); }
+
             _recordingCts?.Dispose();
             _recordingCts = null;
         }

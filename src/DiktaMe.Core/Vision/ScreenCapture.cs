@@ -10,10 +10,14 @@ namespace DiktaMe.Core.Vision;
 /// </summary>
 public static class ScreenCapture
 {
-    /// <summary>Returns the screen bounds (x, y, width, height) of the foreground window.</summary>
+    /// <summary>
+    /// Returns the screen bounds (x, y, width, height) of the foreground window.
+    /// If the foreground window belongs to our own process, walks the Z-order
+    /// to find the next visible window behind it.
+    /// </summary>
     public static (int X, int Y, int Width, int Height) GetActiveWindowBounds()
     {
-        IntPtr hwnd = NativeMethods.GetForegroundWindow();
+        IntPtr hwnd = FindTargetWindow();
         if (hwnd == IntPtr.Zero || !NativeMethods.GetWindowRect(hwnd, out NativeMethods.RECT rect))
         {
             return (0, 0, 0, 0);
@@ -22,10 +26,50 @@ public static class ScreenCapture
         return (rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
     }
 
-    /// <summary>Captures the currently focused window as a PNG byte array.</summary>
-    public static byte[] CaptureActiveWindow()
+    /// <summary>
+    /// Finds the best target window for vision capture.
+    /// Skips our own process windows so the app doesn't capture itself.
+    /// </summary>
+    private static IntPtr FindTargetWindow()
     {
         IntPtr hwnd = NativeMethods.GetForegroundWindow();
+        if (hwnd == IntPtr.Zero) return IntPtr.Zero;
+
+        uint myPid = (uint)Environment.ProcessId;
+        NativeMethods.GetWindowThreadProcessId(hwnd, out uint fgPid);
+
+        if (fgPid != myPid) return hwnd;
+
+        // Foreground is our own window — walk Z-order to find next visible window
+        Log.Debug("ScreenCapture: foreground is own process, walking Z-order");
+        IntPtr next = hwnd;
+        for (int i = 0; i < 20; i++) // safety limit
+        {
+            next = NativeMethods.GetWindow(next, NativeMethods.GW_HWNDNEXT);
+            if (next == IntPtr.Zero) break;
+
+            NativeMethods.GetWindowThreadProcessId(next, out uint pid);
+            if (pid == myPid) continue;
+
+            if (!NativeMethods.IsWindowVisible(next)) continue;
+
+            if (NativeMethods.GetWindowRect(next, out NativeMethods.RECT r)
+                && (r.Right - r.Left) > 100 && (r.Bottom - r.Top) > 100)
+            {
+                Log.Debug("ScreenCapture: found target window behind own app");
+                return next;
+            }
+        }
+
+        // Fallback: just use the foreground window
+        return hwnd;
+    }
+
+    /// <summary>Captures the currently focused window as a PNG byte array.
+    /// Skips own-process windows to avoid capturing the app itself.</summary>
+    public static byte[] CaptureActiveWindow()
+    {
+        IntPtr hwnd = FindTargetWindow();
         if (hwnd == IntPtr.Zero)
         {
             throw new InvalidOperationException("No foreground window found.");
@@ -403,5 +447,17 @@ public static class ScreenCapture
         [DllImport("gdi32.dll")]
         internal static extern int GetDIBits(IntPtr hdc, IntPtr hbmp, uint uStartScan, uint cScanLines,
             [Out] byte[] lpvBits, ref BITMAPINFO lpbi, uint uUsage);
+
+        [DllImport("user32.dll")]
+        internal static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("user32.dll")]
+        internal static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool IsWindowVisible(IntPtr hWnd);
+
+        internal const uint GW_HWNDNEXT = 2;
     }
 }
