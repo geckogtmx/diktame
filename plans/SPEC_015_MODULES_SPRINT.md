@@ -569,57 +569,69 @@ Tests: DiktaMe.Plugin.Memory.Tests
 
 ### Phase O: Core Memory Infrastructure [SPEC_015-O]
 
+> Memory is **invisible infrastructure** — the knowledge backbone consumed by Chaviz, Connectors, Meetings, Refinemmarly, and future plugins. See [SPEC_014](SPEC_014_MEMORY_LAYER.md) for the full 3-tier architecture and cross-module consumer/producer map.
+
 | Task | Description | Files |
 |------|-------------|-------|
-| O.1 | Create `IMemoryLayer` interface — `StoreAsync()`, `SearchAsync()`, `GetByMetadataAsync()`, `DeleteAsync()`, `ClearAllAsync()`, `GetStatsAsync()` | `Memory/IMemoryLayer.cs` |
-| O.2 | Create records: `MemoryEntryId`, `MemoryResult`, `MemoryMetadata`, `MemoryStats` | `Memory/MemoryModels.cs` |
+| O.1 | Create `IMemoryLayer` interface — **Core**: `StoreAsync()`, `SearchAsync()`, `DeleteAsync()`, `ClearAllAsync()`, `GetStatsAsync()`. **Observation extraction**: `ExtractObservationsAsync()`. **User profile (Tier 3)**: `GetProfileAsync()`, `UpdateProfileAsync()`. **Consolidation**: `ConsolidateAsync()`. | `Memory/IMemoryLayer.cs` |
+| O.2 | Create models: `MemoryEntryId`, `MemoryResult`, `MemoryMetadata`, `MemoryStats`, `Observation` (with `ObservationType` enum: Fact/Preference/Instruction/Context), `UserProfile`, `ConsolidationResult`, `MemorySearchFilter` (mode scope, type, time range) | `Memory/MemoryModels.cs` |
 | O.3 | Integrate SQLite VSS extension — native extension loading | `Memory/SqliteMemoryStore.cs` |
-| O.4 | Implement `SqliteMemoryStore : IMemoryLayer` — vector schema, CRUD, similarity search via VSS | Same |
+| O.4 | Implement `SqliteMemoryStore : IMemoryLayer` — 3-tier schema: `observations` table (tier, observation_type, mode_scope, confidence, is_novel, source_ids), `user_profile` table (key-value with mode scope), `consolidation_log`. CRUD + similarity search via VSS. | Same |
 | O.5 | Local embedding: ONNX `all-MiniLM-L6-v2` (384 dims). Reuse existing ONNX Runtime dep. | `Memory/EmbeddingGenerator.cs` |
 | O.6 | Privacy gating — Ghost: disabled, Stats: metadata only, Balanced: encrypted, Full: full storage | `SqliteMemoryStore.cs` |
-| O.7 | Create `MemoryPluginSettings` — `Enabled` (default false), `RetentionDays` (365), `MaxEntries` (10000), `ContextInjectionEnabled` (true), `ContextResultLimit` (5), `MinSimilarity` (0.7), `EmbeddingModel` | `Memory/MemoryPluginSettings.cs` |
-| O.8 | Create `MemoryPlugin : IPlugin` entry class with `[PluginEntry("memory", "Memory", "1.0.0")]`. On enable: init DB + embedding model, subscribe hooks, register settings page. On disable: dispose store + model, remove page. | `Memory/MemoryPlugin.cs` |
-| O.9 | Unit tests: store/search/delete, privacy compliance, similarity scoring, metadata filtering | `Memory.Tests/SqliteMemoryStoreTests.cs` |
+| O.7 | Novelty detection — cosine similarity dedup on store: >0.95 = skip (duplicate), <0.5 = flag novel (high-signal). Prevents memory bloat from repetitive dictations. | `SqliteMemoryStore.cs` |
+| O.8 | Create `MemoryPluginSettings` — `Enabled` (default false), `RetentionDays` (365), `MaxEntries` (10000), `ContextInjectionEnabled` (true), `ContextResultLimit` (5), `MinSimilarity` (0.7), `EmbeddingModel`, `ObservationExtractionEnabled` (true), `ConsolidationMode` (Manual/OnIdle/OnShutdown) | `Memory/MemoryPluginSettings.cs` |
+| O.9 | Create `MemoryPlugin : IPlugin` entry class with `[PluginEntry("memory", "Memory", "1.0.0")]`. On enable: init DB + embedding model, subscribe hooks, register settings page. On disable: dispose store + model, remove page. | `Memory/MemoryPlugin.cs` |
+| O.10 | Unit tests: store/search/delete, privacy compliance, similarity scoring, metadata filtering, novelty dedup, observation type filtering, mode-scoped queries, tier separation | `Memory.Tests/SqliteMemoryStoreTests.cs` |
 
 **Key decisions**:
 - SQLite+VSS for single-file simplicity (aligns with existing HistoryManager pattern)
 - `all-MiniLM-L6-v2` for small size + good quality — runs locally via ONNX Runtime (already a dependency)
 - Encryption at rest via DPAPI keys from `SecureStorage`
 - `Enabled = false` by default — opt-in for privacy
+- 3-tier model: Tier 3 (User Profile — stable preferences/style), Tier 2 (Observations — extracted atomic facts), Tier 1 (Session Context — ephemeral, in-memory only)
+- Observation types from SurfSense/Honcho: `fact`, `preference`, `instruction`, `context`
+- Mode-scoped retrieval (inspired by LOOM world isolation): observations tagged with source mode, queries filter by current mode + global
 
-**Commit**: `feat: add Memory plugin with SQLite+VSS vector store and embeddings [SPEC_015-O]`
-
----
-
-### Phase P: Pipeline Hooks [SPEC_015-P]
-
-> Memory subscribes to PipelineEventBus hooks — no changes to core pipeline code beyond what Phase 0B already added.
-
-| Task | Description | Files |
-|------|-------------|-------|
-| P.1 | In `MemoryPlugin.EnableAsync()`: subscribe to `OnCompleted` → fire-and-forget `StoreAsync(result)`. Store text + mode + provider metadata as embedding. | `MemoryPlugin.cs` |
-| P.2 | Subscribe to `OnBeforeLlmProcessing` → `SearchAsync(userText, limit: 5)` → format top results → append to `AdditionalSystemContext` | `MemoryPlugin.cs` |
-| P.3 | Context formatting: "Relevant past context:\n- [2026-03-15 14:30] ...\n- [2026-03-14 09:15] ..." | Same |
-| P.4 | Embedding throttling — queue async, don't block pipeline. `Channel<PipelineResult>` with single consumer. | `Memory/EmbeddingQueue.cs` |
-| P.5 | Unit tests: auto-store on completion (mock IMemoryLayer), context injection format, throttling, memory-enhanced prompt | `Memory.Tests/MemoryIntegrationTests.cs` |
-
-**Note**: P.5 from the original spec (meeting synthesis enrichment) applies only after Meetings plugin is active. The Memory plugin subscribes to `OnCompleted` for ALL sources — if Meetings plugin publishes meeting results to the event bus, Memory stores them automatically. No cross-plugin dependency needed.
-
-**Commit**: `feat: integrate Memory plugin with pipeline event hooks [SPEC_015-P]`
+**Commit**: `feat: add Memory plugin with 3-tier SQLite+VSS store and embeddings [SPEC_015-O]`
 
 ---
 
-### Phase Q: Memory Settings Page [SPEC_015-Q]
+### Phase P: Pipeline Hooks + Observation Extraction [SPEC_015-P]
+
+> Memory subscribes to PipelineEventBus hooks — no changes to core pipeline code beyond what Phase 0B already added. Post-pipeline observation extraction turns raw text into typed, searchable knowledge. See [SPEC_014 §5](SPEC_014_MEMORY_LAYER.md) for the full extraction pipeline design.
 
 | Task | Description | Files |
 |------|-------------|-------|
-| Q.1 | Create `MemorySettingsViewModel` — enable/disable, retention, stats (count, size, oldest/newest), clear all | `Memory/ViewModels/MemorySettingsViewModel.cs` |
-| Q.2 | Create `MemorySettingsPage.xaml` — master toggle, stats, retention slider, model info, "Clear All" with confirmation. Contributed via `IPluginUIRegistry.AddSettingsPage()`. | `Memory/Views/MemorySettingsPage.xaml` |
-| Q.3 | Optional: memory search textbox — query top-5 similar past interactions | Same |
-| Q.4 | Retention enforcement: purge memories older than `RetentionDays` on plugin enable | `SqliteMemoryStore.cs` |
-| Q.5 | Unit tests: settings round-trip, retention purge, stats calculation | `Memory.Tests/MemorySettingsTests.cs` |
+| P.1 | **Observation extraction on `OnCompleted`**: Subscribe in `MemoryPlugin.EnableAsync()`. On pipeline completion → queue `ExtractObservationsAsync()` via background `Channel<T>`. LLM call extracts typed atomic observations (fact/preference/instruction/context) from the result text. Each observation gets embedded and stored as Tier 2. | `MemoryPlugin.cs`, `Memory/ObservationExtractor.cs` |
+| P.2 | **Tier 1 session context buffer**: In-memory ring buffer of recent pipeline results (current session). Auto-included in next pipeline call's context. Cleared on app close — never persisted. | `Memory/SessionContextBuffer.cs` |
+| P.3 | **Tier 3 profile injection on `OnBeforeLlmProcessing`**: Retrieve user profile (`GetProfileAsync()`) → format as system prompt section → inject via `AdditionalSystemContext`. Profile includes: writing style per mode, domain vocabulary, correction patterns. | `MemoryPlugin.cs` |
+| P.4 | **Semantic context injection on `OnBeforeLlmProcessing`**: `SearchAsync(userText, filter: currentMode + global)` → format top-K Tier 2 observations → append to `AdditionalSystemContext`. Mode-scoped: current mode observations + global, no cross-mode bleed. | `MemoryPlugin.cs` |
+| P.5 | **Embedding queue**: Async `Channel<PipelineResult>` with single consumer — observation extraction + embedding generation never blocks the pipeline. Includes backpressure handling. | `Memory/EmbeddingQueue.cs` |
+| P.6 | Unit tests: observation extraction (mock LLM), session context buffer, profile injection format, semantic search with mode scope, embedding queue throttling, novelty dedup integration | `Memory.Tests/MemoryPipelineTests.cs` |
 
-**Commit**: `feat: add Memory settings page with stats, retention, and search [SPEC_015-Q]`
+**Note**: The Memory plugin subscribes to `OnCompleted` for ALL sources — dictation, meeting synthesis, vision, Chaviz conversations. Each module is both a producer (its output feeds observation extraction) and a consumer (its LLM calls receive injected context). See SPEC_014 §3 consumer/producer map for the full matrix.
+
+**Commit**: `feat: integrate Memory observation extraction + context injection pipeline [SPEC_015-P]`
+
+---
+
+### Phase Q: Memory Settings + Governance UI + Consolidation [SPEC_015-Q]
+
+> Users must be able to see what memory "knows" about them, edit/delete observations, and control the consolidation process. See [SPEC_014 §8](SPEC_014_MEMORY_LAYER.md) for governance design (inspired by LOOM Engine's principle: "Memory is permissioned. Knowledge is deliberate.").
+
+| Task | Description | Files |
+|------|-------------|-------|
+| Q.1 | Create `MemorySettingsViewModel` — enable/disable, retention, stats (total observations by tier, embeddings count, storage size, oldest/newest), observation extraction toggle, consolidation mode | `Memory/ViewModels/MemorySettingsViewModel.cs` |
+| Q.2 | Create `MemorySettingsPage.xaml` — master toggle, stats dashboard, retention slider, extraction toggle, consolidation mode selector, model info. Contributed via `IPluginUIRegistry.AddSettingsPage()`. | `Memory/Views/MemorySettingsPage.xaml` |
+| Q.3 | **Tier 3 profile viewer**: Browsable display of what memory "knows" about the user — writing style, vocabulary, correction patterns, domain knowledge. Per-mode sections. User can edit or delete individual profile entries. | Same |
+| Q.4 | **Tier 2 observation browser**: Searchable list of stored observations. Filter by type (fact/preference/instruction/context), mode scope, time range. User can delete individual observations. Novelty-flagged observations highlighted. | Same |
+| Q.5 | **Consolidation trigger + review**: "Consolidate Now" button triggers `ConsolidateAsync()`. When `ConsolidationMode = Manual`, proposed Tier 3 profile updates are queued for user review (accept/reject each). Auto modes apply silently with undo option. | `MemoryPlugin.cs`, `Memory/ConsolidationService.cs` |
+| Q.6 | Retention enforcement: purge observations older than `RetentionDays` on plugin enable. Tier 3 profile entries exempt from time-based purge. | `SqliteMemoryStore.cs` |
+| Q.7 | "Clear All" with confirmation — separate options for "Clear observations only" vs "Clear everything (including profile)" | `MemorySettingsPage.xaml` |
+| Q.8 | Unit tests: settings round-trip, retention purge (Tier 2 only), stats calculation, consolidation result review, profile CRUD, observation browser filtering | `Memory.Tests/MemorySettingsTests.cs` |
+
+**Commit**: `feat: add Memory governance UI with profile viewer, observation browser, and consolidation [SPEC_015-Q]`
 
 ---
 
@@ -633,7 +645,7 @@ Tests: DiktaMe.Plugin.Memory.Tests
 |------|-------------|-------|
 | J.1 | When Scribe synthesis completes, Meetings plugin publishes `PipelineResult` (mode = "meeting") to `PipelineEventBus`. Connectors plugin receives it and dispatches. Verify this path. | `MeetingsPlugin.cs` |
 | J.2 | When VisionPipeline completes, it publishes to event bus (already done in Phase 0C). Connectors plugin receives mode = "vision". Verify. | `LoadingViewModel.cs` |
-| J.3 | Memory plugin stores ALL `PipelineResult`s (dictation, meeting, vision). Verify all three source types produce correct embeddings. | `MemoryPlugin.cs` |
+| J.3 | Memory plugin runs observation extraction on ALL `PipelineResult`s (dictation, meeting, vision). Verify all three source types produce typed Tier 2 observations with correct mode scopes and embeddings. | `MemoryPlugin.cs` |
 | J.4 | Add `"meeting"` and `"vision"` to Connector Preset mode filter options — presets can opt in/out | `ConnectorPluginSettings.cs` |
 | J.5 | Built-in example presets: "Meeting → Obsidian", "Screenshot → Obsidian" | Default settings |
 | J.6 | E2E integration tests: mock pipeline → event bus → connectors receive; mock pipeline → event bus → memory stores; verify memory context injection | Integration tests |
@@ -1072,6 +1084,58 @@ Advantages over a static FAQ: understands paraphrased questions, can combine kno
 - `ChatPipeline` gains a `HelpMode` toggle: when active, prepends help context to system prompt
 - Small dedicated SQLite table (or partition in memory.db) for help vectors
 - No cloud dependency — runs entirely via local embeddings + local or cloud LLM
+
+### Honcho (github.com/plastic-labs/honcho) — 2026-03-24
+
+Open-source Python agent memory library by Plastic Labs. Researched for cognitive architecture patterns applicable to SPEC_014 (Memory Layer) and Phases O–Q.
+
+**Architecture — 3-stage cognitive pipeline:**
+1. **Deriver**: Post-conversation, a single LLM call extracts **atomic, self-contained observations** from the interaction. Each observation is explicitly stated in the text (no inference). Stored with embeddings for later retrieval.
+2. **Dreamer**: Background consolidation with three phases:
+   - **Surprisal scoring**: Geometric embedding distance via tree-based structure identifies novel vs. redundant observations. High-surprisal = novel, low = skip.
+   - **Deduction specialist**: Logical synthesis — combines existing observations to derive new conclusions ("User works at Contoso" + "User mentions Kubernetes daily" → "User likely does DevOps at Contoso").
+   - **Induction specialist**: Pattern recognition — identifies recurring themes across many observations to surface preferences and tendencies.
+3. **Dialectic Agent**: At query time, uses **agentic reasoning with tools** (not just cosine similarity). 8-step iterative workflow: examine query → search observations → assess sufficiency → search again or synthesize → respond. Tools include `retrieve_memories`, `retrieve_user_representation`.
+
+**Key patterns adopted in SPEC_014:**
+- Observation extraction (Deriver → our `ExtractObservationsAsync()`)
+- Typed observations (explicit, deductive, inductive → our fact/preference/instruction/context)
+- Novelty detection via embedding similarity (Surprisal → our cosine dedup threshold)
+- Consolidation as background process (Dreamer → our `ConsolidateAsync()`)
+
+**What we explicitly excluded:**
+- Full dialectic agent (too heavy for inline pipeline latency — 8-step agentic loop adds seconds)
+- Multi-peer modeling (single-user desktop app, not multi-tenant)
+- Separate deduction + induction specialist LLM calls (simplified to single consolidation pass)
+- Geometric tree-based surprisal (simplified to flat cosine similarity thresholds)
+
+### LOOM Engine (user's cognitive architecture project) — 2026-03-24
+
+4-layer cognitive architecture designed for AI agent memory governance. Researched for hierarchical memory model and governance patterns applicable to SPEC_014.
+
+**Architecture — 4-layer memory hierarchy:**
+- **L4 Identity/Telos** (immutable): Core identity, purpose, ethical constraints. Never modified by runtime.
+- **L3 Knowledge** (persistent): Accumulated knowledge, preferences, learned patterns. Promoted deliberately from L2.
+- **L2 Episodic** (session summaries): HAII (High-signal Annotation Identification and Indexing) extracts key moments from conversations. Session-level, condensed for long-term.
+- **L1 Active** (ephemeral): Runtime working memory. Cleared after session.
+
+**Core principles:**
+- *One-way authority*: Higher layers constrain lower, never the reverse.
+- *Memory is permissioned*: All promotion from L2→L3 is deliberate, auditable, human-authorized.
+- *World isolation*: Hard cognitive sandboxes per project/domain — no cross-contamination.
+- *"Memory is permissioned. Knowledge is deliberate. Experience is condensed. Execution is temporary."*
+
+**Key patterns adopted in SPEC_014:**
+- 3-tier hierarchy (LOOM's L4+L3 → our Tier 3 Profile, L2 → our Tier 2 Observations, L1 → our Tier 1 Session Context). We collapsed L4/L3 since dIKta.me has no immutable identity kernel.
+- Mode-scoped retrieval (World isolation → our mode scope tags on observations, queries filter by current mode + global)
+- User governance UI (META governance agent → our Memory Settings page with profile viewer, observation browser, consolidation review)
+- Deliberate promotion (L2→L3 promotion gates → our consolidation with optional manual review)
+
+**What we explicitly excluded:**
+- L4 immutable identity kernel (desktop app, not autonomous agent framework)
+- META governance agent (replaced with user-facing settings UI — simpler, more transparent)
+- Agent University / versioning (no autonomous agent lifecycle management)
+- Replication Layer (single-user, no cross-node validation needed)
 
 ---
 
