@@ -1769,11 +1769,13 @@ public sealed partial class LoadingViewModel : ObservableObject
                 savedPath, mimeType, imageData.Length);
 
             // Step 4: Create and run vision pipeline
-            Log.Information("Vision: creating pipeline and sending to LLM...");
+            Log.Information("Vision: creating pipeline (provider={Provider}, model={Model})",
+                visionSettings.VisionProvider, visionSettings.VisionModelId);
             _notifications.ShowToast("Vision", "Analyzing image...", NotificationType.Info);
             var options = new DiktaMe.Core.Vision.VisionOptions
             {
                 SystemPrompt = "You are a concise vision assistant. Respond briefly and directly. Do not describe the UI chrome, window decorations, or layout — focus only on the meaningful content. Keep responses under 200 words unless the user asks for more detail.",
+                ModelName = string.IsNullOrWhiteSpace(visionSettings.VisionModelId) ? null : visionSettings.VisionModelId,
                 DefaultQuery = visionSettings.DefaultQuery,
                 MaxImageDimensionPx = visionSettings.MaxImageDimensionPx,
                 MaxResponseTokens = visionSettings.MaxResponseTokens,

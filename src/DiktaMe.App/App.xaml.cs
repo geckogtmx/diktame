@@ -627,6 +627,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.Settings.SnippetsSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.HardwareSettingsViewModel>();
         services.AddTransient<ViewModels.Settings.WorkflowsSettingsViewModel>();
+        services.AddTransient<ViewModels.Settings.VisionSettingsViewModel>();
         services.AddTransient<ViewModels.WizardViewModel>();
         services.AddSingleton<ViewModels.LoadingViewModel>();
         services.AddSingleton<ViewModels.QuickChatViewModel>();

@@ -246,6 +246,8 @@ public sealed record VisionSettings
     public double Temperature { get; init; } = 0.3;
     public int OllamaKeepAliveSeconds { get; init; } = 300;
     public string OutputMode { get; init; } = "inject";
+    public string VisionModelId { get; init; } = "moondream";
+    public string VisionProvider { get; init; } = "ollama";
 }
 
 /// <summary>
