@@ -98,7 +98,15 @@ public sealed partial class MainWindow : Window
         // Subclass the window to intercept WM_NCLBUTTONDBLCLK (title bar double-click).
         // With IsMaximizable=false the OS still tries to snap on double-click, which
         // jumps the window to a corner. We eat the message and toggle expand instead.
-        InstallDoubleClickHook(page);
+        try
+        {
+            InstallDoubleClickHook(page);
+        }
+        catch (EntryPointNotFoundException ex)
+        {
+            // SetWindowLongPtr may not exist on 32-bit user32.dll — non-critical, skip gracefully
+            Serilog.Log.Warning(ex, "MainWindow: double-click hook unavailable — skipped");
+        }
 
         // Enable WS_EX_LAYERED for window-level opacity (auto-hide fade)
         _hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);

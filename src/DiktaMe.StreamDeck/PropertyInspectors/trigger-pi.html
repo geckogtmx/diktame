@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Pipeline Trigger</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 12px; color: #ccc; background: #2d2d2d; margin: 0; padding: 8px; }
+        .row { display: flex; align-items: center; padding: 4px 0; min-height: 28px; }
+        .label { width: 90px; flex-shrink: 0; color: #999; }
+        .value { flex: 1; }
+        select { width: 100%; padding: 4px 6px; background: #3b3b3b; color: #ccc; border: 1px solid #555; border-radius: 3px; font-size: 12px; }
+        .status { color: #777; padding: 4px 0; }
+    </style>
+</head>
+<body>
+    <div class="row">
+        <div class="label">Pipeline Type</div>
+        <div class="value">
+            <select id="pipelineType" onchange="saveSettings()">
+                <option value="dictate">Dictate</option>
+                <option value="ask">Ask</option>
+                <option value="refine_auto">Refine Auto</option>
+                <option value="refine_voice">Refine Voice</option>
+                <option value="translate">Translate</option>
+                <option value="note">Note</option>
+                <option value="oops">Oops (Undo)</option>
+                <option value="read_selection">Read Selection</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row" id="modeRow">
+        <div class="label">Mode</div>
+        <div class="value">
+            <select id="modeId" onchange="saveSettings()">
+                <option value="">Use App Default</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="label">Status</div>
+        <div class="status" id="connectionStatus">Connecting...</div>
+    </div>
+
+    <script>
+        // ── Stream Deck PI SDK (self-contained, no CDN) ─────────────────
+        var websocket = null;
+        var pluginUUID = null;
+        var actionInfo = null;
+        var currentSettings = {};
+
+        function connectElgatoStreamDeckSocket(inPort, inPropertyInspectorUUID, inRegisterEvent, inInfo, inActionInfo) {
+            pluginUUID = inPropertyInspectorUUID;
+            actionInfo = JSON.parse(inActionInfo);
+
+            // Load saved settings from actionInfo
+            if (actionInfo && actionInfo.payload && actionInfo.payload.settings) {
+                currentSettings = actionInfo.payload.settings;
+                applySettingsToUI(currentSettings);
+            }
+
+            websocket = new WebSocket("ws://127.0.0.1:" + inPort);
+
+            websocket.onopen = function () {
+                websocket.send(JSON.stringify({
+                    event: inRegisterEvent,
+                    uuid: inPropertyInspectorUUID
+                }));
+            };
+
+            websocket.onmessage = function (evt) {
+                var msg = JSON.parse(evt.data);
+
+                if (msg.event === "didReceiveSettings" && msg.payload && msg.payload.settings) {
+                    currentSettings = msg.payload.settings;
+                    applySettingsToUI(currentSettings);
+                }
+
+                if (msg.event === "sendToPropertyInspector" && msg.payload) {
+                    if (msg.payload.event === "modesUpdate") {
+                        populateModes(msg.payload.modes);
+                    }
+                    if (msg.payload.event === "connectionStatus") {
+                        document.getElementById("connectionStatus").textContent = msg.payload.status || "Unknown";
+                    }
+                }
+            };
+        }
+
+        function applySettingsToUI(settings) {
+            if (settings.pipelineType) {
+                document.getElementById("pipelineType").value = settings.pipelineType;
+            }
+            if (settings.modeId !== undefined) {
+                var modeSelect = document.getElementById("modeId");
+                // Only set if the option exists
+                for (var i = 0; i < modeSelect.options.length; i++) {
+                    if (modeSelect.options[i].value === settings.modeId) {
+                        modeSelect.value = settings.modeId;
+                        break;
+                    }
+                }
+            }
+            updateModeVisibility();
+        }
+
+        function saveSettings() {
+            currentSettings.pipelineType = document.getElementById("pipelineType").value;
+            currentSettings.modeId = document.getElementById("modeId").value;
+            updateModeVisibility();
+
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.send(JSON.stringify({
+                    event: "setSettings",
+                    context: pluginUUID,
+                    payload: currentSettings
+                }));
+            }
+        }
+
+        function updateModeVisibility() {
+            var pipelineType = document.getElementById("pipelineType").value;
+            document.getElementById("modeRow").style.display = (pipelineType === "dictate") ? "" : "none";
+        }
+
+        function populateModes(modes) {
+            var select = document.getElementById("modeId");
+            var currentValue = select.value;
+
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+
+            if (modes && modes.length) {
+                for (var i = 0; i < modes.length; i++) {
+                    var opt = document.createElement("option");
+                    opt.value = modes[i].id;
+                    opt.text = modes[i].title;
+                    select.add(opt);
+                }
+            }
+
+            // Restore selection
+            if (currentValue) {
+                for (var j = 0; j < select.options.length; j++) {
+                    if (select.options[j].value === currentValue) {
+                        select.value = currentValue;
+                        break;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -53,6 +53,12 @@ public sealed partial class LoadingViewModel : ObservableObject
     private DispatcherQueue? _uiDispatcher;
     private bool _isRecording;
 
+    /// <summary>
+    /// Transient per-trigger mode override for Stream Deck per-button modes.
+    /// Null = use app's active mode. Set by <see cref="TriggerPipeline"/>, consumed by pipeline methods.
+    /// </summary>
+    private string? _modeIdOverride;
+
     public event Action? LoadingComplete;
 
     public LoadingViewModel(
@@ -419,6 +425,92 @@ public sealed partial class LoadingViewModel : ObservableObject
                 Log.Error(ex, "Error handling hotkey {Id}", e.Id);
             }
         });
+    }
+
+    /// <summary>
+    /// Public entry point for external IPC triggers (Stream Deck, automation scripts).
+    /// Maps a pipeline type string to the existing private pipeline methods.
+    /// Must be called on the UI thread (callers should dispatch via DispatcherQueue first).
+    /// </summary>
+    /// <param name="pipelineType">
+    /// One of: "dictate", "refine_auto", "refine_voice", "ask", "translate", "note", "oops", "read_selection".
+    /// </param>
+    /// <param name="modeId">Optional dictation mode ID override (only applies to "dictate").</param>
+    /// <param name="sourceWindow">HWND of the foreground window, captured by the caller before UI dispatch.</param>
+    public void TriggerPipeline(string pipelineType, string? modeId, IntPtr sourceWindow)
+    {
+        try
+        {
+            // Toggle-stop: if already recording, stop instead of starting a new pipeline
+            if (_isRecording && _currentRecorder is not null)
+            {
+                Log.Information("IPC trigger {Type}: stopping active recording", pipelineType);
+                _ = _currentRecorder.StopRecordingAsync();
+                return;
+            }
+
+            // Stop active TTS playback
+            if (_ttsPlayer.IsPlaying)
+            {
+                Log.Information("IPC trigger {Type}: stopping active TTS playback", pipelineType);
+                _ttsPlayer.Stop();
+                if (string.Equals(pipelineType, "read_selection", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+
+            // Set transient mode override (consumed by RunBatchDictationAsync / RunStreamingDictationAsync)
+            _modeIdOverride = string.IsNullOrEmpty(modeId) ? null : modeId;
+
+            switch (pipelineType.ToLowerInvariant())
+            {
+                case "dictate":
+                    _ = RunDictationPipelineAsync();
+                    break;
+
+                case "refine_auto":
+                    _ = RunRefineAutoAsync(sourceWindow);
+                    break;
+
+                case "refine_voice":
+                    _ = RunRefineVoiceAsync(sourceWindow);
+                    break;
+
+                case "ask":
+                    _ = RunAskPipelineAsync();
+                    break;
+
+                case "translate":
+                    _ = RunTranslatePipelineAsync();
+                    break;
+
+                case "note":
+                    _ = RunNotePipelineAsync(sourceWindow);
+                    break;
+
+                case "oops":
+                    _ = Task.Run(() =>
+                    {
+                        _textInjector.ReInjectLast();
+                        var sound = _settings.Current.Sound ?? new();
+                        _notifications.PlayCustomSound(sound.StopSound);
+                    });
+                    break;
+
+                case "read_selection":
+                    _ = RunReadSelectionPipelineAsync(sourceWindow);
+                    break;
+
+                default:
+                    Log.Warning("IPC trigger: unknown pipeline type '{Type}'", pipelineType);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "IPC trigger failed for pipeline type '{Type}'", pipelineType);
+        }
     }
 
     private void OnHotkeyRegistrationFailed(object? sender, HotkeyRegistrationFailedEventArgs e)
@@ -858,7 +950,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                 _levelMonitor.UpdateLevel(e.PcmData, e.BytesRecorded);
 
             // Resolve active profile for per-preset TrailingSpace
-            string? activeModeId = _controlPanel.ActiveDictationModeId;
+            string? activeModeId = _modeIdOverride ?? _controlPanel.ActiveDictationModeId;
             DictationProfile? profile = activeModeId is not null
                 ? _dictationModes.GetActiveProfile(activeModeId)
                 : null;
@@ -972,7 +1064,7 @@ public sealed partial class LoadingViewModel : ObservableObject
 
             // Get active mode from settings (instead of always using modes[0])
             var modes = _dictationModes.GetAllModes();
-            string? activeModeId = _settings.Current.ActiveDictationModeId;
+            string? activeModeId = _modeIdOverride ?? _settings.Current.ActiveDictationModeId;
 
             // Fallback to first mode if ID is null or invalid
             DictationMode? activeMode = modes.FirstOrDefault(m => string.Equals(m.Id, activeModeId, StringComparison.Ordinal))

@@ -1,0 +1,53 @@
+{
+  "SDKVersion": 2,
+  "Author": "dIKta.me",
+  "Name": "dIKta.me",
+  "Description": "Control dIKta.me dictation pipelines and settings from your Stream Deck",
+  "Version": "1.0.0.0",
+  "Category": "dIKta.me",
+  "CategoryIcon": "Images/category-icon",
+  "Icon": "Images/plugin-icon",
+  "CodePath": "DiktaMe.StreamDeck.exe",
+  "URL": "https://dikta.me",
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Software": {
+    "MinimumVersion": "6.5"
+  },
+  "Actions": [
+    {
+      "UUID": "me.dikta.streamdeck.trigger",
+      "Name": "Pipeline Trigger",
+      "Tooltip": "Trigger a dIKta.me pipeline (Dictate, Ask, Refine, Translate, etc.)",
+      "Icon": "Images/trigger-idle",
+      "PropertyInspectorPath": "PropertyInspectors/trigger-pi.html",
+      "SupportedInMultiActions": true,
+      "States": [
+        {
+          "Image": "Images/trigger-idle",
+          "TitleAlignment": "bottom",
+          "FontSize": "10"
+        }
+      ]
+    },
+    {
+      "UUID": "me.dikta.streamdeck.toggle",
+      "Name": "Settings Toggle",
+      "Tooltip": "Toggle a dIKta.me setting (Raw Mode, Streaming, Audio Ducking, Engine)",
+      "Icon": "Images/toggle-off",
+      "PropertyInspectorPath": "PropertyInspectors/toggle-pi.html",
+      "SupportedInMultiActions": true,
+      "States": [
+        {
+          "Image": "Images/toggle-off",
+          "TitleAlignment": "bottom",
+          "FontSize": "10"
+        }
+      ]
+    }
+  ]
+}

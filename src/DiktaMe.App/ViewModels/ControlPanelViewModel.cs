@@ -63,6 +63,12 @@ public sealed partial class ControlPanelViewModel : ObservableObject
 
     // ── Pipeline state ──────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Raised when the pipeline state changes. Used by LocalApiServer to broadcast state over IPC.
+    /// Fires on the UI thread (inside the DispatcherQueue callback).
+    /// </summary>
+    public event EventHandler<PipelineState>? ExternalStateChanged;
+
     [ObservableProperty]
     private PipelineState _currentState = PipelineState.Idle;
 
@@ -839,6 +845,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
                 PipelineState.Error => _loc.GetString("ControlPanel_State_Error"),
                 _ => _loc.GetString("ControlPanel_State_Ready"),
             };
+            ExternalStateChanged?.Invoke(this, state);
         });
     }
 

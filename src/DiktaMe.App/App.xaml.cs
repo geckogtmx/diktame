@@ -150,6 +150,9 @@ public partial class App : Application
         // ── Apply theme from settings (before any UI is created) ─────────────
         Services.GetRequiredService<Services.ThemeService>().ApplyFromSettings();
 
+        // ── Start IPC API server for Stream Deck / external tool integration ─
+        Services.GetRequiredService<Services.LocalApiServer>().Start();
+
         // ── Wire deeplink handler ────────────────────────────────────────────
         var dispatcher = DispatcherQueue.GetForCurrentThread();
         _singleInstance.DeepLinkReceived += uri => dispatcher.TryEnqueue(() => HandleDeepLink(uri));
@@ -585,6 +588,7 @@ public partial class App : Application
         services.AddSingleton<Services.LocalizationService>();
         services.AddSingleton<Services.NotificationService>();
         services.AddSingleton<Services.ThemeService>();
+        services.AddSingleton<Services.LocalApiServer>();
 
         ConfigureViewModels(services);
     }

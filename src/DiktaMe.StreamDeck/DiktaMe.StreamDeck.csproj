@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>DiktaMe.StreamDeck</RootNamespace>
+    <AssemblyName>DiktaMe.StreamDeck</AssemblyName>
+
+    <!-- Flat output — no net8.0-windows subfolder.
+         Entire .sdPlugin folder is ready to copy to Stream Deck's Plugins directory. -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <OutputPath>bin\Debug\me.dikta.streamdeck.sdPlugin\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <OutputPath>bin\Release\me.dikta.streamdeck.sdPlugin\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StreamDeck-Tools" Version="6.4.0" />
+  </ItemGroup>
+
+  <!-- Copy plugin assets to output alongside the exe -->
+  <ItemGroup>
+    <None Include="manifest.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Images\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="Images" />
+    <None Include="PropertyInspectors\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="PropertyInspectors" />
+  </ItemGroup>
+
+</Project>

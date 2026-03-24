@@ -4,10 +4,10 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1010 passing locally (479+ on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
+| **Tests** | 1039 passing locally (479+ on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | **PASSES** (0 warnings, 0 errors). All 4 style dictionaries load cleanly at runtime. |
 | **CI** | **PASSING** — lint, build, tests, gitleaks, vulnerability audit, publish all green. |
-| **Branch** | main (all UI revamp + ACCOUNTS_SIGNIN + auth polish committed) |
+| **Branch** | main (all UI revamp + ACCOUNTS_SIGNIN + auth polish + Stream Deck committed) |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
 | **Website Build** | **PASSES** — `next build` 0 errors, 15+ API routes, admin dashboard (at `/hqbackstage`), wallet + license system |
 
@@ -35,6 +35,7 @@
 | **UI_REVAMP_SCROLL_CP** | **COMPLETE** ✅ — 3-layer cylinder roll idle animation (status→logo+clock→weather), WeatherService (Open-Meteo + IP geolocation). 1010 tests. |
 | **Chat Theming** | **COMPLETE** ✅ — QuickChatWindow migrated to App*Brush theme system (StaticResource + InjectControlBrushes + live switching). MarkdownTextBlock fully themed. Dead `ChatSettings.Theme` property removed. |
 | **Auth Reliability** | **COMPLETE** ✅ — JWT refresh on startup before wallet sync (fixes "Session Expired" toast). Timer dueTime→Zero. Avatar sync on every launch via `SyncProfileFromServerAsync()`. Sign-in no longer forces `AuthMode.Wallet` (preserves user setting). Account page layout centered. |
+| **SPEC_005** | **IN PROGRESS** — Stream Deck integration. Phase 1+2 complete (plugin skeleton, IPC pipe, 4 actions, PIs). Phase 3 bugfixes partially done (7 bugs found, 5 fixed). See §SPEC_005 below. |
 
 ## Open Bugs (Stream K) — Updated 2026-03-22
 
@@ -366,6 +367,47 @@ System.ArgumentNullException: Value cannot be null. (Parameter 'key')
 8. ~~Fix gitleaks CI~~ ✅ Allowlisted `App.xaml` + `plans/ACCOUNTS_SIGNIN.md` — false positives
 9. Continue to Phase 4 (Control Panel Dashboard) → Phase 5 (Polish & QA)
 10. **UI polish** — card border opacity, toggle switch shape (if safe approach found), glassmorphic depth
+
+---
+
+## SPEC_005: Stream Deck Integration — IN PROGRESS
+
+**Spec**: `plans/SPEC_005_STREAMDECK.md` (full bugfix record in §15)
+
+### What's Working
+
+- **Named pipe IPC** (`DiktaMe.V2.Api`): Bidirectional, newline-delimited JSON, auto-reconnect
+- **LocalApiServer** in DiktaMe.App: Per-client write lock, server-side 300ms debounce
+- **4 Stream Deck actions**: PipelineTrigger, SettingsToggle, ModeSwitch, StatusDisplay
+- **Property Inspectors**: Self-contained HTML (no CDN), settings persistence via SD WebSocket
+- **App stability**: No crashes during dictation with Stream Deck connected (Bug 1 fixed)
+- **SetWindowLongPtr**: Graceful try/catch (Bug 2 fixed)
+
+### Known Bugs — Next Session Priority
+
+| Bug | Summary | Status |
+|-----|---------|--------|
+| **B-6** | Button press feels sluggish (need double-click or quick-click) | **OPEN** — Removed plugin 500ms debounce, server 300ms debounce. Needs pipe latency investigation. |
+| **B-7** | Ask button triggers Dictate instead of Ask | **OPEN** — `pipelineType` setting may not survive `ReceivedSettings`/`AutoPopulateSettings` cycle. Add debug logging to `KeyPressed` to verify `_settings.PipelineType`. |
+| **PI Status** | "Connecting..." shown even when connected | **LIKELY FIXED** — Added `OnPropertyInspectorDidAppear` handler. Not retested after final build. |
+
+### Architecture (Key Files)
+
+| File | Role |
+|------|------|
+| `src/DiktaMe.App/Services/LocalApiServer.cs` | **NEW** — IPC server, ConnectedClient inner class with per-client write lock |
+| `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` | Added `TriggerPipeline()` public entry point + `_modeIdOverride` |
+| `src/DiktaMe.App/ViewModels/ControlPanelViewModel.cs` | Added `ExternalStateChanged` event |
+| `src/DiktaMe.Core/Config/ApiCommand.cs` | **NEW** — IPC command model + parser |
+| `src/DiktaMe.StreamDeck/` | **NEW** — Full plugin (4 actions, 2 PIs, pipe client, models) |
+| `test-helpers/test-ipc-pipe.ps1` | **NEW** — Manual pipe test script |
+| `tests/.../ApiCommandParserTests.cs` | **NEW** — 25 unit tests for IPC parser |
+
+### Next Steps
+
+1. Debug B-7 (Ask→Dictate): Add `Log.Information("KeyPressed: pipelineType={Type}", _settings.PipelineType)` to confirm settings are loaded
+2. Debug B-6 (responsiveness): Profile pipe message round-trip time, consider if SD SDK event handling adds latency
+3. Once basic interactions work: display tricks (state icons, telemetry numbers on LCD keys)
 
 ---
 
