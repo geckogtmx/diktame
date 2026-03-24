@@ -100,6 +100,12 @@ public sealed class PipelineFactory
         return new ChatPipeline(llm!, _settings, stt, _eventBus);
     }
 
+    public VisionPipeline CreateVisionPipeline(string? modeOverride = null)
+    {
+        var (stt, llm) = GetProviders("vision", modeOverride);
+        return new VisionPipeline(llm!, _injector, stt, _eventBus);
+    }
+
     /// <summary>
     /// Creates a ReadSelectionPipeline using the configured TTS provider.
     /// Does not require STT or LLM — operates on pre-captured text only.

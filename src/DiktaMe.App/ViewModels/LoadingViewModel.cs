@@ -1696,13 +1696,92 @@ public sealed partial class LoadingViewModel : ObservableObject
         try
         {
             Log.Information("Starting Vision pipeline...");
-            _notifications.ShowToast("Vision", "Vision module coming soon — capture overlay not yet implemented", NotificationType.Info);
-            await Task.CompletedTask.ConfigureAwait(false);
+
+            // Step 1: Show snipping overlay and await user selection
+            var overlay = new Views.SnippingOverlayWindow();
+            overlay.Activate();
+            var snippingResult = await overlay.GetResultAsync().ConfigureAwait(true);
+
+            if (snippingResult is null)
+            {
+                Log.Information("Vision: cancelled by user");
+                return;
+            }
+
+            // Step 2: Capture screenshot based on selection mode
+            byte[] screenshot;
+            if (snippingResult.Mode == DiktaMe.Core.Vision.CaptureMode.Region && snippingResult.Region is { } region)
+            {
+                screenshot = DiktaMe.Core.Vision.ScreenCapture.CaptureRegion(
+                    region.X, region.Y, region.Width, region.Height);
+            }
+            else
+            {
+                screenshot = DiktaMe.Core.Vision.ScreenCapture.CaptureActiveWindow();
+            }
+
+            if (screenshot.Length == 0)
+            {
+                _notifications.ShowToast("Vision", "Screen capture failed", NotificationType.Error);
+                return;
+            }
+
+            // Step 3: Prepare image for API (resize + compress)
+            var (imageData, mimeType) = await Task.Run(
+                () => DiktaMe.Core.Vision.ImageProcessor.PrepareForApi(
+                    screenshot, _settings.Current.Vision.MaxImageDimensionPx))
+                .ConfigureAwait(false);
+
+            // Step 4: Create and run vision pipeline
+            _notifications.ShowToast("Vision", "Analyzing image...", NotificationType.Info);
+            var visionSettings = _settings.Current.Vision;
+            var options = new DiktaMe.Core.Vision.VisionOptions
+            {
+                SystemPrompt = "You are a vision assistant. Analyze the image and respond to the user's query.",
+                DefaultQuery = visionSettings.DefaultQuery,
+                MaxImageDimensionPx = visionSettings.MaxImageDimensionPx,
+                MaxResponseTokens = visionSettings.MaxResponseTokens,
+                Temperature = visionSettings.Temperature,
+                OutputMode = string.Equals(visionSettings.OutputMode, "clipboard", StringComparison.OrdinalIgnoreCase)
+                    ? DiktaMe.Core.Vision.VisionOutputMode.Clipboard
+                    : string.Equals(visionSettings.OutputMode, "toast", StringComparison.OrdinalIgnoreCase)
+                        ? DiktaMe.Core.Vision.VisionOutputMode.ToastOnly
+                        : DiktaMe.Core.Vision.VisionOutputMode.Inject,
+            };
+
+            var pipeline = _pipelineFactory.CreateVisionPipeline();
+            pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
+            _recordingCts = new CancellationTokenSource();
+
+            var result = await pipeline.RunAsync(imageData, mimeType, audioFilePath: null, options, _recordingCts.Token)
+                .ConfigureAwait(false);
+
+            _controlPanel.OnPipelineCompleted(this, result);
+            _pipelineEventBus.PublishCompleted(result);
+
+            if (result.IsSuccess)
+            {
+                string preview = result.Text.Length > 100
+                    ? string.Concat(result.Text.AsSpan(0, 100), "...")
+                    : result.Text;
+                Log.Information("Vision: Success, {Chars} chars", result.Text.Length);
+                _notifications.ShowToast("Vision", preview, NotificationType.Success);
+            }
+            else
+            {
+                Log.Warning("Vision: failed - {Error}", result.ErrorMessage);
+                _notifications.ShowToast("Vision Error", result.ErrorMessage ?? "Vision analysis failed", NotificationType.Error);
+            }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Vision pipeline failed");
             _notifications.ShowToast("Vision Error", ex.Message, NotificationType.Error);
+        }
+        finally
+        {
+            _recordingCts?.Dispose();
+            _recordingCts = null;
         }
     }
 }
