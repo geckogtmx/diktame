@@ -1749,6 +1749,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Vision: image ready ({MimeType}, {Size} bytes)", mimeType, imageData.Length);
 
             // Step 4: Create and run vision pipeline
+            Log.Information("Vision: creating pipeline and sending to LLM...");
             _notifications.ShowToast("Vision", "Analyzing image...", NotificationType.Info);
             var options = new DiktaMe.Core.Vision.VisionOptions
             {
@@ -1776,15 +1777,22 @@ public sealed partial class LoadingViewModel : ObservableObject
 
             if (result.IsSuccess)
             {
-                string preview = result.Text.Length > 100
-                    ? string.Concat(result.Text.AsSpan(0, 100), "...")
+                string preview = result.Text.Length > 200
+                    ? string.Concat(result.Text.AsSpan(0, 200), "...")
                     : result.Text;
-                Log.Information("Vision: Success, {Chars} chars", result.Text.Length);
+                Log.Information("Vision: Success via {Provider} in {Ms}ms — {Chars} chars, {InTok}→{OutTok} tokens",
+                    result.LlmProvider, result.ProcessingMs, result.Text.Length,
+                    result.InputTokens, result.OutputTokens);
+                Log.Debug("Vision response: {Text}", result.Text);
+
+                // Store in history (via ControlPanel → MetricsCollector → HistoryManager)
+                await _history.LogSessionAsync(result).ConfigureAwait(false);
+
                 _notifications.ShowToast("Vision", preview, NotificationType.Success);
             }
             else
             {
-                Log.Warning("Vision: failed - {Error}", result.ErrorMessage);
+                Log.Warning("Vision: failed via {Provider} — {Error}", result.LlmProvider, result.ErrorMessage);
                 _notifications.ShowToast("Vision Error", result.ErrorMessage ?? "Vision analysis failed", NotificationType.Error);
             }
         }
