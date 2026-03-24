@@ -211,6 +211,7 @@ public sealed class SettingsManager
             Deepgram = s.Deepgram ?? new(),
             Tts = s.Tts ?? new(),
             CloudLlm = s.CloudLlm ?? new(),
+            Vision = s.Vision ?? new(),
             Account = s.Account ?? new(),
         };
 
@@ -231,6 +232,7 @@ public sealed class SettingsManager
                 Note = h.Note ?? defaults.Note,
                 Chat = h.Chat ?? defaults.Chat,
                 ReadSelection = h.ReadSelection ?? defaults.ReadSelection,
+                Vision = h.Vision ?? defaults.Vision,
             },
         };
 

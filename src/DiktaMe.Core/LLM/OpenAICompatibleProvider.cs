@@ -280,6 +280,79 @@ public sealed class OpenAICompatibleProvider : ILLMProvider, IDisposable
             $"{_serviceName}: all {MaxRetries} attempts failed.");
     }
 
+    /// <summary>
+    /// Processes an image with optional text query using the OpenAI-compatible vision API.
+    /// Also covers Ollama vision models (LLaVA, Moondream) which use the same format.
+    /// </summary>
+    public async Task<LlmResult> ProcessWithImageAsync(
+        byte[] imageData, string mimeType,
+        string text, string systemPrompt, string mode = "vision",
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string base64 = Convert.ToBase64String(imageData);
+        string safeText = SanitizeInput(text);
+        string body = BuildImageRequestJson(_model, systemPrompt, base64, mimeType, safeText);
+
+        var sw = Stopwatch.StartNew();
+
+        const int MaxRetries = 3;
+        for (int attempt = 0; attempt < MaxRetries; attempt++)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, _endpointUrl);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    throw new InvalidOperationException($"{_serviceName}: invalid API key (401).");
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    if ((int)response.StatusCode == 429 && attempt < MaxRetries - 1)
+                    {
+                        await DelayAsync(attempt).ConfigureAwait(false);
+                        continue;
+                    }
+                    string errBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    throw new InvalidOperationException(
+                        $"{_serviceName}: status {(int)response.StatusCode}: {errBody}");
+                }
+
+                sw.Stop();
+                string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                (string output, int? inTok, int? outTok) = ParseResponse(json);
+
+                Log.Information("{Provider}: image processed in {Ms}ms [{Mode}]",
+                    ProviderName, sw.ElapsedMilliseconds, mode);
+
+                return new LlmResult
+                {
+                    Text = output,
+                    Provider = ProviderName,
+                    LatencyMs = sw.ElapsedMilliseconds,
+                    InputTokens = inTok,
+                    OutputTokens = outTok,
+                };
+            }
+            catch (HttpRequestException ex) when (attempt < MaxRetries - 1)
+            {
+                Log.Warning(ex, "{Provider}: network error on attempt {A}/{Max}",
+                    ProviderName, attempt + 1, MaxRetries);
+                await DelayAsync(attempt).ConfigureAwait(false);
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"{_serviceName}: all {MaxRetries} attempts failed.");
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -372,6 +445,30 @@ public sealed class OpenAICompatibleProvider : ILLMProvider, IDisposable
             Log.Warning(ex, "OpenAICompatibleProvider: failed to parse response JSON");
             return (string.Empty, null, null);
         }
+    }
+
+    private static string BuildImageRequestJson(
+        string model, string systemPrompt, string base64Data, string mimeType, string userText)
+    {
+        string escapedModel = EscapeJsonString(model);
+        string escapedSystem = EscapeJsonString(systemPrompt);
+        string escapedMime = EscapeJsonString(mimeType);
+        string escapedText = EscapeJsonString(userText);
+
+        return $$"""
+            {
+              "model": "{{escapedModel}}",
+              "messages": [
+                { "role": "system", "content": "{{escapedSystem}}" },
+                { "role": "user", "content": [
+                  { "type": "image_url", "image_url": { "url": "data:{{escapedMime}};base64,{{base64Data}}" } },
+                  { "type": "text", "text": "{{escapedText}}" }
+                ] }
+              ],
+              "temperature": 0.3,
+              "max_tokens": 4096
+            }
+            """;
     }
 
     private static string EscapeJsonString(string s)

@@ -128,7 +128,7 @@ public class HotkeyManagerTests : IDisposable
     public void HotkeyId_AllSlotsAreDefined()
     {
         var ids = Enum.GetValues<HotkeyId>();
-        Assert.Equal(8, ids.Length);
+        Assert.Equal(9, ids.Length);
         Assert.Contains(HotkeyId.Dictate, ids);
         Assert.Contains(HotkeyId.Ask, ids);
         Assert.Contains(HotkeyId.Translate, ids);

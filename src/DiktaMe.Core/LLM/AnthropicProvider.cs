@@ -186,6 +186,78 @@ public sealed class AnthropicProvider : ILLMProvider, IDisposable
         throw new InvalidOperationException($"Anthropic: all {MaxRetries} attempts failed.");
     }
 
+    /// <summary>
+    /// Processes an image with optional text query using Anthropic's multimodal API.
+    /// </summary>
+    public async Task<LlmResult> ProcessWithImageAsync(
+        byte[] imageData, string mimeType,
+        string text, string systemPrompt, string mode = "vision",
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string base64 = Convert.ToBase64String(imageData);
+        string safeText = SanitizeInput(text);
+        string body = BuildImageRequestJson(_model, systemPrompt, base64, mimeType, safeText);
+
+        var sw = Stopwatch.StartNew();
+
+        const int MaxRetries = 3;
+        for (int attempt = 0; attempt < MaxRetries; attempt++)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, MessagesUrl);
+                request.Headers.Add("x-api-key", _apiKey);
+                request.Headers.Add("anthropic-version", ApiVersion);
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    throw new InvalidOperationException("Anthropic: invalid API key (401).");
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    if ((int)response.StatusCode == 429 && attempt < MaxRetries - 1)
+                    {
+                        await DelayAsync(attempt).ConfigureAwait(false);
+                        continue;
+                    }
+                    string errBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    throw new InvalidOperationException(
+                        $"Anthropic: status {(int)response.StatusCode}: {errBody}");
+                }
+
+                sw.Stop();
+                string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                (string output, int? inTok, int? outTok) = ParseResponse(json);
+
+                Log.Information("{Provider}: image processed in {Ms}ms [{Mode}]",
+                    ProviderName, sw.ElapsedMilliseconds, mode);
+
+                return new LlmResult
+                {
+                    Text = output,
+                    Provider = ProviderName,
+                    LatencyMs = sw.ElapsedMilliseconds,
+                    InputTokens = inTok,
+                    OutputTokens = outTok,
+                };
+            }
+            catch (HttpRequestException ex) when (attempt < MaxRetries - 1)
+            {
+                Log.Warning(ex, "AnthropicProvider: network error on attempt {A}/{Max}",
+                    attempt + 1, MaxRetries);
+                await DelayAsync(attempt).ConfigureAwait(false);
+            }
+        }
+
+        throw new InvalidOperationException($"Anthropic: all {MaxRetries} attempts failed.");
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static string SanitizeInput(string text)
@@ -268,6 +340,28 @@ public sealed class AnthropicProvider : ILLMProvider, IDisposable
             Log.Warning(ex, "AnthropicProvider: failed to parse response JSON");
             return (string.Empty, null, null);
         }
+    }
+
+    private static string BuildImageRequestJson(
+        string model, string systemPrompt, string base64Data, string mimeType, string userText)
+    {
+        string escapedModel = EscapeJsonString(model);
+        string escapedSystem = EscapeJsonString(systemPrompt);
+        string escapedMime = EscapeJsonString(mimeType);
+        string escapedText = EscapeJsonString(userText);
+
+        return $$"""
+            {
+              "model": "{{escapedModel}}",
+              "system": "{{escapedSystem}}",
+              "messages": [{ "role": "user", "content": [
+                { "type": "image", "source": { "type": "base64", "media_type": "{{escapedMime}}", "data": "{{base64Data}}" } },
+                { "type": "text", "text": "{{escapedText}}" }
+              ] }],
+              "max_tokens": 4096,
+              "temperature": 0.3
+            }
+            """;
     }
 
     private static string EscapeJsonString(string s)

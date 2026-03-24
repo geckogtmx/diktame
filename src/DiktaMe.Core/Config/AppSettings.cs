@@ -233,6 +233,22 @@ public sealed record ControlPanelSettings
 }
 
 /// <summary>
+/// Vision module settings (SPEC_002).
+/// </summary>
+public sealed record VisionSettings
+{
+    public bool Enabled { get; init; } = true;
+    public string DefaultQuery { get; init; } = "Describe what you see and extract any visible text.";
+    public int MaxImageDimensionPx { get; init; } = 2048;
+    public bool AutoRecordQuery { get; init; } = true;
+    public int QueryTimeoutSeconds { get; init; } = 10;
+    public int MaxResponseTokens { get; init; } = 4096;
+    public double Temperature { get; init; } = 0.3;
+    public int OllamaKeepAliveSeconds { get; init; } = 300;
+    public string OutputMode { get; init; } = "inject";
+}
+
+/// <summary>
 /// Global hotkey configuration. Default values match V1.
 /// </summary>
 public sealed record HotkeySettings
@@ -245,6 +261,7 @@ public sealed record HotkeySettings
     public string Note { get; init; } = "Ctrl+Alt+N";
     public string Chat { get; init; } = "Ctrl+Alt+C";
     public string ReadSelection { get; init; } = "Ctrl+Alt+Q";
+    public string Vision { get; init; } = "Ctrl+Alt+S";
 }
 
 /// <summary>
@@ -454,6 +471,7 @@ public sealed record AppSettings
     public DeepgramSettings Deepgram { get; init; } = new();
     public TtsSettings Tts { get; init; } = new();
     public CloudLlmSettings CloudLlm { get; init; } = new();
+    public VisionSettings Vision { get; init; } = new();
 
     /// <summary>
     /// Per-mode settings for 2 profiles.
@@ -547,6 +565,7 @@ public sealed record AppSettings
 /// </summary>
 [JsonSerializable(typeof(AppSettings))]
 [JsonSerializable(typeof(GeneralSettings))]
+[JsonSerializable(typeof(VisionSettings))]
 [JsonSerializable(typeof(AudioSettings))]
 [JsonSerializable(typeof(AudioDuckingSettings))]
 [JsonSerializable(typeof(PrivacySettings))]

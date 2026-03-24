@@ -414,6 +414,7 @@ public enum HotkeyId
     Note = 6,
     Chat = 7,
     ReadSelection = 8,
+    Vision = 9,
 }
 
 /// <summary>Event data for <see cref="HotkeyManager.HotkeyPressed"/>.</summary>

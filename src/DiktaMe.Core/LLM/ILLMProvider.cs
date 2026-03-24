@@ -46,6 +46,17 @@ public interface ILLMProvider
     /// Display name of this provider, including the model, e.g. "GPT-4o-mini (OpenAI)".
     /// </summary>
     string ProviderName { get; }
+
+    /// <summary>
+    /// Processes an image with optional text query using a multimodal LLM.
+    /// Default implementation throws NotSupportedException — providers opt in by overriding.
+    /// </summary>
+    Task<LlmResult> ProcessWithImageAsync(byte[] imageData, string mimeType,
+        string text, string systemPrompt, string mode = "vision",
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotSupportedException($"{GetType().Name} does not support multimodal/vision requests.");
+    }
 }
 
 /// <summary>
@@ -105,6 +116,24 @@ public static class LLMProviderExtensions
         }
 
         return provider.ProcessAsync(text, systemPrompt, mode, cancellationToken);
+    }
+
+    /// <summary>
+    /// Processes an image through the LLM with optional per-mode model override.
+    /// If the provider is a <see cref="LLMRouter"/> and a model name is specified,
+    /// uses the model-aware overload. Otherwise falls back to the standard call.
+    /// </summary>
+    public static Task<LlmResult> ProcessImageWithModelAsync(
+        this ILLMProvider provider, byte[] imageData, string mimeType,
+        string text, string systemPrompt, string? modelName,
+        string mode = "vision", CancellationToken cancellationToken = default)
+    {
+        if (provider is LLMRouter router && !string.IsNullOrWhiteSpace(modelName))
+        {
+            return router.ProcessWithImageAsync(imageData, mimeType, text, systemPrompt, modelName, mode, cancellationToken);
+        }
+
+        return provider.ProcessWithImageAsync(imageData, mimeType, text, systemPrompt, mode, cancellationToken);
     }
 
     /// <summary>

@@ -194,6 +194,62 @@ public sealed class LLMRouter : ILLMProvider
     }
 
     /// <summary>
+    /// Processes an image through the LLM (no model override).
+    /// </summary>
+    public Task<LlmResult> ProcessWithImageAsync(
+        byte[] imageData, string mimeType,
+        string text, string systemPrompt, string mode = "vision",
+        CancellationToken cancellationToken = default)
+    {
+        return ProcessWithImageAsync(imageData, mimeType, text, systemPrompt, modelName: null, mode, cancellationToken);
+    }
+
+    /// <summary>
+    /// Processes an image through the LLM with optional per-request model override.
+    /// </summary>
+    public async Task<LlmResult> ProcessWithImageAsync(
+        byte[] imageData, string mimeType,
+        string text, string systemPrompt, string? modelName,
+        string mode = "vision",
+        CancellationToken cancellationToken = default)
+    {
+        // Wallet mode — route through managed wallet proxy
+        if (_settings?.Current.AuthMode == AuthMode.Wallet && _walletProvider is not null)
+        {
+            Log.Debug("LLMRouter: AuthMode=Wallet — routing image to {Provider}", _walletProvider.ProviderName);
+            return await _walletProvider.ProcessWithImageAsync(imageData, mimeType, text, systemPrompt, mode, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        if (string.IsNullOrWhiteSpace(modelName))
+        {
+            return await ProcessImageWithProviderAsync(
+                _primary, _fallback, imageData, mimeType, text, systemPrompt, mode, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        ILLMProvider? provider;
+        try
+        {
+            provider = ResolveProviderForModel(modelName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "LLMRouter: Failed to resolve provider for model '{ModelName}'", modelName);
+            return new LlmResult
+            {
+                Text = string.Empty,
+                Provider = "unknown",
+                LatencyMs = 0,
+            };
+        }
+
+        return await ProcessImageWithProviderAsync(
+            provider, fallback: null, imageData, mimeType, text, systemPrompt, mode, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Resolves the appropriate LLM provider for a given model name.
     /// Uses <see cref="ModelListService.ResolveProviderFromModelId"/> for prefix matching,
     /// then <see cref="LLMProviderFactory.CreateProvider"/> to instantiate the provider.
@@ -338,6 +394,73 @@ public sealed class LLMRouter : ILLMProvider
 
         // ── Both failed ───────────────────────────────────────────────────────
         Log.Error("LLMRouter: all providers failed for conversation");
+        return new LlmResult
+        {
+            Text = string.Empty,
+            Provider = primary.ProviderName,
+            LatencyMs = 0,
+        };
+    }
+
+    /// <summary>
+    /// Executes the image processing with fallback support.
+    /// </summary>
+    private async Task<LlmResult> ProcessImageWithProviderAsync(
+        ILLMProvider primary,
+        ILLMProvider? fallback,
+        byte[] imageData,
+        string mimeType,
+        string text,
+        string systemPrompt,
+        string mode,
+        CancellationToken cancellationToken)
+    {
+        // ── Try primary ───────────────────────────────────────────────────────
+        try
+        {
+            ApplyProviderSettings(primary);
+            var result = await primary.ProcessWithImageAsync(imageData, mimeType, text, systemPrompt, mode, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (result.IsSuccess)
+            {
+                Log.Debug("LLMRouter: primary {Provider} image succeeded", primary.ProviderName);
+                return result;
+            }
+
+            Log.Warning("LLMRouter: primary {Provider} image returned empty — trying fallback",
+                primary.ProviderName);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "LLMRouter: primary {Provider} image threw — trying fallback",
+                primary.ProviderName);
+        }
+
+        // ── Fallback ──────────────────────────────────────────────────────────
+        if (fallback is not null)
+        {
+            try
+            {
+                ApplyProviderSettings(fallback);
+                var fallbackResult = await fallback.ProcessWithImageAsync(
+                    imageData, mimeType, text, systemPrompt, mode, cancellationToken)
+                    .ConfigureAwait(false);
+
+                Log.Information("LLMRouter: fallback {Provider} image result: success={Success}",
+                    fallback.ProviderName, fallbackResult.IsSuccess);
+
+                return fallbackResult;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "LLMRouter: fallback {Provider} image also threw",
+                    fallback.ProviderName);
+            }
+        }
+
+        // ── Both failed ───────────────────────────────────────────────────────
+        Log.Error("LLMRouter: all providers failed for image processing");
         return new LlmResult
         {
             Text = string.Empty,

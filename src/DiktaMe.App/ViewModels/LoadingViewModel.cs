@@ -370,6 +370,12 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         success = _hotkeyManager.Register(HotkeyId.ReadSelection, hotkeys.ReadSelection);
         Log.Debug("Register ReadSelection ({Hotkey}): {Success}", hotkeys.ReadSelection, success);
+
+        if (_settings.Current.Vision.Enabled)
+        {
+            success = _hotkeyManager.Register(HotkeyId.Vision, hotkeys.Vision);
+            Log.Debug("Register Vision ({Hotkey}): {Success}", hotkeys.Vision, success);
+        }
     }
 
     private void OnHotkeyPressed(object? sender, HotkeyPressedEventArgs e)
@@ -451,6 +457,10 @@ public sealed partial class LoadingViewModel : ObservableObject
 
                     case HotkeyId.ReadSelection:
                         _ = RunReadSelectionPipelineAsync(sourceWindow);
+                        break;
+
+                    case HotkeyId.Vision:
+                        _ = RunVisionPipelineAsync();
                         break;
                 }
             }
@@ -1676,6 +1686,23 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             _recordingCts?.Dispose();
             _recordingCts = null;
+        }
+    }
+
+    // ── Vision Pipeline (SPEC_015-0C) ────────────────────────────────────
+
+    private async Task RunVisionPipelineAsync()
+    {
+        try
+        {
+            Log.Information("Starting Vision pipeline...");
+            _notifications.ShowToast("Vision", "Vision module coming soon — capture overlay not yet implemented", NotificationType.Info);
+            await Task.CompletedTask.ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Vision pipeline failed");
+            _notifications.ShowToast("Vision Error", ex.Message, NotificationType.Error);
         }
     }
 }

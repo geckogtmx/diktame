@@ -221,6 +221,85 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
         throw new InvalidOperationException($"Gemini: all {MaxRetries} attempts failed.");
     }
 
+    /// <summary>
+    /// Processes an image with optional text query using Gemini's multimodal API.
+    /// </summary>
+    public async Task<LlmResult> ProcessWithImageAsync(
+        byte[] imageData, string mimeType,
+        string text, string systemPrompt, string mode = "vision",
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string base64 = Convert.ToBase64String(imageData);
+        string safeText = SanitizeInput(text);
+        string body = BuildImageRequestJson(base64, mimeType, safeText, systemPrompt);
+
+        string url = _isOAuth
+            ? $"{ApiBase.Replace("/models", "", StringComparison.Ordinal)}/models/{_model}:generateContent"
+            : $"{ApiBase}/{_model}:generateContent?key={_apiKey}";
+
+        var sw = Stopwatch.StartNew();
+
+        const int MaxRetries = 3;
+        for (int attempt = 0; attempt < MaxRetries; attempt++)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                if (_isOAuth)
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                }
+
+                using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    throw new InvalidOperationException("Gemini: invalid API key or OAuth token (401).");
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    if ((int)response.StatusCode == 429 && attempt < MaxRetries - 1)
+                    {
+                        await DelayAsync(attempt).ConfigureAwait(false);
+                        continue;
+                    }
+                    string errBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    throw new InvalidOperationException(
+                        $"Gemini: status {(int)response.StatusCode}: {errBody}");
+                }
+
+                sw.Stop();
+                string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                (string output, int? inTok, int? outTok) = ParseResponse(json);
+
+                Log.Information("{Provider}: image processed in {Ms}ms [{Mode}]",
+                    ProviderName, sw.ElapsedMilliseconds, mode);
+
+                return new LlmResult
+                {
+                    Text = output,
+                    Provider = ProviderName,
+                    LatencyMs = sw.ElapsedMilliseconds,
+                    InputTokens = inTok,
+                    OutputTokens = outTok,
+                };
+            }
+            catch (HttpRequestException ex) when (attempt < MaxRetries - 1)
+            {
+                Log.Warning(ex, "GeminiProvider: network error on attempt {A}/{Max}",
+                    attempt + 1, MaxRetries);
+                await DelayAsync(attempt).ConfigureAwait(false);
+            }
+        }
+
+        throw new InvalidOperationException($"Gemini: all {MaxRetries} attempts failed.");
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static string SanitizeInput(string text)
@@ -313,6 +392,25 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
             Log.Warning(ex, "GeminiProvider: failed to parse response JSON");
             return (string.Empty, null, null);
         }
+    }
+
+    private static string BuildImageRequestJson(
+        string base64Data, string mimeType, string userText, string systemPrompt)
+    {
+        string escapedMime = EscapeJsonString(mimeType);
+        string escapedText = EscapeJsonString(userText);
+        string escapedSystem = EscapeJsonString(systemPrompt);
+
+        return $$"""
+            {
+              "contents": [{ "parts": [
+                { "inlineData": { "mimeType": "{{escapedMime}}", "data": "{{base64Data}}" } },
+                { "text": "{{escapedText}}" }
+              ] }],
+              "systemInstruction": { "parts": [{ "text": "{{escapedSystem}}" }] },
+              "generationConfig": { "temperature": 0.3, "maxOutputTokens": 4096 }
+            }
+            """;
     }
 
     private static string EscapeJsonString(string s)
