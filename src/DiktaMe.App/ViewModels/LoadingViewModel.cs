@@ -1697,15 +1697,24 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             Log.Information("Starting Vision pipeline...");
 
-            // Step 1: Capture full screen BEFORE showing overlay (so overlay isn't in the screenshot)
-            Log.Debug("Vision: capturing full screen for overlay background");
-            byte[] fullScreenPng = await Task.Run(DiktaMe.Core.Vision.ScreenCapture.CaptureFullScreen)
-                .ConfigureAwait(true);
-            Log.Debug("Vision: full screen captured ({Size} bytes)", fullScreenPng.Length);
+            // Step 1: Capture the active window BEFORE showing overlay
+            var bounds = DiktaMe.Core.Vision.ScreenCapture.GetActiveWindowBounds();
+            if (bounds.Width <= 0 || bounds.Height <= 0)
+            {
+                _notifications.ShowToast("Vision", "No active window found", NotificationType.Error);
+                return;
+            }
 
-            // Step 2: Show snipping overlay with the screenshot as background
+            Log.Debug("Vision: capturing active window ({W}x{H} at {X},{Y})",
+                bounds.Width, bounds.Height, bounds.X, bounds.Y);
+            byte[] windowPng = await Task.Run(DiktaMe.Core.Vision.ScreenCapture.CaptureActiveWindow)
+                .ConfigureAwait(true);
+            Log.Debug("Vision: active window captured ({Size} bytes)", windowPng.Length);
+
+            // Step 2: Show snipping overlay sized to the active window
             var overlay = new Views.SnippingOverlayWindow();
-            await overlay.SetBackgroundScreenshotAsync(fullScreenPng).ConfigureAwait(true);
+            overlay.SetBounds(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            await overlay.SetBackgroundScreenshotAsync(windowPng).ConfigureAwait(true);
             overlay.Activate();
             var snippingResult = await overlay.GetResultAsync().ConfigureAwait(true);
 
@@ -1715,8 +1724,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
-            // Step 3: Extract the selected region from the full-screen capture
-            // (or use full screen for active window mode — we already have it)
+            // Step 3: Process capture — use the window image directly or extract sub-region
             Log.Debug("Vision: processing capture (mode={Mode})", snippingResult.Mode);
             var visionSettings = _settings.Current.Vision;
 
@@ -1726,13 +1734,14 @@ public sealed partial class LoadingViewModel : ObservableObject
                 if (snippingResult.Mode == DiktaMe.Core.Vision.CaptureMode.Region
                     && snippingResult.Region is { } region)
                 {
-                    // Re-capture just the region (coordinates from overlay match screen)
+                    // Region coordinates are relative to the overlay (which matches the window)
+                    // Translate to screen coordinates by adding window origin
                     screenshot = DiktaMe.Core.Vision.ScreenCapture.CaptureRegion(
-                        region.X, region.Y, region.Width, region.Height);
+                        bounds.X + region.X, bounds.Y + region.Y, region.Width, region.Height);
                 }
                 else
                 {
-                    screenshot = fullScreenPng; // Use the pre-captured full screen
+                    screenshot = windowPng;
                 }
 
                 Log.Debug("Vision: captured {Size} bytes, preparing for API", screenshot.Length);
@@ -1746,7 +1755,17 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
-            Log.Information("Vision: image ready ({MimeType}, {Size} bytes)", mimeType, imageData.Length);
+            // Save screenshot for debugging
+            string visionDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "DiktaMe", "vision");
+            Directory.CreateDirectory(visionDir);
+            string ext = string.Equals(mimeType, "image/jpeg", StringComparison.Ordinal) ? "jpg" : "png";
+            string savedPath = Path.Combine(visionDir,
+                $"vision_{DateTime.Now:yyyyMMdd_HHmmss}.{ext}");
+            await File.WriteAllBytesAsync(savedPath, imageData).ConfigureAwait(false);
+            Log.Information("Vision: image saved to {Path} ({MimeType}, {Size} bytes)",
+                savedPath, mimeType, imageData.Length);
 
             // Step 4: Create and run vision pipeline
             Log.Information("Vision: creating pipeline and sending to LLM...");

@@ -46,7 +46,7 @@ public sealed partial class SnippingOverlayWindow : Window
             presenter.SetBorderAndTitleBar(hasBorder: false, hasTitleBar: false);
         }
 
-        // Cover entire primary display (use OuterBounds to include taskbar)
+        // Default: cover primary display. Call SetBounds() before Activate() to override.
         var display = DisplayArea.Primary;
         AppWindow.MoveAndResize(new RectInt32(
             display.OuterBounds.X, display.OuterBounds.Y,
@@ -84,6 +84,14 @@ public sealed partial class SnippingOverlayWindow : Window
         Content.IsTabStop = true;
 
         OverlayCanvas.SizeChanged += (_, _) => ResizeOverlayFull();
+    }
+
+    /// <summary>
+    /// Positions the overlay at the given screen coordinates. Call before Activate().
+    /// </summary>
+    public void SetBounds(int x, int y, int width, int height)
+    {
+        AppWindow.MoveAndResize(new RectInt32(x, y, width, height));
     }
 
     /// <summary>

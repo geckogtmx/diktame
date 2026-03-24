@@ -10,6 +10,18 @@ namespace DiktaMe.Core.Vision;
 /// </summary>
 public static class ScreenCapture
 {
+    /// <summary>Returns the screen bounds (x, y, width, height) of the foreground window.</summary>
+    public static (int X, int Y, int Width, int Height) GetActiveWindowBounds()
+    {
+        IntPtr hwnd = NativeMethods.GetForegroundWindow();
+        if (hwnd == IntPtr.Zero || !NativeMethods.GetWindowRect(hwnd, out NativeMethods.RECT rect))
+        {
+            return (0, 0, 0, 0);
+        }
+
+        return (rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
+    }
+
     /// <summary>Captures the currently focused window as a PNG byte array.</summary>
     public static byte[] CaptureActiveWindow()
     {
