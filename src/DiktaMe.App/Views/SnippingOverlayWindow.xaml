@@ -4,17 +4,18 @@
         Title="dIKta.me Vision">
 
     <Grid>
-        <!-- Dark overlay canvas — selection rectangle is drawn in code-behind -->
-        <Canvas x:Name="OverlayCanvas" Background="Transparent">
-            <!-- Semi-transparent dark fill (drawn programmatically with cutout) -->
-        </Canvas>
+        <!-- Screenshot of the screen as background (simulates transparency) -->
+        <Image x:Name="ScreenshotImage" Stretch="Fill" />
+
+        <!-- Dark overlay canvas — selection rectangle drawn in code-behind -->
+        <Canvas x:Name="OverlayCanvas" Background="Transparent" />
 
         <!-- Bottom hint text -->
         <TextBlock x:Name="HintText"
                    Text="Click = Window  |  Drag = Region  |  Esc = Cancel"
                    Foreground="White"
                    FontSize="14"
-                   Opacity="0.7"
+                   Opacity="0.8"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Bottom"
                    Margin="0,0,0,32" />

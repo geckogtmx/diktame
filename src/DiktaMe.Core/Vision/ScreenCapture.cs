@@ -1,7 +1,6 @@
+using System.IO.Compression;
 using System.Runtime.InteropServices;
 using Serilog;
-using Windows.Graphics.Imaging;
-using Windows.Storage.Streams;
 
 namespace DiktaMe.Core.Vision;
 
@@ -129,12 +128,11 @@ public static class ScreenCapture
     }
 
     /// <summary>
-    /// Converts a GDI HBITMAP to a PNG-encoded byte array using WinRT
-    /// <see cref="BitmapEncoder"/>.
+    /// Converts a GDI HBITMAP to a PNG-encoded byte array using a pure
+    /// synchronous PNG encoder (no WinRT async — avoids UI thread deadlock).
     /// </summary>
     private static byte[] HBitmapToPng(IntPtr hBitmap, int width, int height)
     {
-        // Read raw BGRA pixel data via GetDIBits
         var bmi = new NativeMethods.BITMAPINFO
         {
             bmiHeader = new NativeMethods.BITMAPINFOHEADER
@@ -159,30 +157,151 @@ public static class ScreenCapture
             NativeMethods.ReleaseDC(IntPtr.Zero, hdcScreen);
         }
 
-        // Encode as PNG via WinRT BitmapEncoder
-        return EncodePngAsync(pixels, (uint)width, (uint)height).GetAwaiter().GetResult();
+        // Convert BGRA → RGB for PNG (drop alpha, swap channels)
+        byte[] rgb = new byte[width * height * 3];
+        for (int i = 0, j = 0; i < pixels.Length; i += 4, j += 3)
+        {
+            rgb[j] = pixels[i + 2];     // R (was at offset 2 in BGRA)
+            rgb[j + 1] = pixels[i + 1]; // G
+            rgb[j + 2] = pixels[i];     // B (was at offset 0 in BGRA)
+        }
+
+        return EncodePngSync(rgb, width, height);
     }
 
-    private static async Task<byte[]> EncodePngAsync(byte[] pixels, uint width, uint height)
+    /// <summary>
+    /// Minimal synchronous PNG encoder. Writes a valid PNG with a single
+    /// uncompressed (deflate-stored) IDAT chunk. No async, no WinRT.
+    /// </summary>
+    private static byte[] EncodePngSync(byte[] rgb, int width, int height)
     {
-        using var stream = new InMemoryRandomAccessStream();
-        var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
-        encoder.SetPixelData(
-            BitmapPixelFormat.Bgra8,
-            BitmapAlphaMode.Premultiplied,
-            width,
-            height,
-            dpiX: 96.0,
-            dpiY: 96.0,
-            pixels);
-        await encoder.FlushAsync();
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
 
-        stream.Seek(0);
-        byte[] result = new byte[stream.Size];
-        var reader = new DataReader(stream);
-        await reader.LoadAsync((uint)stream.Size);
-        reader.ReadBytes(result);
-        return result;
+        // PNG signature
+        bw.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+
+        // IHDR chunk
+        WriteChunk(bw, "IHDR"u8, writer =>
+        {
+            writer.WriteBigEndian(width);
+            writer.WriteBigEndian(height);
+            writer.Write((byte)8);  // bit depth
+            writer.Write((byte)2);  // color type: RGB
+            writer.Write((byte)0);  // compression
+            writer.Write((byte)0);  // filter
+            writer.Write((byte)0);  // interlace
+        });
+
+        // IDAT chunk — deflate-compressed scanlines with filter byte 0 (None) per row
+        WriteChunk(bw, "IDAT"u8, writer =>
+        {
+            using var deflateStream = new MemoryStream();
+            using (var compressor = new DeflateStream(deflateStream, CompressionLevel.Fastest, leaveOpen: true))
+            {
+                // zlib header (CMF=0x78, FLG=0x01 for fastest compression)
+                // We write raw deflate and prepend zlib wrapper manually
+                int stride = width * 3;
+                for (int y = 0; y < height; y++)
+                {
+                    compressor.WriteByte(0); // filter: None
+                    compressor.Write(rgb, y * stride, stride);
+                }
+            }
+
+            // Write zlib wrapper: header + deflate data + Adler-32
+            byte[] compressed = deflateStream.ToArray();
+            writer.Write((byte)0x78); // CMF
+            writer.Write((byte)0x01); // FLG
+            writer.Write(compressed);
+            writer.WriteBigEndian((int)ComputeAdler32(rgb, width, height));
+        });
+
+        // IEND chunk
+        WriteChunk(bw, "IEND"u8, _ => { });
+
+        return ms.ToArray();
+    }
+
+    private static void WriteChunk(BinaryWriter bw, ReadOnlySpan<byte> type, Action<PngChunkWriter> writeData)
+    {
+        using var dataMs = new MemoryStream();
+        using var dataWriter = new BinaryWriter(dataMs);
+        var chunkWriter = new PngChunkWriter(dataWriter);
+        writeData(chunkWriter);
+
+        byte[] data = dataMs.ToArray();
+        byte[] typeBytes = type.ToArray();
+
+        WriteBigEndianInt(bw, data.Length);
+        bw.Write(typeBytes);
+        bw.Write(data);
+
+        // CRC32 over type + data
+        uint crc = Crc32(typeBytes, data);
+        WriteBigEndianInt(bw, (int)crc);
+    }
+
+    private static uint ComputeAdler32(byte[] rgb, int width, int height)
+    {
+        uint a = 1, b = 0;
+        int stride = width * 3;
+        for (int y = 0; y < height; y++)
+        {
+            // Filter byte (0)
+            a = (a + 0) % 65521;
+            b = (b + a) % 65521;
+            // Row data
+            for (int x = 0; x < stride; x++)
+            {
+                a = (a + rgb[(y * stride) + x]) % 65521;
+                b = (b + a) % 65521;
+            }
+        }
+
+        return (b << 16) | a;
+    }
+
+    private static readonly uint[] Crc32Table = InitCrc32Table();
+
+    private static uint[] InitCrc32Table()
+    {
+        var table = new uint[256];
+        for (uint i = 0; i < 256; i++)
+        {
+            uint c = i;
+            for (int k = 0; k < 8; k++)
+                c = (c & 1) != 0 ? 0xEDB88320u ^ (c >> 1) : c >> 1;
+            table[i] = c;
+        }
+
+        return table;
+    }
+
+    private static uint Crc32(byte[] type, byte[] data)
+    {
+        uint crc = 0xFFFFFFFF;
+        foreach (byte b in type) crc = Crc32Table[(crc ^ b) & 0xFF] ^ (crc >> 8);
+        foreach (byte b in data) crc = Crc32Table[(crc ^ b) & 0xFF] ^ (crc >> 8);
+        return crc ^ 0xFFFFFFFF;
+    }
+
+    /// <summary>Helper for writing big-endian integers in PNG chunks.</summary>
+    private readonly struct PngChunkWriter(BinaryWriter writer)
+    {
+        public void Write(byte value) => writer.Write(value);
+        public void Write(byte[] data) => writer.Write(data);
+        public void Write(byte[] data, int offset, int count) => writer.Write(data, offset, count);
+        public void WriteByte(byte value) => writer.Write(value);
+        public void WriteBigEndian(int value) => WriteBigEndianInt(writer, value);
+    }
+
+    private static void WriteBigEndianInt(BinaryWriter bw, int value)
+    {
+        bw.Write((byte)((value >> 24) & 0xFF));
+        bw.Write((byte)((value >> 16) & 0xFF));
+        bw.Write((byte)((value >> 8) & 0xFF));
+        bw.Write((byte)(value & 0xFF));
     }
 
     // ── P/Invoke ─────────────────────────────────────────────────────────────

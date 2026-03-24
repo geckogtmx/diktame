@@ -1697,8 +1697,15 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             Log.Information("Starting Vision pipeline...");
 
-            // Step 1: Show snipping overlay and await user selection
+            // Step 1: Capture full screen BEFORE showing overlay (so overlay isn't in the screenshot)
+            Log.Debug("Vision: capturing full screen for overlay background");
+            byte[] fullScreenPng = await Task.Run(DiktaMe.Core.Vision.ScreenCapture.CaptureFullScreen)
+                .ConfigureAwait(true);
+            Log.Debug("Vision: full screen captured ({Size} bytes)", fullScreenPng.Length);
+
+            // Step 2: Show snipping overlay with the screenshot as background
             var overlay = new Views.SnippingOverlayWindow();
+            await overlay.SetBackgroundScreenshotAsync(fullScreenPng).ConfigureAwait(true);
             overlay.Activate();
             var snippingResult = await overlay.GetResultAsync().ConfigureAwait(true);
 
@@ -1708,33 +1715,41 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
-            // Step 2: Capture screenshot based on selection mode
-            byte[] screenshot;
-            if (snippingResult.Mode == DiktaMe.Core.Vision.CaptureMode.Region && snippingResult.Region is { } region)
-            {
-                screenshot = DiktaMe.Core.Vision.ScreenCapture.CaptureRegion(
-                    region.X, region.Y, region.Width, region.Height);
-            }
-            else
-            {
-                screenshot = DiktaMe.Core.Vision.ScreenCapture.CaptureActiveWindow();
-            }
+            // Step 3: Extract the selected region from the full-screen capture
+            // (or use full screen for active window mode — we already have it)
+            Log.Debug("Vision: processing capture (mode={Mode})", snippingResult.Mode);
+            var visionSettings = _settings.Current.Vision;
 
-            if (screenshot.Length == 0)
+            var (imageData, mimeType) = await Task.Run(() =>
+            {
+                byte[] screenshot;
+                if (snippingResult.Mode == DiktaMe.Core.Vision.CaptureMode.Region
+                    && snippingResult.Region is { } region)
+                {
+                    // Re-capture just the region (coordinates from overlay match screen)
+                    screenshot = DiktaMe.Core.Vision.ScreenCapture.CaptureRegion(
+                        region.X, region.Y, region.Width, region.Height);
+                }
+                else
+                {
+                    screenshot = fullScreenPng; // Use the pre-captured full screen
+                }
+
+                Log.Debug("Vision: captured {Size} bytes, preparing for API", screenshot.Length);
+                return DiktaMe.Core.Vision.ImageProcessor.PrepareForApi(
+                    screenshot, visionSettings.MaxImageDimensionPx);
+            }).ConfigureAwait(false);
+
+            if (imageData.Length == 0)
             {
                 _notifications.ShowToast("Vision", "Screen capture failed", NotificationType.Error);
                 return;
             }
 
-            // Step 3: Prepare image for API (resize + compress)
-            var (imageData, mimeType) = await Task.Run(
-                () => DiktaMe.Core.Vision.ImageProcessor.PrepareForApi(
-                    screenshot, _settings.Current.Vision.MaxImageDimensionPx))
-                .ConfigureAwait(false);
+            Log.Information("Vision: image ready ({MimeType}, {Size} bytes)", mimeType, imageData.Length);
 
             // Step 4: Create and run vision pipeline
             _notifications.ShowToast("Vision", "Analyzing image...", NotificationType.Info);
-            var visionSettings = _settings.Current.Vision;
             var options = new DiktaMe.Core.Vision.VisionOptions
             {
                 SystemPrompt = "You are a vision assistant. Analyze the image and respond to the user's query.",
