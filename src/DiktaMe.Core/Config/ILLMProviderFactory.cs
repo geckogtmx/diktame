@@ -18,4 +18,10 @@ public interface ILLMProviderFactory
     /// <param name="apiKey">API key (required for cloud providers; ignored for Ollama).</param>
     /// <param name="model">Model identifier override. Empty = provider default.</param>
     ILLMProvider CreateProvider(string providerType, string? apiKey = null, string? model = null);
+
+    /// <summary>
+    /// Creates an LLM provider with a custom keep_alive duration (Ollama only).
+    /// Non-Ollama providers ignore the keepAlive parameter.
+    /// </summary>
+    ILLMProvider CreateProvider(string providerType, string? apiKey, string? model, string? keepAlive);
 }

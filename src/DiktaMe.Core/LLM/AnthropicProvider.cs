@@ -291,9 +291,24 @@ public sealed class AnthropicProvider : ILLMProvider, IDisposable
         for (int i = 0; i < history.Count; i++)
         {
             if (i > 0) { sb.Append(','); }
-            sb.Append("{\"role\":\"").Append(EscapeJsonString(history[i].Role))
-              .Append("\",\"content\":\"").Append(EscapeJsonString(SanitizeInput(history[i].Content)))
-              .Append("\"}");
+
+            if (history[i].ImageData is { Length: > 0 } imgData)
+            {
+                // Multimodal turn: content is an array with image + text blocks
+                sb.Append("{\"role\":\"").Append(EscapeJsonString(history[i].Role))
+                  .Append("\",\"content\":[{\"type\":\"image\",\"source\":{\"type\":\"base64\",\"media_type\":\"")
+                  .Append(EscapeJsonString(history[i].ImageMimeType ?? "image/png"))
+                  .Append("\",\"data\":\"").Append(Convert.ToBase64String(imgData))
+                  .Append("\"}},{\"type\":\"text\",\"text\":\"")
+                  .Append(EscapeJsonString(SanitizeInput(history[i].Content)))
+                  .Append("\"}]}");
+            }
+            else
+            {
+                sb.Append("{\"role\":\"").Append(EscapeJsonString(history[i].Role))
+                  .Append("\",\"content\":\"").Append(EscapeJsonString(SanitizeInput(history[i].Content)))
+                  .Append("\"}");
+            }
         }
 
         sb.Append("],\"max_tokens\":1024}");

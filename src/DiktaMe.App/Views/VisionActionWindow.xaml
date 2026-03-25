@@ -1,0 +1,52 @@
+<Window x:Class="DiktaMe.App.Views.VisionActionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Vision">
+
+    <ContentControl FontFamily="{StaticResource AppFont}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+        <Grid Padding="16" RowSpacing="12" Background="{StaticResource AppSurfaceBrush}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Thumbnail -->
+            <Border Grid.Row="0" CornerRadius="6"
+                    HorizontalAlignment="Center" Padding="4">
+                <Image x:Name="ThumbnailImage" MaxHeight="160" MaxWidth="360"
+                       Stretch="Uniform"/>
+            </Border>
+
+            <!-- Text input -->
+            <TextBox x:Name="QueryInput" Grid.Row="1"
+                     PlaceholderText="What should I look for? (optional)"
+                     AcceptsReturn="False" MaxLength="500"
+                     Foreground="{StaticResource AppTextBrush}"
+                     KeyDown="QueryInput_KeyDown"/>
+
+            <!-- Local/Cloud toggle -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="16"
+                        HorizontalAlignment="Center">
+                <RadioButton x:Name="LocalRadio" Content="Quick (Local)" GroupName="Provider"
+                             Foreground="{StaticResource AppTextBrush}"/>
+                <RadioButton x:Name="CloudRadio" Content="Detailed (Cloud)" GroupName="Provider"
+                             Foreground="{StaticResource AppTextBrush}"/>
+            </StackPanel>
+
+            <!-- Action buttons -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8"
+                        HorizontalAlignment="Center">
+                <Button x:Name="SaveBtn" Content="Save" Click="OnSave"
+                        MinWidth="80" ToolTipService.ToolTip="Save screenshot to file (no AI)"/>
+                <Button x:Name="ClipboardBtn" Content="Clipboard" Click="OnClipboard"
+                        MinWidth="80" Style="{StaticResource AccentButtonStyle}"/>
+                <Button x:Name="ChatBtn" Content="Chat" Click="OnChat"
+                        MinWidth="80"/>
+                <Button x:Name="NoteBtn" Content="Note" Click="OnNote"
+                        MinWidth="80"/>
+            </StackPanel>
+        </Grid>
+    </ContentControl>
+</Window>

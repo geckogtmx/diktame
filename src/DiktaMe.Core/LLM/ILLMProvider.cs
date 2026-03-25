@@ -90,7 +90,13 @@ public sealed record LlmResult
 /// <summary>A single turn in a conversation.</summary>
 /// <param name="Role">"user" or "assistant".</param>
 /// <param name="Content">The message text.</param>
-public sealed record ConversationTurn(string Role, string Content);
+/// <param name="ImageData">Optional image bytes (PNG/JPEG) for multimodal turns.</param>
+/// <param name="ImageMimeType">MIME type of the image (e.g. "image/png").</param>
+public sealed record ConversationTurn(
+    string Role,
+    string Content,
+    byte[]? ImageData = null,
+    string? ImageMimeType = null);
 
 /// <summary>
 /// Extension methods for <see cref="ILLMProvider"/> that provide model-aware routing.

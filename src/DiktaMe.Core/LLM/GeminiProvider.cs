@@ -333,7 +333,19 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
             string role = string.Equals(history[i].Role, "assistant", StringComparison.Ordinal)
                 ? "model" : "user";
             sb.Append("{\"role\":\"").Append(role)
-              .Append("\",\"parts\":[{\"text\":\"")
+              .Append("\",\"parts\":[");
+
+            // Include image data if present (multimodal turn)
+            if (history[i].ImageData is { Length: > 0 } imgData)
+            {
+                sb.Append("{\"inlineData\":{\"mimeType\":\"")
+                  .Append(EscapeJsonString(history[i].ImageMimeType ?? "image/png"))
+                  .Append("\",\"data\":\"")
+                  .Append(Convert.ToBase64String(imgData))
+                  .Append("\"}},");
+            }
+
+            sb.Append("{\"text\":\"")
               .Append(EscapeJsonString(SanitizeInput(history[i].Content)))
               .Append("\"}]}");
         }

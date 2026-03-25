@@ -393,9 +393,23 @@ public sealed class OpenAICompatibleProvider : ILLMProvider, IDisposable
 
         foreach (var turn in history)
         {
-            sb.Append(",{\"role\":\"").Append(EscapeJsonString(turn.Role))
-              .Append("\",\"content\":\"").Append(EscapeJsonString(SanitizeInput(turn.Content)))
-              .Append("\"}");
+            if (turn.ImageData is { Length: > 0 } imgData)
+            {
+                // Multimodal turn: content is an array of parts
+                sb.Append(",{\"role\":\"").Append(EscapeJsonString(turn.Role))
+                  .Append("\",\"content\":[{\"type\":\"image_url\",\"image_url\":{\"url\":\"data:")
+                  .Append(EscapeJsonString(turn.ImageMimeType ?? "image/png"))
+                  .Append(";base64,").Append(Convert.ToBase64String(imgData))
+                  .Append("\"}},{\"type\":\"text\",\"text\":\"")
+                  .Append(EscapeJsonString(SanitizeInput(turn.Content)))
+                  .Append("\"}]}");
+            }
+            else
+            {
+                sb.Append(",{\"role\":\"").Append(EscapeJsonString(turn.Role))
+                  .Append("\",\"content\":\"").Append(EscapeJsonString(SanitizeInput(turn.Content)))
+                  .Append("\"}");
+            }
         }
 
         sb.Append("],\"temperature\":0.1,\"max_tokens\":1024}");

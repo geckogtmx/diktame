@@ -385,8 +385,15 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
         foreach (var turn in history)
         {
             sb.Append(",{\"role\":\"").Append(EscapeJsonString(turn.Role))
-              .Append("\",\"content\":\"").Append(EscapeJsonString(SanitizeInput(turn.Content)))
-              .Append("\"}");
+              .Append("\",\"content\":\"").Append(EscapeJsonString(SanitizeInput(turn.Content))).Append('"');
+
+            // Include image data if present (multimodal turn)
+            if (turn.ImageData is { Length: > 0 } imgData)
+            {
+                sb.Append(",\"images\":[\"").Append(Convert.ToBase64String(imgData)).Append("\"]");
+            }
+
+            sb.Append('}');
         }
 
         sb.Append("],\"stream\":false,\"options\":{\"temperature\":0.1,\"num_ctx\":").Append(numCtx).Append("},\"keep_alive\":\"")

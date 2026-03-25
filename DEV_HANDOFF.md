@@ -1,35 +1,50 @@
 # Developer Handoff
 
-## Next Session — Two-Step Vision Modal (SPEC_002)
+## Next Session — Vision PMF Gaps + E2E Testing (SPEC_002 / SPEC_015)
 
-**Goal**: Replace the current auto-pipeline flow with: Ctrl+Alt+S → clip region → modal dialog with action choices.
+**What shipped this session** (not yet committed):
+- Two-step Vision modal: Ctrl+Alt+S → snip → VisionActionWindow (Save/Clipboard/Chat/Note + text input + Local/Cloud toggle)
+- Multimodal Chat: `ConversationTurn` extended with `ImageData`/`ImageMimeType`, all 4 providers (Gemini, Ollama, OpenAI, Anthropic) handle images in conversation
+- QuickChatWindow: `AttachImage()` method, image attachment badge in UI, `BuildConversationHistory` includes image on first user turn
+- Vision + Voice Notes: `HandleVisionNoteAsync` runs vision pipeline → records voice → appends combined entry to notes.md via `PreCapturedContext`
+- Ollama keep_alive tuning: `LLMProviderFactory.CreateProvider()` now accepts `keepAlive` override, separate cache key, PipelineFactory wires `VisionSettings.OllamaKeepAliveSeconds` (default 300s = 5min)
+- Default local vision model: `moondream` → `minicpm-v` (better OCR, ~2GB VRAM)
+- PMF gap analysis appended to SPEC_015 (see appendix at bottom of file)
 
-**Modal should offer**:
-- Copy to Clipboard
-- Open Chat (Ctrl+Alt+C) with image attached
-- Send to Note (Ctrl+Alt+N)
-- Optional text input field (included with any/all actions above)
-- Quick (Local) vs Detailed (Cloud) toggle
+**Priority for next session**:
+1. **Commit** all changes from this session (build passes, 1132 tests pass)
+2. **E2E test** all 4 vision actions: Save, Clipboard, Chat, Note — verify each works
+3. **Quick wins from PMF gaps** (see SPEC_015 appendix):
+   - **VG-1**: Copy screenshot IMAGE to clipboard (not just AI text) — add to Save action
+   - **VD-1**: Dedicated OCR mode — prompt preset or 5th action button
+   - **VD-2**: Copy-as-table — CSV/TSV structured extraction
+4. **Multimodal Chat E2E**: Test QuickChat with image attachment → multi-turn conversation with Gemini and Ollama
 
-**Key context**:
-- Vision pipeline is working E2E — Cloud (Gemini) and Local (Ollama/moondream) both functional
-- Moondream (1.6B) is fast on GPU (<1s for photos) but fails on text/OCR/UI screenshots
-- Model swap between dictation LLM (lfm2.5-instruct) and vision LLM (moondream) causes cold starts and occasional corrupted output — investigate `keep_alive` tuning
-- Consider llava:7b or minicpm-v as moondream replacement (better text handling, fits 8GB RTX 4060 Ti)
-- CP has "VIS" Cloud/Local toggle button already wired
-- All 5 output modes work (inject, clipboard, toast, toast+inject, toast+clipboard)
-- Entry point: `LoadingViewModel.RunVisionPipelineAsync()` (~line 1694)
-- Overlay: `SnippingOverlayWindow.xaml.cs` — returns captured region bytes
-- Plan file: `C:\Users\gecko\.claude\plans\fizzy-enchanting-boot.md`
+**Key files changed this session**:
+- `DiktaMe.Core/Vision/VisionActionResult.cs` — NEW (enum + record)
+- `DiktaMe.App/Views/VisionActionWindow.xaml(.cs)` — NEW (modal UI)
+- `DiktaMe.App/ViewModels/LoadingViewModel.cs` — Modal insertion + 4 action handlers
+- `DiktaMe.Core/LLM/ILLMProvider.cs` — ConversationTurn extended with image fields
+- `DiktaMe.Core/LLM/GeminiProvider.cs` — Image in conversation JSON
+- `DiktaMe.Core/LLM/OllamaProvider.cs` — Image in conversation JSON
+- `DiktaMe.Core/LLM/OpenAICompatibleProvider.cs` — Image in conversation JSON
+- `DiktaMe.Core/LLM/AnthropicProvider.cs` — Image in conversation JSON
+- `DiktaMe.App/ViewModels/QuickChatViewModel.cs` — Image attachment + BuildConversationHistory
+- `DiktaMe.App/Views/QuickChatWindow.xaml(.cs)` — AttachImage, image badge UI
+- `DiktaMe.Core/Config/LLMProviderFactory.cs` — keepAlive parameter + cache key
+- `DiktaMe.Core/Config/ILLMProviderFactory.cs` — Interface overload
+- `DiktaMe.Core/Config/PipelineFactory.cs` — Vision-specific keepAlive wiring
+- `DiktaMe.Core/Config/AppSettings.cs` — Default model minicpm-v
+- `plans/SPEC_015_MODULES_SPRINT.md` — PMF gap analysis appendix
 
 ## Current State
 
 | Metric | Value |
 |--------|-------|
 | **Tests** | 1132 passing locally (479+ on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
-| **Build** | **PASSES** (0 warnings, 0 errors). All 4 style dictionaries load cleanly at runtime. |
-| **CI** | **PASSING** — lint, build, tests, gitleaks, vulnerability audit, publish all green. |
-| **Branch** | main (all UI revamp + ACCOUNTS_SIGNIN + auth polish + Stream Deck committed) |
+| **Build** | **PASSES** (0 warnings, 0 errors) |
+| **CI** | **PASSING** — lint, build, tests, gitleaks, vulnerability audit, publish all green |
+| **Branch** | main — Vision two-step modal + multimodal chat changes **uncommitted** (build + tests pass) |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
 | **Website Build** | **PASSES** — `next build` 0 errors, 15+ API routes, admin dashboard (at `/hqbackstage`), wallet + license system |
 
@@ -61,7 +76,7 @@
 | **SPEC_015 Phase 0A** | **COMPLETE** ✅ — STTProviderFactory (18 tests) + LLMProviderFactory (20 tests). Closes test gap for Local Mode provider factories. |
 | **SPEC_015 Phase 0B** | **COMPLETE** ✅ — Plugin infrastructure: `DiktaMe.Plugin.Abstractions` project with IPlugin, PipelineEventBus, PluginManager, PluginUIRegistry, JsonPluginSettingsStore. Host wired: DI, 8 pipeline completion sites, Settings nav injection, tray menu injection. 24 tests. |
 | **SPEC_015 Phase 0B.19** | **COMPLETE** ✅ — BeforeLlm pipeline hooks in DictationPipeline, AskPipeline, ChatPipeline. Event bus types moved to Core.Pipeline (resolved circular dependency). |
-| **SPEC_015 Phase 0C** | **WORKING** — Vision pipeline end-to-end: Cloud (Gemini) + Local (Ollama/moondream). ScreenCapture, ImageProcessor, SnippingOverlayWindow, Ctrl+Alt+S hotkey. CP "VIS" toggle (Cloud/Local). All 5 output modes wired (inject, clipboard, toast, toast+inject, toast+clipboard). AI Engine > Vision (model selection) + Workflows > Vision (pipeline config). 95% accuracy on local vision tests. Next: two-step capture→modal UX. |
+| **SPEC_015 Phase 0C** | **WORKING** — Vision pipeline E2E (Cloud Gemini + Local Ollama). Two-step modal (Save/Clipboard/Chat/Note + text input + Local/Cloud toggle). Multimodal Chat (image in ConversationTurn, all 4 providers). Vision+Voice Notes. Ollama keep_alive tuning (vision-specific 5min vs 10min text LLM). Default model: minicpm-v. PMF gap analysis in SPEC_015 appendix. **Not yet committed.** Next: E2E testing + PMF quick wins (VG-1 image clipboard, VD-1 OCR, VD-2 copy-as-table). |
 
 ## Open Bugs (Stream K) — Updated 2026-03-22
 

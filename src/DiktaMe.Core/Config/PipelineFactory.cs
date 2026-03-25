@@ -111,8 +111,12 @@ public sealed class PipelineFactory
         // Use Vision-specific provider/model from VisionSettings (set by AI Engine > Vision)
         var vision = _settings.Current.Vision;
         string visionProvider = string.IsNullOrWhiteSpace(vision.VisionProvider) ? "ollama" : vision.VisionProvider;
-        string visionModel = string.IsNullOrWhiteSpace(vision.VisionModelId) ? "moondream" : vision.VisionModelId;
-        var llm = _llmFactory.CreateProvider(visionProvider, model: visionModel);
+        string visionModel = string.IsNullOrWhiteSpace(vision.VisionModelId) ? "minicpm-v" : vision.VisionModelId;
+        // Use vision-specific keep_alive to reduce VRAM residency (default 5min vs 10min for text LLM)
+        string? keepAlive = string.Equals(visionProvider, "ollama", StringComparison.OrdinalIgnoreCase)
+            ? $"{vision.OllamaKeepAliveSeconds}s"
+            : null;
+        var llm = _llmFactory.CreateProvider(visionProvider, apiKey: null, model: visionModel, keepAlive: keepAlive);
 
         // STT still comes from the normal profile (for voice query transcription)
         string effectiveMode = modeOverride ?? "vision";

@@ -1139,4 +1139,82 @@ Open-source Python agent memory library by Plastic Labs. Researched for cognitiv
 
 ---
 
+## Appendix: Vision Module — PMF Gap Analysis (March 2026)
+
+> Cross-reference of screenshot market PMF research against current dIKta.me Vision capabilities.
+> Market data validated against [TBRC](https://www.thebusinessresearchcompany.com/market-insights/screen-capture-software-market-insights-2025) and [OpenPR](https://www.openpr.com/news/4044887/global-screen-capture-software-market-outlook-2025-2034) reports.
+> Screen capture market: **$9B (2025) → $30.1B (2034), 14.3% CAGR** (not 18.5% as some sources claim).
+
+### What We Already Have (Competitive Advantages)
+
+| Feature | Status | Competitor Parity |
+|---------|--------|-------------------|
+| Multi-mode capture (region, window, fullscreen) | Done | Table stakes — all competitors have this |
+| Hotkey-driven (Ctrl+Alt+S) | Done | Table stakes |
+| AI vision analysis (Cloud + Local) | Done | **Unique** — no screenshot tool does this |
+| Multi-turn vision chat | Done | **Unique** — conversational image analysis |
+| Vision + Voice multimodal notes | Done | **Unique** — screenshot + voice + AI in one note |
+| Local AI (Ollama, on-device) | Done | **Unique** — privacy-first, no cloud upload needed |
+| 4-action modal (Save/Clipboard/Chat/Note) | Done | Beyond competitors — they only copy/save |
+| 4 LLM providers (Gemini, Ollama, OpenAI, Anthropic) | Done | No competitor has provider choice |
+| PNG + auto-JPEG compression | Done | Table stakes |
+
+### Table-Stakes Gaps (Missing = Not a Real Screenshot Tool)
+
+| ID | Feature | Severity | Effort | Notes |
+|----|---------|----------|--------|-------|
+| VG-1 | **Copy screenshot IMAGE to clipboard** | HIGH | LOW | Currently only copies AI text. Users expect image bytes on clipboard (Win+Shift+S parity). |
+| VG-2 | **Basic annotation** (arrows, shapes, text, highlight, blur) | CRITICAL | HIGH | Every competitor has this. Post-capture editor window needed. |
+| VG-3 | **Cloud upload + share link** | HIGH | MEDIUM | One-keystroke share returning a URL. Supabase Storage infra already exists. |
+| VG-4 | **Scrolling / full-page capture** | CRITICAL | HIGH | Web pages, long documents, chat threads. Win32 scroll-and-stitch. |
+
+### AI-Native Differentiators (We're Uniquely Positioned)
+
+| ID | Feature | Effort | Why Us |
+|----|---------|--------|--------|
+| VD-1 | **Dedicated OCR mode** | LOW | Current "extract text" is a generic LLM prompt. Dedicated OCR prompt + structured output + copy button. minicpm-v is OCR-capable. |
+| VD-2 | **Copy-as-table** (CSV/TSV) | LOW | AI extracts tabular data → paste as spreadsheet-ready text. |
+| VD-3 | **AI auto-redaction** (PII blur) | MEDIUM | LLM identifies PII regions → overlay blur rectangles. Local mode = private redaction. |
+| VD-4 | **AI smart crop** | MEDIUM | LLM identifies "interesting region" → auto-crop. No competitor has this. |
+| VD-5 | **Searchable screenshot vault** | MEDIUM | SQLite index with AI-generated descriptions. HistoryManager pattern exists. |
+| VD-6 | **Post-capture workflow chains** | MEDIUM | PipelineEventBus + plugin system ready. Capture → OCR → clipboard → notification. |
+
+### Nice-to-Have (Lower Priority)
+
+| ID | Feature | Effort | Notes |
+|----|---------|--------|-------|
+| VN-1 | Background beautification (gradients, shadows) | MEDIUM | CleanShot X's signature. Marketing use case. |
+| VN-2 | Screen recording + GIF | HIGH | Different product category entirely. |
+| VN-3 | Color picker / pixel ruler | LOW | Developer niche. Win32 `GetPixel`. |
+| VN-4 | Multi-monitor picker | LOW | Already capture active monitor; need selector for others. |
+| VN-5 | WebP output | LOW | Trivial ImageProcessor extension. |
+| VN-6 | Watermarking automation | LOW | Logo/text overlay on output. |
+
+### Recommended Build Order (Integrate Into Module Phases)
+
+**Can tackle during other module work:**
+1. **VG-1** (image clipboard copy) — trivial, do during any Vision touch
+2. **VD-1** (OCR mode) — add as a 5th action button in VisionActionWindow, or prompt preset
+3. **VD-2** (copy-as-table) — variant of OCR with structured output format
+
+**Dedicated sprint needed:**
+4. **VG-2** (annotation editor) — new AnnotationWindow with canvas drawing tools
+5. **VG-3** (share link) — Supabase Storage upload + short URL generation
+6. **VD-5** (screenshot vault) — SQLite table + search UI in Settings
+
+**Later phases:**
+7. **VD-3** (AI redaction) — after annotation editor exists (needs blur drawing)
+8. **VG-4** (scrolling capture) — complex Win32 work, defer to dedicated sprint
+9. **VD-4** (AI smart crop) — nice addition once core gaps are closed
+
+### Our Moat (What No Competitor Has)
+
+1. **Voice-first** — "What does this error mean?" spoken after capture
+2. **Multi-turn vision chat** — back-and-forth conversation about a screenshot
+3. **Multimodal notes** — screenshot + voice + AI description in one entry
+4. **Local AI privacy** — on-device vision without cloud upload
+5. **Integrated suite** — not standalone; part of dictation + chat + notes ecosystem
+
+---
+
 *End of SPEC_015*

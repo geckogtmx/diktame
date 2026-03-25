@@ -187,6 +187,20 @@ public sealed partial class QuickChatWindow : Window
     /// Injects WinUI control ThemeResource brushes into the root content's Resources,
     /// so controls inside this window resolve themed colors from the palette.
     /// </summary>
+    private void ClearImageAttachment_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ClearImageAttachment();
+    }
+
+    /// <summary>
+    /// Attaches an image to the chat conversation context.
+    /// The user's first message will be sent to the multimodal LLM with this image.
+    /// </summary>
+    public void AttachImage(byte[] imageData, string mimeType)
+    {
+        ViewModel.SetImageContext(imageData, mimeType);
+    }
+
     private void InjectControlBrushes(ThemePalette palette)
     {
         if (Content is not FrameworkElement root)

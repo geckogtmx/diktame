@@ -44,6 +44,34 @@ public sealed partial class QuickChatViewModel : ObservableObject
     [ObservableProperty] private string _tokenCountText = "";
     [ObservableProperty] private bool _webSearchEnabled;
 
+    // ── Image attachment (Vision → Chat flow) ──
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasImageAttachment))]
+    private byte[]? _imageAttachment;
+
+    [ObservableProperty]
+    private string? _imageAttachmentMimeType;
+
+    /// <summary>True when a Vision image is attached and pending send with the next message.</summary>
+    public bool HasImageAttachment => ImageAttachment is { Length: > 0 };
+
+    /// <summary>
+    /// Sets image context from the Vision modal.
+    /// The image will be included with the user's first chat message.
+    /// </summary>
+    public void SetImageContext(byte[] imageData, string mimeType)
+    {
+        ImageAttachment = imageData;
+        ImageAttachmentMimeType = mimeType;
+    }
+
+    /// <summary>Clears the attached image.</summary>
+    public void ClearImageAttachment()
+    {
+        ImageAttachment = null;
+        ImageAttachmentMimeType = null;
+    }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasClipboardAttachment))]
     [NotifyPropertyChangedFor(nameof(ClipboardPreview))]
@@ -193,6 +221,12 @@ public sealed partial class QuickChatViewModel : ObservableObject
 
             var result = await pipeline.RunConversationAsync(
                 options, history, contextWindow);
+
+            // Clear image attachment after first send (image stays in conversation history)
+            if (ImageAttachment is not null)
+            {
+                ClearImageAttachment();
+            }
 
             _dispatcher.TryEnqueue(() =>
             {
@@ -437,6 +471,8 @@ public sealed partial class QuickChatViewModel : ObservableObject
     private List<ConversationTurn> BuildConversationHistory(string? lastUserMessageOverride = null)
     {
         var history = new List<ConversationTurn>(Messages.Count);
+        bool imageConsumed = false;
+
         for (int i = 0; i < Messages.Count; i++)
         {
             var msg = Messages[i];
@@ -449,9 +485,21 @@ public sealed partial class QuickChatViewModel : ObservableObject
                 content = lastUserMessageOverride;
             }
 
+            // Attach image to the first user message that carries it
+            byte[]? imgData = null;
+            string? imgMime = null;
+            if (!imageConsumed && msg.IsUser && ImageAttachment is { Length: > 0 })
+            {
+                imgData = ImageAttachment;
+                imgMime = ImageAttachmentMimeType;
+                imageConsumed = true;
+            }
+
             history.Add(new ConversationTurn(
                 msg.IsUser ? "user" : "assistant",
-                content));
+                content,
+                imgData,
+                imgMime));
         }
 
         return history;

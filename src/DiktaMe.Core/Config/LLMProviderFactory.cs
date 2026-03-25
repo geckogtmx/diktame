@@ -23,6 +23,13 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
 
     /// <inheritdoc/>
     public ILLMProvider CreateProvider(string providerType, string? apiKey = null, string? model = null)
+        => CreateProvider(providerType, apiKey, model, keepAlive: null);
+
+    /// <summary>
+    /// Creates (or retrieves from cache) an LLM provider with an optional keep_alive override.
+    /// The override only applies to Ollama providers and controls how long the model stays resident in VRAM.
+    /// </summary>
+    public ILLMProvider CreateProvider(string providerType, string? apiKey, string? model, string? keepAlive)
     {
         string type = providerType.ToLowerInvariant();
 
@@ -33,12 +40,14 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
         }
 
         string effectiveModel = ResolveModel(type, model);
-        string cacheKey = $"{type}:{effectiveModel}";
+        string cacheKey = keepAlive is not null
+            ? $"{type}:{effectiveModel}:{keepAlive}"
+            : $"{type}:{effectiveModel}";
 
-        return _cache.GetOrAdd(cacheKey, _ => CreateProviderCore(type, apiKey, effectiveModel));
+        return _cache.GetOrAdd(cacheKey, _ => CreateProviderCore(type, apiKey, effectiveModel, keepAlive));
     }
 
-    private ILLMProvider CreateProviderCore(string type, string? apiKey, string effectiveModel)
+    private ILLMProvider CreateProviderCore(string type, string? apiKey, string effectiveModel, string? keepAlive = null)
     {
         // If no key passed, try secure storage
         string? key = apiKey ?? _secureStorage.RetrieveKey(type);
@@ -77,18 +86,18 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
                 key ?? throw new InvalidOperationException("Perplexity API key not configured."),
                 model: effectiveModel),
 
-            "ollama" => CreateOllamaProvider(effectiveModel),
+            "ollama" => CreateOllamaProvider(effectiveModel, keepAlive),
 
             _ => throw new NotSupportedException($"Unknown LLM provider type: '{type}'."),
         };
     }
 
-    private OllamaProvider CreateOllamaProvider(string effectiveModel)
+    private OllamaProvider CreateOllamaProvider(string effectiveModel, string? keepAliveOverride = null)
     {
         // Persistent HTTP client with keep-alive for connection reuse (matches V1 requests.Session())
         var http = new HttpClient
         {
-            Timeout = TimeSpan.FromSeconds(60),
+            Timeout = TimeSpan.FromSeconds(180), // Vision models may need longer
         };
         http.DefaultRequestHeaders.ConnectionClose = false; // HTTP keep-alive
 
@@ -96,7 +105,7 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
             model: effectiveModel,
             baseUrl: _settings.Current.OllamaBaseUrl ?? "http://localhost:11434",
             httpClient: http,
-            keepAlive: _settings.Current.OllamaKeepAlive ?? "10m",
+            keepAlive: keepAliveOverride ?? _settings.Current.OllamaKeepAlive ?? "10m",
             numCtx: _settings.Current.OllamaNumCtx > 0 ? _settings.Current.OllamaNumCtx : 2048);
     }
 

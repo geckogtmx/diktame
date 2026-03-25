@@ -1766,7 +1766,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
-            // Save screenshot for debugging
+            // Save screenshot for debugging / note image links
             string visionDir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "DiktaMe", "vision");
@@ -1778,66 +1778,50 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Vision: image saved to {Path} ({MimeType}, {Size} bytes)",
                 savedPath, mimeType, imageData.Length);
 
-            // Step 4: Create and run vision pipeline
-            Log.Information("Vision: creating pipeline (provider={Provider}, model={Model})",
-                visionSettings.VisionProvider, visionSettings.VisionModelId);
-            _notifications.ShowToast("Vision", "Analyzing image...", NotificationType.Info, suppressTts: true);
-            var options = new DiktaMe.Core.Vision.VisionOptions
+            // Step 4: Show action modal — user picks Clipboard / Chat / Note + Local/Cloud
+            var actionWindow = new Views.VisionActionWindow(_controlPanel.IsLocalVision);
+            await actionWindow.SetThumbnailAsync(imageData).ConfigureAwait(true);
+            actionWindow.CenterOnMonitor(bounds);
+            actionWindow.Activate();
+            var actionResult = await actionWindow.GetResultAsync().ConfigureAwait(true);
+
+            if (actionResult is null)
             {
-                SystemPrompt = "You are a concise vision assistant. Respond briefly and directly. Do not describe the UI chrome, window decorations, or layout — focus only on the meaningful content. Keep responses under 200 words unless the user asks for more detail.",
-                ModelName = string.IsNullOrWhiteSpace(visionSettings.VisionModelId) ? null : visionSettings.VisionModelId,
-                DefaultQuery = visionSettings.DefaultQuery,
-                MaxImageDimensionPx = visionSettings.MaxImageDimensionPx,
-                MaxResponseTokens = visionSettings.MaxResponseTokens,
-                Temperature = visionSettings.Temperature,
-                OutputMode = visionSettings.OutputMode?.ToLowerInvariant() switch
-                {
-                    "clipboard" => DiktaMe.Core.Vision.VisionOutputMode.Clipboard,
-                    "toast" => DiktaMe.Core.Vision.VisionOutputMode.ToastOnly,
-                    "toast_inject" => DiktaMe.Core.Vision.VisionOutputMode.ToastInject,
-                    "toast_clipboard" => DiktaMe.Core.Vision.VisionOutputMode.ToastClipboard,
-                    _ => DiktaMe.Core.Vision.VisionOutputMode.Inject,
-                },
-            };
-
-            var pipeline = _pipelineFactory.CreateVisionPipeline();
-            pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
-            using var visionCts = new CancellationTokenSource();
-
-            var result = await pipeline.RunAsync(imageData, mimeType, audioFilePath: null, options, visionCts.Token)
-                .ConfigureAwait(false);
-
-            _controlPanel.OnPipelineCompleted(this, result);
-            _pipelineEventBus.PublishCompleted(result);
-
-            if (result.IsSuccess)
-            {
-                string preview = result.Text.Length > 200
-                    ? string.Concat(result.Text.AsSpan(0, 200), "...")
-                    : result.Text;
-                Log.Information("Vision: Success via {Provider} in {Ms}ms — {Chars} chars, {InTok}→{OutTok} tokens",
-                    result.LlmProvider, result.ProcessingMs, result.Text.Length,
-                    result.InputTokens, result.OutputTokens);
-                Log.Debug("Vision response: {Text}", result.Text);
-
-                // Store in history (via ControlPanel → MetricsCollector → HistoryManager)
-                await _history.LogSessionAsync(result).ConfigureAwait(false);
-
-                // Copy to clipboard for clipboard output modes
-                bool shouldClipboard = options.OutputMode is DiktaMe.Core.Vision.VisionOutputMode.Clipboard
-                    or DiktaMe.Core.Vision.VisionOutputMode.ToastClipboard;
-                if (shouldClipboard)
-                {
-                    ClipboardManager.SetText(result.Text);
-                    Log.Information("Vision: copied {Chars} chars to clipboard", result.Text.Length);
-                }
-
-                _notifications.ShowToast("Vision", preview, NotificationType.Success, suppressTts: true);
+                Log.Information("Vision: action cancelled by user");
+                return;
             }
-            else
+
+            Log.Information("Vision: action={Action}, useLocal={Local}, query={Query}",
+                actionResult.Action, actionResult.UseLocal, actionResult.UserQuery ?? "(default)");
+
+            // Resolve provider from modal toggle
+            string visionProvider = actionResult.UseLocal
+                ? "ollama"
+                : (visionSettings.CloudVisionProvider ?? "gemini");
+            string visionModelId = actionResult.UseLocal
+                ? (visionSettings.LocalVisionModelId ?? "moondream")
+                : (visionSettings.CloudVisionModelId ?? "gemini-2.5-flash");
+
+            // Step 5: Branch on action
+            switch (actionResult.Action)
             {
-                Log.Warning("Vision: failed via {Provider} — {Error}", result.LlmProvider, result.ErrorMessage);
-                _notifications.ShowToast("Vision Error", result.ErrorMessage ?? "Vision analysis failed", NotificationType.Error, suppressTts: true);
+                case DiktaMe.Core.Vision.VisionAction.Save:
+                    // No AI — just notify that the screenshot is saved
+                    _notifications.ShowToast("Vision", $"Screenshot saved to {savedPath}", NotificationType.Success, suppressTts: true);
+                    return;
+
+                case DiktaMe.Core.Vision.VisionAction.Chat:
+                    await HandleVisionChatAsync(imageData, mimeType).ConfigureAwait(false);
+                    return;
+
+                case DiktaMe.Core.Vision.VisionAction.Note:
+                    await HandleVisionNoteAsync(imageData, mimeType, savedPath, visionProvider, visionModelId, visionSettings, actionResult).ConfigureAwait(false);
+                    return;
+
+                case DiktaMe.Core.Vision.VisionAction.Clipboard:
+                default:
+                    await HandleVisionClipboardAsync(imageData, mimeType, visionProvider, visionModelId, visionSettings, actionResult).ConfigureAwait(false);
+                    return;
             }
         }
         catch (Exception ex)
@@ -1851,5 +1835,214 @@ public sealed partial class LoadingViewModel : ObservableObject
             try { await _audioDucker.RestoreAsync().ConfigureAwait(false); }
             catch (Exception ex) { Log.Debug(ex, "Vision: ducking restore failed (non-fatal)"); }
         }
+    }
+
+    // ── Vision Action Handlers ────────────────────────────────────────────────
+
+    private async Task HandleVisionClipboardAsync(
+        byte[] imageData, string mimeType,
+        string visionProvider, string visionModelId,
+        DiktaMe.Core.Config.VisionSettings visionSettings,
+        DiktaMe.Core.Vision.VisionActionResult actionResult)
+    {
+        _notifications.ShowToast("Vision", "Analyzing image...", NotificationType.Info, suppressTts: true);
+        var options = BuildVisionOptions(visionSettings, visionModelId, actionResult.UserQuery,
+            DiktaMe.Core.Vision.VisionOutputMode.Clipboard);
+
+        var result = await RunVisionPipelineCoreAsync(imageData, mimeType, options).ConfigureAwait(false);
+        if (result is null)
+        {
+            return;
+        }
+
+        if (result.IsSuccess)
+        {
+            ClipboardManager.SetText(result.Text);
+            Log.Information("Vision: copied {Chars} chars to clipboard", result.Text.Length);
+            string preview = result.Text.Length > 200
+                ? string.Concat(result.Text.AsSpan(0, 200), "...")
+                : result.Text;
+            _notifications.ShowToast("Vision", preview, NotificationType.Success, suppressTts: true);
+        }
+        else
+        {
+            _notifications.ShowToast("Vision Error", result.ErrorMessage ?? "Vision analysis failed",
+                NotificationType.Error, suppressTts: true);
+        }
+    }
+
+    private Task HandleVisionChatAsync(byte[] imageData, string mimeType)
+    {
+        // Open QuickChat with image attached — no vision pipeline run here.
+        // The user's first chat message goes to the multimodal LLM with the image.
+        Log.Information("Vision: opening QuickChat with image ({Size} bytes, {Mime})", imageData.Length, mimeType);
+
+        _uiDispatcher?.TryEnqueue(() =>
+        {
+            var chatWindow = new Views.QuickChatWindow();
+            chatWindow.AttachImage(imageData, mimeType);
+            chatWindow.Activate();
+        });
+
+        return Task.CompletedTask;
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Vision+Note orchestrator")]
+    private async Task HandleVisionNoteAsync(
+        byte[] imageData, string mimeType, string savedImagePath,
+        string visionProvider, string visionModelId,
+        DiktaMe.Core.Config.VisionSettings visionSettings,
+        DiktaMe.Core.Vision.VisionActionResult actionResult)
+    {
+        // Phase 1: Run vision pipeline to get image description
+        _notifications.ShowToast("Vision", "Analyzing image...", NotificationType.Info, suppressTts: true);
+        var options = BuildVisionOptions(visionSettings, visionModelId, actionResult.UserQuery,
+            DiktaMe.Core.Vision.VisionOutputMode.ToastOnly);
+
+        var visionResult = await RunVisionPipelineCoreAsync(imageData, mimeType, options).ConfigureAwait(false);
+        string? visionDescription = visionResult?.IsSuccess == true ? visionResult.Text : null;
+
+        if (visionDescription is not null)
+        {
+            Log.Information("Vision+Note: got description ({Chars} chars)", visionDescription.Length);
+        }
+        else
+        {
+            Log.Warning("Vision+Note: vision pipeline failed, proceeding with voice note only");
+        }
+
+        // Phase 2: Record voice note (same as RunNotePipelineAsync)
+        var (audioFile, recordingDurationMs) = await RecordAudioAsync("Note", isDictate: false);
+        if (audioFile == null)
+        {
+            Log.Warning("Vision+Note: No audio file produced");
+            // Still save the vision-only note if we have a description
+            if (visionDescription is not null)
+            {
+                await SaveVisionNoteAsync(visionDescription, savedImagePath, null).ConfigureAwait(false);
+                _notifications.ShowToast("Note Saved", "Vision note saved (no voice)",
+                    NotificationType.Success, spokenKey: "Loading_NoteSaved");
+            }
+            else
+            {
+                _notifications.ShowToast("Error", "No audio and no vision result",
+                    NotificationType.Error, suppressTts: true);
+            }
+            return;
+        }
+
+        // Stop ducking
+        await _audioDucker.RestoreAsync().ConfigureAwait(false);
+
+        // Phase 3: Run note pipeline with vision description as context
+        UtilityProfile profile = _pipelines.GetActiveProfile("note");
+        var noteOptions = new DiktaMe.Core.Pipeline.NoteOptions
+        {
+            SystemPrompt = profile.SystemPrompt,
+            ModelName = profile.ModelName,
+            Language = _settings.Current.General.Language,
+            NotesFilePath = _settings.Current.NotesFilePath,
+            TimestampFormat = "yyyy-MM-dd HH:mm:ss",
+            RecordingDurationMs = recordingDurationMs,
+            PreCapturedContext = visionDescription is not null
+                ? $"**Vision**: {visionDescription}\n\n![capture]({savedImagePath})"
+                : null,
+        };
+
+        var notePipeline = _pipelineFactory.CreateNotePipeline();
+        notePipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
+        _recordingCts = new CancellationTokenSource();
+        var noteResult = await notePipeline.RunAsync(audioFile, noteOptions, _recordingCts.Token);
+
+        _controlPanel.OnPipelineCompleted(this, noteResult);
+        _pipelineEventBus.PublishCompleted(noteResult);
+
+        if (noteResult.IsSuccess)
+        {
+            Log.Information("Vision+Note: saved to {FilePath}", noteOptions.NotesFilePath);
+            _notifications.ShowToast(
+                _loc.GetString("Loading_NoteSaved_Title"),
+                _loc.GetFormatted("Loading_NoteSaved_Message", Path.GetFileName(noteOptions.NotesFilePath)),
+                NotificationType.Success, spokenKey: "Loading_NoteSaved");
+        }
+        else
+        {
+            _notifications.ShowToast("Error", noteResult.ErrorMessage ?? "Note pipeline failed",
+                NotificationType.Error);
+        }
+    }
+
+    private async Task SaveVisionNoteAsync(string visionDescription, string imagePath, string? voiceText)
+    {
+        string notesPath = _settings.Current.NotesFilePath;
+        string? dir = Path.GetDirectoryName(notesPath);
+        if (!string.IsNullOrEmpty(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine();
+        sb.AppendLine($"## {timestamp}");
+        sb.AppendLine();
+        sb.AppendLine($"**Vision**: {visionDescription.Trim()}");
+        sb.AppendLine();
+        sb.AppendLine($"![capture]({imagePath})");
+        if (!string.IsNullOrWhiteSpace(voiceText))
+        {
+            sb.AppendLine();
+            sb.AppendLine(voiceText.Trim());
+        }
+
+        await File.AppendAllTextAsync(notesPath, sb.ToString()).ConfigureAwait(false);
+        Log.Information("Vision+Note: appended vision-only note to {Path}", notesPath);
+    }
+
+    private DiktaMe.Core.Vision.VisionOptions BuildVisionOptions(
+        DiktaMe.Core.Config.VisionSettings visionSettings,
+        string visionModelId,
+        string? userQuery,
+        DiktaMe.Core.Vision.VisionOutputMode outputMode)
+    {
+        return new DiktaMe.Core.Vision.VisionOptions
+        {
+            SystemPrompt = "You are a concise vision assistant. Respond briefly and directly. Do not describe the UI chrome, window decorations, or layout — focus only on the meaningful content. Keep responses under 200 words unless the user asks for more detail.",
+            ModelName = string.IsNullOrWhiteSpace(visionModelId) ? null : visionModelId,
+            DefaultQuery = !string.IsNullOrWhiteSpace(userQuery)
+                ? userQuery
+                : visionSettings.DefaultQuery,
+            MaxImageDimensionPx = visionSettings.MaxImageDimensionPx,
+            MaxResponseTokens = visionSettings.MaxResponseTokens,
+            Temperature = visionSettings.Temperature,
+            OutputMode = outputMode,
+        };
+    }
+
+    private async Task<DiktaMe.Core.Pipeline.PipelineResult?> RunVisionPipelineCoreAsync(
+        byte[] imageData, string mimeType, DiktaMe.Core.Vision.VisionOptions options)
+    {
+        var pipeline = _pipelineFactory.CreateVisionPipeline();
+        pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
+        using var cts = new CancellationTokenSource();
+
+        var result = await pipeline.RunAsync(imageData, mimeType, audioFilePath: null, options, cts.Token)
+            .ConfigureAwait(false);
+
+        _controlPanel.OnPipelineCompleted(this, result);
+        _pipelineEventBus.PublishCompleted(result);
+
+        if (result.IsSuccess)
+        {
+            await _history.LogSessionAsync(result).ConfigureAwait(false);
+            Log.Information("Vision: Success via {Provider} in {Ms}ms — {Chars} chars",
+                result.LlmProvider, result.ProcessingMs, result.Text.Length);
+        }
+        else
+        {
+            Log.Warning("Vision: failed via {Provider} — {Error}", result.LlmProvider, result.ErrorMessage);
+        }
+
+        return result;
     }
 }

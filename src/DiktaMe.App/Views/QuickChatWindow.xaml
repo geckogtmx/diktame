@@ -233,6 +233,35 @@
                        VerticalAlignment="Center"/>
         </StackPanel>
 
+        <!-- Image attachment badge (Vision → Chat) -->
+        <Border Grid.Row="3" Padding="12,6,12,0"
+                Visibility="{x:Bind ViewModel.HasImageAttachment, Mode=OneWay}"
+                Background="{StaticResource AppSurfaceBrush}">
+            <Border Padding="8,4" CornerRadius="6"
+                    Background="{StaticResource AppSurface2Brush}"
+                    HorizontalAlignment="Left" MaxWidth="400">
+                <Grid ColumnSpacing="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE91B;" FontSize="12" VerticalAlignment="Center"
+                              Foreground="{StaticResource AppTextDimBrush}"/>
+                    <TextBlock Grid.Column="1"
+                               Text="Image attached"
+                               FontSize="11" Foreground="{StaticResource AppTextDimBrush}"
+                               VerticalAlignment="Center"/>
+                    <Button Grid.Column="2"
+                            Click="ClearImageAttachment_Click"
+                            Width="20" Height="20" Padding="0"
+                            Background="Transparent" BorderThickness="0">
+                        <FontIcon Glyph="&#xE711;" FontSize="10"/>
+                    </Button>
+                </Grid>
+            </Border>
+        </Border>
+
         <!-- Clipboard attachment badge -->
         <Border Grid.Row="3" Padding="12,6,12,0"
                 Visibility="{x:Bind ViewModel.HasClipboardAttachment, Mode=OneWay}"

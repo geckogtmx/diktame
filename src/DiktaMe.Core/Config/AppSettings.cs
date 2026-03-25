@@ -252,11 +252,11 @@ public sealed record VisionSettings
     public string CloudVisionModelId { get; init; } = "gemini-2.5-flash";
 
     // Local vision settings (Ollama)
-    public string LocalVisionModelId { get; init; } = "moondream";
+    public string LocalVisionModelId { get; init; } = "minicpm-v";
 
     // Resolved provider/model — PipelineFactory reads these.
     // Kept for backwards compat with existing settings.json files.
-    public string VisionModelId { get; init; } = "moondream";
+    public string VisionModelId { get; init; } = "minicpm-v";
     public string VisionProvider { get; init; } = "ollama";
 }
 
