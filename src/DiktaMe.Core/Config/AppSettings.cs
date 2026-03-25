@@ -246,6 +246,16 @@ public sealed record VisionSettings
     public double Temperature { get; init; } = 0.3;
     public int OllamaKeepAliveSeconds { get; init; } = 300;
     public string OutputMode { get; init; } = "inject";
+
+    // Cloud vision settings
+    public string CloudVisionProvider { get; init; } = "gemini";
+    public string CloudVisionModelId { get; init; } = "gemini-2.5-flash";
+
+    // Local vision settings (Ollama)
+    public string LocalVisionModelId { get; init; } = "moondream";
+
+    // Resolved provider/model — PipelineFactory reads these.
+    // Kept for backwards compat with existing settings.json files.
     public string VisionModelId { get; init; } = "moondream";
     public string VisionProvider { get; init; } = "ollama";
 }

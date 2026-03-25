@@ -99,10 +99,12 @@ public sealed partial class SnippingOverlayWindow : Window
     /// </summary>
     public async Task SetBackgroundScreenshotAsync(byte[] pngData)
     {
-        using var stream = new InMemoryRandomAccessStream();
+        // Prepare the stream on the current thread
+        var stream = new InMemoryRandomAccessStream();
         await stream.WriteAsync(pngData.AsBuffer()).AsTask().ConfigureAwait(false);
         stream.Seek(0);
 
+        // Load the bitmap on the UI thread (BitmapImage requires UI thread)
         var tcs = new TaskCompletionSource();
         DispatcherQueue.TryEnqueue(() =>
         {
@@ -111,10 +113,13 @@ public sealed partial class SnippingOverlayWindow : Window
                 var bitmap = new BitmapImage();
                 bitmap.SetSource(stream);
                 ScreenshotImage.Source = bitmap;
+                stream.Dispose();
                 tcs.SetResult();
             }
             catch (Exception ex)
             {
+                stream.Dispose();
+                Log.Error(ex, "SnippingOverlay: failed to set background screenshot ({Size} bytes)", pngData.Length);
                 tcs.SetException(ex);
             }
         });

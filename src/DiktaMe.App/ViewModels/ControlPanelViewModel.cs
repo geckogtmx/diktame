@@ -192,6 +192,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [ObservableProperty]
     private TtsMode _ttsMode;
 
+    [ObservableProperty]
+    private bool _isLocalVision;
+
     // ── Toggle state labels ──────────────────────────────────────────────
 
     public string SoundStateLabel => IsSoundEnabled ? _loc.GetString("ControlPanel_State_On") : _loc.GetString("ControlPanel_State_Off");
@@ -210,6 +213,8 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         _ => _loc.GetString("ControlPanel_State_Off"),
     };
     public string RefineStateLabel => RefineMode == RefineMode.Voice ? _loc.GetString("ControlPanel_Refine_Voice_Short") : _loc.GetString("ControlPanel_Refine_Auto_Short");
+    public string VisionStateLabel => IsLocalVision ? _loc.GetString("ControlPanel_State_Local") : _loc.GetString("ControlPanel_State_Cloud");
+    public bool ShowVisionButton => _settings.Current.Vision.Enabled;
     public string TtsStateLabel => TtsMode switch
     {
         TtsMode.Local => _loc.GetString("ControlPanel_State_Local"),
@@ -251,6 +256,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         TtsMode.Off => _badgeOffBrush,
         _ => _badgeOffBrush,
     };
+    public SolidColorBrush VisionStateBrush => IsLocalVision ? _badgeLocalBrush : _badgeCloudBrush;
     public SolidColorBrush SoundStateBrush => IsSoundEnabled ? _badgeLocalBrush : _badgeOffBrush;
     public SolidColorBrush KeyStateBrush => string.IsNullOrEmpty(AdditionalKeyValue) ? _badgeOffBrush : _badgeLocalBrush;
     public SolidColorBrush RefineStateBrush => IsRefineVoice ? _badgeLocalBrush : _badgeCloudBrush;
@@ -471,6 +477,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void CycleVision() => IsLocalVision = !IsLocalVision;
+
+    [RelayCommand]
     private void CycleStt() => IsLocalStt = !IsLocalStt;
 
     [RelayCommand]
@@ -579,6 +588,28 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         OnPropertyChanged(nameof(SttStateLabel));
         OnPropertyChanged(nameof(SttStateBrush));
         Log.Information("ControlPanel: STT toggled to {Provider}", value ? "whisper" : "deepgram");
+    }
+
+    partial void OnIsLocalVisionChanged(bool value)
+    {
+        if (!_suppressSave)
+        {
+            var vision = _settings.Current.Vision;
+            string provider = value ? "ollama" : vision.CloudVisionProvider;
+            string model = value ? vision.LocalVisionModelId : vision.CloudVisionModelId;
+            if (string.IsNullOrWhiteSpace(provider)) provider = value ? "ollama" : "gemini";
+            if (string.IsNullOrWhiteSpace(model)) model = value ? "moondream" : "gemini-2.5-flash";
+
+            var updated = _settings.Current with
+            {
+                Vision = vision with { VisionProvider = provider, VisionModelId = model },
+            };
+            _ = _settings.UpdateAsync(updated);
+        }
+
+        OnPropertyChanged(nameof(VisionStateLabel));
+        OnPropertyChanged(nameof(VisionStateBrush));
+        Log.Information("ControlPanel: Vision toggled to {Provider}", value ? "local" : "cloud");
     }
 
     partial void OnLlmModeChanged(LlmMode value)
@@ -1027,6 +1058,8 @@ public sealed partial class ControlPanelViewModel : ObservableObject
                 ? LlmMode.Local
                 : LlmMode.Cloud;
         }
+
+        IsLocalVision = string.Equals(settings.Vision.VisionProvider, "ollama", StringComparison.OrdinalIgnoreCase);
 
         UpdateBadgeBrushes();
 

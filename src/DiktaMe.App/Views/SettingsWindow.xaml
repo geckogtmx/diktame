@@ -64,11 +64,6 @@
                     <FontIcon Glyph="&#xE9D9;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Vision" Tag="vision">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE890;"/>
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
             <muxc:NavigationViewItem l:Uids.Uid="Nav_DictationPresets" Tag="presets">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE71D;"/>
@@ -77,11 +72,6 @@
             <muxc:NavigationViewItem l:Uids.Uid="Nav_Snippets" Tag="snippets">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE943;"/>
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Content="Vision" Tag="vision">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE7B3;"/>
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
             <muxc:NavigationViewItem l:Uids.Uid="Nav_Privacy" Tag="privacy">

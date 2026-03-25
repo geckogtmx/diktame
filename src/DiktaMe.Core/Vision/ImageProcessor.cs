@@ -50,6 +50,19 @@ public static class ImageProcessor
         return CompressToJpegIfNeeded(resized);
     }
 
+    /// <summary>
+    /// Crops a sub-region from a PNG byte array and returns a new PNG.
+    /// Coordinates are in pixels relative to the top-left of the source image.
+    /// </summary>
+    public static byte[] CropRegion(byte[] pngData, int x, int y, int width, int height)
+    {
+        ArgumentNullException.ThrowIfNull(pngData);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+
+        return CropRegionAsync(pngData, x, y, width, height).GetAwaiter().GetResult();
+    }
+
     // ── Private async helpers ────────────────────────────────────────────────
 
     private static async Task<byte[]> ResizeIfNeededAsync(byte[] pngData, int maxDimension)
@@ -113,6 +126,60 @@ public static class ImageProcessor
             decoder.BitmapAlphaMode,
             decoder.PixelWidth,
             decoder.PixelHeight,
+            dpiX: decoder.DpiX,
+            dpiY: decoder.DpiY,
+            pixels);
+        await encoder.FlushAsync();
+
+        outputStream.Seek(0);
+        byte[] result = new byte[outputStream.Size];
+        var reader = new DataReader(outputStream);
+        await reader.LoadAsync((uint)outputStream.Size);
+        reader.ReadBytes(result);
+        return result;
+    }
+
+    private static async Task<byte[]> CropRegionAsync(byte[] pngData, int x, int y, int width, int height)
+    {
+        using var inputStream = new InMemoryRandomAccessStream();
+        await inputStream.WriteAsync(pngData.AsBuffer());
+        inputStream.Seek(0);
+
+        var decoder = await BitmapDecoder.CreateAsync(inputStream);
+
+        // Clamp to source image bounds
+        uint cropX = (uint)Math.Max(0, Math.Min(x, (int)decoder.PixelWidth - 1));
+        uint cropY = (uint)Math.Max(0, Math.Min(y, (int)decoder.PixelHeight - 1));
+        uint cropW = (uint)Math.Min(width, (int)decoder.PixelWidth - (int)cropX);
+        uint cropH = (uint)Math.Min(height, (int)decoder.PixelHeight - (int)cropY);
+
+        if (cropW == 0 || cropH == 0)
+        {
+            return pngData; // fallback: return full image
+        }
+
+        var transform = new BitmapTransform
+        {
+            Bounds = new BitmapBounds { X = cropX, Y = cropY, Width = cropW, Height = cropH },
+            ScaledWidth = decoder.PixelWidth,
+            ScaledHeight = decoder.PixelHeight,
+        };
+
+        var pixelData = await decoder.GetPixelDataAsync(
+            decoder.BitmapPixelFormat,
+            decoder.BitmapAlphaMode,
+            transform,
+            ExifOrientationMode.IgnoreExifOrientation,
+            ColorManagementMode.DoNotColorManage);
+        byte[] pixels = pixelData.DetachPixelData();
+
+        using var outputStream = new InMemoryRandomAccessStream();
+        var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, outputStream);
+        encoder.SetPixelData(
+            decoder.BitmapPixelFormat,
+            decoder.BitmapAlphaMode,
+            cropW,
+            cropH,
             dpiX: decoder.DpiX,
             dpiY: decoder.DpiY,
             pixels);

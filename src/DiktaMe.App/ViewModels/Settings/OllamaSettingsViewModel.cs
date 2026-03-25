@@ -461,6 +461,13 @@ public sealed partial class OllamaSettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Returns the names of all installed Ollama models (for external consumers like Vision settings).</summary>
+    public async Task<IReadOnlyList<string>> GetInstalledModelNamesAsync()
+    {
+        var models = await _ollamaManager.GetInstalledModelsAsync().ConfigureAwait(false);
+        return models.Select(m => m.Name).ToList();
+    }
+
     // ── Refresh Helpers ──────────────────────────────────────────────────
 
     private async Task RefreshInstalledModelsAsync()

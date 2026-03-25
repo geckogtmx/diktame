@@ -213,7 +213,7 @@ public sealed partial class SettingsWindow : Window
                 "hardware" => typeof(Settings.HardwareSettingsPage),
                 "aiengine" => typeof(Settings.AIEngineSettingsPage),
                 "workflows" => typeof(Settings.WorkflowsSettingsPage),
-                "vision" => typeof(Settings.VisionSettingsPage),
+
                 "presets" => typeof(Settings.DictationPresetsSettingsPage),
                 "snippets" => typeof(Settings.SnippetsSettingsPage),
                 "privacy" => typeof(Settings.PrivacySettingsPage),

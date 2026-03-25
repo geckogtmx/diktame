@@ -102,8 +102,24 @@ public sealed class PipelineFactory
 
     public VisionPipeline CreateVisionPipeline(string? modeOverride = null)
     {
-        var (stt, llm) = GetProviders("vision", modeOverride);
-        return new VisionPipeline(llm!, _injector, stt, _eventBus);
+        // Wallet mode — override all provider selection with wallet proxies.
+        if (_settings.Current.AuthMode == AuthMode.Wallet && _walletStt is not null && _walletLlm is not null)
+        {
+            return new VisionPipeline(_walletLlm, _injector, _walletStt, _eventBus);
+        }
+
+        // Use Vision-specific provider/model from VisionSettings (set by AI Engine > Vision)
+        var vision = _settings.Current.Vision;
+        string visionProvider = string.IsNullOrWhiteSpace(vision.VisionProvider) ? "ollama" : vision.VisionProvider;
+        string visionModel = string.IsNullOrWhiteSpace(vision.VisionModelId) ? "moondream" : vision.VisionModelId;
+        var llm = _llmFactory.CreateProvider(visionProvider, model: visionModel);
+
+        // STT still comes from the normal profile (for voice query transcription)
+        string effectiveMode = modeOverride ?? "vision";
+        ModeSettings ms = _profiles.GetModeSettings(effectiveMode);
+        var stt = _sttFactory.CreateProvider(ms.SttProvider);
+
+        return new VisionPipeline(llm, _injector, stt, _eventBus);
     }
 
     /// <summary>

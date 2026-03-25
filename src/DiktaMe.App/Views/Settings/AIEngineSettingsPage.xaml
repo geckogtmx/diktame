@@ -1114,6 +1114,92 @@
             </StackPanel>
 
             <!-- ═══════════════════════════════════════════════════════════════
+                 Vision (provider + model)
+                 ═══════════════════════════════════════════════════════════════ -->
+            <StackPanel Spacing="16" MaxWidth="700"
+                        Visibility="{x:Bind ViewModel.IsVisionSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Vision" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+
+                <!-- Cloud / Local segmented toggle -->
+                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,8" Padding="4"
+                            BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="1" CornerRadius="8"
+                            Background="{StaticResource AppBackgroundTranslucentBrush}" HorizontalAlignment="Left">
+                    <Button Content="Cloud" Command="{x:Bind ViewModel.SelectVisionCloudCommand}"
+                            Style="{StaticResource SegmentedLeftActiveStyle}"
+                            Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                    <Button Content="Cloud" Command="{x:Bind ViewModel.SelectVisionCloudCommand}"
+                            Style="{StaticResource SegmentedLeftStyle}"
+                            Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                    <Button Content="Local" Command="{x:Bind ViewModel.SelectVisionLocalCommand}"
+                            Style="{StaticResource SegmentedRightActiveStyle}"
+                            Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                    <Button Content="Local" Command="{x:Bind ViewModel.SelectVisionLocalCommand}"
+                            Style="{StaticResource SegmentedRightStyle}"
+                            Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                </StackPanel>
+
+                <!-- Cloud tab -->
+                <StackPanel Spacing="16"
+                            Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Vision Model" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock Text="Select a cloud model with vision/multimodal capabilities" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.CloudVisionModelNames}"
+                                          SelectedIndex="{x:Bind ViewModel.CloudVisionModelIndex, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
+                                <Button Grid.Column="1" Content="&#xE72C;" FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                        Command="{x:Bind ViewModel.RefreshVisionModelsExplicitCommand}"
+                                        ToolTipService.ToolTip="Refresh model list"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Local tab -->
+                <StackPanel Spacing="16"
+                            Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Ollama Vision Model" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="Select an installed Ollama model with vision capabilities" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ComboBox ItemsSource="{x:Bind ViewModel.LocalVisionModelNames}"
+                                              SelectedIndex="{x:Bind ViewModel.LocalVisionModelIndex, Mode=TwoWay}"
+                                              HorizontalAlignment="Stretch"/>
+                                    <Button Grid.Column="1" Content="&#xE72C;" FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                            Command="{x:Bind ViewModel.RefreshVisionModelsExplicitCommand}"
+                                            ToolTipService.ToolTip="Refresh model list"/>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Keep-Alive (seconds)" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="How long Ollama keeps the model loaded after use (0 = unload immediately)" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <NumberBox Value="{x:Bind ViewModel.OllamaKeepAliveSeconds, Mode=TwoWay}"
+                                                Minimum="0" Maximum="3600" SpinButtonPlacementMode="Compact"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    <InfoBar Title="Local Vision" Message="Install a vision model with: ollama pull moondream" IsOpen="True" IsClosable="False" Severity="Informational"/>
+                </StackPanel>
+
+                <!-- Save -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+                    <Button Content="Save" Style="{StaticResource AccentButtonStyle}" Command="{x:Bind ViewModel.SaveVisionCommand}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ═══════════════════════════════════════════════════════════════
                  System Monitor
                  ═══════════════════════════════════════════════════════════════ -->
             <StackPanel Spacing="16" MaxWidth="700"

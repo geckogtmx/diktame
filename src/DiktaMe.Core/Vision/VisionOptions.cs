@@ -24,6 +24,12 @@ public enum VisionOutputMode
 
     /// <summary>Show a toast notification only.</summary>
     ToastOnly,
+
+    /// <summary>Toast notification + inject into active window.</summary>
+    ToastInject,
+
+    /// <summary>Toast notification + copy to clipboard.</summary>
+    ToastClipboard,
 }
 
 /// <summary>

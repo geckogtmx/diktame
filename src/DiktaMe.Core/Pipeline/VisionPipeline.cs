@@ -98,7 +98,8 @@ public sealed class VisionPipeline
 
             // Stage 3: Output (inject, clipboard, or toast-only)
             long injectionMs = 0;
-            if (options.OutputMode == VisionOutputMode.Inject)
+            bool shouldInject = options.OutputMode is VisionOutputMode.Inject or VisionOutputMode.ToastInject;
+            if (shouldInject)
             {
                 SetState(PipelineState.Injecting);
                 var injSw = Stopwatch.StartNew();

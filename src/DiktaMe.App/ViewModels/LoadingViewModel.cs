@@ -1691,6 +1691,7 @@ public sealed partial class LoadingViewModel : ObservableObject
 
     // ── Vision Pipeline (SPEC_015-0C) ────────────────────────────────────
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Pipeline orchestrator")]
     private async Task RunVisionPipelineAsync()
     {
         try
@@ -1701,7 +1702,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             var bounds = DiktaMe.Core.Vision.ScreenCapture.GetActiveMonitorBounds();
             if (bounds.Width <= 0 || bounds.Height <= 0)
             {
-                _notifications.ShowToast("Vision", "No active monitor found", NotificationType.Error);
+                _notifications.ShowToast("Vision", "No active monitor found", NotificationType.Error, suppressTts: true);
                 return;
             }
 
@@ -1712,10 +1713,19 @@ public sealed partial class LoadingViewModel : ObservableObject
                 .ConfigureAwait(true);
             Log.Debug("Vision: active monitor captured ({Size} bytes)", monitorPng.Length);
 
+            if (monitorPng.Length == 0)
+            {
+                _notifications.ShowToast("Vision", "Screen capture returned empty image", NotificationType.Error, suppressTts: true);
+                return;
+            }
+
             // Step 2: Show snipping overlay sized to the active window
+            Log.Debug("Vision: creating overlay for bounds ({X},{Y} {W}x{H})", bounds.X, bounds.Y, bounds.Width, bounds.Height);
             var overlay = new Views.SnippingOverlayWindow();
             overlay.SetBounds(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            Log.Debug("Vision: loading background screenshot ({Size} bytes)", monitorPng.Length);
             await overlay.SetBackgroundScreenshotAsync(monitorPng).ConfigureAwait(true);
+            Log.Debug("Vision: activating overlay");
             overlay.Activate();
             var snippingResult = await overlay.GetResultAsync().ConfigureAwait(true);
 
@@ -1735,10 +1745,10 @@ public sealed partial class LoadingViewModel : ObservableObject
                 if (snippingResult.Mode == DiktaMe.Core.Vision.CaptureMode.Region
                     && snippingResult.Region is { } region)
                 {
-                    // Region coordinates are relative to the overlay (which matches the window)
-                    // Translate to screen coordinates by adding window origin
-                    screenshot = DiktaMe.Core.Vision.ScreenCapture.CaptureRegion(
-                        bounds.X + region.X, bounds.Y + region.Y, region.Width, region.Height);
+                    // Crop from the pre-captured monitor image to avoid timing race
+                    // (overlay may still be visible if we re-capture from screen)
+                    screenshot = DiktaMe.Core.Vision.ImageProcessor.CropRegion(
+                        monitorPng, region.X, region.Y, region.Width, region.Height);
                 }
                 else
                 {
@@ -1752,7 +1762,7 @@ public sealed partial class LoadingViewModel : ObservableObject
 
             if (imageData.Length == 0)
             {
-                _notifications.ShowToast("Vision", "Screen capture failed", NotificationType.Error);
+                _notifications.ShowToast("Vision", "Screen capture failed", NotificationType.Error, suppressTts: true);
                 return;
             }
 
@@ -1771,7 +1781,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             // Step 4: Create and run vision pipeline
             Log.Information("Vision: creating pipeline (provider={Provider}, model={Model})",
                 visionSettings.VisionProvider, visionSettings.VisionModelId);
-            _notifications.ShowToast("Vision", "Analyzing image...", NotificationType.Info);
+            _notifications.ShowToast("Vision", "Analyzing image...", NotificationType.Info, suppressTts: true);
             var options = new DiktaMe.Core.Vision.VisionOptions
             {
                 SystemPrompt = "You are a concise vision assistant. Respond briefly and directly. Do not describe the UI chrome, window decorations, or layout — focus only on the meaningful content. Keep responses under 200 words unless the user asks for more detail.",
@@ -1780,18 +1790,21 @@ public sealed partial class LoadingViewModel : ObservableObject
                 MaxImageDimensionPx = visionSettings.MaxImageDimensionPx,
                 MaxResponseTokens = visionSettings.MaxResponseTokens,
                 Temperature = visionSettings.Temperature,
-                OutputMode = string.Equals(visionSettings.OutputMode, "clipboard", StringComparison.OrdinalIgnoreCase)
-                    ? DiktaMe.Core.Vision.VisionOutputMode.Clipboard
-                    : string.Equals(visionSettings.OutputMode, "toast", StringComparison.OrdinalIgnoreCase)
-                        ? DiktaMe.Core.Vision.VisionOutputMode.ToastOnly
-                        : DiktaMe.Core.Vision.VisionOutputMode.Inject,
+                OutputMode = visionSettings.OutputMode?.ToLowerInvariant() switch
+                {
+                    "clipboard" => DiktaMe.Core.Vision.VisionOutputMode.Clipboard,
+                    "toast" => DiktaMe.Core.Vision.VisionOutputMode.ToastOnly,
+                    "toast_inject" => DiktaMe.Core.Vision.VisionOutputMode.ToastInject,
+                    "toast_clipboard" => DiktaMe.Core.Vision.VisionOutputMode.ToastClipboard,
+                    _ => DiktaMe.Core.Vision.VisionOutputMode.Inject,
+                },
             };
 
             var pipeline = _pipelineFactory.CreateVisionPipeline();
             pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
-            _recordingCts = new CancellationTokenSource();
+            using var visionCts = new CancellationTokenSource();
 
-            var result = await pipeline.RunAsync(imageData, mimeType, audioFilePath: null, options, _recordingCts.Token)
+            var result = await pipeline.RunAsync(imageData, mimeType, audioFilePath: null, options, visionCts.Token)
                 .ConfigureAwait(false);
 
             _controlPanel.OnPipelineCompleted(this, result);
@@ -1810,27 +1823,33 @@ public sealed partial class LoadingViewModel : ObservableObject
                 // Store in history (via ControlPanel → MetricsCollector → HistoryManager)
                 await _history.LogSessionAsync(result).ConfigureAwait(false);
 
-                _notifications.ShowToast("Vision", preview, NotificationType.Success);
+                // Copy to clipboard for clipboard output modes
+                bool shouldClipboard = options.OutputMode is DiktaMe.Core.Vision.VisionOutputMode.Clipboard
+                    or DiktaMe.Core.Vision.VisionOutputMode.ToastClipboard;
+                if (shouldClipboard)
+                {
+                    ClipboardManager.SetText(result.Text);
+                    Log.Information("Vision: copied {Chars} chars to clipboard", result.Text.Length);
+                }
+
+                _notifications.ShowToast("Vision", preview, NotificationType.Success, suppressTts: true);
             }
             else
             {
                 Log.Warning("Vision: failed via {Provider} — {Error}", result.LlmProvider, result.ErrorMessage);
-                _notifications.ShowToast("Vision Error", result.ErrorMessage ?? "Vision analysis failed", NotificationType.Error);
+                _notifications.ShowToast("Vision Error", result.ErrorMessage ?? "Vision analysis failed", NotificationType.Error, suppressTts: true);
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Vision pipeline failed");
-            _notifications.ShowToast("Vision Error", ex.Message, NotificationType.Error);
+            _notifications.ShowToast("Vision Error", ex.Message, NotificationType.Error, suppressTts: true);
         }
         finally
         {
             // Restore audio ducking (Vision triggers Processing state which ducks audio)
             try { await _audioDucker.RestoreAsync().ConfigureAwait(false); }
             catch (Exception ex) { Log.Debug(ex, "Vision: ducking restore failed (non-fatal)"); }
-
-            _recordingCts?.Dispose();
-            _recordingCts = null;
         }
     }
 }

@@ -250,7 +250,7 @@
         </Border>
 
         <!-- ═══════════════════════════════════════════════════════════════════
-             Row 2: Cycle Buttons (6-column: STT | LLM | TTS | SOUND | +KEY | REFINE)
+             Row 2: Cycle Buttons (7-column: STT | LLM | TTS | VIS | SOUND | +KEY | REFINE)
              ═══════════════════════════════════════════════════════════════ -->
         <Border x:Name="ActionsRow" Grid.Row="2"
                 Visibility="{x:Bind ViewModel.ShowActionsRowEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
@@ -259,6 +259,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -339,8 +340,34 @@
                     </StackPanel>
                 </Button>
 
-                <!-- SOUND -->
+                <!-- VISION (Cloud/Local toggle, only when Vision enabled) -->
                 <Button Grid.Column="3"
+                        Command="{x:Bind ViewModel.CycleVisionCommand}"
+                        Background="{StaticResource AppSurfaceBrush}"
+                        BorderThickness="0" CornerRadius="4"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Padding="2,4" MinWidth="0" MinHeight="0"
+                        Visibility="{x:Bind ViewModel.ShowVisionButton, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+                    <Button.Resources>
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#003a4d"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#00709a"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#004052"/>
+                    </Button.Resources>
+                    <StackPanel HorizontalAlignment="Center" Spacing="1">
+                        <TextBlock Text="VIS"
+                                   FontSize="9" FontWeight="SemiBold"
+                                   Foreground="{StaticResource AppTextDimBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.VisionStateLabel, Mode=OneWay}"
+                                   FontSize="10" FontWeight="Bold"
+                                   Foreground="{x:Bind ViewModel.VisionStateBrush, Mode=OneWay}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- SOUND -->
+                <Button Grid.Column="4"
                         Command="{x:Bind ViewModel.CycleSoundCommand}"
                         Background="{StaticResource AppSurfaceBrush}"
                         BorderThickness="0" CornerRadius="4"
@@ -365,7 +392,7 @@
                 </Button>
 
                 <!-- +KEY -->
-                <Button Grid.Column="4"
+                <Button Grid.Column="5"
                         Command="{x:Bind ViewModel.CycleKeyCommand}"
                         Background="{StaticResource AppSurfaceBrush}"
                         BorderThickness="0" CornerRadius="4"
@@ -390,7 +417,7 @@
                 </Button>
 
                 <!-- REFINE -->
-                <Button Grid.Column="5"
+                <Button Grid.Column="6"
                         Command="{x:Bind ViewModel.CycleRefineCommand}"
                         Background="{StaticResource AppSurfaceBrush}"
                         BorderThickness="0" CornerRadius="4"

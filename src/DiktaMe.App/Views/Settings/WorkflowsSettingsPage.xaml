@@ -138,6 +138,121 @@
                 </StackPanel>
 
                 <!-- ══════════════════════════════════════════════════════════ -->
+                <!-- Vision Pipeline Settings                                  -->
+                <!-- ══════════════════════════════════════════════════════════ -->
+                <StackPanel Spacing="16" Visibility="{x:Bind ViewModel.IsVisionSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+
+                    <TextBlock Text="Vision" FontSize="28" FontWeight="SemiBold"
+                               Foreground="{StaticResource AppTextBrush}"
+                               Margin="0,0,0,4"/>
+
+                    <!-- Shared settings (above Cloud/Local tabs) -->
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Text="Enable Vision" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Ctrl+Alt+S to capture and analyze screen content" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.VisionEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Output Mode" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="How the vision response is delivered" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.VisionOutputModes}"
+                                          SelectedIndex="{x:Bind ViewModel.VisionOutputModeIndex, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Text="Auto-Record Voice Query" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Automatically start recording after screen capture" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.VisionAutoRecordQuery, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Max Response Tokens" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="Maximum length of the AI response" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <muxc:NumberBox Value="{x:Bind ViewModel.VisionMaxResponseTokens, Mode=TwoWay}"
+                                                Minimum="64" Maximum="16384" SpinButtonPlacementMode="Compact"/>
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Max Image Dimension (px)" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="Screenshots larger than this are downscaled before sending to the AI" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                <muxc:NumberBox Value="{x:Bind ViewModel.VisionMaxImageDimensionPx, Mode=TwoWay}"
+                                                Minimum="512" Maximum="4096" SpinButtonPlacementMode="Compact"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Cloud / Local segmented toggle -->
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,8" Padding="4"
+                                BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="1" CornerRadius="8"
+                                Background="{StaticResource AppBackgroundTranslucentBrush}" HorizontalAlignment="Left">
+                        <Button Content="Cloud" Command="{x:Bind ViewModel.SelectVisionCloudCommand}"
+                                Style="{StaticResource SegmentedLeftActiveStyle}"
+                                Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                        <Button Content="Cloud" Command="{x:Bind ViewModel.SelectVisionCloudCommand}"
+                                Style="{StaticResource SegmentedLeftStyle}"
+                                Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                        <Button Content="Local" Command="{x:Bind ViewModel.SelectVisionLocalCommand}"
+                                Style="{StaticResource SegmentedRightActiveStyle}"
+                                Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}"/>
+                        <Button Content="Local" Command="{x:Bind ViewModel.SelectVisionLocalCommand}"
+                                Style="{StaticResource SegmentedRightStyle}"
+                                Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                    </StackPanel>
+
+                    <!-- Cloud tab: prompt only (model set in AI Engine) -->
+                    <StackPanel Spacing="16"
+                                Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}">
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Default Query" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="Sent with the screenshot when no voice query is recorded" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <TextBox Text="{x:Bind ViewModel.VisionDefaultQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         MinHeight="80" MaxHeight="200"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                        </Border>
+                        <muxc:InfoBar Title="Cloud Vision" Message="Model and provider are configured in AI Engine → Vision" IsOpen="True" IsClosable="False" Severity="Informational"/>
+                    </StackPanel>
+
+                    <!-- Local tab: prompt only (model set in AI Engine) -->
+                    <StackPanel Spacing="16"
+                                Visibility="{x:Bind ViewModel.IsVisionCloudTab, Mode=OneWay, Converter={StaticResource LocalInverseBoolToVis}}">
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Default Query" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="Sent with the screenshot when no voice query is recorded (local models may need simpler prompts)" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                <TextBox Text="{x:Bind ViewModel.VisionDefaultQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         MinHeight="80" MaxHeight="200"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                        </Border>
+                        <muxc:InfoBar Title="Local Vision" Message="Model is configured in AI Engine → Vision → Local" IsOpen="True" IsClosable="False" Severity="Informational"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+                        <Button Content="Save" Style="{StaticResource AccentButtonStyle}" Command="{x:Bind ViewModel.SaveVisionCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- ══════════════════════════════════════════════════════════ -->
                 <!-- Utility Pipelines (Ask, Refine, Translate, Note)          -->
                 <!-- ══════════════════════════════════════════════════════════ -->
                 <StackPanel Spacing="16" Visibility="{x:Bind ViewModel.IsUtilityPipelineSelected, Mode=OneWay, Converter={StaticResource BoolToVis}}">

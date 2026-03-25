@@ -62,7 +62,7 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
 
         _http = httpClient ?? new HttpClient
         {
-            Timeout = TimeSpan.FromSeconds(60), // local inference can be slow on CPU
+            Timeout = TimeSpan.FromSeconds(180), // vision models need more time for image processing
         };
     }
 
@@ -277,6 +277,72 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
         throw new InvalidOperationException($"Ollama: all {MaxRetries} attempts failed.");
     }
 
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Uses the Ollama <c>/api/chat</c> endpoint with <c>images</c> array for vision models
+    /// like moondream, llava, bakllava. The image is sent as base64-encoded data.
+    /// </remarks>
+    public async Task<LlmResult> ProcessWithImageAsync(
+        byte[] imageData, string mimeType, string text, string systemPrompt,
+        string mode = "vision", CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string base64Image = Convert.ToBase64String(imageData);
+        string body = BuildVisionRequestJson(_model, systemPrompt, text, base64Image, _keepAlive, _numCtx);
+
+        var sw = Stopwatch.StartNew();
+
+        const int MaxRetries = 3;
+        for (int attempt = 0; attempt < MaxRetries; attempt++)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, _chatUrl);
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    Log.Warning("OllamaProvider: vision status {S} on attempt {A}: {Body}",
+                        (int)response.StatusCode, attempt + 1, errBody);
+
+                    if (attempt < MaxRetries - 1)
+                    {
+                        await DelayAsync(attempt).ConfigureAwait(false);
+                        continue;
+                    }
+                    throw new InvalidOperationException(
+                        $"Ollama: vision status {(int)response.StatusCode}: {errBody}");
+                }
+
+                sw.Stop();
+                string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                string output = ParseChatResponse(json);
+
+                Log.Information("{Provider}: vision processed in {Ms}ms [{Mode}]",
+                    ProviderName, sw.ElapsedMilliseconds, mode);
+
+                return new LlmResult
+                {
+                    Text = output,
+                    Provider = ProviderName,
+                    LatencyMs = sw.ElapsedMilliseconds,
+                };
+            }
+            catch (HttpRequestException ex) when (attempt < MaxRetries - 1)
+            {
+                Log.Warning(ex, "OllamaProvider: vision connection error on attempt {A}/{Max}",
+                    attempt + 1, MaxRetries);
+                await DelayAsync(attempt).ConfigureAwait(false);
+            }
+        }
+
+        throw new InvalidOperationException($"Ollama: all {MaxRetries} vision attempts failed.");
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static string SanitizeInput(string text)
@@ -388,6 +454,22 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
             Log.Warning(ex, "OllamaProvider: failed to parse response JSON");
             return (string.Empty, null);
         }
+    }
+
+    private static string BuildVisionRequestJson(
+        string model, string systemPrompt, string userText, string base64Image,
+        string keepAlive = "10m", int numCtx = 2048)
+    {
+        var sb = new StringBuilder();
+        sb.Append('{');
+        sb.Append("\"model\":\"").Append(EscapeJsonString(model)).Append("\",");
+        sb.Append("\"messages\":[");
+        sb.Append("{\"role\":\"system\",\"content\":\"").Append(EscapeJsonString(systemPrompt)).Append("\"},");
+        sb.Append("{\"role\":\"user\",\"content\":\"").Append(EscapeJsonString(userText));
+        sb.Append("\",\"images\":[\"").Append(base64Image).Append("\"]}");
+        sb.Append("],\"stream\":false,\"options\":{\"temperature\":0.1,\"num_ctx\":").Append(numCtx).Append("},\"keep_alive\":\"")
+          .Append(EscapeJsonString(keepAlive)).Append("\"}");
+        return sb.ToString();
     }
 
     private static string EscapeJsonString(string s)

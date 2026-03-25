@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiktaMe.App.Services;
 using DiktaMe.Core.Config;
+using DiktaMe.Core.LLM;
 using DiktaMe.Core.STT;
 using Microsoft.UI.Dispatching;
 using Serilog;
@@ -23,6 +24,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     public CloudLlmSettingsViewModel CloudLlm { get; }
 
     private readonly SettingsManager _settings;
+    private readonly ModelListService _modelListService;
     private readonly LocalizationService _loc;
     private readonly DispatcherQueue _dispatcher;
     private bool _isLoading;
@@ -56,6 +58,9 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isSystemMonitorSelected;
 
+    [ObservableProperty]
+    private bool _isVisionSelected;
+
     // ── Cloud/Local tab selection (true = Cloud, false = Local) ──────────
 
     [ObservableProperty]
@@ -66,6 +71,29 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isTtsCloudTab = true;
+
+    [ObservableProperty]
+    private bool _isVisionCloudTab = true;
+
+    // ── Vision settings ──────────────────────────────────────────────────
+
+    /// <summary>Cloud vision model display names for ComboBox.</summary>
+    public ObservableCollection<string> CloudVisionModelNames { get; } = [];
+
+    /// <summary>Backing model IDs (parallel to CloudVisionModelNames).</summary>
+    private readonly List<string> _cloudVisionModelIds = [];
+
+    [ObservableProperty]
+    private int _cloudVisionModelIndex = -1;
+
+    /// <summary>Installed Ollama model names for the Local Vision model dropdown.</summary>
+    public ObservableCollection<string> LocalVisionModelNames { get; } = [];
+
+    [ObservableProperty]
+    private int _localVisionModelIndex = -1;
+
+    [ObservableProperty]
+    private int _ollamaKeepAliveSeconds = 300;
 
     // ── Whisper settings ────────────────────────────────────────────────────
 
@@ -126,6 +154,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         TtsSettingsViewModel tts,
         ModesSettingsViewModel pipelines,
         CloudLlmSettingsViewModel cloudLlm,
+        ModelListService modelListService,
         SettingsManager settings,
         LocalizationService loc)
     {
@@ -134,6 +163,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         Tts = tts;
         Pipelines = pipelines;
         CloudLlm = cloudLlm;
+        _modelListService = modelListService;
         _settings = settings;
         _loc = loc;
         _dispatcher = DispatcherQueue.GetForCurrentThread();
@@ -157,6 +187,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         SubItems.Add(new ModeListItem { Id = "llm", Title = _loc.GetString("Settings_AIEngine_Sub_Llm"), IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "tts", Title = _loc.GetString("Settings_AIEngine_Sub_Tts"), IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "chat", Title = "Chat", IsDictationMode = false, IsSeparator = false });
+        SubItems.Add(new ModeListItem { Id = "vision", Title = "Vision", IsDictationMode = false, IsSeparator = false });
         SubItems.Add(new ModeListItem { Id = "monitor", Title = _loc.GetString("Settings_AIEngine_Sub_Monitor"), IsDictationMode = false, IsSeparator = false });
     }
 
@@ -171,6 +202,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
             IsLlmSelected = false;
             IsTtsSelected = false;
             IsChatSelected = false;
+            IsVisionSelected = false;
             IsSystemMonitorSelected = false;
             return;
         }
@@ -181,6 +213,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         IsLlmSelected = id == "llm";
         IsTtsSelected = id == "tts";
         IsChatSelected = id == "chat";
+        IsVisionSelected = id == "vision";
         IsSystemMonitorSelected = id == "monitor";
 
         // Sync Chat selection to the inner ModesSettingsViewModel
@@ -211,6 +244,8 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [RelayCommand] private void SelectLlmLocal() => IsLlmCloudTab = false;
     [RelayCommand] private void SelectTtsCloud() => IsTtsCloudTab = true;
     [RelayCommand] private void SelectTtsLocal() => IsTtsCloudTab = false;
+    [RelayCommand] private void SelectVisionCloud() => IsVisionCloudTab = true;
+    [RelayCommand] private void SelectVisionLocal() => IsVisionCloudTab = false;
 
     partial void OnIsTtsCloudTabChanged(bool value)
     {
@@ -260,6 +295,14 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         DeepgramReplacements = string.Join("\n", dg.Replacements);
         DeepgramStreaming = s.General.StreamingEnabled;
         IsDictationEnabled = dg.Punctuate || dg.SmartFormat;
+
+        // Vision settings
+        var vision = s.Vision;
+        OllamaKeepAliveSeconds = vision.OllamaKeepAliveSeconds;
+        IsVisionCloudTab = !string.Equals(vision.VisionProvider, "ollama", StringComparison.OrdinalIgnoreCase);
+
+        // Populate cloud + local vision model lists
+        _ = RefreshVisionModelsAsync();
 
         // System Monitor info
         RefreshSystemMonitorInfo();
@@ -419,6 +462,106 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         {
             DeepgramDictation = false;
         }
+    }
+
+    private async Task RefreshVisionModelsAsync()
+    {
+        // Refresh local Ollama models
+        try
+        {
+            var ollamaModels = await Ollama.GetInstalledModelNamesAsync().ConfigureAwait(false);
+            _dispatcher.TryEnqueue(() =>
+            {
+                LocalVisionModelNames.Clear();
+                foreach (var name in ollamaModels)
+                    LocalVisionModelNames.Add(name);
+
+                string target = _settings.Current.Vision.LocalVisionModelId;
+                int idx = -1;
+                for (int i = 0; i < LocalVisionModelNames.Count; i++)
+                {
+                    if (string.Equals(LocalVisionModelNames[i], target, StringComparison.OrdinalIgnoreCase))
+                    { idx = i; break; }
+                }
+                LocalVisionModelIndex = idx >= 0 ? idx : (LocalVisionModelNames.Count > 0 ? 0 : -1);
+            });
+        }
+        catch (Exception ex) { Log.Debug(ex, "Failed to refresh local vision models"); }
+
+        // Refresh cloud models
+        try
+        {
+            var allModels = await _modelListService.GetAvailableModelsAsync().ConfigureAwait(false);
+            var cloudModels = allModels
+                .Where(m => !string.Equals(m.Provider, "Ollama (Local)", StringComparison.Ordinal))
+                .OrderBy(m => m.Provider).ThenBy(m => m.DisplayName)
+                .ToList();
+
+            _dispatcher.TryEnqueue(() =>
+            {
+                CloudVisionModelNames.Clear();
+                _cloudVisionModelIds.Clear();
+                foreach (var m in cloudModels)
+                {
+                    CloudVisionModelNames.Add($"{m.DisplayName}  ({m.Provider})");
+                    _cloudVisionModelIds.Add(m.ModelId);
+                }
+
+                // Select previously saved model
+                string target = _settings.Current.Vision.CloudVisionModelId;
+                int idx = -1;
+                for (int i = 0; i < _cloudVisionModelIds.Count; i++)
+                {
+                    if (string.Equals(_cloudVisionModelIds[i], target, StringComparison.OrdinalIgnoreCase))
+                    { idx = i; break; }
+                }
+                CloudVisionModelIndex = idx >= 0 ? idx : (CloudVisionModelNames.Count > 0 ? 0 : -1);
+            });
+        }
+        catch (Exception ex) { Log.Debug(ex, "Failed to refresh cloud vision models"); }
+    }
+
+    [RelayCommand]
+    private async Task RefreshVisionModelsExplicitAsync()
+    {
+        await RefreshVisionModelsAsync().ConfigureAwait(false);
+    }
+
+    [RelayCommand]
+    private void SaveVision()
+    {
+        if (_isLoading) return;
+
+        string cloudModelId = CloudVisionModelIndex >= 0 && CloudVisionModelIndex < _cloudVisionModelIds.Count
+            ? _cloudVisionModelIds[CloudVisionModelIndex] : "gemini-2.5-flash";
+
+        // Resolve cloud provider from model ID
+        string cloudProvider = ModelListService.ResolveProviderFromModelId(cloudModelId);
+
+        string localModel = LocalVisionModelIndex >= 0 && LocalVisionModelIndex < LocalVisionModelNames.Count
+            ? LocalVisionModelNames[LocalVisionModelIndex] : "moondream";
+
+        string provider = IsVisionCloudTab ? cloudProvider : "ollama";
+        string modelId = IsVisionCloudTab ? cloudModelId : localModel;
+
+        var updated = _settings.Current with
+        {
+            Vision = _settings.Current.Vision with
+            {
+                CloudVisionProvider = cloudProvider,
+                CloudVisionModelId = cloudModelId,
+                LocalVisionModelId = localModel,
+                OllamaKeepAliveSeconds = OllamaKeepAliveSeconds,
+                VisionProvider = provider,
+                VisionModelId = string.IsNullOrWhiteSpace(modelId) ? (IsVisionCloudTab ? "gemini-2.5-flash" : "moondream") : modelId,
+            },
+        };
+
+        _ = _settings.UpdateAsync(updated).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+                Log.Error(t.Exception, "Failed to save Vision settings");
+        }, TaskScheduler.Default);
     }
 
     private void SaveDeepgram()
