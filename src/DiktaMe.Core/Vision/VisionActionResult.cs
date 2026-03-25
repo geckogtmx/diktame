@@ -14,6 +14,12 @@ public enum VisionAction
 
     /// <summary>Run vision pipeline, then record voice note — full multimodal note entry.</summary>
     Note,
+
+    /// <summary>Dedicated OCR — extract text exactly as written, copy to clipboard.</summary>
+    Ocr,
+
+    /// <summary>Extract tabular data as TSV, copy to clipboard.</summary>
+    Table,
 }
 
 /// <summary>

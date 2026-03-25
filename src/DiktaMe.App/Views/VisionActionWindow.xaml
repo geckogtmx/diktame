@@ -35,18 +35,67 @@
                              Foreground="{StaticResource AppTextBrush}"/>
             </StackPanel>
 
-            <!-- Action buttons -->
-            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8"
-                        HorizontalAlignment="Center">
-                <Button x:Name="SaveBtn" Content="Save" Click="OnSave"
-                        MinWidth="80" ToolTipService.ToolTip="Save screenshot to file (no AI)"/>
-                <Button x:Name="ClipboardBtn" Content="Clipboard" Click="OnClipboard"
-                        MinWidth="80" Style="{StaticResource AccentButtonStyle}"/>
-                <Button x:Name="ChatBtn" Content="Chat" Click="OnChat"
-                        MinWidth="80"/>
-                <Button x:Name="NoteBtn" Content="Note" Click="OnNote"
-                        MinWidth="80"/>
-            </StackPanel>
+            <!-- Action buttons: 3×2 grid -->
+            <Grid Grid.Row="3" ColumnSpacing="8" RowSpacing="8" HorizontalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Button Click="OnSave" MinWidth="110" Grid.Row="0" Grid.Column="0"
+                        ToolTipService.ToolTip="Save screenshot to file + copy image to clipboard">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE74E;" FontSize="14"/>
+                        <TextBlock Text="Save"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Click="OnClipboard" MinWidth="110" Grid.Row="0" Grid.Column="1"
+                        Style="{StaticResource AccentButtonStyle}"
+                        ToolTipService.ToolTip="No query = copy image; with query = AI analysis to clipboard">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE8C8;" FontSize="14"/>
+                        <TextBlock Text="Clipboard"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Click="OnChat" MinWidth="110" Grid.Row="0" Grid.Column="2"
+                        ToolTipService.ToolTip="Open QuickChat with image attached">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE8BD;" FontSize="14"/>
+                        <TextBlock Text="Chat"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Click="OnNote" MinWidth="110" Grid.Row="1" Grid.Column="0"
+                        ToolTipService.ToolTip="Analyze image, then record a voice note">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE70B;" FontSize="14"/>
+                        <TextBlock Text="Note"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Click="OnOcr" MinWidth="110" Grid.Row="1" Grid.Column="1"
+                        ToolTipService.ToolTip="Extract all text from image (OCR) to clipboard">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE8D4;" FontSize="14"/>
+                        <TextBlock Text="OCR"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Click="OnTable" MinWidth="110" Grid.Row="1" Grid.Column="2"
+                        ToolTipService.ToolTip="Extract tabular data as TSV to clipboard">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE80A;" FontSize="14"/>
+                        <TextBlock Text="Table"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
         </Grid>
     </ContentControl>
 </Window>

@@ -16,6 +16,8 @@ using DiktaMe.Plugin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using Serilog;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Storage.Streams;
 
 
 namespace DiktaMe.App.ViewModels;
@@ -1806,8 +1808,9 @@ public sealed partial class LoadingViewModel : ObservableObject
             switch (actionResult.Action)
             {
                 case DiktaMe.Core.Vision.VisionAction.Save:
-                    // No AI — just notify that the screenshot is saved
-                    _notifications.ShowToast("Vision", $"Screenshot saved to {savedPath}", NotificationType.Success, suppressTts: true);
+                    // No AI — save file + copy image to clipboard
+                    CopyImageToClipboard(imageData);
+                    _notifications.ShowToast("Vision", $"Saved & copied to clipboard", NotificationType.Success, suppressTts: true);
                     return;
 
                 case DiktaMe.Core.Vision.VisionAction.Chat:
@@ -1816,6 +1819,14 @@ public sealed partial class LoadingViewModel : ObservableObject
 
                 case DiktaMe.Core.Vision.VisionAction.Note:
                     await HandleVisionNoteAsync(imageData, mimeType, savedPath, visionProvider, visionModelId, visionSettings, actionResult).ConfigureAwait(false);
+                    return;
+
+                case DiktaMe.Core.Vision.VisionAction.Ocr:
+                    await HandleVisionOcrAsync(imageData, mimeType, visionProvider, visionModelId, visionSettings, actionResult).ConfigureAwait(false);
+                    return;
+
+                case DiktaMe.Core.Vision.VisionAction.Table:
+                    await HandleVisionTableAsync(imageData, mimeType, visionProvider, visionModelId, visionSettings, actionResult).ConfigureAwait(false);
                     return;
 
                 case DiktaMe.Core.Vision.VisionAction.Clipboard:
@@ -1845,6 +1856,14 @@ public sealed partial class LoadingViewModel : ObservableObject
         DiktaMe.Core.Config.VisionSettings visionSettings,
         DiktaMe.Core.Vision.VisionActionResult actionResult)
     {
+        // No query → copy raw image to clipboard (no AI)
+        if (string.IsNullOrWhiteSpace(actionResult.UserQuery))
+        {
+            CopyImageToClipboard(imageData);
+            _notifications.ShowToast("Vision", "Image copied to clipboard", NotificationType.Success, suppressTts: true);
+            return;
+        }
+
         _notifications.ShowToast("Vision", "Analyzing image...", NotificationType.Info, suppressTts: true);
         var options = BuildVisionOptions(visionSettings, visionModelId, actionResult.UserQuery,
             DiktaMe.Core.Vision.VisionOutputMode.Clipboard);
@@ -1997,6 +2016,93 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         await File.AppendAllTextAsync(notesPath, sb.ToString()).ConfigureAwait(false);
         Log.Information("Vision+Note: appended vision-only note to {Path}", notesPath);
+    }
+
+    private void CopyImageToClipboard(byte[] pngData)
+    {
+        _uiDispatcher?.TryEnqueue(() =>
+        {
+            try
+            {
+                var package = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                var stream = new InMemoryRandomAccessStream();
+                stream.WriteAsync(pngData.AsBuffer()).AsTask().GetAwaiter().GetResult();
+                stream.Seek(0);
+                package.SetBitmap(RandomAccessStreamReference.CreateFromStream(stream));
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
+                Log.Information("Vision: copied image ({Size} bytes) to clipboard", pngData.Length);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Vision: failed to copy image to clipboard");
+            }
+        });
+    }
+
+    private async Task HandleVisionOcrAsync(
+        byte[] imageData, string mimeType,
+        string visionProvider, string visionModelId,
+        DiktaMe.Core.Config.VisionSettings visionSettings,
+        DiktaMe.Core.Vision.VisionActionResult actionResult)
+    {
+        _notifications.ShowToast("Vision", "Extracting text (OCR)...", NotificationType.Info, suppressTts: true);
+
+        var options = BuildVisionOptions(visionSettings, visionModelId,
+            "Extract ALL text from this image exactly as written. Preserve formatting, line breaks, and structure. Output only the extracted text, nothing else.",
+            DiktaMe.Core.Vision.VisionOutputMode.Clipboard);
+
+        var result = await RunVisionPipelineCoreAsync(imageData, mimeType, options).ConfigureAwait(false);
+        if (result is null)
+        {
+            return;
+        }
+
+        if (result.IsSuccess)
+        {
+            ClipboardManager.SetText(result.Text);
+            Log.Information("Vision OCR: copied {Chars} chars to clipboard", result.Text.Length);
+            string preview = result.Text.Length > 200
+                ? string.Concat(result.Text.AsSpan(0, 200), "...")
+                : result.Text;
+            _notifications.ShowToast("OCR", preview, NotificationType.Success, suppressTts: true);
+        }
+        else
+        {
+            _notifications.ShowToast("OCR Error", result.ErrorMessage ?? "OCR extraction failed",
+                NotificationType.Error, suppressTts: true);
+        }
+    }
+
+    private async Task HandleVisionTableAsync(
+        byte[] imageData, string mimeType,
+        string visionProvider, string visionModelId,
+        DiktaMe.Core.Config.VisionSettings visionSettings,
+        DiktaMe.Core.Vision.VisionActionResult actionResult)
+    {
+        _notifications.ShowToast("Vision", "Extracting table data...", NotificationType.Info, suppressTts: true);
+
+        var options = BuildVisionOptions(visionSettings, visionModelId,
+            "Extract all tabular data from this image. Format as TSV (tab-separated values) with headers. If multiple tables exist, separate with a blank line. Output only the data, no explanation.",
+            DiktaMe.Core.Vision.VisionOutputMode.Clipboard);
+
+        var result = await RunVisionPipelineCoreAsync(imageData, mimeType, options).ConfigureAwait(false);
+        if (result is null)
+        {
+            return;
+        }
+
+        if (result.IsSuccess)
+        {
+            ClipboardManager.SetText(result.Text);
+            Log.Information("Vision Table: copied {Chars} chars of TSV to clipboard", result.Text.Length);
+            _notifications.ShowToast("Table", $"Copied {result.Text.Split('\n').Length} rows to clipboard",
+                NotificationType.Success, suppressTts: true);
+        }
+        else
+        {
+            _notifications.ShowToast("Table Error", result.ErrorMessage ?? "Table extraction failed",
+                NotificationType.Error, suppressTts: true);
+        }
     }
 
     private DiktaMe.Core.Vision.VisionOptions BuildVisionOptions(

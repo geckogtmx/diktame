@@ -30,7 +30,7 @@ public sealed partial class VisionActionWindow : Window
         CloudRadio.IsChecked = !isLocalVision;
 
         // Window sizing — compact modal
-        AppWindow.Resize(new SizeInt32(420, 400));
+        AppWindow.Resize(new SizeInt32(420, 440));
 
         // Set icon
         var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "tray-icon.ico");
@@ -98,7 +98,7 @@ public sealed partial class VisionActionWindow : Window
     public void CenterOnMonitor((int X, int Y, int Width, int Height) monitorBounds)
     {
         int x = monitorBounds.X + (monitorBounds.Width - 420) / 2;
-        int y = monitorBounds.Y + (monitorBounds.Height - 400) / 2;
+        int y = monitorBounds.Y + (monitorBounds.Height - 440) / 2;
         AppWindow.Move(new PointInt32(x, y));
     }
 
@@ -122,6 +122,8 @@ public sealed partial class VisionActionWindow : Window
     private void OnClipboard(object sender, RoutedEventArgs e) => Complete(VisionAction.Clipboard);
     private void OnChat(object sender, RoutedEventArgs e) => Complete(VisionAction.Chat);
     private void OnNote(object sender, RoutedEventArgs e) => Complete(VisionAction.Note);
+    private void OnOcr(object sender, RoutedEventArgs e) => Complete(VisionAction.Ocr);
+    private void OnTable(object sender, RoutedEventArgs e) => Complete(VisionAction.Table);
 
     private void QueryInput_KeyDown(object sender, KeyRoutedEventArgs e)
     {
