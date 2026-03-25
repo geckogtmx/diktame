@@ -1,5 +1,27 @@
 # Developer Handoff
 
+## Next Session — Two-Step Vision Modal (SPEC_002)
+
+**Goal**: Replace the current auto-pipeline flow with: Ctrl+Alt+S → clip region → modal dialog with action choices.
+
+**Modal should offer**:
+- Copy to Clipboard
+- Open Chat (Ctrl+Alt+C) with image attached
+- Send to Note (Ctrl+Alt+N)
+- Optional text input field (included with any/all actions above)
+- Quick (Local) vs Detailed (Cloud) toggle
+
+**Key context**:
+- Vision pipeline is working E2E — Cloud (Gemini) and Local (Ollama/moondream) both functional
+- Moondream (1.6B) is fast on GPU (<1s for photos) but fails on text/OCR/UI screenshots
+- Model swap between dictation LLM (lfm2.5-instruct) and vision LLM (moondream) causes cold starts and occasional corrupted output — investigate `keep_alive` tuning
+- Consider llava:7b or minicpm-v as moondream replacement (better text handling, fits 8GB RTX 4060 Ti)
+- CP has "VIS" Cloud/Local toggle button already wired
+- All 5 output modes work (inject, clipboard, toast, toast+inject, toast+clipboard)
+- Entry point: `LoadingViewModel.RunVisionPipelineAsync()` (~line 1694)
+- Overlay: `SnippingOverlayWindow.xaml.cs` — returns captured region bytes
+- Plan file: `C:\Users\gecko\.claude\plans\fizzy-enchanting-boot.md`
+
 ## Current State
 
 | Metric | Value |
