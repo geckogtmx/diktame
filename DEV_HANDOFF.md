@@ -39,7 +39,7 @@
 | **SPEC_015 Phase 0A** | **COMPLETE** ✅ — STTProviderFactory (18 tests) + LLMProviderFactory (20 tests). Closes test gap for Local Mode provider factories. |
 | **SPEC_015 Phase 0B** | **COMPLETE** ✅ — Plugin infrastructure: `DiktaMe.Plugin.Abstractions` project with IPlugin, PipelineEventBus, PluginManager, PluginUIRegistry, JsonPluginSettingsStore. Host wired: DI, 8 pipeline completion sites, Settings nav injection, tray menu injection. 24 tests. |
 | **SPEC_015 Phase 0B.19** | **COMPLETE** ✅ — BeforeLlm pipeline hooks in DictationPipeline, AskPipeline, ChatPipeline. Event bus types moved to Core.Pipeline (resolved circular dependency). |
-| **SPEC_015 Phase 0C** | **FUNCTIONAL (needs polish)** — Vision pipeline end-to-end: ScreenCapture (Win32 GDI), ImageProcessor, multimodal LLM (Gemini/Claude/OpenAI/Ollama), SnippingOverlayWindow, Ctrl+Alt+S hotkey. Active monitor capture. Screenshots saved to `%APPDATA%/DiktaMe/vision/`. Vision Settings page (provider/model/query/output mode). Default: local-first with Ollama + Moondream. 10 tests. See known issues below. |
+| **SPEC_015 Phase 0C** | **WORKING** — Vision pipeline end-to-end: Cloud (Gemini) + Local (Ollama/moondream). ScreenCapture, ImageProcessor, SnippingOverlayWindow, Ctrl+Alt+S hotkey. CP "VIS" toggle (Cloud/Local). All 5 output modes wired (inject, clipboard, toast, toast+inject, toast+clipboard). AI Engine > Vision (model selection) + Workflows > Vision (pipeline config). 95% accuracy on local vision tests. Next: two-step capture→modal UX. |
 
 ## Open Bugs (Stream K) — Updated 2026-03-22
 
@@ -706,15 +706,19 @@ All fixes verified via manual testing on 2026-03-09/10. See `plans/SPEC_009_FIXE
 
 ### Vision (Phase 0C) — Known Issues
 
-| Issue | Severity | Root Cause | Fix |
-|-------|----------|-----------|-----|
-| **Black image on 2nd+ capture** | High | Overlay window may still be visible when region capture fires. Timing race between `Close()` and `CaptureRegion()`. | Add delay after overlay close, or capture from the pre-captured monitor image instead of re-capturing |
-| **Silent pipeline failure on 2nd+ attempt** | High | Shared `_recordingCts` field — if first pipeline hasn't fully cleaned up, second attempt may get a pre-cancelled token or null reference | Use a local `CancellationTokenSource` per invocation instead of shared field |
-| **Audio ducking not restored on failure** | Medium | Ducking restore is in `finally` block but only runs if the pipeline actually reaches that point. Silent failures skip it. | Tied to the silent failure bug above |
-| **TTS reads toast notifications** | Low | Toast text triggers TTS notification speak. Vision toasts ("Analyzing image...") are being spoken. | Add `suppressTts: true` to Vision toast calls |
-| **No Vision Settings UI** | Low | No settings page for model selection, default query, output mode, temperature | Add Vision section to AI Engine + Workflows settings pages |
-| **Prompt too generic for some use cases** | Low | Default query "Describe what you see and extract any visible text" can produce verbose results | Allow user to customize default query in Settings |
-| **Image persistence is always-on** | Low | Screenshots always saved to `%APPDATA%/DiktaMe/vision/` with no cleanup | Make configurable in Settings; add retention/cleanup policy |
+| Issue | Severity | Status |
+|-------|----------|--------|
+| ~~**Black image on 2nd+ capture**~~ | High | ✅ Fixed — crops from pre-captured monitor image |
+| ~~**Silent pipeline failure on 2nd+ attempt**~~ | High | ✅ Fixed — local CancellationTokenSource per invocation |
+| ~~**Audio ducking not restored on failure**~~ | Medium | ✅ Fixed — tied to silent failure fix above |
+| ~~**TTS reads toast notifications**~~ | Low | ✅ Fixed — `suppressTts: true` on all Vision toasts |
+| ~~**No Vision Settings UI**~~ | Low | ✅ Fixed — AI Engine > Vision + Workflows > Vision |
+| ~~**NullRef on empty VisionProvider**~~ | High | ✅ Fixed — defaults to ollama/moondream |
+| ~~**Output mode mapping**~~ | Medium | ✅ Fixed — all 5 modes correctly mapped + clipboard copy |
+| ~~**OllamaProvider no vision support**~~ | High | ✅ Fixed — ProcessWithImageAsync via /api/chat with images |
+| **Prompt tuning needed** | Low | Default query works but can be verbose. User can customize in Workflows > Vision. |
+| **Image persistence always-on** | Low | Screenshots always saved to `%APPDATA%/DiktaMe/vision/` with no cleanup policy |
+| **Two-step capture UX** | Enhancement | Next sprint: hotkey → clip → modal (clipboard/chat/note + text input) instead of auto-pipeline |
 
 Full spec: `plans/SPEC_015_MODULES_SPRINT.md` (17 phases, 18-23 sessions)
 
