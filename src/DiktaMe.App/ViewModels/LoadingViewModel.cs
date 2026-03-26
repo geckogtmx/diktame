@@ -2331,10 +2331,15 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             byte[] videoData = await File.ReadAllBytesAsync(videoPath).ConfigureAwait(false);
 
-            // Create cloud vision pipeline (video analysis is cloud-only)
+            // Route to local or cloud vision provider
+            // TODO(V3): Add Local/Cloud toggle to VideoActionWindow (currently uses VisionSettings defaults)
             var appSettings = _settings.Current;
-            string provider = appSettings.Vision.CloudVisionProvider ?? "gemini";
-            string model = appSettings.Vision.CloudVisionModelId ?? "gemini-2.5-flash";
+            var vision = appSettings.Vision;
+            bool useLocal = !string.IsNullOrWhiteSpace(vision.LocalVisionModelId)
+                && string.Equals(vision.VisionProvider, "ollama", StringComparison.OrdinalIgnoreCase);
+            string provider = useLocal ? "ollama" : (vision.CloudVisionProvider ?? "gemini");
+            string model = useLocal ? vision.LocalVisionModelId : (vision.CloudVisionModelId ?? "gemini-2.5-flash");
+            Log.Information("Video AI: using {Provider}/{Model} (local={Local})", provider, model, useLocal);
             var pipeline = _pipelineFactory.CreateVisionPipeline(provider, model);
 
             var visionOptions = new DiktaMe.Core.Vision.VisionOptions

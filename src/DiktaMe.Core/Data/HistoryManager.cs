@@ -84,45 +84,45 @@ public sealed class HistoryManager : IDisposable
         await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-        var level = _settings.Current.Privacy.Level;
+            var level = _settings.Current.Privacy.Level;
 
-        if (level == PrivacyLevel.Ghost)
-        {
-            return;  // Log nothing at Ghost level
-        }
-
-        string? text = null;
-        string? rawTranscript = null;
-
-        if (level >= PrivacyLevel.Stats)
-        {
-            // Stats and above: capture metrics but only text at Balanced+
-        }
-
-        if (level >= PrivacyLevel.Balanced)
-        {
-            // Apply PII scrubbing at Balanced level
-            text = result.Text;
-            rawTranscript = result.RawTranscript;
-
-            if (_settings.Current.Privacy.PiiScrubEnabled)
+            if (level == PrivacyLevel.Ghost)
             {
-                text = PIIScrubber.Scrub(text ?? string.Empty);
-                rawTranscript = rawTranscript is not null
-                    ? PIIScrubber.Scrub(rawTranscript)
-                    : null;
+                return;  // Log nothing at Ghost level
             }
-        }
 
-        if (level == PrivacyLevel.Full)
-        {
-            // Full level: store verbatim (no scrubbing)
-            text = result.Text;
-            rawTranscript = result.RawTranscript;
-        }
+            string? text = null;
+            string? rawTranscript = null;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = """
+            if (level >= PrivacyLevel.Stats)
+            {
+                // Stats and above: capture metrics but only text at Balanced+
+            }
+
+            if (level >= PrivacyLevel.Balanced)
+            {
+                // Apply PII scrubbing at Balanced level
+                text = result.Text;
+                rawTranscript = result.RawTranscript;
+
+                if (_settings.Current.Privacy.PiiScrubEnabled)
+                {
+                    text = PIIScrubber.Scrub(text ?? string.Empty);
+                    rawTranscript = rawTranscript is not null
+                        ? PIIScrubber.Scrub(rawTranscript)
+                        : null;
+                }
+            }
+
+            if (level == PrivacyLevel.Full)
+            {
+                // Full level: store verbatim (no scrubbing)
+                text = result.Text;
+                rawTranscript = result.RawTranscript;
+            }
+
+            using var cmd = _connection.CreateCommand();
+            cmd.CommandText = """
             INSERT INTO history
                 (timestamp, mode, text, raw_transcript, stt_provider, llm_provider,
                  word_count, transcription_ms, processing_ms, injection_ms, total_ms, is_success,
@@ -137,32 +137,32 @@ public sealed class HistoryManager : IDisposable
                  $cap_mode, $act_type, $img_w, $img_h, $cap_ms)
             """;
 
-        cmd.Parameters.AddWithValue("$ts", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-        cmd.Parameters.AddWithValue("$mode", result.Mode);
-        cmd.Parameters.AddWithValue("$text", text ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$raw", rawTranscript ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$stt", result.SttProvider ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$llm", result.LlmProvider ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$words", result.WordCount);
-        cmd.Parameters.AddWithValue("$trans_ms", result.TranscriptionMs);
-        cmd.Parameters.AddWithValue("$proc_ms", result.ProcessingMs);
-        cmd.Parameters.AddWithValue("$inj_ms", result.InjectionMs);
-        cmd.Parameters.AddWithValue("$total_ms", result.TotalMs);
-        cmd.Parameters.AddWithValue("$success", result.IsSuccess ? 1 : 0);
-        cmd.Parameters.AddWithValue("$rec_ms", result.RecordingMs);
-        cmd.Parameters.AddWithValue("$audio_dur", result.AudioDurationSec.HasValue ? result.AudioDurationSec.Value : (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$tok_sec", result.TokensPerSec.HasValue ? result.TokensPerSec.Value : (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$err_msg", result.ErrorMessage ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$tts_ms", result.TtsPlayedMs);
-        cmd.Parameters.AddWithValue("$in_tok", result.InputTokens.HasValue ? result.InputTokens.Value : (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$out_tok", result.OutputTokens.HasValue ? result.OutputTokens.Value : (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$cap_mode", result.CaptureMode ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$act_type", result.ActionType ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$img_w", result.ImageWidth.HasValue ? result.ImageWidth.Value : (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$img_h", result.ImageHeight.HasValue ? result.ImageHeight.Value : (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$cap_ms", result.CaptureMs.HasValue ? result.CaptureMs.Value : (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$ts", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+            cmd.Parameters.AddWithValue("$mode", result.Mode);
+            cmd.Parameters.AddWithValue("$text", text ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$raw", rawTranscript ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$stt", result.SttProvider ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$llm", result.LlmProvider ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$words", result.WordCount);
+            cmd.Parameters.AddWithValue("$trans_ms", result.TranscriptionMs);
+            cmd.Parameters.AddWithValue("$proc_ms", result.ProcessingMs);
+            cmd.Parameters.AddWithValue("$inj_ms", result.InjectionMs);
+            cmd.Parameters.AddWithValue("$total_ms", result.TotalMs);
+            cmd.Parameters.AddWithValue("$success", result.IsSuccess ? 1 : 0);
+            cmd.Parameters.AddWithValue("$rec_ms", result.RecordingMs);
+            cmd.Parameters.AddWithValue("$audio_dur", result.AudioDurationSec.HasValue ? result.AudioDurationSec.Value : (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$tok_sec", result.TokensPerSec.HasValue ? result.TokensPerSec.Value : (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$err_msg", result.ErrorMessage ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$tts_ms", result.TtsPlayedMs);
+            cmd.Parameters.AddWithValue("$in_tok", result.InputTokens.HasValue ? result.InputTokens.Value : (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$out_tok", result.OutputTokens.HasValue ? result.OutputTokens.Value : (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$cap_mode", result.CaptureMode ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$act_type", result.ActionType ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$img_w", result.ImageWidth.HasValue ? result.ImageWidth.Value : (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$img_h", result.ImageHeight.HasValue ? result.ImageHeight.Value : (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$cap_ms", result.CaptureMs.HasValue ? result.CaptureMs.Value : (object)DBNull.Value);
 
-        await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
         finally
         {
