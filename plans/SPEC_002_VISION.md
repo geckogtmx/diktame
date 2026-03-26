@@ -577,8 +577,8 @@ Task<LlmResult> ProcessWithVideoAsync(
 
 | Phase | Scope | Effort | Dependency | Status |
 |-------|-------|--------|------------|--------|
-| **V1** | Record region/window → MP4 (no audio). Floating stop bar. Record button in VisionActionWindow. | 2-3 sessions | `Windows.Graphics.Capture` | ✅ Infra built |
-| **V2** | Mic audio mux (NAudio `WaveInEvent` → MP4 mux). Voice narration during recording. | 1 session | V1 | Pending |
+| **V1** | Record region/window/fullscreen → MP4. Floating stop bar. Record button in VisionActionWindow. | 2-3 sessions | ScreenRecorderLib (Media Foundation) | ✅ Shipped |
+| **V2** | Mic audio mux into MP4. Voice narration during recording. | 1 session | V1 | ✅ Shipped (built into V1 via ScreenRecorderLib) |
 | **V3** | Gemini video upload + understanding prompts (describe/document/bug report). Post-capture AI actions. | 1-2 sessions | V2 + Gemini File API | Pending |
 | **V4** | System audio capture (WASAPI loopback). Meeting clip use case. | 1 session | V2 | Pending |
 | **V5** | **Share link** — Supabase upload + short URL + instant copy. Loom parity — critical for viral loop. | 1-2 sessions | V3 + VG-3 | Pending |
@@ -836,7 +836,6 @@ This means: **draw an arrow at a bug → ask "What's wrong here?" → AI focuses
 | Warmup | Fix phantom warmup — uses configured model, not hardcoded | MEDIUM | ✅ Shipped |
 | Telemetry | Vision history columns (capture_mode, action_type, image dims, capture_ms) | LOW | ✅ Shipped |
 | 5 modes | Rectangle, ActiveWindow, FullScreen, AllMonitors, Freeform | MEDIUM | ✅ Shipped |
-| Color C1 | Basic picker: freeze → eyedropper → hex to clipboard | 0.5 session | ✅ Shipped |
 
 ### Phase 2: Color Picker
 | ID | Feature | Effort | Status |
@@ -856,9 +855,11 @@ This means: **draw an arrow at a bug → ask "What's wrong here?" → AI focuses
 ### Phase 4: Video Capture
 | ID | Feature | Effort | Status |
 |----|---------|--------|--------|
-| V1 | Record region/window → MP4 (no audio). Floating stop bar. | 2-3 sessions | ✅ Infra built (needs runtime test) |
-| V2 | Mic audio mux (NAudio WaveInEvent). Voice narration. | 1 session | Pending |
+| V1 | Record region/window/fullscreen → MP4 via ScreenRecorderLib. Floating recording bar (pause/stop). | 2-3 sessions | ✅ Shipped |
+| V2 | Mic audio mux into MP4. Voice narration. | 1 session | ✅ Shipped (built into V1) |
 | V3 | Gemini video understanding + AI actions (describe/document/bug) | 1-2 sessions | Pending |
+| V4 | System audio capture (WASAPI loopback) — meeting clips | 1 session | Pending |
+| V5 | **Share link** — Supabase upload + short URL. Loom parity. | 1-2 sessions | Pending |
 | V6 | Camera bubble — PIP webcam overlay during recording | 1-2 sessions | Pending |
 | V7 | Filler word removal — post-STT cleanup pass on narration audio | 1 session | Pending |
 
@@ -889,7 +890,7 @@ This means: **draw an arrow at a bug → ask "What's wrong here?" → AI focuses
 | Screenshot (region/window) | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
 | Annotation/Markup | ✅ Basic | ✅ | ✅ Best-in-class | ❌ | ✅ | 🔜 Phase 3 |
 | Color Picker | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ C1 shipped |
-| Screen Recording | ✅ Basic | ✅ | ✅ | ✅ Best-in-class | ❌ | ✅ V1 infra |
+| Screen Recording | ✅ Basic | ✅ | ✅ | ✅ Best-in-class | ❌ | ✅ V1+V2 shipped (region/full + mic) |
 | OCR | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | AI Image Understanding | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ **Unique** |
 | AI Video Understanding | ❌ | ❌ | ❌ | ✅ Summaries only | ❌ | 🔜 V3 **Unique** (custom prompts) |

@@ -1,15 +1,15 @@
 # Developer Handoff
 
-## Next Session — Runtime Test Video Capture + V3 AI Actions
+## Next Session — V3 AI Video Understanding + UX Polish
 
-**Priority 1:** Runtime test the video capture pipeline (V1+V2 infrastructure built but untested):
-- D3D11 device creation via P/Invoke (may need WARP software fallback)
-- `IGraphicsCaptureItemInterop.CreateForMonitor` COM activation via `RoGetActivationFactory`
-- `MediaTranscoder` encoding (BGRA frames → H.264 MP4)
-- Mic audio mux (NAudio `WaveInEvent` → `AudioStreamDescriptor` → AAC in MP4)
-- `StorageFile.GetFileFromPathAsync` for output file access
+**Priority 1:** V3 — Gemini video understanding (describe/document/bug report prompts). See SPEC_002 §15.4.
+- Upload MP4 to Gemini File API → poll until `state: ACTIVE` → `generateContent` with video reference
+- Post-capture modal with video-specific actions (Describe, Document, Bug Report)
 
-**Priority 2:** V3 — Gemini video understanding (describe/document/bug report prompts). See SPEC_002 §15.4.
+**Priority 2:** Video capture UX polish:
+- Selection border overlay during recording (dotted rectangle like Windows Snipping Tool)
+- Error feedback: close recording bar if capture fails
+- Clean up 0-byte MP4 files on failure
 
 **Priority 3:** Loom parity features — camera bubble (V6), share link (V5). See SPEC_002 §19.1.
 
@@ -46,13 +46,14 @@ All 5 telemetry columns added to history.db: `capture_mode`, `action_type`, `ima
 - `ScreenCapture.GetVirtualScreenBounds()` + `GetActiveMonitorHandle()` helpers
 - 2 new tests (1134 total)
 
-### Video Capture V1+V2 Infrastructure (built, needs runtime test)
-- `VideoCapture.cs` — D3D11 device via P/Invoke (no SharpDX), `Windows.Graphics.Capture` frame pool, `MediaTranscoder` MP4 encoding, mic audio via NAudio `WaveInEvent` → `AudioStreamDescriptor` → AAC
-- `VideoRecordingBarWindow.xaml/.cs` — Floating always-on-top bar: pulsing red REC dot, mm:ss timer, pause/stop buttons, DispatcherTimer
-- `VideoRecordingOptions.cs` — Config record (max duration, FPS, bitrate, enableMicAudio)
+### Video Capture V1+V2 (shipped, runtime tested)
+- `VideoCapture.cs` — ScreenRecorderLib (Media Foundation + Windows.Graphics.Capture). Replaced raw D3D11 P/Invoke after native crashes with COM interop.
+- Region, fullscreen, and window capture → H.264 MP4 with mic audio
+- `VideoRecordingBarWindow.xaml/.cs` — Floating always-on-top bar: blinking red REC dot, mm:ss timer, pause/stop buttons
+- `VideoRecordingOptions.cs` — Config record (max duration 120s, 30 FPS, 5 Mbps, mic toggle)
 - `VisionAction.Record` enum value + "Record" button in VisionActionWindow (4×2 grid)
 - `HandleVideoRecordAsync()` in LoadingViewModel — full pipeline wiring
-- COM interop: `IGraphicsCaptureItemInterop.CreateForMonitor` via `RoGetActivationFactory` P/Invoke
+- **Tested**: 15s fullscreen = 3.25MB, 41s fullscreen = 7.7MB, startup latency ~400ms
 
 ### Loom Competitive Gap Analysis
 - SPEC_002 §19 updated with detailed Loom feature gap table

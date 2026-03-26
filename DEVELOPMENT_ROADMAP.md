@@ -20,7 +20,7 @@
 | **4** | **H.1: Installer (Inno Setup)** | New `installer/` directory | Only hard blocker before V2.0 ships. Enables dogfooding + beta testing while building modules. |
 | **5** | **SPEC_015 Phase 0A: Factory tests** | `STTProviderFactoryTests`, `LLMProviderFactoryTests` (~28 tests) | Closes SPEC_009 test gap. No dependencies, fast (~1 session). |
 | **6** | **SPEC_015 Phase 0B: Plugin infrastructure** | `DiktaMe.Plugin.Abstractions` project: `IPlugin`, `PipelineEventBus`, `PluginManager`, `PluginUIRegistry` | Foundation — every plugin depends on this. Nothing parallelizes until 0B is done. |
-| **7** | **SPEC_015 Phase 0C: Vision core** | `ScreenCapture`, `ImageProcessor`, multimodal LLM, `VisionPipeline`, new hotkey (TBD — `Ctrl+Alt+S` conflicts with ReadSelection) | Killer feature (screenshot → AI at cursor). Lives in Core, not a plugin. High market differentiation. |
+| **7** | **SPEC_015 Phase 0C: Vision core** | `ScreenCapture`, `ImageProcessor`, multimodal LLM, `VisionPipeline`, color picker, video capture (ScreenRecorderLib), `Ctrl+Alt+S` hotkey | ✅ Shipped. Screenshot/video → AI at cursor. 5 capture modes, color picker, OCR, table, video recording + mic audio. |
 | **8** | **SPEC_015 Phases A-C: Connectors** | `IConnector` framework + Obsidian + Webhook/Discord/Streamer.bot | Most user-visible module. "Voice to Obsidian" is unique on any platform. |
 | **9** | **SPEC_015 Phases O-Q: Memory** | SQLite+VSS, embedding model, pipeline hooks, Settings page | Fully independent track (parallel with Connectors after 0B). Semantic memory = product improves with use. |
 | **10** | **SPEC_015 Phases D-E: Meetings** | Session engine + Scribe window | Heaviest module — save for when Connectors and Memory are stable. |
@@ -2052,7 +2052,7 @@ The core engine (Streams A-L, TTS) is feature-complete. The final V2 development
 |--------|-------------|------------|----------------|
 | **Connectors** | Route pipeline outputs to external destinations (Obsidian, Webhook, Discord, Streamer.bot) | [`SPEC_013`](plans/SPEC_013_CONNECTORS_IMPLEMENTATION.md) | A-C, F, H, J, K |
 | **Meetings (Scribe)** | Record meetings, type notes, AI-synthesize artifacts (minutes, action items) | [`SPEC_001`](plans/SPEC_001_MEETINGS.md) | D, E, G, I, N |
-| **Vision (See)** | Screenshot → multimodal LLM → response at cursor (`Ctrl+Alt+S`) | [`SPEC_002`](plans/SPEC_002_VISION.md) | L, M, N |
+| **Vision (See)** | Screenshot/video capture → multimodal LLM → response at cursor. 5 capture modes, color picker, OCR, table extraction, video recording with mic audio. | [`SPEC_002`](plans/SPEC_002_VISION.md) | L, M, N |
 | **Memory** | Semantic vector memory — stores embeddings, enriches LLM prompts with past context | [`SPEC_014`](plans/SPEC_014_MEMORY_LAYER.md) | O, P, Q |
 
 **Key principle:** Modules never depend on each other. All cross-module flows go through shared Core contracts (`PipelineResult`, `IMemoryLayer`, `ScreenCapture`). Each module hooks into the pipeline with 1-3 lines of code in `OnPipelineCompleted()`.
