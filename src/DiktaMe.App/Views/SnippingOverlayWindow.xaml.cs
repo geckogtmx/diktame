@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Shapes;
 using Serilog;
 using Windows.Foundation;
 using Windows.Graphics;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Storage.Streams;
 
@@ -80,6 +81,9 @@ public sealed partial class SnippingOverlayWindow : Window
         OverlayCanvas.PointerPressed += OnPointerPressed;
         OverlayCanvas.PointerMoved += OnPointerMoved;
         OverlayCanvas.PointerReleased += OnPointerReleased;
+
+        // Crosshair cursor for precise region selection
+        SetCrosshairCursor();
         Content.KeyDown += OnKeyDown;
         Content.IsTabStop = true;
 
@@ -229,6 +233,24 @@ public sealed partial class SnippingOverlayWindow : Window
     {
         Fill = new SolidColorBrush(ColorHelper.FromArgb(0x80, 0x00, 0x00, 0x00)),
     };
+
+    // ── Crosshair cursor via Win32 ────────────────────────────────────────
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetClassLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    private const int IDC_CROSS = 32515;
+    private const int GCLP_HCURSOR = -12;
+
+    private void SetCrosshairCursor()
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        var crosshair = LoadCursor(IntPtr.Zero, IDC_CROSS);
+        SetClassLongPtr(hwnd, GCLP_HCURSOR, crosshair);
+    }
 }
 
 /// <summary>Result from the snipping overlay.</summary>

@@ -67,8 +67,20 @@ public sealed partial class VisionActionWindow : Window
             });
         };
 
-        // Esc to cancel
+        // Esc to cancel (both from text input and from anywhere in the window)
         AppWindow.Closing += (_, _) => _tcs.TrySetResult(null);
+        if (Content is UIElement contentElement)
+        {
+            contentElement.KeyDown += (_, e) =>
+            {
+                if (e.Key == VirtualKey.Escape)
+                {
+                    _tcs.TrySetResult(null);
+                    Close();
+                    e.Handled = true;
+                }
+            };
+        }
     }
 
     /// <summary>
@@ -109,7 +121,8 @@ public sealed partial class VisionActionWindow : Window
     {
         string? query = string.IsNullOrWhiteSpace(QueryInput.Text) ? null : QueryInput.Text.Trim();
         bool useLocal = LocalRadio.IsChecked == true;
-        return new VisionActionResult(action, query, useLocal);
+        bool skipAi = NoneRadio.IsChecked == true;
+        return new VisionActionResult(action, query, useLocal, skipAi);
     }
 
     private void Complete(VisionAction action)

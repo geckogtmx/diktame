@@ -539,7 +539,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         string cloudProvider = ModelListService.ResolveProviderFromModelId(cloudModelId);
 
         string localModel = LocalVisionModelIndex >= 0 && LocalVisionModelIndex < LocalVisionModelNames.Count
-            ? LocalVisionModelNames[LocalVisionModelIndex] : "moondream";
+            ? LocalVisionModelNames[LocalVisionModelIndex] : "minicpm-v";
 
         string provider = IsVisionCloudTab ? cloudProvider : "ollama";
         string modelId = IsVisionCloudTab ? cloudModelId : localModel;

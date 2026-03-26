@@ -62,6 +62,12 @@ public sealed partial class QuickChatViewModel : ObservableObject
     public string? PendingModelId { get; set; }
 
     /// <summary>
+    /// When true, auto-sends the first message once models are loaded and InputText is set.
+    /// Used when the Vision modal has a pre-filled query that should fire immediately.
+    /// </summary>
+    public bool AutoSendOnReady { get; set; }
+
+    /// <summary>
     /// Sets image context from the Vision modal.
     /// The image will be included with the user's first chat message.
     /// </summary>
@@ -140,6 +146,13 @@ public sealed partial class QuickChatViewModel : ObservableObject
                 {
                     SelectedModelId = PendingModelId;
                     PendingModelId = null;
+                }
+
+                // Auto-send the pre-filled query from Vision modal
+                if (AutoSendOnReady && !string.IsNullOrWhiteSpace(InputText))
+                {
+                    AutoSendOnReady = false;
+                    _ = SendAsync();
                 }
             });
         }

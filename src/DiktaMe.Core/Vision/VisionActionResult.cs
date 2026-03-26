@@ -29,4 +29,5 @@ public enum VisionAction
 public sealed record VisionActionResult(
     VisionAction Action,
     string? UserQuery,
-    bool UseLocal);
+    bool UseLocal,
+    bool SkipAi = false);

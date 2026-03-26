@@ -26,13 +26,16 @@
                      Foreground="{StaticResource AppTextBrush}"
                      KeyDown="QueryInput_KeyDown"/>
 
-            <!-- Local/Cloud toggle -->
+            <!-- Local/Cloud/None toggle -->
             <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="16"
                         HorizontalAlignment="Center">
                 <RadioButton x:Name="LocalRadio" Content="Quick (Local)" GroupName="Provider"
                              Foreground="{StaticResource AppTextBrush}"/>
                 <RadioButton x:Name="CloudRadio" Content="Detailed (Cloud)" GroupName="Provider"
                              Foreground="{StaticResource AppTextBrush}"/>
+                <RadioButton x:Name="NoneRadio" Content="None" GroupName="Provider"
+                             Foreground="{StaticResource AppTextBrush}"
+                             ToolTipService.ToolTip="No AI processing — raw image only"/>
             </StackPanel>
 
             <!-- Action buttons: 3×2 grid -->

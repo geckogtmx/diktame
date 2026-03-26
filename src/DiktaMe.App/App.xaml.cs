@@ -425,6 +425,31 @@ public partial class App : Application
     /// Toggles the Quick Chat overlay window (show/hide).
     /// Window is preserved across toggle to maintain conversation state.
     /// </summary>
+    /// <summary>Closes any existing QuickChat window (used by Vision to ensure fresh conversation).</summary>
+    public void CloseQuickChat()
+    {
+        if (_quickChatWindow is not null)
+        {
+            UntrackWindow(_quickChatWindow);
+            _quickChatWindow.AppWindow.Hide();
+            _quickChatWindow = null;
+        }
+    }
+
+    /// <summary>Tracks a QuickChat window created externally (e.g. by Vision Chat handler).</summary>
+    public void TrackQuickChat(Views.QuickChatWindow window)
+    {
+        _quickChatWindow = window;
+        TrackWindow(window);
+        window.AppWindow.Closing += (s, e) =>
+        {
+            e.Cancel = true;
+            window.AppWindow.Hide();
+            UntrackWindow(window);
+            _quickChatWindow = null;
+        };
+    }
+
     public void ToggleQuickChat()
     {
         if (_quickChatWindow is not null)

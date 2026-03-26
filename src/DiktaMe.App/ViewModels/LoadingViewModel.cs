@@ -1804,8 +1804,17 @@ public sealed partial class LoadingViewModel : ObservableObject
                 ? "ollama"
                 : (visionSettings.CloudVisionProvider ?? "gemini");
             string visionModelId = actionResult.UseLocal
-                ? (visionSettings.LocalVisionModelId ?? "moondream")
+                ? (visionSettings.LocalVisionModelId ?? "minicpm-v")
                 : (visionSettings.CloudVisionModelId ?? "gemini-2.5-flash");
+
+            // "None" mode — skip all AI, just copy raw image to clipboard
+            if (actionResult.SkipAi)
+            {
+                CopyImageToClipboard(imageData);
+                _notifications.ShowToast("Vision", "Image copied to clipboard (no AI)",
+                    NotificationType.Success, suppressTts: true);
+                return;
+            }
 
             // Step 5: Branch on action
             switch (actionResult.Action)
@@ -1932,14 +1941,18 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         _uiDispatcher?.TryEnqueue(() =>
         {
+            // Close any existing QuickChat window to ensure a fresh conversation
+            App.Current.CloseQuickChat();
+
             var chatWindow = new Views.QuickChatWindow();
             chatWindow.AttachImage(imageData, mimeType);
             chatWindow.SetInitialModel(visionModelId);
             if (!string.IsNullOrWhiteSpace(initialQuery))
             {
-                chatWindow.SetInitialInput(initialQuery);
+                chatWindow.SetInitialInput(initialQuery, autoSend: true);
             }
 
+            App.Current.TrackQuickChat(chatWindow);
             chatWindow.Activate();
         });
 

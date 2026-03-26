@@ -210,11 +210,15 @@ public sealed partial class QuickChatWindow : Window
     }
 
     /// <summary>
-    /// Pre-fills the input text box (e.g. user query from the Vision modal).
+    /// Pre-fills the input text box and optionally auto-sends once models load.
     /// </summary>
-    public void SetInitialInput(string text)
+    public void SetInitialInput(string text, bool autoSend = false)
     {
         ViewModel.InputText = text;
+        if (autoSend)
+        {
+            ViewModel.AutoSendOnReady = true;
+        }
     }
 
     private void InjectControlBrushes(ThemePalette palette)
