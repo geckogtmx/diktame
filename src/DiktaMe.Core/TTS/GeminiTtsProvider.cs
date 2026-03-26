@@ -74,9 +74,7 @@ public sealed class GeminiTtsProvider : ITTSProvider
         string effectiveVoice = !string.IsNullOrWhiteSpace(voiceId) ? voiceId : DefaultVoice;
         string json = BuildRequestJson(text, effectiveVoice);
 
-        string url = _isOAuth
-            ? $"{ApiBase}/{_model}:generateContent"
-            : $"{ApiBase}/{_model}:generateContent?key={_apiKey}";
+        string url = $"{ApiBase}/{_model}:generateContent";
 
         var sw = Stopwatch.StartNew();
 
@@ -91,6 +89,10 @@ public sealed class GeminiTtsProvider : ITTSProvider
                 if (_isOAuth)
                 {
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                }
+                else
+                {
+                    request.Headers.Add("x-goog-api-key", _apiKey);
                 }
 
                 using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);

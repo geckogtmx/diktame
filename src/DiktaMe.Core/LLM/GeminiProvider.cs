@@ -79,10 +79,10 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
         // API key path uses raw model name because ApiBase already ends with "/models"
         string url = _isOAuth
             ? $"{ApiBase.Replace("/models", "", StringComparison.Ordinal)}/models/{_model}:generateContent"
-            : $"{ApiBase}/{_model}:generateContent?key={_apiKey}";
+            : $"{ApiBase}/{_model}:generateContent";
 
         Log.Debug("GeminiProvider: calling URL={Url}, isOAuth={IsOAuth}, model={Model}",
-            url.Replace(_apiKey, "***"), _isOAuth, _model);
+            url, _isOAuth, _model);
 
         var sw = Stopwatch.StartNew();
 
@@ -97,6 +97,10 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
                 if (_isOAuth)
                 {
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                }
+                else
+                {
+                    request.Headers.Add("x-goog-api-key", _apiKey);
                 }
 
                 using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -158,7 +162,7 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
 
         string url = _isOAuth
             ? $"{ApiBase.Replace("/models", "", StringComparison.Ordinal)}/models/{_model}:generateContent"
-            : $"{ApiBase}/{_model}:generateContent?key={_apiKey}";
+            : $"{ApiBase}/{_model}:generateContent";
 
         var sw = Stopwatch.StartNew();
 
@@ -173,6 +177,10 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
                 if (_isOAuth)
                 {
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                }
+                else
+                {
+                    request.Headers.Add("x-goog-api-key", _apiKey);
                 }
 
                 using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -237,7 +245,7 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
 
         string url = _isOAuth
             ? $"{ApiBase.Replace("/models", "", StringComparison.Ordinal)}/models/{_model}:generateContent"
-            : $"{ApiBase}/{_model}:generateContent?key={_apiKey}";
+            : $"{ApiBase}/{_model}:generateContent";
 
         var sw = Stopwatch.StartNew();
 
@@ -252,6 +260,10 @@ public sealed class GeminiProvider : ILLMProvider, IDisposable
                 if (_isOAuth)
                 {
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                }
+                else
+                {
+                    request.Headers.Add("x-goog-api-key", _apiKey);
                 }
 
                 using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);

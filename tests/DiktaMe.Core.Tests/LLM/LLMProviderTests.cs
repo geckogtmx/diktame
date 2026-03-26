@@ -25,9 +25,13 @@ internal sealed class LlmFakeHandler(HttpStatusCode statusCode, string body)
         LastRequestUri = request.RequestUri;
         LastAuthScheme = request.Headers.Authorization?.Scheme;
         LastAuthParameter = request.Headers.Authorization?.Parameter;
-        if (request.Headers.TryGetValues("x-api-key", out var vals))
+        if (request.Headers.TryGetValues("x-goog-api-key", out var vals))
         {
             LastApiKeyHeader = string.Join(",", vals);
+        }
+        else if (request.Headers.TryGetValues("x-api-key", out var anthropicVals))
+        {
+            LastApiKeyHeader = string.Join(",", anthropicVals);
         }
 
         if (request.Content is not null)
@@ -268,13 +272,15 @@ public sealed class GeminiProviderTests
     [Fact]
     public async Task Process_ApiKeyInUrl()
     {
+        // API key should be sent via x-goog-api-key header, NOT in the URL query string
         var handler = new LlmFakeHandler(HttpStatusCode.OK, GeminiResponse);
         using var http = new HttpClient(handler);
         using var p = new GeminiProvider("my_gemini_key", httpClient: http);
 
         await p.ProcessAsync("text", "prompt");
 
-        Assert.Contains("my_gemini_key", handler.LastRequestUri?.Query ?? "");
+        Assert.DoesNotContain("my_gemini_key", handler.LastRequestUri?.Query ?? "");
+        Assert.Equal("my_gemini_key", handler.LastApiKeyHeader);
     }
 
     [Fact]

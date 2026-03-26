@@ -35,6 +35,7 @@ public sealed class HistoryManager : IDisposable
 
     private readonly SettingsManager _settings;
     private readonly string _dbPath;
+    private readonly SemaphoreSlim _lock = new(1, 1);
     private SqliteConnection? _connection;
     private bool _disposed;
 
@@ -80,6 +81,9 @@ public sealed class HistoryManager : IDisposable
             return;
         }
 
+        await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
         var level = _settings.Current.Privacy.Level;
 
         if (level == PrivacyLevel.Ghost)
@@ -152,6 +156,11 @@ public sealed class HistoryManager : IDisposable
         cmd.Parameters.AddWithValue("$out_tok", result.OutputTokens.HasValue ? result.OutputTokens.Value : (object)DBNull.Value);
 
         await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     // ── Query ─────────────────────────────────────────────────────────────────
@@ -168,21 +177,29 @@ public sealed class HistoryManager : IDisposable
             return (0, 0);
         }
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = """
-            SELECT COALESCE(SUM(word_count), 0), COUNT(*)
-            FROM history
-            WHERE timestamp >= $since AND is_success = 1
-            """;
-        cmd.Parameters.AddWithValue("$since", since.ToUnixTimeSeconds());
-
-        using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-        if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            return (reader.GetInt32(0), reader.GetInt32(1));
-        }
+            using var cmd = _connection.CreateCommand();
+            cmd.CommandText = """
+                SELECT COALESCE(SUM(word_count), 0), COUNT(*)
+                FROM history
+                WHERE timestamp >= $since AND is_success = 1
+                """;
+            cmd.Parameters.AddWithValue("$since", since.ToUnixTimeSeconds());
 
-        return (0, 0);
+            using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return (reader.GetInt32(0), reader.GetInt32(1));
+            }
+
+            return (0, 0);
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     /// <summary>
@@ -199,32 +216,40 @@ public sealed class HistoryManager : IDisposable
             return results;
         }
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = """
-            SELECT llm_provider,
-                   COALESCE(SUM(input_tokens), 0),
-                   COALESCE(SUM(output_tokens), 0),
-                   COUNT(*)
-            FROM history
-            WHERE timestamp >= $since AND is_success = 1 AND llm_provider IS NOT NULL
-            GROUP BY llm_provider
-            ORDER BY COALESCE(SUM(input_tokens), 0) + COALESCE(SUM(output_tokens), 0) DESC
-            """;
-        cmd.Parameters.AddWithValue("$since", since.ToUnixTimeSeconds());
-
-        using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            results.Add(new ProviderUsageSummary
-            {
-                Provider = reader.GetString(0),
-                TotalInputTokens = reader.GetInt64(1),
-                TotalOutputTokens = reader.GetInt64(2),
-                RequestCount = reader.GetInt32(3),
-            });
-        }
+            using var cmd = _connection.CreateCommand();
+            cmd.CommandText = """
+                SELECT llm_provider,
+                       COALESCE(SUM(input_tokens), 0),
+                       COALESCE(SUM(output_tokens), 0),
+                       COUNT(*)
+                FROM history
+                WHERE timestamp >= $since AND is_success = 1 AND llm_provider IS NOT NULL
+                GROUP BY llm_provider
+                ORDER BY COALESCE(SUM(input_tokens), 0) + COALESCE(SUM(output_tokens), 0) DESC
+                """;
+            cmd.Parameters.AddWithValue("$since", since.ToUnixTimeSeconds());
 
-        return results;
+            using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                results.Add(new ProviderUsageSummary
+                {
+                    Provider = reader.GetString(0),
+                    TotalInputTokens = reader.GetInt64(1),
+                    TotalOutputTokens = reader.GetInt64(2),
+                    RequestCount = reader.GetInt32(3),
+                });
+            }
+
+            return results;
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     // ── Schema ────────────────────────────────────────────────────────────────
@@ -323,10 +348,18 @@ public sealed class HistoryManager : IDisposable
             return;
         }
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = "DELETE FROM history; DELETE FROM system_metrics;";
-        await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-        Log.Information("HistoryManager: all history wiped");
+        await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            using var cmd = _connection.CreateCommand();
+            cmd.CommandText = "DELETE FROM history; DELETE FROM system_metrics;";
+            await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            Log.Information("HistoryManager: all history wiped");
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     /// <inheritdoc/>
@@ -340,5 +373,6 @@ public sealed class HistoryManager : IDisposable
         _disposed = true;
         _connection?.Dispose();
         _connection = null;
+        _lock.Dispose();
     }
 }

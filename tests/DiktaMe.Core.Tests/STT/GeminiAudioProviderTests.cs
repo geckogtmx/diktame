@@ -85,13 +85,15 @@ public sealed class GeminiAudioProviderTests : IDisposable
     [Fact]
     public async Task Transcribe_ApiKeyEmbeddedInUrl()
     {
+        // API key should be sent via x-goog-api-key header, NOT in the URL query string
         var handler = new FakeHttpHandler(HttpStatusCode.OK, ValidResponse);
         using var http = new HttpClient(handler);
         using var provider = new GeminiAudioProvider("my_secret_key", httpClient: http);
 
         await provider.TranscribeAsync(_tmpWav, "en");
 
-        Assert.Contains("my_secret_key", handler.LastRequestUri?.Query ?? "");
+        Assert.DoesNotContain("my_secret_key", handler.LastRequestUri?.Query ?? "");
+        Assert.Equal("my_secret_key", handler.LastApiKeyHeader);
     }
 
     [Fact]

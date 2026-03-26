@@ -82,9 +82,10 @@ public sealed class GeminiAudioProvider : ISTTProvider, IDisposable
         string prompt = BuildTranscriptionPrompt(language);
         string requestJson = BuildRequestJson(prompt, audioBase64);
 
-        string url = $"{ApiBase}/{_model}:generateContent?key={_apiKey}";
+        string url = $"{ApiBase}/{_model}:generateContent";
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        request.Headers.Add("x-goog-api-key", _apiKey);
         request.Content = new StringContent(requestJson, Encoding.UTF8);
         request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 

@@ -144,9 +144,12 @@ public sealed partial class WizardApiKeysPage : Page, IWizardStepPage
         try
         {
             // Test Gemini API key by making a simple list-models request
+            // Use x-goog-api-key header instead of ?key= query param to avoid log/referrer exposure
             using var client = new HttpClient();
-            var response = await client.GetAsync(
-                $"https://generativelanguage.googleapis.com/v1beta/models?key={apiKey}");
+            using var request = new HttpRequestMessage(HttpMethod.Get,
+                "https://generativelanguage.googleapis.com/v1beta/models");
+            request.Headers.Add("x-goog-api-key", apiKey);
+            var response = await client.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {

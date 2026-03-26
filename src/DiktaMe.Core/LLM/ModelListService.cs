@@ -173,8 +173,10 @@ public sealed class ModelListService : IDisposable
 
         try
         {
-            string url = $"https://generativelanguage.googleapis.com/v1beta/models?key={apiKey}";
-            using var response = await _http.GetAsync(url, ct).ConfigureAwait(false);
+            string url = "https://generativelanguage.googleapis.com/v1beta/models";
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("x-goog-api-key", apiKey);
+            using var response = await _http.SendAsync(request, ct).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
             string json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);

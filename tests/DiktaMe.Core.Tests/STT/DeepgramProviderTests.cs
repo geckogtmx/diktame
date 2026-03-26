@@ -321,6 +321,7 @@ internal sealed class FakeHttpHandler(HttpStatusCode statusCode, string body)
     public Uri? LastRequestUri { get; private set; }
     public string? LastAuthScheme { get; private set; }
     public string? LastAuthParameter { get; private set; }
+    public string? LastApiKeyHeader { get; private set; }
 
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
@@ -329,6 +330,10 @@ internal sealed class FakeHttpHandler(HttpStatusCode statusCode, string body)
         LastRequestUri = request.RequestUri;
         LastAuthScheme = request.Headers.Authorization?.Scheme;
         LastAuthParameter = request.Headers.Authorization?.Parameter;
+        if (request.Headers.TryGetValues("x-goog-api-key", out var vals))
+        {
+            LastApiKeyHeader = string.Join(",", vals);
+        }
 
         return Task.FromResult(new HttpResponseMessage(statusCode)
         {
