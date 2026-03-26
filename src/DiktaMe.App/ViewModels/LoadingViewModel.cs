@@ -1816,6 +1816,25 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
+            // Table requires a capable cloud model — force cloud, warn user
+            if (actionResult.Action == DiktaMe.Core.Vision.VisionAction.Table && actionResult.UseLocal)
+            {
+                string cloudProvider = visionSettings.CloudVisionProvider ?? "gemini";
+                string cloudModel = visionSettings.CloudVisionModelId ?? "gemini-2.5-flash";
+                if (string.IsNullOrWhiteSpace(cloudProvider))
+                {
+                    _notifications.ShowToast("Vision", "Table extraction requires a cloud model. Configure one in Settings > AI Engine > Vision.",
+                        NotificationType.Error, suppressTts: true);
+                    return;
+                }
+
+                Log.Information("Vision: Table forced to cloud ({Provider}/{Model}) — local models produce unreliable output",
+                    cloudProvider, cloudModel);
+                _notifications.ShowToast("Vision", "Table uses cloud model for accuracy", NotificationType.Info, suppressTts: true);
+                visionProvider = cloudProvider;
+                visionModelId = cloudModel;
+            }
+
             // Step 5: Branch on action
             switch (actionResult.Action)
             {

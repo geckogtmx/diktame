@@ -1,31 +1,34 @@
 # Developer Handoff
 
-## Next Session — Vision Polish + OCR Local Fix (SPEC_002)
+## Next Session — Vision PMF Quick Wins (SPEC_002 / SPEC_015)
 
-**What shipped this session**:
-- Fixed RPC_E_WRONG_THREAD crash — VisionActionWindow creation dispatched to UI thread via DispatcherQueue + TaskCompletionSource
-- Fixed Local/Cloud provider routing — all vision handlers now pass provider+model from modal toggle through to `CreateVisionPipeline(provider, model)` (new overload)
-- Fixed Chat image routing — QuickChat pre-selects vision model from modal, resolves correct LLM provider via `ModelListService.ResolveProviderFromModelId()` when image attached (new `CreateChatPipelineForModel`)
-- Fixed Note UX — recording toast before audio capture, `BuildVisionNoteContext()` always includes user query + image link even when vision fails
-- Fixed Save — FileSavePicker for user-chosen destination, clipboard fallback
-- Added Visual Memory section to SPEC_014 (full schema: capture-time metadata + AI-indexed fields + SQLite table design)
-- Added SPEC_015 cross-reference for Vision indexing
+**What shipped this session (2026-03-25)**:
+- Table force-cloud: local models produce unreliable TSV (81K chars of noise vs 176 chars cloud). Now auto-routes to cloud with info toast. If no cloud provider configured, shows error.
+- OCR local confirmed working with `minicpm-v` (was failing with `moondream:latest` — model limitation, not routing bug)
+- Visual Memory section added to SPEC_014 (full schema: capture-time + AI-indexed fields + SQLite + embedding search)
+- SPEC_015 cross-reference for Vision indexing
+- Crosshair cursor, Chat auto-send, Chat new-conversation-per-capture — all already implemented in prior session, confirmed working
 
-**E2E test results** (this session):
+**E2E test results** (2026-03-25):
 | Action | Cloud | Local | Notes |
 |--------|-------|-------|-------|
 | Save | ✅ Picker + clipboard | ✅ | Working |
-| Clipboard | ✅ | ✅ Image copy works | Perfect for prompting |
-| Chat | ✅ Model auto-selected | ✅ Model auto-selected | Working |
-| Note | ✅ Pipeline + voice | ✅ (with fix) | Toast added before recording |
-| OCR | ✅ | ❌ moondream returns empty | Settings `LocalVisionModelId` still `moondream:latest` |
-| Table | ❌ Local failed | Not tested cloud | Same routing issue as OCR |
+| Clipboard | ✅ | ✅ Image copy works | Perfect for prompting (paste path into LLM) |
+| Chat | ✅ Gemini auto-selected | ✅ minicpm-v auto-selected | Auto-send works when query pre-filled. New conversation per capture. |
+| Note | ✅ Pipeline + voice | ✅ | Full circle: vision → voice recording → notes.md. UX needs polish (state transitions unclear). |
+| OCR | ✅ (209 chars, 9.8s) | ✅ minicpm-v (792 chars 18s cold, 75 chars 6.9s warm) | Was failing with moondream — model can't do OCR. Fixed by switching to minicpm-v in settings. |
+| Table | ✅ (176 chars TSV) | ⛔ Forced to cloud | Local produces 81K chars of garbage. Code now auto-routes to cloud with toast. |
 
-**Known bugs for next session**:
-1. **OCR/Table local** — `settings.json` has `LocalVisionModelId: "moondream:latest"`. Moondream is bad at structured extraction. Need to either: update settings default to `minicpm-v`, or add settings UI to change vision model. The provider routing code IS correct now — it's the model that's wrong.
-2. **Chat auto-send** — When user types query in Vision modal and picks Chat, the text should auto-send (hit Enter) in QuickChat without waiting for user to press Send again. Currently it pre-fills the input but waits.
-3. **Chat new conversation** — Vision→Chat reuses the last open chat window/conversation. Should create a new conversation each time to avoid mixing contexts.
-4. **Note polish** — Pipeline works but UX needs refinement (timing of toasts, clearer state transitions)
+**Model findings**:
+- `moondream:latest` (~1.6B, ~1GB VRAM): Can describe images, answer questions. **Cannot do OCR** — returns empty on text extraction.
+- `minicpm-v:latest` (~3B, ~2GB VRAM): Does everything moondream does **plus** reliable OCR. Strict upgrade. Default in code is already `minicpm-v`.
+- User's `settings.json` had stale `LocalVisionModelId: "moondream:latest"` from older session. Updated to `minicpm-v`.
+
+**Known issues for next session**:
+1. **Note UX polish** — State transitions unclear: vision processing → voice recording → save happens without clear user guidance. Needs better toasts/progress indicators between stages.
+2. **Gemma3:1b warmup on settings reload** — Every settings save triggers full provider re-init → warms up gemma3:1b unnecessarily. Warmup should only run on first startup or when LLM model actually changes. (Not Vision-specific, general optimization.)
+3. **MiniCPM-V quantization** — User interested in lower-VRAM quantized variant. Research GGUF quant options for minicpm-v on Ollama.
+4. **Vision PMF remaining** (from SPEC_015 appendix): VG-1 (copy screenshot image bytes to clipboard alongside AI text), VD-1/VD-2 already implemented as OCR/Table buttons.
 
 ## Current State
 
@@ -34,7 +37,7 @@
 | **Tests** | 1132 passing locally (479+ on CI — DPAPI/Clipboard/Audio/Whisper tests skipped on runners) |
 | **Build** | **PASSES** (0 warnings, 0 errors) |
 | **CI** | **PASSING** — lint, build, tests, gitleaks, vulnerability audit, publish all green |
-| **Branch** | main — Vision E2E bug fixes committed (98db97b). 1132 tests pass. |
+| **Branch** | main — Vision polish committed. 1132 tests pass. |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
 | **Website Build** | **PASSES** — `next build` 0 errors, 15+ API routes, admin dashboard (at `/hqbackstage`), wallet + license system |
 
@@ -66,7 +69,7 @@
 | **SPEC_015 Phase 0A** | **COMPLETE** ✅ — STTProviderFactory (18 tests) + LLMProviderFactory (20 tests). Closes test gap for Local Mode provider factories. |
 | **SPEC_015 Phase 0B** | **COMPLETE** ✅ — Plugin infrastructure: `DiktaMe.Plugin.Abstractions` project with IPlugin, PipelineEventBus, PluginManager, PluginUIRegistry, JsonPluginSettingsStore. Host wired: DI, 8 pipeline completion sites, Settings nav injection, tray menu injection. 24 tests. |
 | **SPEC_015 Phase 0B.19** | **COMPLETE** ✅ — BeforeLlm pipeline hooks in DictationPipeline, AskPipeline, ChatPipeline. Event bus types moved to Core.Pipeline (resolved circular dependency). |
-| **SPEC_015 Phase 0C** | **WORKING** — Vision pipeline E2E (Cloud Gemini + Local Ollama). 6-button modal (Save/Clipboard/Chat/Note/OCR/Table). Provider routing fixed. Chat model pre-selection working. Note toast + query persistence. Save picker. **Committed.** Remaining: OCR/Table local (moondream→minicpm-v), Chat auto-send, Chat new conversation per vision. |
+| **SPEC_015 Phase 0C** | **WORKING** — Vision pipeline E2E verified. 6-button modal (Save/Clipboard/Chat/Note/OCR/Table). All 6 actions functional (Table forced to cloud). OCR local works with minicpm-v. Chat auto-send + new conversation per capture working. Crosshair cursor on snipping overlay. **Committed.** Remaining: Note UX polish, Visual Memory indexing (SPEC_014). |
 
 ## Open Bugs (Stream K) — Updated 2026-03-22
 
