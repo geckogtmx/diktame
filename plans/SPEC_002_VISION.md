@@ -863,18 +863,15 @@ This means: **draw an arrow at a bug → ask "What's wrong here?" → AI focuses
 | V6 | Camera bubble — PIP webcam overlay during recording | 1-2 sessions | Pending |
 | V7 | Filler word removal — post-STT cleanup pass on narration audio | 1 session | Pending |
 
-### Phase 5: AI Integration + Share Infrastructure
+### Phase 5: AI Integration Across Surfaces
 | ID | Feature | Effort |
 |----|---------|--------|
-| V5 | **Share link** — Supabase upload + short URL + instant copy. HIGH PRIORITY (Loom parity). | 1-2 sessions |
-| V4 | System audio capture (WASAPI loopback) — meeting clips | 1 session |
-| M4 | AI-aware annotations (context in system prompt) | 1 session |
+| M4 | AI-aware annotations (captured context in system prompt) | 1 session |
 | C4 | AI palette generation + memory-aware color suggestions | 1 session |
 
 ### Phase 6: Polish & Advanced
 | ID | Feature | Effort |
 |----|---------|--------|
-| VG-3 | Cloud upload + share link (shared infra for screenshots + video) | 1 session |
 | VG-4 | Scrolling/full-page capture | 2 sessions |
 | VD-3 | AI auto-redaction (needs blur from M3) | 1 session |
 | VD-4 | AI smart crop | 0.5 session |
