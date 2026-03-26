@@ -9,7 +9,9 @@ public sealed class PluginUIRegistry : IPluginUIRegistry
 
     public IReadOnlyList<PluginSettingsPageInfo> SettingsPages
     {
-        get { lock (_lock)
+        get
+        {
+            lock (_lock)
             {
                 return [.. _settingsPages];
             }
@@ -18,7 +20,9 @@ public sealed class PluginUIRegistry : IPluginUIRegistry
 
     public IReadOnlyList<PluginTrayMenuItem> TrayMenuItems
     {
-        get { lock (_lock)
+        get
+        {
+            lock (_lock)
             {
                 return [.. _trayMenuItemsByPlugin.Values.SelectMany(v => v)];
             }
@@ -27,7 +31,9 @@ public sealed class PluginUIRegistry : IPluginUIRegistry
 
     public IReadOnlyList<PluginWidgetInfo> Widgets
     {
-        get { lock (_lock)
+        get
+        {
+            lock (_lock)
             {
                 return [.. _widgets];
             }
