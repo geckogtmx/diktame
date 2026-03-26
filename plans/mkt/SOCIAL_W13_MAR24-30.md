@@ -7,26 +7,6 @@
 
 ---
 
-## Tuesday, March 25 — Edge AI & Privacy-First Processing
-
-**📰 Hook:** Edge AI adoption surges as enterprises realize cloud-only = privacy risk. On-device processing is no longer a compromise — it's the standard.
-
-### LinkedIn 🇺🇸
-> **"We process everything locally." That used to mean slow and bad.**
->
-> Not anymore. The edge AI market crossed $23B this year, and the reason is simple: latency dropped below 500ms, accuracy caught up to cloud, and enterprises realized that sending employee voice recordings to third-party servers is a compliance nightmare waiting to happen.
->
-> On-device inference is no longer a tradeoff — it's a competitive advantage. Faster response times, no network dependency, and full data sovereignty.
->
-> dIKta.me was architected for this from day one:
-> - 🔒 Whisper V3 Turbo runs locally via Vulkan GPU acceleration
-> - 🔒 API keys encrypted with Windows DPAPI — never stored in plaintext
-> - 🔒 Zero telemetry. Zero data collection. Zero phone-home.
-> - 🔒 Your voice data never touches a server (unless *you* explicitly choose cloud)
->
-> Privacy isn't a feature toggle. It's the architecture.
->
-> 🔗 dikta.me
 
 ### LinkedIn 🇪🇸
 > **"Procesamos todo localmente." Eso antes significaba lento y malo.**
