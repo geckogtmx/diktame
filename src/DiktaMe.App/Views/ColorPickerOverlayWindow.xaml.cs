@@ -219,8 +219,8 @@ public sealed partial class ColorPickerOverlayWindow : Window
         // Map canvas coordinates to image pixel coordinates
         double scaleX = (double)_imageWidth / OverlayCanvas.ActualWidth;
         double scaleY = (double)_imageHeight / OverlayCanvas.ActualHeight;
-        int px = Math.Clamp((int)(pos.X * scaleX), 0, _imageWidth - 1);
-        int py = Math.Clamp((int)(pos.Y * scaleY), 0, _imageHeight - 1);
+        int px = Math.Clamp((int)Math.Round(pos.X * scaleX), 0, _imageWidth - 1);
+        int py = Math.Clamp((int)Math.Round(pos.Y * scaleY), 0, _imageHeight - 1);
 
         // BGRA pixel layout (4 bytes per pixel)
         int offset = (py * _imageWidth + px) * 4;
