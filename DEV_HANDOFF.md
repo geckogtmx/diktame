@@ -25,10 +25,11 @@
 - User's `settings.json` had stale `LocalVisionModelId: "moondream:latest"` from older session. Updated to `minicpm-v`.
 
 **Known issues for next session**:
-1. **Note UX polish** — State transitions unclear: vision processing → voice recording → save happens without clear user guidance. Needs better toasts/progress indicators between stages.
-2. **Gemma3:1b warmup on settings reload** — Every settings save triggers full provider re-init → warms up gemma3:1b unnecessarily. Warmup should only run on first startup or when LLM model actually changes. (Not Vision-specific, general optimization.)
-3. **MiniCPM-V quantization** — User interested in lower-VRAM quantized variant. Research GGUF quant options for minicpm-v on Ollama.
-4. **Vision PMF remaining** (from SPEC_015 appendix): VG-1 (copy screenshot image bytes to clipboard alongside AI text), VD-1/VD-2 already implemented as OCR/Table buttons.
+1. **Crosshair cursor NOT WORKING** — Code exists in SnippingOverlayWindow (`SetCrosshairCursor()` via Win32 `SetClassLongPtr`/`LoadCursor`) but cursor stays as default pointer at runtime. WinUI likely overrides the Win32 cursor. Needs a different approach (e.g., `ProtectedCursor` or `InputSystemCursor` WinUI API, or transparent overlay with custom XAML crosshair element).
+2. **Note UX polish** — State transitions unclear: vision processing → voice recording → save happens without clear user guidance. Needs better toasts/progress indicators between stages.
+3. **Gemma3:1b warmup on settings reload** — Every settings save triggers full provider re-init → warms up gemma3:1b unnecessarily. Warmup should only run on first startup or when LLM model actually changes. (Not Vision-specific, general optimization.)
+4. **MiniCPM-V quantization** — User interested in lower-VRAM quantized variant. Research GGUF quant options for minicpm-v on Ollama.
+5. **Vision PMF remaining** (from SPEC_015 appendix): VG-1 (copy screenshot image bytes to clipboard alongside AI text), VD-1/VD-2 already implemented as OCR/Table buttons.
 
 ## Current State
 
