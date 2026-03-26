@@ -1,8 +1,38 @@
 # Developer Handoff
 
-## Next Session — Vision PMF Quick Wins (SPEC_002 / SPEC_015)
+## Next Session — Vision Phase 2: Color Picker (SPEC_002 §16)
 
-**What shipped this session (2026-03-25)**:
+**What shipped this session (2026-03-26)**:
+
+### Spec Work
+- SPEC_002 extended: §15 Video Capture (Loom-style), §16 Color Picker, §17 Markup & Annotation, §18 Unified Roadmap, §19 Competitive Table
+- VN-2 (screen recording) and VN-3 (color picker) promoted from nice-to-have to full spec sections in SPEC_015
+
+### Vision Quick Wins (9 fixes)
+- Crosshair cursor: replaced Win32 SetClassLongPtr with CrosshairCanvas subclass using WinUI ProtectedCursor — **now works**
+- Phantom warmup: both warmup paths use GetActiveLlmModel() — warms user's configured model, not hardcoded gemma3:1b. Saves ~1.2GB VRAM
+- VG-1: clipboard action copies both AI text AND screenshot image via CopyTextAndImageToClipboard()
+- App quit stalling: _isExiting flag + RequestExit(). All Closing handlers check flag before cancelling
+- Note UX: removed auto-record from vision Note pipeline. Added 🎤 mic button to VisionActionWindow with pulsing red dot. User dictates on their terms.
+- Vision defaults: None (no AI) is now the default radio. VIS Local/Cloud toggle removed from Control Panel (6-column grid)
+- ESC responsiveness: force keyboard focus to OverlayCanvas on Activated
+- Note output: restructured — user text first, vision description as blockquote, image link last
+- Toast icon: AddAppLogoOverride with Assets/icon.png replaces generic blue square
+
+### Audit Critical Fixes
+- HistoryManager: added SemaphoreSlim(1,1) on all 4 DB methods (audit #1 — CRITICAL)
+- Gemini API key: migrated all 6 call sites from ?key= URL param to x-goog-api-key header (audit #4 — HIGH)
+- Audit #2 (HistoryManager Dispose) was already implemented — audit was wrong
+
+### What's Next
+- **Phase 2: Color Picker** (SPEC_002 §16) — C1 basic picker, C2 magnifier, C3 multi-pick. ~1.5 sessions.
+- **Audit #3**: Cloud provider retry (Polly). 2-3 hrs. Deferred.
+
+---
+
+## Previous Session — Vision PMF Quick Wins (SPEC_002 / SPEC_015)
+
+**What shipped (2026-03-25)**:
 - Table force-cloud: local models produce unreliable TSV (81K chars of noise vs 176 chars cloud). Now auto-routes to cloud with info toast. If no cloud provider configured, shows error.
 - OCR local confirmed working with `minicpm-v` (was failing with `moondream:latest` — model limitation, not routing bug)
 - Visual Memory section added to SPEC_014 (full schema: capture-time + AI-indexed fields + SQLite + embedding search)

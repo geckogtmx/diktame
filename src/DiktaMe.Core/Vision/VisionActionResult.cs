@@ -20,6 +20,9 @@ public enum VisionAction
 
     /// <summary>Extract tabular data as TSV, copy to clipboard.</summary>
     Table,
+
+    /// <summary>Pick a color from the screenshot — no AI inference.</summary>
+    Color,
 }
 
 /// <summary>

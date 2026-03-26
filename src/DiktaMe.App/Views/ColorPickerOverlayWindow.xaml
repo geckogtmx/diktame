@@ -1,0 +1,42 @@
+<Window x:Class="DiktaMe.App.Views.ColorPickerOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:DiktaMe.App.Views"
+        Title="dIKta.me Color Picker">
+
+    <Grid>
+        <!-- Screenshot of the screen as background (frozen frame) -->
+        <Image x:Name="ScreenshotImage" Stretch="Fill" />
+
+        <!-- Overlay canvas for cursor tracking -->
+        <local:CrosshairCanvas x:Name="OverlayCanvas" Background="Transparent" />
+
+        <!-- Color preview popup (follows cursor) -->
+        <Border x:Name="ColorPreview"
+                CornerRadius="6" Padding="8,6"
+                Background="#E0202020"
+                BorderBrush="#60FFFFFF" BorderThickness="1"
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                Visibility="Collapsed"
+                IsHitTestVisible="False">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Border x:Name="ColorSwatch" Width="24" Height="24"
+                        CornerRadius="4" BorderBrush="#80FFFFFF" BorderThickness="1"/>
+                <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <TextBlock x:Name="HexText" Text="#000000"
+                               FontSize="14" FontWeight="SemiBold"
+                               Foreground="White" FontFamily="Consolas"/>
+                    <TextBlock x:Name="RgbText" Text="rgb(0, 0, 0)"
+                               FontSize="11" Foreground="#B0FFFFFF"
+                               FontFamily="Consolas"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Bottom hint text -->
+        <TextBlock Text="Click to pick color  |  Esc = Cancel"
+                   Foreground="White" FontSize="14" Opacity="0.8"
+                   HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                   Margin="0,0,0,32" IsHitTestVisible="False" />
+    </Grid>
+</Window>

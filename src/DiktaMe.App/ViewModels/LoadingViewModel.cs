@@ -1837,8 +1837,11 @@ public sealed partial class LoadingViewModel : ObservableObject
                 ? (visionSettings.LocalVisionModelId ?? "minicpm-v")
                 : (visionSettings.CloudVisionModelId ?? "gemini-2.5-flash");
 
-            // "None" mode — skip all AI, just copy raw image to clipboard
-            if (actionResult.SkipAi)
+            // "None" mode — skip all AI, just copy raw image to clipboard.
+            // Save and Color actions handle their own flow, so let them through.
+            if (actionResult.SkipAi
+                && actionResult.Action != DiktaMe.Core.Vision.VisionAction.Save
+                && actionResult.Action != DiktaMe.Core.Vision.VisionAction.Color)
             {
                 CopyImageToClipboard(imageData);
                 _notifications.ShowToast("Vision", "Image copied to clipboard (no AI)",
@@ -1888,6 +1891,10 @@ public sealed partial class LoadingViewModel : ObservableObject
 
                 case DiktaMe.Core.Vision.VisionAction.Table:
                     await HandleVisionTableAsync(imageData, mimeType, visionProvider, visionModelId, visionSettings, actionResult).ConfigureAwait(false);
+                    return;
+
+                case DiktaMe.Core.Vision.VisionAction.Color:
+                    await HandleVisionColorPickAsync(imageData).ConfigureAwait(false);
                     return;
 
                 case DiktaMe.Core.Vision.VisionAction.Clipboard:
@@ -2121,6 +2128,49 @@ public sealed partial class LoadingViewModel : ObservableObject
                 Log.Warning(ex, "Vision: failed to copy image to clipboard");
             }
         });
+    }
+
+    private async Task HandleVisionColorPickAsync(byte[] imageData)
+    {
+        // Re-open a color picker overlay using the same captured screenshot.
+        // Must create WinUI Window on UI thread — use TaskCompletionSource to bridge.
+        var colorTcs = new TaskCompletionSource<Views.ColorPickResult?>();
+
+        _uiDispatcher?.TryEnqueue(() =>
+        {
+            _ = ShowColorPickerOverlayAsync(colorTcs, imageData);
+        });
+
+        var colorResult = await colorTcs.Task.ConfigureAwait(false);
+        if (colorResult is null)
+        {
+            return; // Cancelled
+        }
+
+        ClipboardManager.SetText(colorResult.Hex);
+        Log.Information("ColorPicker: {Hex} copied to clipboard", colorResult.Hex);
+        _notifications.ShowToast("Color Picked", $"{colorResult.Hex}  —  rgb({colorResult.R}, {colorResult.G}, {colorResult.B})",
+            NotificationType.Success, suppressTts: true);
+    }
+
+    private async Task ShowColorPickerOverlayAsync(
+        TaskCompletionSource<Views.ColorPickResult?> tcs, byte[] imageData)
+    {
+        try
+        {
+            var picker = new Views.ColorPickerOverlayWindow();
+            var bounds = DiktaMe.Core.Vision.ScreenCapture.GetActiveMonitorBounds();
+            picker.SetBounds(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            await picker.SetBackgroundScreenshotAsync(imageData);
+            picker.Activate();
+            var result = await picker.GetResultAsync();
+            tcs.TrySetResult(result);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "ColorPicker: overlay failed");
+            tcs.TrySetResult(null);
+        }
     }
 
     private async Task HandleVisionOcrAsync(

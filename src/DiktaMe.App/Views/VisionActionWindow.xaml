@@ -56,9 +56,10 @@
                              ToolTipService.ToolTip="No AI processing — raw image only"/>
             </StackPanel>
 
-            <!-- Action buttons: 3×2 grid -->
+            <!-- Action buttons: 4×2 grid -->
             <Grid Grid.Row="3" ColumnSpacing="8" RowSpacing="8" HorizontalAlignment="Center">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
@@ -114,6 +115,14 @@
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE80A;" FontSize="14"/>
                         <TextBlock Text="Table"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Click="OnColor" MinWidth="110" Grid.Row="1" Grid.Column="3"
+                        ToolTipService.ToolTip="Pick a color from the screenshot — hex copied to clipboard">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xEF3C;" FontSize="14"/>
+                        <TextBlock Text="Color"/>
                     </StackPanel>
                 </Button>
             </Grid>
