@@ -2331,15 +2331,13 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             byte[] videoData = await File.ReadAllBytesAsync(videoPath).ConfigureAwait(false);
 
-            // Route to local or cloud vision provider
-            // TODO(V3): Add Local/Cloud toggle to VideoActionWindow (currently uses VisionSettings defaults)
+            // Video analysis is cloud-only — local models (minicpm-v) crash on raw MP4 bytes.
+            // Local video would need keyframe extraction (1 frame/sec → multiple images).
+            // TODO(V3-LOCAL): Extract keyframes + multi-image Ollama call for local video understanding
             var appSettings = _settings.Current;
-            var vision = appSettings.Vision;
-            bool useLocal = !string.IsNullOrWhiteSpace(vision.LocalVisionModelId)
-                && string.Equals(vision.VisionProvider, "ollama", StringComparison.OrdinalIgnoreCase);
-            string provider = useLocal ? "ollama" : (vision.CloudVisionProvider ?? "gemini");
-            string model = useLocal ? vision.LocalVisionModelId : (vision.CloudVisionModelId ?? "gemini-2.5-flash");
-            Log.Information("Video AI: using {Provider}/{Model} (local={Local})", provider, model, useLocal);
+            string provider = appSettings.Vision.CloudVisionProvider ?? "gemini";
+            string model = appSettings.Vision.CloudVisionModelId ?? "gemini-2.5-flash";
+            Log.Information("Video AI: using {Provider}/{Model} (cloud-only)", provider, model);
             var pipeline = _pipelineFactory.CreateVisionPipeline(provider, model);
 
             var visionOptions = new DiktaMe.Core.Vision.VisionOptions
