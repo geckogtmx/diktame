@@ -1734,6 +1734,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         try
         {
             Log.Information("Starting Vision pipeline...");
+            _annotationContext = null; // Reset from previous run
 
             // Step 1: Capture the active monitor BEFORE showing overlay
             var bounds = DiktaMe.Core.Vision.ScreenCapture.GetActiveMonitorBounds();
@@ -1925,7 +1926,6 @@ public sealed partial class LoadingViewModel : ObservableObject
             }
 
             // Step 5: Branch on action
-            processAction:
             switch (actionResult.Action)
             {
                 case DiktaMe.Core.Vision.VisionAction.Save:
@@ -1980,7 +1980,27 @@ public sealed partial class LoadingViewModel : ObservableObject
                             return; // Cancelled or tried to edit again (prevent infinite loop)
                         }
 
-                        goto processAction; // Re-enter the switch with new action
+                        // Re-resolve provider from new actionResult (user may have changed Local/Cloud)
+                        visionProvider = actionResult.UseLocal
+                            ? "ollama"
+                            : (visionSettings.CloudVisionProvider ?? "gemini");
+                        visionModelId = actionResult.UseLocal
+                            ? (visionSettings.LocalVisionModelId ?? "minicpm-v")
+                            : (visionSettings.CloudVisionModelId ?? "gemini-2.5-flash");
+
+                        // After annotation, go straight to AI analysis (Cloud) — no second modal
+                        visionProvider = visionSettings.CloudVisionProvider ?? "gemini";
+                        visionModelId = visionSettings.CloudVisionModelId ?? "gemini-2.5-flash";
+                        Log.Information("Vision: post-edit → running AI analysis with {Provider}/{Model}",
+                            visionProvider, visionModelId);
+
+                        // Also copy annotated image to clipboard
+                        CopyImageToClipboard(imageData);
+
+                        await HandleVisionClipboardAsync(imageData, mimeType, visionProvider, visionModelId, visionSettings,
+                            new DiktaMe.Core.Vision.VisionActionResult(DiktaMe.Core.Vision.VisionAction.Clipboard, null, UseLocal: false))
+                            .ConfigureAwait(false);
+                        return;
                     }
 
                     return;
@@ -2747,9 +2767,18 @@ public sealed partial class LoadingViewModel : ObservableObject
         string? userQuery,
         DiktaMe.Core.Vision.VisionOutputMode outputMode)
     {
+        string systemPrompt = "You are a concise vision assistant. Respond briefly and directly. Do not describe the UI chrome, window decorations, or layout — focus only on the meaningful content. Keep responses under 200 words unless the user asks for more detail.";
+
+        // Inject annotation context if the user marked up the screenshot
+        if (!string.IsNullOrEmpty(_annotationContext))
+        {
+            systemPrompt = $"{systemPrompt}\n\n{_annotationContext}";
+            Log.Debug("Vision: injected annotation context ({Len} chars) into system prompt", _annotationContext.Length);
+        }
+
         return new DiktaMe.Core.Vision.VisionOptions
         {
-            SystemPrompt = "You are a concise vision assistant. Respond briefly and directly. Do not describe the UI chrome, window decorations, or layout — focus only on the meaningful content. Keep responses under 200 words unless the user asks for more detail.",
+            SystemPrompt = systemPrompt,
             ModelName = string.IsNullOrWhiteSpace(visionModelId) ? null : visionModelId,
             DefaultQuery = !string.IsNullOrWhiteSpace(userQuery)
                 ? userQuery
