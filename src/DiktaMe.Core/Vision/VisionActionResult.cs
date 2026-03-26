@@ -23,6 +23,9 @@ public enum VisionAction
 
     /// <summary>Pick a color from the screenshot — no AI inference.</summary>
     Color,
+
+    /// <summary>Record a video clip of the screen region — no AI inference (V1).</summary>
+    Record,
 }
 
 /// <summary>

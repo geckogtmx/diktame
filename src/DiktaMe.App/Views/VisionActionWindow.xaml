@@ -125,6 +125,14 @@
                         <TextBlock Text="Color"/>
                     </StackPanel>
                 </Button>
+
+                <Button Click="OnRecord" MinWidth="110" Grid.Row="0" Grid.Column="3"
+                        ToolTipService.ToolTip="Record a video clip of this screen region">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE7C8;" FontSize="14"/>
+                        <TextBlock Text="Record"/>
+                    </StackPanel>
+                </Button>
             </Grid>
         </Grid>
     </ContentControl>

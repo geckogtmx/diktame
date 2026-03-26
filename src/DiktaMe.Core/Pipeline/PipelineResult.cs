@@ -68,6 +68,23 @@ public sealed record PipelineResult
     /// <summary>LLM inference speed in tokens/sec (from Ollama).</summary>
     public double? TokensPerSec { get; init; }
 
+    // ── Vision telemetry (null for non-vision pipelines) ─────────────────
+
+    /// <summary>How the screen was captured (Region, ActiveWindow, FullScreen, AllMonitors, Freeform).</summary>
+    public string? CaptureMode { get; init; }
+
+    /// <summary>What the user did with the capture (Save, Clipboard, Chat, Note, Ocr, Table, Color).</summary>
+    public string? ActionType { get; init; }
+
+    /// <summary>Captured image width in pixels.</summary>
+    public int? ImageWidth { get; init; }
+
+    /// <summary>Captured image height in pixels.</summary>
+    public int? ImageHeight { get; init; }
+
+    /// <summary>Milliseconds spent on screen capture only (separate from AI inference).</summary>
+    public long? CaptureMs { get; init; }
+
     /// <summary>Number of words in <see cref="Text"/>.</summary>
     public int WordCount => string.IsNullOrWhiteSpace(Text)
         ? 0

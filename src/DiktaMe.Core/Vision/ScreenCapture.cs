@@ -121,6 +121,28 @@ public static class ScreenCapture
         return CaptureFromScreen(x, y, width, height);
     }
 
+    /// <summary>Returns the HMONITOR handle for the monitor containing the foreground window.</summary>
+    public static IntPtr GetActiveMonitorHandle()
+    {
+        IntPtr hwnd = NativeMethods.GetForegroundWindow();
+        if (hwnd == IntPtr.Zero)
+        {
+            return IntPtr.Zero;
+        }
+
+        return NativeMethods.MonitorFromWindow(hwnd, NativeMethods.MONITOR_DEFAULTTONEAREST);
+    }
+
+    /// <summary>Returns the bounds of the entire virtual screen (all monitors).</summary>
+    public static (int X, int Y, int Width, int Height) GetVirtualScreenBounds()
+    {
+        return (
+            NativeMethods.GetSystemMetrics(NativeMethods.SM_XVIRTUALSCREEN),
+            NativeMethods.GetSystemMetrics(NativeMethods.SM_YVIRTUALSCREEN),
+            NativeMethods.GetSystemMetrics(NativeMethods.SM_CXVIRTUALSCREEN),
+            NativeMethods.GetSystemMetrics(NativeMethods.SM_CYVIRTUALSCREEN));
+    }
+
     /// <summary>Captures the entire virtual screen as a PNG byte array.</summary>
     public static byte[] CaptureFullScreen()
     {

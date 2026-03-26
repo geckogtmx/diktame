@@ -1,28 +1,26 @@
 # Developer Handoff
 
-## Next Session — Video Capture (SPEC_002 §15)
+## Next Session — Runtime Test Video Capture + V3 AI Actions
 
-**Priority:** Build Loom-style video capture pipeline (record region → MP4 + mic audio). See SPEC_002 §15 for full design. Use `Windows.Graphics.Capture` API + NAudio mic mux. Reference: [SimpleRecorder](https://github.com/MicrosoftDocs/SimpleRecorder).
+**Priority 1:** Runtime test the video capture pipeline (V1+V2 infrastructure built but untested):
+- D3D11 device creation via P/Invoke (may need WARP software fallback)
+- `IGraphicsCaptureItemInterop.CreateForMonitor` COM activation via `RoGetActivationFactory`
+- `MediaTranscoder` encoding (BGRA frames → H.264 MP4)
+- Mic audio mux (NAudio `WaveInEvent` → `AudioStreamDescriptor` → AAC in MP4)
+- `StorageFile.GetFileFromPathAsync` for output file access
+
+**Priority 2:** V3 — Gemini video understanding (describe/document/bug report prompts). See SPEC_002 §15.4.
+
+**Priority 3:** Loom parity features — camera bubble (V6), share link (V5). See SPEC_002 §19.1.
 
 **Also pending:**
 - Audit #3: Cloud provider retry (Polly). 2-3 hrs.
 - VG-4: Scrolling capture research (effort TBD — complex Win32 scroll-and-stitch)
 - Freeform transparency masking (currently crops to bounding box, Windows does shape mask)
-- Vision DB logging gaps (see below)
 
-### Vision Logging Gaps (found during log review)
+### Vision Logging Gaps — ✅ RESOLVED
 
-The vision pipeline has good file-level logging but **history.db is missing key data**:
-
-| Missing | Why it matters |
-|---------|---------------|
-| **Capture mode** (Region/Window/FullScreen/AllMonitors/Freeform) | Can't analyze which modes users prefer |
-| **Action type** (Save/Clipboard/Chat/Note/OCR/Table/Color) | Can't tell what users do with captures |
-| **Color picks** not logged at all | No `mode = "color"` in history.db |
-| **Image dimensions** | Can't correlate capture size with latency |
-| **Capture-only latency** (separate from AI inference) | Vision avg 9.4s but that's mostly inference — capture itself is 60-140ms |
-
-**Recommendation:** Add `capture_mode TEXT`, `action_type TEXT`, `image_width INT`, `image_height INT`, `capture_ms INT` columns to history table. Log Color picks as `mode = "color_pick"`. This is user activity telemetry, not debug logging.
+All 5 telemetry columns added to history.db: `capture_mode`, `action_type`, `image_width`, `image_height`, `capture_ms`. Color picks logged as `mode = "color_pick"`. 2 new tests.
 
 ### Latency Baselines (from 2026-03-26 logs)
 
@@ -34,6 +32,34 @@ The vision pipeline has good file-level logging but **history.db is missing key 
 | Image crop (CropRegion) | 5-20ms |
 | PrepareForApi (resize+compress) | 3-45ms |
 | Whisper STT (16-24s audio) | 470-611ms (GPU, 0.03x ratio) |
+
+---
+
+## Current Session (2026-03-26, continued)
+
+**What shipped this session:**
+
+### Vision Telemetry (P1 — complete)
+- 5 new columns in history.db: `capture_mode`, `action_type`, `image_width`, `image_height`, `capture_ms`
+- Color picks now logged as `mode = "color_pick"` (was completely unlogged)
+- All vision paths populate telemetry: AI actions, Save, Color, SkipAi (None mode)
+- `ScreenCapture.GetVirtualScreenBounds()` + `GetActiveMonitorHandle()` helpers
+- 2 new tests (1134 total)
+
+### Video Capture V1+V2 Infrastructure (built, needs runtime test)
+- `VideoCapture.cs` — D3D11 device via P/Invoke (no SharpDX), `Windows.Graphics.Capture` frame pool, `MediaTranscoder` MP4 encoding, mic audio via NAudio `WaveInEvent` → `AudioStreamDescriptor` → AAC
+- `VideoRecordingBarWindow.xaml/.cs` — Floating always-on-top bar: pulsing red REC dot, mm:ss timer, pause/stop buttons, DispatcherTimer
+- `VideoRecordingOptions.cs` — Config record (max duration, FPS, bitrate, enableMicAudio)
+- `VisionAction.Record` enum value + "Record" button in VisionActionWindow (4×2 grid)
+- `HandleVideoRecordAsync()` in LoadingViewModel — full pipeline wiring
+- COM interop: `IGraphicsCaptureItemInterop.CreateForMonitor` via `RoGetActivationFactory` P/Invoke
+
+### Loom Competitive Gap Analysis
+- SPEC_002 §19 updated with detailed Loom feature gap table
+- §19.1 added: feature-by-feature assessment (4 categories: where we win, gaps to close, deliberate skips, minimum viable)
+- §15.7 updated: V6 (camera bubble), V7 (filler word removal) phases added
+- Roadmap phases 1-5 updated with shipped status markers
+- Phase 2 (Color) C1 marked shipped, Phase 4 (Video) V1 marked infra-built
 
 ---
 

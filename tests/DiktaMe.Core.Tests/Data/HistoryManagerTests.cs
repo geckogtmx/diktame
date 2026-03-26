@@ -300,6 +300,72 @@ public sealed class HistoryManagerTests : IAsyncDisposable
         Assert.Null(ex);
     }
 
+    // ── Vision telemetry ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task LogSessionAsync_PersistsVisionTelemetryColumns()
+    {
+        await _history.InitAsync();
+
+        var result = new PipelineResult
+        {
+            Text = "A screenshot of a code editor",
+            Mode = "vision",
+            IsSuccess = true,
+            TotalMs = 9400,
+            LlmProvider = "gemini-2.5-flash",
+            CaptureMode = "Region",
+            ActionType = "Clipboard",
+            ImageWidth = 1920,
+            ImageHeight = 1080,
+            CaptureMs = 85,
+        };
+
+        await _history.LogSessionAsync(result);
+
+        using var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_dbPath}");
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT capture_mode, action_type, image_width, image_height, capture_ms FROM history ORDER BY id DESC LIMIT 1";
+        using var reader = await cmd.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync());
+        Assert.Equal("Region", reader.GetString(0));
+        Assert.Equal("Clipboard", reader.GetString(1));
+        Assert.Equal(1920, reader.GetInt32(2));
+        Assert.Equal(1080, reader.GetInt32(3));
+        Assert.Equal(85, reader.GetInt64(4));
+    }
+
+    [Fact]
+    public async Task LogSessionAsync_ColorPickMode_Persisted()
+    {
+        await _history.InitAsync();
+
+        var result = new PipelineResult
+        {
+            Text = string.Empty,
+            Mode = "color_pick",
+            IsSuccess = true,
+            CaptureMode = "FullScreen",
+            ActionType = "Color",
+            ImageWidth = 2560,
+            ImageHeight = 1440,
+            CaptureMs = 62,
+        };
+
+        await _history.LogSessionAsync(result);
+
+        using var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_dbPath}");
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT mode, capture_mode, action_type FROM history ORDER BY id DESC LIMIT 1";
+        using var reader = await cmd.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync());
+        Assert.Equal("color_pick", reader.GetString(0));
+        Assert.Equal("FullScreen", reader.GetString(1));
+        Assert.Equal("Color", reader.GetString(2));
+    }
+
     public async ValueTask DisposeAsync()
     {
         _history.Dispose();

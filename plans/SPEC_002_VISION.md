@@ -575,13 +575,15 @@ Task<LlmResult> ProcessWithVideoAsync(
 
 ### 15.7 Implementation Phases
 
-| Phase | Scope | Effort | Dependency |
-|-------|-------|--------|------------|
-| **V1** | Record region/window → MP4 (no audio). Floating stop bar. Save action only. | 2-3 sessions | `Windows.Graphics.Capture` |
-| **V2** | Add mic audio mux (NAudio). Pause/resume. | 1 session | V1 |
-| **V3** | Gemini video upload + understanding prompts. Post-capture AI actions. | 1-2 sessions | V2 + Gemini File API |
-| **V4** | System audio capture (WASAPI loopback). Meeting clip use case. | 1 session | V2 |
-| **V5** | Share link (Supabase upload), connector routing, memory indexing. | 1-2 sessions | V3 + VG-3 + SPEC_014 |
+| Phase | Scope | Effort | Dependency | Status |
+|-------|-------|--------|------------|--------|
+| **V1** | Record region/window → MP4 (no audio). Floating stop bar. Record button in VisionActionWindow. | 2-3 sessions | `Windows.Graphics.Capture` | ✅ Infra built |
+| **V2** | Mic audio mux (NAudio `WaveInEvent` → MP4 mux). Voice narration during recording. | 1 session | V1 | Pending |
+| **V3** | Gemini video upload + understanding prompts (describe/document/bug report). Post-capture AI actions. | 1-2 sessions | V2 + Gemini File API | Pending |
+| **V4** | System audio capture (WASAPI loopback). Meeting clip use case. | 1 session | V2 | Pending |
+| **V5** | **Share link** — Supabase upload + short URL + instant copy. Loom parity — critical for viral loop. | 1-2 sessions | V3 + VG-3 | Pending |
+| **V6** | **Camera bubble** — PIP webcam overlay during recording. Resize/reposition/avatar fallback. Loom's identity feature. | 1-2 sessions | V2 | Pending |
+| **V7** | **Filler word removal** — Post-STT cleanup pass (remove "um", "uh", pauses) from narration. Loom AI parity. | 1 session | V2 + STT pipeline | Pending |
 
 ### 15.8 Constraints
 
@@ -825,20 +827,23 @@ This means: **draw an arrow at a bug → ask "What's wrong here?" → AI focuses
 
 > **Updated 2026-03-26** — Integrates video capture (§15), color picker (§16), and markup (§17) into the existing gap/differentiator framework.
 
-### Phase 1: Quick Wins (Current Sprint)
+### Phase 1: Quick Wins (Shipped 2026-03-26)
 | ID | Feature | Effort | Status |
 |----|---------|--------|--------|
-| VG-1 | Copy screenshot image to clipboard | LOW | Pending |
-| Crosshair | Fix snipping overlay cursor | LOW | Pending |
-| Note UX | Better state transitions for vision→voice→save | LOW | Pending |
-| Warmup | Fix gemma3:1b phantom warmup on settings reload | MEDIUM | Pending |
+| VG-1 | Copy screenshot image + AI text to clipboard | LOW | ✅ Shipped |
+| Crosshair | Fix snipping overlay cursor (WinUI ProtectedCursor) | LOW | ✅ Shipped |
+| Note UX | Mic button instead of auto-record, restructured output | LOW | ✅ Shipped |
+| Warmup | Fix phantom warmup — uses configured model, not hardcoded | MEDIUM | ✅ Shipped |
+| Telemetry | Vision history columns (capture_mode, action_type, image dims, capture_ms) | LOW | ✅ Shipped |
+| 5 modes | Rectangle, ActiveWindow, FullScreen, AllMonitors, Freeform | MEDIUM | ✅ Shipped |
+| Color C1 | Basic picker: freeze → eyedropper → hex to clipboard | 0.5 session | ✅ Shipped |
 
 ### Phase 2: Color Picker
-| ID | Feature | Effort |
-|----|---------|--------|
-| C1 | Basic picker: freeze → eyedropper → hex to clipboard | 0.5 session |
-| C2 | Magnifier overlay + live color display | 0.5 session |
-| C3 | Multi-pick palette mode | 0.5 session |
+| ID | Feature | Effort | Status |
+|----|---------|--------|--------|
+| C1 | Basic picker: freeze → eyedropper → hex to clipboard | 0.5 session | ✅ Shipped |
+| C2 | Magnifier overlay + live color display | 0.5 session | Pending |
+| C3 | Multi-pick palette mode | 0.5 session | Pending |
 
 ### Phase 3: Markup & Annotation
 | ID | Feature | Effort |
@@ -849,19 +854,21 @@ This means: **draw an arrow at a bug → ask "What's wrong here?" → AI focuses
 | M5 | Wire into VisionActionWindow flow | 0.5 session |
 
 ### Phase 4: Video Capture
-| ID | Feature | Effort |
-|----|---------|--------|
-| V1 | Record region/window → MP4 (no audio) | 2-3 sessions |
-| V2 | Mic audio mux + pause/resume | 1 session |
-| V3 | Gemini video understanding + AI actions | 1-2 sessions |
+| ID | Feature | Effort | Status |
+|----|---------|--------|--------|
+| V1 | Record region/window → MP4 (no audio). Floating stop bar. | 2-3 sessions | ✅ Infra built (needs runtime test) |
+| V2 | Mic audio mux (NAudio WaveInEvent). Voice narration. | 1 session | Pending |
+| V3 | Gemini video understanding + AI actions (describe/document/bug) | 1-2 sessions | Pending |
+| V6 | Camera bubble — PIP webcam overlay during recording | 1-2 sessions | Pending |
+| V7 | Filler word removal — post-STT cleanup pass on narration audio | 1 session | Pending |
 
-### Phase 5: AI Integration Across All Surfaces
+### Phase 5: AI Integration + Share Infrastructure
 | ID | Feature | Effort |
 |----|---------|--------|
+| V5 | **Share link** — Supabase upload + short URL + instant copy. HIGH PRIORITY (Loom parity). | 1-2 sessions |
+| V4 | System audio capture (WASAPI loopback) — meeting clips | 1 session |
 | M4 | AI-aware annotations (context in system prompt) | 1 session |
 | C4 | AI palette generation + memory-aware color suggestions | 1 session |
-| V4 | System audio capture | 1 session |
-| V5 | Share links, connector routing, memory indexing | 1-2 sessions |
 
 ### Phase 6: Polish & Advanced
 | ID | Feature | Effort |
@@ -881,22 +888,60 @@ This means: **draw an arrow at a bug → ask "What's wrong here?" → AI focuses
 |---------|:---:|:---:|:---:|:---:|:---:|:---:|
 | Screenshot (region/window) | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
 | Annotation/Markup | ✅ Basic | ✅ | ✅ Best-in-class | ❌ | ✅ | 🔜 Phase 3 |
-| Color Picker | ❌ | ✅ | ✅ | ❌ | ❌ | 🔜 Phase 2 |
-| Screen Recording | ✅ Basic | ✅ | ✅ | ✅ Best-in-class | ❌ | 🔜 Phase 4 |
+| Color Picker | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ C1 shipped |
+| Screen Recording | ✅ Basic | ✅ | ✅ | ✅ Best-in-class | ❌ | ✅ V1 infra |
 | OCR | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | AI Image Understanding | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ **Unique** |
-| AI Video Understanding | ❌ | ❌ | ❌ | ❌ | ❌ | 🔜 **Unique** |
+| AI Video Understanding | ❌ | ❌ | ❌ | ✅ Summaries only | ❌ | 🔜 V3 **Unique** (custom prompts) |
 | Voice Query on Capture | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ **Unique** |
-| AI-Aware Annotations | ❌ | ❌ | ❌ | ❌ | ❌ | 🔜 **Unique** |
-| AI Palette from Pick | ❌ | ❌ | ❌ | ❌ | ❌ | 🔜 **Unique** |
+| Camera Bubble (PIP webcam) | ❌ | ❌ | ❌ | ✅ Core feature | ❌ | 🔜 V6 |
+| AI Filler Word Removal | ❌ | ❌ | ❌ | ✅ Loom AI | ❌ | 🔜 V7 (STT pipeline exists) |
+| Instant Share Link | ❌ | ✅ | ✅ | ✅ Core viral loop | ❌ | 🔜 V5 |
+| Auto-Save to Cloud | ❌ | ❌ | ❌ | ✅ | ❌ | 🔜 V5 |
+| AI-Aware Annotations | ❌ | ❌ | ❌ | ❌ | ❌ | 🔜 Phase 5 **Unique** |
+| AI Palette from Pick | ❌ | ❌ | ❌ | ❌ | ❌ | 🔜 Phase 5 **Unique** |
 | Memory Integration | ❌ | ❌ | ❌ | ❌ | ❌ | 🔜 **Unique** |
 | Connector Routing | ❌ | ❌ | ❌ | ✅ Slack/Email | ❌ | 🔜 **Unique** |
 | Local AI (Privacy) | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ **Unique** |
-| Voice Narration on Record | ❌ | ❌ | ❌ | ✅ | ❌ | 🔜 (mic already built) |
+| Voice Narration on Record | ❌ | ❌ | ❌ | ✅ | ❌ | 🔜 V2 (mic already built) |
 | Scrolling Capture | ❌ | ✅ | ✅ | ❌ | ❌ | 🔜 Phase 6 |
-| Share Link | ❌ | ✅ | ✅ | ✅ | ❌ | 🔜 Phase 6 |
+| Live Rewind (undo mistakes) | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ Deferred |
+| Custom Backgrounds/Blur | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ Deferred |
+| Mobile Capture | ❌ | ❌ | ❌ | ✅ iOS/Android | ❌ | ❌ Out of scope |
 
 **Moat summary:** No competitor has AI understanding of captures, voice-first interaction, memory context, or connector routing. dIKta.me's capture tools are input surfaces for an AI pipeline — everyone else's are endpoints.
+
+### 19.1 Loom Gap Analysis — Detailed
+
+> **Added 2026-03-26** — Feature-by-feature assessment against Loom's full feature set.
+
+**Where we compete directly (and win):**
+- AI understanding: Loom only does auto-summaries. We let users ask anything about screenshots AND video (custom prompts, OCR, table extraction, bug reports, documentation).
+- Voice-first: Users speak queries during capture. Loom has voice narration but not voice-driven AI interaction.
+- Local/privacy: Loom is cloud-only. We offer fully local AI mode.
+- Screenshots: Loom doesn't do screenshots at all. We own that surface completely.
+
+**Where Loom wins today (gaps to close):**
+1. **Camera bubble** — Loom's identity. Screen + face is the async communication format. Without it, our Record feature is just a screen recorder, not an async messaging tool. Priority: HIGH.
+2. **Instant share link** — Loom's viral loop. Record → share in 2 seconds. Our V5 (Supabase upload + short URL) covers this but isn't built yet. Priority: HIGH.
+3. **Auto-save to cloud** — Recordings survive device failure. Priority: MEDIUM (local save works for now).
+4. **Filler word removal** — AI polish for async comms. We have the STT pipeline; need a post-processing pass. Priority: MEDIUM.
+
+**Where Loom wins but we deliberately skip:**
+- Mobile capture — different product category, desktop-only is our lane
+- Custom backgrounds/blur — cosmetic, not productivity
+- Live Rewind — nice UX polish but high effort for marginal value
+- Camera-only mode — niche, low demand
+
+**Minimum viable video capture for market fit:**
+A user choosing between dIKta.me and Loom must NOT feel like they're giving something up. The bar:
+1. ✅ Record screen region → MP4 (V1 done)
+2. Record with mic audio (V2)
+3. AI describe/document/bug-report from video (V3)
+4. Share link (V5)
+5. Camera bubble (V6)
+
+Items 1-3 are our differentiation angle. Items 4-5 are table stakes for async video messaging.
 
 ---
 

@@ -127,12 +127,14 @@ public sealed class HistoryManager : IDisposable
                 (timestamp, mode, text, raw_transcript, stt_provider, llm_provider,
                  word_count, transcription_ms, processing_ms, injection_ms, total_ms, is_success,
                  recording_ms, audio_duration_s, tokens_per_sec, error_message, tts_played_ms,
-                 input_tokens, output_tokens)
+                 input_tokens, output_tokens,
+                 capture_mode, action_type, image_width, image_height, capture_ms)
             VALUES
                 ($ts, $mode, $text, $raw, $stt, $llm,
                  $words, $trans_ms, $proc_ms, $inj_ms, $total_ms, $success,
                  $rec_ms, $audio_dur, $tok_sec, $err_msg, $tts_ms,
-                 $in_tok, $out_tok)
+                 $in_tok, $out_tok,
+                 $cap_mode, $act_type, $img_w, $img_h, $cap_ms)
             """;
 
         cmd.Parameters.AddWithValue("$ts", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
@@ -154,6 +156,11 @@ public sealed class HistoryManager : IDisposable
         cmd.Parameters.AddWithValue("$tts_ms", result.TtsPlayedMs);
         cmd.Parameters.AddWithValue("$in_tok", result.InputTokens.HasValue ? result.InputTokens.Value : (object)DBNull.Value);
         cmd.Parameters.AddWithValue("$out_tok", result.OutputTokens.HasValue ? result.OutputTokens.Value : (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("$cap_mode", result.CaptureMode ?? (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("$act_type", result.ActionType ?? (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("$img_w", result.ImageWidth.HasValue ? result.ImageWidth.Value : (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("$img_h", result.ImageHeight.HasValue ? result.ImageHeight.Value : (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("$cap_ms", result.CaptureMs.HasValue ? result.CaptureMs.Value : (object)DBNull.Value);
 
         await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -303,6 +310,11 @@ public sealed class HistoryManager : IDisposable
             "ALTER TABLE history ADD COLUMN tts_played_ms INTEGER NOT NULL DEFAULT 0",
             "ALTER TABLE history ADD COLUMN input_tokens INTEGER",
             "ALTER TABLE history ADD COLUMN output_tokens INTEGER",
+            "ALTER TABLE history ADD COLUMN capture_mode TEXT",
+            "ALTER TABLE history ADD COLUMN action_type TEXT",
+            "ALTER TABLE history ADD COLUMN image_width INTEGER",
+            "ALTER TABLE history ADD COLUMN image_height INTEGER",
+            "ALTER TABLE history ADD COLUMN capture_ms INTEGER",
         ];
 
         foreach (string ddl in newColumns)

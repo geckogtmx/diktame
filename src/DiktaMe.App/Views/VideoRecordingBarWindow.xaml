@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="DiktaMe.App.Views.VideoRecordingBarWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Background="{ThemeResource SystemControlBackgroundChromeMediumBrush}"
+          Padding="16,8" CornerRadius="8">
+        <StackPanel Orientation="Horizontal" Spacing="12"
+                    VerticalAlignment="Center" HorizontalAlignment="Center">
+
+            <!-- Recording indicator -->
+            <Ellipse x:Name="RecDot" Width="12" Height="12" Fill="Red" VerticalAlignment="Center"/>
+
+            <TextBlock Text="REC" Foreground="Red" FontWeight="SemiBold"
+                       VerticalAlignment="Center" FontSize="13"/>
+
+            <!-- Timer -->
+            <TextBlock x:Name="TimerText" Text="00:00" FontSize="16"
+                       FontFamily="Consolas" VerticalAlignment="Center"
+                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+
+            <!-- Pause button -->
+            <Button x:Name="PauseButton" Click="OnPauseClick"
+                    ToolTipService.ToolTip="Pause" Width="32" Height="32" Padding="4">
+                <FontIcon Glyph="&#xE769;" FontSize="14"/>
+            </Button>
+
+            <!-- Stop button -->
+            <Button x:Name="StopButton" Click="OnStopClick"
+                    ToolTipService.ToolTip="Stop recording" Width="32" Height="32" Padding="4"
+                    Style="{ThemeResource AccentButtonStyle}">
+                <FontIcon Glyph="&#xE71A;" FontSize="14"/>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

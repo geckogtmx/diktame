@@ -59,6 +59,11 @@ public sealed partial class LoadingViewModel : ObservableObject
     private bool _isRecording;
 
     /// <summary>
+    /// Temporary vision telemetry data set before RunVisionPipelineCoreAsync, consumed by the logging enrichment.
+    /// </summary>
+    private (string CaptureMode, string ActionType, int ImageWidth, int ImageHeight, long CaptureMs)? _pendingVisionTelemetry;
+
+    /// <summary>
     /// Transient per-trigger mode override for Stream Deck per-button modes.
     /// Null = use app's active mode. Set by <see cref="TriggerPipeline"/>, consumed by pipeline methods.
     /// </summary>
@@ -1778,6 +1783,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             // Step 3: Process capture — use the window image directly or extract sub-region
             Log.Debug("Vision: processing capture (mode={Mode})", snippingResult.Mode);
             var visionSettings = _settings.Current.Vision;
+            var captureSw = System.Diagnostics.Stopwatch.StartNew();
 
             var (imageData, mimeType) = await Task.Run(() =>
             {
@@ -1806,6 +1812,29 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return DiktaMe.Core.Vision.ImageProcessor.PrepareForApi(
                     screenshot, visionSettings.MaxImageDimensionPx);
             }).ConfigureAwait(true);
+
+            captureSw.Stop();
+            long captureMs = captureSw.ElapsedMilliseconds;
+
+            // Compute captured image dimensions for telemetry
+            int imgWidth, imgHeight;
+            if (snippingResult.Mode == DiktaMe.Core.Vision.CaptureMode.Region
+                && snippingResult.Region is { } telemetryRegion)
+            {
+                imgWidth = telemetryRegion.Width;
+                imgHeight = telemetryRegion.Height;
+            }
+            else if (snippingResult.Mode == DiktaMe.Core.Vision.CaptureMode.AllMonitors)
+            {
+                var virtualScreen = DiktaMe.Core.Vision.ScreenCapture.GetVirtualScreenBounds();
+                imgWidth = virtualScreen.Width;
+                imgHeight = virtualScreen.Height;
+            }
+            else
+            {
+                imgWidth = bounds.Width;
+                imgHeight = bounds.Height;
+            }
 
             if (imageData.Length == 0)
             {
@@ -1844,6 +1873,15 @@ public sealed partial class LoadingViewModel : ObservableObject
             Log.Information("Vision: action={Action}, useLocal={Local}, query={Query}",
                 actionResult.Action, actionResult.UseLocal, actionResult.UserQuery ?? "(default)");
 
+            // Set vision telemetry for history logging
+            _pendingVisionTelemetry = (
+                CaptureMode: snippingResult.Mode.ToString(),
+                ActionType: actionResult.Action.ToString(),
+                ImageWidth: imgWidth,
+                ImageHeight: imgHeight,
+                CaptureMs: captureMs
+            );
+
             // Resolve provider from modal toggle
             string visionProvider = actionResult.UseLocal
                 ? "ollama"
@@ -1856,11 +1894,13 @@ public sealed partial class LoadingViewModel : ObservableObject
             // Save and Color actions handle their own flow, so let them through.
             if (actionResult.SkipAi
                 && actionResult.Action != DiktaMe.Core.Vision.VisionAction.Save
-                && actionResult.Action != DiktaMe.Core.Vision.VisionAction.Color)
+                && actionResult.Action != DiktaMe.Core.Vision.VisionAction.Color
+                && actionResult.Action != DiktaMe.Core.Vision.VisionAction.Record)
             {
                 CopyImageToClipboard(imageData);
                 _notifications.ShowToast("Vision", "Image copied to clipboard (no AI)",
                     NotificationType.Success, suppressTts: true);
+                await LogVisionOnlyAsync("vision", captureMs, snippingResult.Mode, actionResult.Action, imgWidth, imgHeight).ConfigureAwait(false);
                 return;
             }
 
@@ -1890,6 +1930,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                     // No AI — copy image to clipboard + offer FileSavePicker for custom destination
                     CopyImageToClipboard(imageData);
                     await SaveVisionWithPickerAsync(savedPath, imageData).ConfigureAwait(false);
+                    await LogVisionOnlyAsync("vision", captureMs, snippingResult.Mode, actionResult.Action, imgWidth, imgHeight).ConfigureAwait(false);
                     return;
 
                 case DiktaMe.Core.Vision.VisionAction.Chat:
@@ -1910,6 +1951,11 @@ public sealed partial class LoadingViewModel : ObservableObject
 
                 case DiktaMe.Core.Vision.VisionAction.Color:
                     await HandleVisionColorPickAsync(imageData).ConfigureAwait(false);
+                    await LogVisionOnlyAsync("color_pick", captureMs, snippingResult.Mode, actionResult.Action, imgWidth, imgHeight).ConfigureAwait(false);
+                    return;
+
+                case DiktaMe.Core.Vision.VisionAction.Record:
+                    await HandleVideoRecordAsync(bounds, snippingResult).ConfigureAwait(false);
                     return;
 
                 case DiktaMe.Core.Vision.VisionAction.Clipboard:
@@ -1925,6 +1971,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         finally
         {
+            _pendingVisionTelemetry = null;
             // Restore audio ducking (Vision triggers Processing state which ducks audio)
             try { await _audioDucker.RestoreAsync().ConfigureAwait(false); }
             catch (Exception ex) { Log.Debug(ex, "Vision: ducking restore failed (non-fatal)"); }
@@ -2143,6 +2190,118 @@ public sealed partial class LoadingViewModel : ObservableObject
                 Log.Warning(ex, "Vision: failed to copy image to clipboard");
             }
         });
+    }
+
+    private async Task HandleVideoRecordAsync(
+        (int X, int Y, int Width, int Height) bounds,
+        Views.SnippingResult snippingResult)
+    {
+        // Determine capture region (selected region or full monitor)
+        int left, top, width, height;
+        if (snippingResult.Mode == DiktaMe.Core.Vision.CaptureMode.Region
+            && snippingResult.Region is { } region)
+        {
+            left = bounds.X + region.X;  // Region is relative to monitor; convert to screen coords
+            top = bounds.Y + region.Y;
+            width = region.Width;
+            height = region.Height;
+        }
+        else
+        {
+            left = bounds.X;
+            top = bounds.Y;
+            width = bounds.Width;
+            height = bounds.Height;
+        }
+
+        // Prepare output path
+        string visionDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "DiktaMe", "vision");
+        Directory.CreateDirectory(visionDir);
+        string outputPath = Path.Combine(visionDir,
+            $"video_{DateTime.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture)}.mp4");
+
+        // Show floating recording bar on UI thread
+        var barTcs = new TaskCompletionSource<bool>();
+        Views.VideoRecordingBarWindow? recordingBar = null;
+        _uiDispatcher!.TryEnqueue(() =>
+        {
+            recordingBar = new Views.VideoRecordingBarWindow();
+            recordingBar.Activate();
+            _ = CompleteBarAsync(barTcs, recordingBar);
+        });
+
+        // Start capture with max duration timeout
+        var options = new DiktaMe.Core.Vision.VideoRecordingOptions();
+        using var capture = new VideoCapture();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(options.MaxDurationSeconds));
+
+        // When user clicks Stop, cancel the capture
+        _ = barTcs.Task.ContinueWith(_ => capture.Stop(), TaskScheduler.Default);
+
+        try
+        {
+            _notifications.ShowToast("Video", "Recording started...", NotificationType.Info, suppressTts: true);
+
+            await capture.RecordAsync(
+                left, top, width, height,
+                outputPath, options, cts.Token).ConfigureAwait(false);
+
+            long fileSize = File.Exists(outputPath) ? new FileInfo(outputPath).Length : 0;
+            _notifications.ShowToast("Video",
+                $"Saved ({fileSize / 1024}KB) → {Path.GetFileName(outputPath)}",
+                NotificationType.Success, suppressTts: true);
+            Log.Information("Video: recording saved to {Path} ({Size} bytes)", outputPath, fileSize);
+        }
+        catch (OperationCanceledException)
+        {
+            Log.Information("Video: recording stopped (user or max duration)");
+            if (File.Exists(outputPath) && new FileInfo(outputPath).Length > 0)
+            {
+                _notifications.ShowToast("Video", $"Saved → {Path.GetFileName(outputPath)}", NotificationType.Success, suppressTts: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Video: recording failed");
+            _notifications.ShowToast("Video Error", ex.Message, NotificationType.Error, suppressTts: true);
+        }
+
+        // Clean up recording bar if still open
+        _uiDispatcher?.TryEnqueue(() =>
+        {
+            try { recordingBar?.Close(); }
+            catch { /* already closed */ }
+        });
+    }
+
+    private static async Task CompleteBarAsync(TaskCompletionSource<bool> tcs, Views.VideoRecordingBarWindow bar)
+    {
+        bool result = await bar.WaitForStopAsync().ConfigureAwait(true);
+        tcs.TrySetResult(result);
+    }
+
+    /// <summary>
+    /// Logs a vision capture that didn't go through AI (Save, Color) to history.db.
+    /// </summary>
+    private async Task LogVisionOnlyAsync(
+        string mode, long captureMs,
+        DiktaMe.Core.Vision.CaptureMode captureMode, DiktaMe.Core.Vision.VisionAction action,
+        int imageWidth, int imageHeight)
+    {
+        var result = new DiktaMe.Core.Pipeline.PipelineResult
+        {
+            Text = string.Empty,
+            Mode = mode,
+            IsSuccess = true,
+            CaptureMode = captureMode.ToString(),
+            ActionType = action.ToString(),
+            ImageWidth = imageWidth,
+            ImageHeight = imageHeight,
+            CaptureMs = captureMs,
+        };
+        await _history.LogSessionAsync(result).ConfigureAwait(false);
     }
 
     private async Task HandleVisionColorPickAsync(byte[] imageData)
@@ -2367,6 +2526,20 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         var result = await pipeline.RunAsync(imageData, mimeType, audioFilePath: null, options, cts.Token)
             .ConfigureAwait(false);
+
+        // Enrich with vision telemetry if available
+        if (_pendingVisionTelemetry is not null)
+        {
+            var t = _pendingVisionTelemetry.Value;
+            result = result with
+            {
+                CaptureMode = t.CaptureMode,
+                ActionType = t.ActionType,
+                ImageWidth = t.ImageWidth,
+                ImageHeight = t.ImageHeight,
+                CaptureMs = t.CaptureMs,
+            };
+        }
 
         _controlPanel.OnPipelineCompleted(this, result);
         _pipelineEventBus.PublishCompleted(result);
