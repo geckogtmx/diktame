@@ -247,8 +247,27 @@ public record ToolResult(
 
 | Tool | Description | Backed By |
 |------|-------------|-----------|
-| `recall` | Semantically search past interactions | `IMemoryLayer.SearchAsync()` |
+| `recall` | Hybrid search: memory observations + connector content | `IMemoryLayer.SearchAsync()` + `IConnector` queries |
 | `remember` | Explicitly store a fact or preference | `IMemoryLayer.StoreAsync()` |
+| `forget` | Remove/supersede a stored memory | Semantic search + `IsSuperseded` flag |
+
+#### `recall` — Hybrid Search (from supermemory)
+
+> **Research source:** supermemory combines document chunk retrieval (RAG) with memory fact retrieval in a single ranked `search()` call.
+
+The user shouldn't need to distinguish "search my email" from "what do you remember." `recall` does hybrid search:
+1. Query `IMemoryLayer.SearchAsync()` for observations (via `MemoryTurnCache`)
+2. If Connectors plugin is available, query relevant `IConnector` instances in parallel
+3. Merge and rank by relevance score
+4. Return unified results to the LLM
+
+#### `forget` — Semantic Forgetting (from supermemory)
+
+When user says "forget that I work at Contoso":
+1. Try exact content match in observations
+2. If no exact match, fall back to semantic search (similarity threshold 0.85)
+3. If multiple candidates found, present them to user for voice confirmation before acting
+4. Mark `IsSuperseded = true` — never hard-delete (audit trail)
 
 ### 3.5 Tool Execution Flow
 
@@ -317,6 +336,34 @@ When you don't have a tool for something, say so honestly.
 Keep responses under 2-3 sentences unless the user asks for detail.
 Always confirm when you've completed an action.
 ```
+
+#### Telos-Informed Prompt Assembly (from LOOM Operator Telos + supermemory)
+
+> **Research source:** LOOM's Operator Telos system (5-file identity model) + supermemory's pre-computed profile injection (~50ms).
+
+The static system prompt above is the fallback. When Memory plugin is available, Chaviz assembles a **Telos-informed system prompt** using `IMemoryLayer.GetProfilePromptFragmentAsync()`:
+
+```
+[Persona — static, from persona config]
+You are Chaviz, the voice assistant for dIKta.me...
+
+[Identity — immutable, user-defined via Memory Settings, from Tier 3 Identity section]
+The user is: {Identity.Name}, {Identity.Role}. Domain: {Identity.Domain}.
+Language: {Identity.LanguagePreferences}.
+Constraints: {Identity.Constraints}
+
+[Work Style — auto-updated by Memory consolidation, from Tier 3 Work Style section]
+{WorkStyle.TonePreference}. {WorkStyle.VocabularyPatterns}.
+
+[Active Context — dynamic, from Tier 3 Tools & Context section]
+Currently working on: {ToolsContext.ActiveProjects}
+Recent: {History.Last3Entries}
+
+[Tools available — from tool registry]
+...tool definitions...
+```
+
+The `GetProfilePromptFragmentAsync()` call produces the Identity + Work Style + Active Context block as a pre-formatted string. Chaviz prepends persona instructions and appends tool definitions. If Memory plugin is absent, falls back to the static prompt above.
 
 ---
 

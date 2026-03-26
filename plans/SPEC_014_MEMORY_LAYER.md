@@ -99,6 +99,24 @@ Stable knowledge about the user — persists across sessions, modes, and workflo
 | **Lifetime** | Persistent until user edits or deletes |
 | **Inspired by** | LOOM L4 (Identity) + Honcho Peer Card (dynamic behavioral summaries) |
 
+#### Telos-Inspired Profile Structure (from LOOM Operator Telos + supermemory)
+
+> **Research source:** [supermemory](https://github.com/supermemoryai/supermemory) (#1 on LongMemEval, LoCoMo, ConvoMem benchmarks) + LOOM Engine Operator Profile system (`/git/loom-engine/knowledge/04_Operations/Operator/`).
+
+Tier 3 should adopt a **structured sub-section model** inspired by LOOM's 5-file Operator Profile rather than a flat `UserProfile` record:
+
+| Section | LOOM Equivalent | Contains | Mutability |
+|---------|----------------|----------|------------|
+| **Identity** | `operator-telos.md` | Name, role, domain expertise, language preferences, values/constraints | **User-editable only** — never auto-updated by consolidation |
+| **Work Style** | `operator-profile.md` | Writing style per mode, tone preferences, formality level, vocabulary patterns | Auto-updated by consolidation, user-reviewable |
+| **Interaction Modes** | `operator-modes.md` | Per-dictation-mode preferences (Professional=formal, Casual=loose) | Maps to existing `ModePreferences` dict |
+| **History** | `operator-history.md` | Observation log — dated entries of meaningful preference changes | Append-only, prevents silent drift |
+| **Tools & Context** | `operator-tools-and-knowledge.md` | Known apps, workflows, project context, active integrations | Auto-enriched by Connectors plugin |
+
+**Critical rule from LOOM:** Identity section is **immutable during execution** — only the user can change it via Memory Settings page. Consolidation can propose changes but never auto-apply to Identity.
+
+**Supermemory pattern:** Their `profile` endpoint returns pre-computed `static` + `dynamic` fields in ~50ms. Map: Identity + Work Style = static, History + Tools & Context = dynamic. `GetProfileAsync()` should return a **pre-formatted prompt fragment** (string), not a data structure — pre-compute on consolidation, cache in memory, serve fast.
+
 #### Tier 2: Observations
 
 Atomic facts extracted from interactions — typed, tagged, mode-scoped.
@@ -175,6 +193,12 @@ public interface IMemoryLayer
     Task<UserProfile> GetProfileAsync(CancellationToken cancellationToken = default);
     Task UpdateProfileAsync(UserProfile profile, CancellationToken cancellationToken = default);
 
+    // --- Profile as Prompt Fragment (NEW — from supermemory pattern) ---
+    // Returns pre-formatted string ready for system prompt injection.
+    // Pre-computed on consolidation, cached, served in <50ms.
+    // Chaviz and pipeline hooks inject this directly — no serialization at query time.
+    Task<string> GetProfilePromptFragmentAsync(CancellationToken cancellationToken = default);
+
     // --- Consolidation (NEW — from Honcho dreamer) ---
     Task<ConsolidationResult> ConsolidateAsync(CancellationToken cancellationToken = default);
 }
@@ -194,7 +218,10 @@ public record Observation(
     double Confidence,
     bool IsNovel,
     string? SourcePipelineId,
-    DateTimeOffset Timestamp);
+    DateTimeOffset Timestamp,
+    MemoryEntryId? SupersedesId = null,   // NEW (supermemory): links to the observation this replaces
+    bool IsSuperseded = false,             // NEW (supermemory): true when a newer observation replaces this
+    DateTimeOffset? ExpiresAt = null);     // NEW (supermemory): auto-forget after this timestamp (null = permanent)
 
 public record UserProfile(
     IReadOnlyDictionary<string, string> GlobalPreferences,
@@ -207,7 +234,35 @@ public record ConsolidationResult(
     IReadOnlyList<string> PendingReviewItems);
 ```
 
-### 2.4 Local Security & Authentication
+### 2.4 Version Chains, Auto-Expiry & Dedup (from supermemory)
+
+> **Research source:** supermemory uses `updatesMemoryId` + `relation` ("updates"|"extends"|"derives") for version chains, `forgetAfter` for auto-expiry, and `contentHash` for dedup.
+
+**Version chains:** When a new observation supersedes an existing one (e.g., "I moved to SF" replaces "I live in NYC"):
+1. Semantic search existing observations with similarity > 0.85
+2. If match found with same `ObservationType`, set `SupersedesId` on new observation and `IsSuperseded = true` on old
+3. Superseded observations excluded from search results but retained for audit trail
+4. `Context`-type observations default `ExpiresAt = now + RetentionDays`; `Fact`/`Preference` default to `null` (permanent until superseded)
+
+**Content hash dedup:** `ExtractObservationsAsync` should compute SHA-256 of input text and check against a `recent_hashes` ring buffer (last 1000 entries, 24h TTL). If match found, skip extraction entirely — saves an LLM call.
+
+### 2.5 Per-Turn Memory Cache (from supermemory AI SDK middleware)
+
+During a single Chaviz conversation turn, the orchestrator may invoke multiple tools (`recall`, `search_email`, `check_calendar`) that each query memory. To avoid redundant SQLite+VSS queries:
+
+```csharp
+public sealed class MemoryTurnCache : IDisposable
+{
+    // Created at turn start, disposed at turn end
+    // Caches SearchAsync results keyed by (queryText, filter hash)
+    // Caches GetProfilePromptFragmentAsync result
+    // Fresh instance per new user message — stale on next turn
+}
+```
+
+The orchestrator creates a `MemoryTurnCache` at the start of each user turn and passes it to tool implementations via DI scope.
+
+### 2.6 Local Security & Authentication
 
 - **Strictly Local**: All memory data resides encrypted on the user's device
 - **Integration with SecureStorage**: Memory encryption keys stored using existing DPAPI-based SecureStorage

@@ -1184,8 +1184,8 @@ Open-source Python agent memory library by Plastic Labs. Researched for cognitiv
 | ID | Feature | Effort | Notes |
 |----|---------|--------|-------|
 | VN-1 | Background beautification (gradients, shadows) | MEDIUM | CleanShot X's signature. Marketing use case. |
-| VN-2 | Screen recording + GIF | HIGH | Different product category entirely. |
-| VN-3 | Color picker / pixel ruler | LOW | Developer niche. Win32 `GetPixel`. |
+| VN-2 | ~~Screen recording + GIF~~ → **PROMOTED to SPEC_002 §15** | HIGH | Loom-style "Capture Moments" — short clips with voice + Gemini video understanding. Full design in SPEC_002. |
+| VN-3 | ~~Color picker / pixel ruler~~ → **PROMOTED to SPEC_002 §16** | LOW→MED | AI-powered design capture — pick colors → memory-aware palette generation → connector routing. Full design in SPEC_002. |
 | VN-4 | Multi-monitor picker | LOW | Already capture active monitor; need selector for others. |
 | VN-5 | WebP output | LOW | Trivial ImageProcessor extension. |
 | VN-6 | Watermarking automation | LOW | Logo/text overlay on output. |
