@@ -1,22 +1,25 @@
 # Developer Handoff
 
-## Next Session — V3 AI Video Understanding + UX Polish
+## Next Session — V3 AI Video Understanding + Remaining SPEC_002
 
 **Priority 1:** V3 — Gemini video understanding (describe/document/bug report prompts). See SPEC_002 §15.4.
 - Upload MP4 to Gemini File API → poll until `state: ACTIVE` → `generateContent` with video reference
 - Post-capture modal with video-specific actions (Describe, Document, Bug Report)
 
-**Priority 2:** Video capture UX polish:
-- Selection border overlay during recording (dotted rectangle like Windows Snipping Tool)
-- Error feedback: close recording bar if capture fails
-- Clean up 0-byte MP4 files on failure
+**Priority 2:** V4 — System audio capture (WASAPI loopback). Meeting clip use case.
 
-**Priority 3:** Loom parity features — camera bubble (V6), share link (V5). See SPEC_002 §19.1.
+**Priority 3:** C3 — Multi-pick color palette (accumulate multiple pixel picks → palette card with all hex values)
+
+**Shipped this session (2026-03-26 afternoon):**
+- V6 Camera bubble: PIP webcam overlay in MP4, 16:9 aspect ratio, auto-prefers USB cameras over virtual. ScreenRecorderLib `VideoCaptureOverlay`.
+- Recording toolbar → CP bar decision: future work will replace standalone `RecordingOverlayWindow` with CP bar recording controls (leveraging auto-collapse + snap positions)
 
 **Also pending:**
 - Audit #3: Cloud provider retry (Polly). 2-3 hrs.
 - VG-4: Scrolling capture research (effort TBD — complex Win32 scroll-and-stitch)
 - Freeform transparency masking (currently crops to bounding box, Windows does shape mask)
+- V7: Filler word removal — post-STT cleanup pass. MEDIUM priority.
+- Video UX polish: selection border during recording, error feedback, 0-byte cleanup
 
 ### Vision Logging Gaps — ✅ RESOLVED
 

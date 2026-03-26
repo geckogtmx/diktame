@@ -2233,7 +2233,10 @@ public sealed partial class LoadingViewModel : ObservableObject
         });
 
         // Start capture with max duration timeout
-        var options = new DiktaMe.Core.Vision.VideoRecordingOptions();
+        var options = new DiktaMe.Core.Vision.VideoRecordingOptions
+        {
+            EnableWebcam = true, // V6: PIP webcam bubble
+        };
         using var capture = new VideoCapture();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(options.MaxDurationSeconds));
 
@@ -2308,27 +2311,43 @@ public sealed partial class LoadingViewModel : ObservableObject
     {
         // Re-open a color picker overlay using the same captured screenshot.
         // Must create WinUI Window on UI thread — use TaskCompletionSource to bridge.
-        var colorTcs = new TaskCompletionSource<Views.ColorPickResult?>();
+        var colorTcs = new TaskCompletionSource<List<Views.ColorPickResult>?>();
 
         _uiDispatcher?.TryEnqueue(() =>
         {
             _ = ShowColorPickerOverlayAsync(colorTcs, imageData);
         });
 
-        var colorResult = await colorTcs.Task.ConfigureAwait(false);
-        if (colorResult is null)
+        var palette = await colorTcs.Task.ConfigureAwait(false);
+        if (palette is null || palette.Count == 0)
         {
             return; // Cancelled
         }
 
-        ClipboardManager.SetText(colorResult.Hex);
-        Log.Information("ColorPicker: {Hex} copied to clipboard", colorResult.Hex);
-        _notifications.ShowToast("Color Picked", $"{colorResult.Hex}  —  rgb({colorResult.R}, {colorResult.G}, {colorResult.B})",
-            NotificationType.Success, suppressTts: true);
+        if (palette.Count == 1)
+        {
+            // Single pick — same behavior as before
+            var c = palette[0];
+            ClipboardManager.SetText(c.Hex);
+            Log.Information("ColorPicker: {Hex} copied to clipboard", c.Hex);
+            _notifications.ShowToast("Color Picked", $"{c.Hex}  —  rgb({c.R}, {c.G}, {c.B})",
+                NotificationType.Success, suppressTts: true);
+        }
+        else
+        {
+            // Multi-pick palette — copy all as formatted text
+            var lines = palette.Select(c => $"{c.Hex}  rgb({c.R}, {c.G}, {c.B})");
+            var paletteText = string.Join(Environment.NewLine, lines);
+            ClipboardManager.SetText(paletteText);
+            Log.Information("ColorPicker: palette of {Count} colors copied to clipboard", palette.Count);
+            _notifications.ShowToast("Palette Copied",
+                $"{palette.Count} colors copied to clipboard",
+                NotificationType.Success, suppressTts: true);
+        }
     }
 
     private async Task ShowColorPickerOverlayAsync(
-        TaskCompletionSource<Views.ColorPickResult?> tcs, byte[] imageData)
+        TaskCompletionSource<List<Views.ColorPickResult>?> tcs, byte[] imageData)
     {
         try
         {

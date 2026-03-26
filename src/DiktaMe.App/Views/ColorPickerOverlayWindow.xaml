@@ -33,8 +33,24 @@
             </StackPanel>
         </Border>
 
+        <!-- Palette strip (accumulated picks) -->
+        <Border x:Name="PaletteContainer"
+                CornerRadius="8" Padding="12,8"
+                Background="#D0181818"
+                BorderBrush="#40FFFFFF" BorderThickness="1"
+                HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                Margin="0,0,0,60" Visibility="Collapsed"
+                IsHitTestVisible="False">
+            <StackPanel Spacing="6">
+                <StackPanel x:Name="PalettePanel" Orientation="Horizontal" Spacing="6" />
+                <TextBlock x:Name="PaletteCountText" Text=""
+                           Foreground="#B0FFFFFF" FontSize="11"
+                           HorizontalAlignment="Center" FontFamily="Consolas"/>
+            </StackPanel>
+        </Border>
+
         <!-- Bottom hint text -->
-        <TextBlock Text="Click to pick color  |  Esc = Cancel"
+        <TextBlock Text="Click to pick colors  |  Enter = Done  |  Backspace = Undo  |  Esc = Cancel/Finish"
                    Foreground="White" FontSize="14" Opacity="0.8"
                    HorizontalAlignment="Center" VerticalAlignment="Bottom"
                    Margin="0,0,0,32" IsHitTestVisible="False" />

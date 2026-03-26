@@ -39,8 +39,8 @@ public sealed class VideoCapture : IDisposable
         if (width % 2 != 0) width++;
         if (height % 2 != 0) height++;
 
-        Log.Information("VideoCapture: starting {W}x{H} at ({L},{T}), fps={Fps}, bitrate={Kbps}kbps, audio={Audio}",
-            width, height, left, top, options.FrameRateHz, options.BitrateKbps, options.EnableMicAudio);
+        Log.Information("VideoCapture: starting {W}x{H} at ({L},{T}), fps={Fps}, bitrate={Kbps}kbps, mic={Mic}, sysAudio={Sys}, webcam={Webcam}",
+            width, height, left, top, options.FrameRateHz, options.BitrateKbps, options.EnableMicAudio, options.EnableSystemAudio, options.EnableWebcam);
 
         var displaySource = DisplayRecordingSource.MainMonitor;
         Log.Debug("VideoCapture: MainMonitor source = {Source} (null={IsNull})",
@@ -55,6 +55,45 @@ public sealed class VideoCapture : IDisposable
         displaySource.SourceRect = new ScreenRect(left, top, width, height);
         Log.Debug("VideoCapture: source DeviceName={Dev}, SourceRect=({L},{T} {W}x{H})",
             displaySource.DeviceName, left, top, width, height);
+
+        // Build source and overlay lists
+        var sources = new List<RecordingSourceBase> { displaySource };
+        var overlays = new List<RecordingOverlayBase>();
+
+        if (options.EnableWebcam)
+        {
+            // List available video capture devices for selection
+            var devices = Recorder.GetSystemVideoCaptureDevices();
+            foreach (var dev in devices)
+            {
+                Log.Debug("VideoCapture: available camera — '{Name}' path='{Path}'",
+                    dev.DeviceName, dev.DeviceName);
+            }
+
+            var webcamOverlay = new VideoCaptureOverlay
+            {
+                AnchorPoint = Anchor.BottomRight,
+                Offset = new ScreenSize(20, 20),
+                Size = new ScreenSize(options.WebcamBubbleSize, (int)(options.WebcamBubbleSize * 9.0 / 16.0)),
+            };
+
+            // Use specific device if configured, otherwise first available
+            if (!string.IsNullOrEmpty(options.WebcamDeviceName))
+            {
+                webcamOverlay.DeviceName = options.WebcamDeviceName;
+            }
+            else if (devices.Count > 0)
+            {
+                // Prefer a real USB camera over virtual cameras (Snap Camera, OBS Virtual, etc.)
+                var preferred = devices.FirstOrDefault(d =>
+                    d.DeviceName.Contains("usb", StringComparison.OrdinalIgnoreCase)) ?? devices[0];
+                webcamOverlay.DeviceName = preferred.DeviceName;
+                Log.Information("VideoCapture: auto-selected camera '{Name}'", preferred.DeviceName);
+            }
+            overlays.Add(webcamOverlay);
+            Log.Information("VideoCapture: webcam overlay enabled ({Size}px, bottom-right)",
+                options.WebcamBubbleSize);
+        }
 
         var recorderOptions = new RecorderOptions
         {
@@ -71,14 +110,17 @@ public sealed class VideoCapture : IDisposable
             },
             AudioOptions = new AudioOptions
             {
-                IsAudioEnabled = options.EnableMicAudio,
+                IsAudioEnabled = options.EnableMicAudio || options.EnableSystemAudio,
                 IsInputDeviceEnabled = options.EnableMicAudio,
-                IsOutputDeviceEnabled = false, // Don't capture system audio (V1/V2)
+                IsOutputDeviceEnabled = options.EnableSystemAudio,
             },
             SourceOptions = new SourceOptions
             {
-                RecordingSources = [displaySource],
+                RecordingSources = sources,
             },
+            OverlayOptions = overlays.Count > 0
+                ? new OverLayOptions { Overlays = overlays }
+                : null,
         };
 
         _recorder = Recorder.CreateRecorder(recorderOptions);

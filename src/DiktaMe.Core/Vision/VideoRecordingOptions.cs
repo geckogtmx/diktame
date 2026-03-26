@@ -16,4 +16,16 @@ public sealed record VideoRecordingOptions
 
     /// <summary>Capture microphone audio and mux into MP4. Default true (V2).</summary>
     public bool EnableMicAudio { get; init; } = true;
+
+    /// <summary>Capture system/desktop audio via WASAPI loopback. Default true (V4). Mixes with mic if both enabled.</summary>
+    public bool EnableSystemAudio { get; init; } = true;
+
+    /// <summary>Enable webcam overlay (picture-in-picture bubble) in the recording. Default false.</summary>
+    public bool EnableWebcam { get; init; }
+
+    /// <summary>Webcam bubble size in pixels (width and height — circular crop). Default 200.</summary>
+    public int WebcamBubbleSize { get; init; } = 200;
+
+    /// <summary>Webcam device name/path. Null = auto-select first available camera.</summary>
+    public string? WebcamDeviceName { get; init; }
 }

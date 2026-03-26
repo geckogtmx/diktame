@@ -580,12 +580,16 @@ Task<LlmResult> ProcessWithVideoAsync(
 | **V1** | Record region/window/fullscreen → MP4. Floating stop bar. Record button in VisionActionWindow. | 2-3 sessions | ScreenRecorderLib (Media Foundation) | ✅ Shipped |
 | **V2** | Mic audio mux into MP4. Voice narration during recording. | 1 session | V1 | ✅ Shipped (built into V1 via ScreenRecorderLib) |
 | **V3** | Gemini video upload + understanding prompts (describe/document/bug report). Post-capture AI actions. | 1-2 sessions | V2 + Gemini File API | Pending |
-| **V4** | System audio capture (WASAPI loopback). Meeting clip use case. | 1 session | V2 | Pending |
+| **V4** | System audio capture (WASAPI loopback). Meeting clip use case. `IsOutputDeviceEnabled` flag. | 1 session | V2 | ✅ Shipped |
 | ~~**V5**~~ | ~~Share link — Supabase upload + short URL~~ | ~~1-2 sessions~~ | — | Deferred → SPEC_013 Connectors |
-| **V6** | **Camera bubble** — PIP webcam overlay during recording. Resize/reposition/avatar fallback. Loom's identity feature. | 1-2 sessions | V2 | Pending |
+| **V6** | **Camera bubble** — PIP webcam overlay during recording. 16:9 aspect ratio, bottom-right. Prefers USB cameras over virtual. | 1-2 sessions | V2 | ✅ Shipped |
 | **V7** | **Filler word removal** — Post-STT cleanup pass (remove "um", "uh", pauses) from narration. Loom AI parity. | 1 session | V2 + STT pipeline | Pending |
 
-### 15.8 Constraints
+### 15.8 Future: CP Bar as Recording Controls
+
+> **Decision (2026-03-26):** Instead of a separate floating recording toolbar window, repurpose the existing Control Panel bar as the recording control surface. The CP bar already has auto-collapse, snap-to-position (6 positions), and auto-hide. During recording: show Record/Stop/Pause buttons + elapsed timer in the CP bar. This avoids the toolbar appearing in screen recordings and reuses existing infrastructure. The current `RecordingOverlayWindow` is a temporary placeholder until this is implemented.
+
+### 15.9 Constraints
 
 - **Max clip duration:** 120s default (configurable). Not a meeting recorder — that's SPEC_001.
 - **File size:** 30s 1080p H.264 ≈ 15-30MB. Gemini accepts up to 2GB.
@@ -842,7 +846,7 @@ This means: **draw an arrow at a bug → ask "What's wrong here?" → AI focuses
 |----|---------|--------|--------|
 | C1 | Basic picker: freeze → eyedropper → hex to clipboard | 0.5 session | ✅ Shipped |
 | ~~C2~~ | ~~Magnifier overlay + live color display~~ | ~~0.5 session~~ | ❌ Cut |
-| C3 | Multi-pick palette: accumulate multiple color picks from one capture → palette card with all hex values | 0.5 session | Pending |
+| C3 | Multi-pick palette: click to accumulate colors, Enter=done, Backspace=undo, Esc=finish/cancel. Palette strip UI + formatted clipboard output. | 0.5 session | ✅ Shipped |
 
 ### Phase 3: Markup & Annotation
 | ID | Feature | Effort |
@@ -858,9 +862,9 @@ This means: **draw an arrow at a bug → ask "What's wrong here?" → AI focuses
 | V1 | Record region/window/fullscreen → MP4 via ScreenRecorderLib. Floating recording bar (pause/stop). | 2-3 sessions | ✅ Shipped |
 | V2 | Mic audio mux into MP4. Voice narration. | 1 session | ✅ Shipped (built into V1) |
 | V3 | Gemini video understanding + AI actions (describe/document/bug) | 1-2 sessions | Pending |
-| V4 | System audio capture (WASAPI loopback) — meeting clips | 1 session | Pending |
+| V4 | System audio capture (WASAPI loopback) — meeting clips | 1 session | ✅ Shipped |
 | ~~V5~~ | ~~Share link — Supabase upload + short URL~~ | ~~1-2 sessions~~ | Deferred → SPEC_013 Connectors |
-| V6 | Camera bubble — PIP webcam overlay during recording | 1-2 sessions | Pending |
+| V6 | Camera bubble — PIP webcam overlay during recording (16:9, USB-preferred) | 1 session | ✅ Shipped |
 | V7 | Filler word removal — post-STT cleanup pass on narration audio | 1 session | Pending |
 
 ### Phase 5: AI Integration Across Surfaces

@@ -20,7 +20,8 @@ namespace DiktaMe.App.Views;
 /// </summary>
 public sealed partial class ColorPickerOverlayWindow : Window
 {
-    private readonly TaskCompletionSource<ColorPickResult?> _tcs = new();
+    private readonly TaskCompletionSource<List<ColorPickResult>?> _tcs = new();
+    private readonly List<ColorPickResult> _palette = [];
     private byte[]? _pixelData;
     private int _imageWidth;
     private int _imageHeight;
@@ -90,15 +91,42 @@ public sealed partial class ColorPickerOverlayWindow : Window
         await tcs.Task.ConfigureAwait(false);
     }
 
-    public Task<ColorPickResult?> GetResultAsync() => _tcs.Task;
+    public Task<List<ColorPickResult>?> GetResultAsync() => _tcs.Task;
 
     private void OnKeyDown(object sender, KeyRoutedEventArgs e)
     {
         if (e.Key == Windows.System.VirtualKey.Escape)
         {
-            Log.Debug("ColorPicker: cancelled by Esc");
-            _tcs.TrySetResult(null);
+            if (_palette.Count > 0)
+            {
+                // Esc with picks = finish with current palette
+                Log.Information("ColorPicker: finishing palette with {Count} colors (Esc)", _palette.Count);
+                _tcs.TrySetResult(_palette);
+            }
+            else
+            {
+                Log.Debug("ColorPicker: cancelled by Esc");
+                _tcs.TrySetResult(null);
+            }
+
             Close();
+            e.Handled = true;
+        }
+        else if (e.Key == Windows.System.VirtualKey.Enter)
+        {
+            // Enter = finish with current palette
+            Log.Information("ColorPicker: finishing palette with {Count} colors (Enter)", _palette.Count);
+            _tcs.TrySetResult(_palette.Count > 0 ? _palette : null);
+            Close();
+            e.Handled = true;
+        }
+        else if (e.Key == Windows.System.VirtualKey.Back && _palette.Count > 0)
+        {
+            // Backspace = undo last pick
+            var removed = _palette[^1];
+            _palette.RemoveAt(_palette.Count - 1);
+            Log.Debug("ColorPicker: undid {Hex}, {Count} remaining", removed.Hex, _palette.Count);
+            UpdatePaletteUI();
             e.Handled = true;
         }
     }
@@ -115,9 +143,35 @@ public sealed partial class ColorPickerOverlayWindow : Window
         var (r, g, b) = GetPixelColor(pos);
         string hex = $"#{r:X2}{g:X2}{b:X2}";
 
-        Log.Information("ColorPicker: picked {Hex} at ({X},{Y})", hex, (int)pos.X, (int)pos.Y);
-        _tcs.TrySetResult(new ColorPickResult(hex, r, g, b));
-        Close();
+        var pick = new ColorPickResult(hex, r, g, b);
+        _palette.Add(pick);
+        Log.Information("ColorPicker: picked {Hex} at ({X},{Y}) — palette #{N}", hex, (int)pos.X, (int)pos.Y, _palette.Count);
+        UpdatePaletteUI();
+    }
+
+    private void UpdatePaletteUI()
+    {
+        PalettePanel.Children.Clear();
+        foreach (var pick in _palette)
+        {
+            var swatch = new Border
+            {
+                Width = 32,
+                Height = 32,
+                CornerRadius = new CornerRadius(4),
+                BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(128, 255, 255, 255)),
+                BorderThickness = new Thickness(1),
+                Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, pick.R, pick.G, pick.B)),
+            };
+
+            var tooltip = new ToolTip { Content = pick.Hex };
+            ToolTipService.SetToolTip(swatch, tooltip);
+
+            PalettePanel.Children.Add(swatch);
+        }
+
+        PaletteContainer.Visibility = _palette.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        PaletteCountText.Text = $"{_palette.Count} color{(_palette.Count == 1 ? "" : "s")}  |  Click more  |  Enter = Done  |  Backspace = Undo";
     }
 
     private void UpdateColorPreview(Point pos)
