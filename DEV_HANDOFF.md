@@ -1,8 +1,45 @@
 # Developer Handoff
 
-## Next Session — Vision Phase 2: Color Picker (SPEC_002 §16)
+## Next Session — Video Capture (SPEC_002 §15)
 
-**What shipped this session (2026-03-26)**:
+**Priority:** Build Loom-style video capture pipeline (record region → MP4 + mic audio). See SPEC_002 §15 for full design. Use `Windows.Graphics.Capture` API + NAudio mic mux. Reference: [SimpleRecorder](https://github.com/MicrosoftDocs/SimpleRecorder).
+
+**Also pending:**
+- Audit #3: Cloud provider retry (Polly). 2-3 hrs.
+- VG-4: Scrolling capture research (effort TBD — complex Win32 scroll-and-stitch)
+- Freeform transparency masking (currently crops to bounding box, Windows does shape mask)
+- Vision DB logging gaps (see below)
+
+### Vision Logging Gaps (found during log review)
+
+The vision pipeline has good file-level logging but **history.db is missing key data**:
+
+| Missing | Why it matters |
+|---------|---------------|
+| **Capture mode** (Region/Window/FullScreen/AllMonitors/Freeform) | Can't analyze which modes users prefer |
+| **Action type** (Save/Clipboard/Chat/Note/OCR/Table/Color) | Can't tell what users do with captures |
+| **Color picks** not logged at all | No `mode = "color"` in history.db |
+| **Image dimensions** | Can't correlate capture size with latency |
+| **Capture-only latency** (separate from AI inference) | Vision avg 9.4s but that's mostly inference — capture itself is 60-140ms |
+
+**Recommendation:** Add `capture_mode TEXT`, `action_type TEXT`, `image_width INT`, `image_height INT`, `capture_ms INT` columns to history table. Log Color picks as `mode = "color_pick"`. This is user activity telemetry, not debug logging.
+
+### Latency Baselines (from 2026-03-26 logs)
+
+| Operation | Latency |
+|-----------|---------|
+| Monitor capture (1920x1080 GDI) | 60-100ms |
+| All monitors pre-capture (3 screens) | 200-350ms |
+| PNG decode for color picker | <10ms |
+| Image crop (CropRegion) | 5-20ms |
+| PrepareForApi (resize+compress) | 3-45ms |
+| Whisper STT (16-24s audio) | 470-611ms (GPU, 0.03x ratio) |
+
+---
+
+## Current Session (2026-03-26)
+
+**What shipped this session:**
 
 ### Spec Work
 - SPEC_002 extended: §15 Video Capture (Loom-style), §16 Color Picker, §17 Markup & Annotation, §18 Unified Roadmap, §19 Competitive Table
