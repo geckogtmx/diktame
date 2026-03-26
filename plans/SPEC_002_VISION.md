@@ -581,7 +581,7 @@ Task<LlmResult> ProcessWithVideoAsync(
 | **V2** | Mic audio mux into MP4. Voice narration during recording. | 1 session | V1 | ✅ Shipped (built into V1 via ScreenRecorderLib) |
 | **V3** | Gemini video upload + understanding prompts (describe/document/bug report). Post-capture AI actions. | 1-2 sessions | V2 + Gemini File API | Pending |
 | **V4** | System audio capture (WASAPI loopback). Meeting clip use case. | 1 session | V2 | Pending |
-| **V5** | **Share link** — Supabase upload + short URL + instant copy. Loom parity — critical for viral loop. | 1-2 sessions | V3 + VG-3 | Pending |
+| ~~**V5**~~ | ~~Share link — Supabase upload + short URL~~ | ~~1-2 sessions~~ | — | Deferred → SPEC_013 Connectors |
 | **V6** | **Camera bubble** — PIP webcam overlay during recording. Resize/reposition/avatar fallback. Loom's identity feature. | 1-2 sessions | V2 | Pending |
 | **V7** | **Filler word removal** — Post-STT cleanup pass (remove "um", "uh", pauses) from narration. Loom AI parity. | 1 session | V2 + STT pipeline | Pending |
 
@@ -841,8 +841,8 @@ This means: **draw an arrow at a bug → ask "What's wrong here?" → AI focuses
 | ID | Feature | Effort | Status |
 |----|---------|--------|--------|
 | C1 | Basic picker: freeze → eyedropper → hex to clipboard | 0.5 session | ✅ Shipped |
-| C2 | Magnifier overlay + live color display | 0.5 session | Pending |
-| C3 | Multi-pick palette mode | 0.5 session | Pending |
+| ~~C2~~ | ~~Magnifier overlay + live color display~~ | ~~0.5 session~~ | ❌ Cut |
+| C3 | Multi-pick palette: accumulate multiple color picks from one capture → palette card with all hex values | 0.5 session | Pending |
 
 ### Phase 3: Markup & Annotation
 | ID | Feature | Effort |
@@ -859,7 +859,7 @@ This means: **draw an arrow at a bug → ask "What's wrong here?" → AI focuses
 | V2 | Mic audio mux into MP4. Voice narration. | 1 session | ✅ Shipped (built into V1) |
 | V3 | Gemini video understanding + AI actions (describe/document/bug) | 1-2 sessions | Pending |
 | V4 | System audio capture (WASAPI loopback) — meeting clips | 1 session | Pending |
-| V5 | **Share link** — Supabase upload + short URL. Loom parity. | 1-2 sessions | Pending |
+| ~~V5~~ | ~~Share link — Supabase upload + short URL~~ | ~~1-2 sessions~~ | Deferred → SPEC_013 Connectors |
 | V6 | Camera bubble — PIP webcam overlay during recording | 1-2 sessions | Pending |
 | V7 | Filler word removal — post-STT cleanup pass on narration audio | 1 session | Pending |
 
