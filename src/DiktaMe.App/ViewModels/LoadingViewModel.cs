@@ -2252,17 +2252,34 @@ public sealed partial class LoadingViewModel : ObservableObject
                 outputPath, options, cts.Token).ConfigureAwait(false);
 
             long fileSize = File.Exists(outputPath) ? new FileInfo(outputPath).Length : 0;
-            _notifications.ShowToast("Video",
-                $"Saved ({fileSize / 1024}KB) → {Path.GetFileName(outputPath)}",
-                NotificationType.Success, suppressTts: true);
             Log.Information("Video: recording saved to {Path} ({Size} bytes)", outputPath, fileSize);
+
+            // Clean up recording bar before showing action modal
+            _uiDispatcher?.TryEnqueue(() =>
+            {
+                try { recordingBar?.Close(); }
+                catch { /* already closed */ }
+            });
+
+            // Show post-recording action modal (V3)
+            await HandleVideoPostCaptureAsync(outputPath, fileSize).ConfigureAwait(false);
+            return;
         }
         catch (OperationCanceledException)
         {
             Log.Information("Video: recording stopped (user or max duration)");
-            if (File.Exists(outputPath) && new FileInfo(outputPath).Length > 0)
+            long fileSize = File.Exists(outputPath) ? new FileInfo(outputPath).Length : 0;
+            if (fileSize > 0)
             {
-                _notifications.ShowToast("Video", $"Saved → {Path.GetFileName(outputPath)}", NotificationType.Success, suppressTts: true);
+                // Clean up recording bar before showing action modal
+                _uiDispatcher?.TryEnqueue(() =>
+                {
+                    try { recordingBar?.Close(); }
+                    catch { /* already closed */ }
+                });
+
+                await HandleVideoPostCaptureAsync(outputPath, fileSize).ConfigureAwait(false);
+                return;
             }
         }
         catch (Exception ex)
@@ -2271,12 +2288,104 @@ public sealed partial class LoadingViewModel : ObservableObject
             _notifications.ShowToast("Video Error", ex.Message, NotificationType.Error, suppressTts: true);
         }
 
-        // Clean up recording bar if still open
+        // Clean up recording bar if still open (error/empty cases)
         _uiDispatcher?.TryEnqueue(() =>
         {
             try { recordingBar?.Close(); }
             catch { /* already closed */ }
         });
+    }
+
+    private async Task HandleVideoPostCaptureAsync(string videoPath, long fileSize)
+    {
+        // Show action modal on UI thread
+        var actionTcs = new TaskCompletionSource<Views.VideoActionResult>();
+        _uiDispatcher?.TryEnqueue(() =>
+        {
+            _ = ShowVideoActionModalAsync(actionTcs, videoPath, fileSize);
+        });
+
+        var actionResult = await actionTcs.Task.ConfigureAwait(false);
+
+        if (actionResult.Action == Views.VideoAiAction.None)
+        {
+            _notifications.ShowToast("Video",
+                $"Saved ({fileSize / 1024}KB) → {Path.GetFileName(videoPath)}",
+                NotificationType.Success, suppressTts: true);
+            return;
+        }
+
+        // Run Gemini video understanding via VisionPipeline (reuses cloud vision provider)
+        string defaultQuery = actionResult.CustomPrompt ?? actionResult.Action switch
+        {
+            Views.VideoAiAction.Describe => "Describe what happens in this screen recording. Be concise. Focus on the key actions and UI elements shown.",
+            Views.VideoAiAction.Document => "Write step-by-step instructions for the workflow shown in this screen recording. Use numbered steps. Reference UI elements by name where visible.",
+            Views.VideoAiAction.BugReport => "This is a screen recording of a software bug. Generate a structured bug report with: (1) Summary, (2) Expected behavior, (3) Actual behavior, (4) Steps to reproduce based on what you see, (5) Any environment details visible on screen.",
+            _ => "Describe what happens in this screen recording.",
+        };
+
+        _notifications.ShowToast("Video AI", "Analyzing video with Gemini...", NotificationType.Info, suppressTts: true);
+        Log.Information("Video AI: running {Action} on {Path} ({Size}KB)", actionResult.Action, videoPath, fileSize / 1024);
+
+        try
+        {
+            byte[] videoData = await File.ReadAllBytesAsync(videoPath).ConfigureAwait(false);
+
+            // Create cloud vision pipeline (video analysis is cloud-only)
+            var appSettings = _settings.Current;
+            string provider = appSettings.Vision.CloudVisionProvider ?? "gemini";
+            string model = appSettings.Vision.CloudVisionModelId ?? "gemini-2.5-flash";
+            var pipeline = _pipelineFactory.CreateVisionPipeline(provider, model);
+
+            var visionOptions = new DiktaMe.Core.Vision.VisionOptions
+            {
+                DefaultQuery = defaultQuery,
+                SystemPrompt = "You are analyzing a screen recording video. Provide accurate, useful analysis based on what you observe.",
+            };
+
+            var result = await pipeline.RunAsync(
+                videoData, "video/mp4",
+                audioFilePath: null,
+                visionOptions,
+                CancellationToken.None).ConfigureAwait(false);
+
+            if (result.IsSuccess && !string.IsNullOrWhiteSpace(result.Text))
+            {
+                ClipboardManager.SetText(result.Text);
+                Log.Information("Video AI: {Action} complete — {Chars} chars, {Ms}ms", actionResult.Action, result.Text.Length, result.TotalMs);
+                _notifications.ShowToast("Video AI",
+                    $"{actionResult.Action} copied to clipboard ({result.Text.Length} chars)",
+                    NotificationType.Success, suppressTts: true);
+            }
+            else
+            {
+                string errorMsg = result.ErrorMessage ?? "No response from Gemini.";
+                _notifications.ShowToast("Video AI", errorMsg, NotificationType.Warning, suppressTts: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Video AI: {Action} failed", actionResult.Action);
+            _notifications.ShowToast("Video AI Error", ex.Message, NotificationType.Error, suppressTts: true);
+        }
+    }
+
+    private async Task ShowVideoActionModalAsync(
+        TaskCompletionSource<Views.VideoActionResult> tcs, string videoPath, long fileSize)
+    {
+        try
+        {
+            var modal = new Views.VideoActionWindow();
+            modal.SetFileInfo(Path.GetFileName(videoPath), fileSize);
+            modal.Activate();
+            var result = await modal.GetResultAsync();
+            tcs.TrySetResult(result);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "VideoAction: modal failed");
+            tcs.TrySetResult(new Views.VideoActionResult(Views.VideoAiAction.None, null));
+        }
     }
 
     private static async Task CompleteBarAsync(TaskCompletionSource<bool> tcs, Views.VideoRecordingBarWindow bar)
