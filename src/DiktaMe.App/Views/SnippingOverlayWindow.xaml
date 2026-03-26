@@ -13,7 +13,7 @@
 
         <!-- Bottom hint text -->
         <TextBlock x:Name="HintText"
-                   Text="Click = Window  |  Drag = Region  |  Esc = Cancel"
+                   Text="Click = Window  |  Drag = Region  |  Shift+Drag = Freeform  |  F = Full Screen  |  A = All Monitors  |  Esc = Cancel"
                    Foreground="White"
                    FontSize="14"
                    Opacity="0.8"

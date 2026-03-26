@@ -42,6 +42,9 @@ public sealed partial class SnippingOverlayWindow : Window
     private readonly TaskCompletionSource<SnippingResult?> _tcs = new();
     private Point _dragStart;
     private bool _isDragging;
+    private bool _isFreeform;
+    private readonly List<Point> _freeformPoints = [];
+    private Polyline? _freeformLine;
     private Rectangle? _selectionRect;
 
     // Dark overlay rectangles (4 around the selection cutout)
@@ -82,6 +85,16 @@ public sealed partial class SnippingOverlayWindow : Window
             Visibility = Visibility.Collapsed,
         };
         OverlayCanvas.Children.Add(_selectionRect);
+
+        // Freeform selection polyline
+        _freeformLine = new Polyline
+        {
+            Stroke = new SolidColorBrush(Colors.White),
+            StrokeThickness = 2,
+            StrokeDashArray = [5, 3],
+            Visibility = Visibility.Collapsed,
+        };
+        OverlayCanvas.Children.Add(_freeformLine);
 
         // 4 partial dim rects for cutout effect (hidden until drag)
         OverlayCanvas.Children.Add(_overlayTop);
@@ -173,6 +186,23 @@ public sealed partial class SnippingOverlayWindow : Window
             Log.Debug("SnippingOverlay: cancelled by Esc");
             _tcs.TrySetResult(null);
             Close();
+            e.Handled = true;
+        }
+        else if (e.Key == Windows.System.VirtualKey.F)
+        {
+            // F = capture active monitor (full screen of current display)
+            Log.Debug("SnippingOverlay: Full Screen (F key)");
+            _tcs.TrySetResult(new SnippingResult(CaptureMode.FullScreen, null));
+            Close();
+            e.Handled = true;
+        }
+        else if (e.Key == Windows.System.VirtualKey.A)
+        {
+            // A = capture all monitors (virtual screen)
+            Log.Debug("SnippingOverlay: All Monitors (A key)");
+            _tcs.TrySetResult(new SnippingResult(CaptureMode.AllMonitors, null));
+            Close();
+            e.Handled = true;
         }
     }
 
@@ -181,43 +211,85 @@ public sealed partial class SnippingOverlayWindow : Window
         var point = e.GetCurrentPoint(OverlayCanvas);
         _dragStart = point.Position;
         _isDragging = true;
+        _isFreeform = e.KeyModifiers.HasFlag(Windows.System.VirtualKeyModifiers.Shift);
         OverlayCanvas.CapturePointer(e.Pointer);
 
-        // Switch from full dim to 4-rect cutout
+        // Switch from full dim to 4-rect cutout (or freeform line)
         if (_overlayFull is not null)
         {
             _overlayFull.Visibility = Visibility.Collapsed;
         }
 
-        _overlayTop.Visibility = Visibility.Visible;
-        _overlayBottom.Visibility = Visibility.Visible;
-        _overlayLeft.Visibility = Visibility.Visible;
-        _overlayRight.Visibility = Visibility.Visible;
-        if (_selectionRect is not null)
+        if (_isFreeform)
         {
-            _selectionRect.Visibility = Visibility.Visible;
+            // Freeform: start collecting points
+            _freeformPoints.Clear();
+            _freeformPoints.Add(point.Position);
+            if (_freeformLine is not null)
+            {
+                _freeformLine.Points.Clear();
+                _freeformLine.Points.Add(point.Position);
+                _freeformLine.Visibility = Visibility.Visible;
+            }
+
+            // Show full dim with freeform line on top
+            _overlayTop.Visibility = Visibility.Visible;
+            _overlayBottom.Visibility = Visibility.Collapsed;
+            _overlayLeft.Visibility = Visibility.Collapsed;
+            _overlayRight.Visibility = Visibility.Collapsed;
+            _overlayTop.Width = OverlayCanvas.ActualWidth;
+            _overlayTop.Height = OverlayCanvas.ActualHeight;
+            Canvas.SetLeft(_overlayTop, 0);
+            Canvas.SetTop(_overlayTop, 0);
+        }
+        else
+        {
+            // Rectangle: show 4-rect cutout
+            _overlayTop.Visibility = Visibility.Visible;
+            _overlayBottom.Visibility = Visibility.Visible;
+            _overlayLeft.Visibility = Visibility.Visible;
+            _overlayRight.Visibility = Visibility.Visible;
+            if (_selectionRect is not null)
+            {
+                _selectionRect.Visibility = Visibility.Visible;
+            }
         }
     }
 
     private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (!_isDragging || _selectionRect is null)
+        if (!_isDragging)
         {
             return;
         }
 
         var current = e.GetCurrentPoint(OverlayCanvas).Position;
-        double x = Math.Min(_dragStart.X, current.X);
-        double y = Math.Min(_dragStart.Y, current.Y);
-        double w = Math.Abs(current.X - _dragStart.X);
-        double h = Math.Abs(current.Y - _dragStart.Y);
 
-        Canvas.SetLeft(_selectionRect, x);
-        Canvas.SetTop(_selectionRect, y);
-        _selectionRect.Width = w;
-        _selectionRect.Height = h;
+        if (_isFreeform)
+        {
+            // Freeform: accumulate points, draw polyline
+            _freeformPoints.Add(current);
+            _freeformLine?.Points.Add(current);
+        }
+        else
+        {
+            if (_selectionRect is null)
+            {
+                return;
+            }
 
-        UpdateCutout(x, y, w, h);
+            double x = Math.Min(_dragStart.X, current.X);
+            double y = Math.Min(_dragStart.Y, current.Y);
+            double w = Math.Abs(current.X - _dragStart.X);
+            double h = Math.Abs(current.Y - _dragStart.Y);
+
+            Canvas.SetLeft(_selectionRect, x);
+            Canvas.SetTop(_selectionRect, y);
+            _selectionRect.Width = w;
+            _selectionRect.Height = h;
+
+            UpdateCutout(x, y, w, h);
+        }
     }
 
     private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
@@ -230,21 +302,53 @@ public sealed partial class SnippingOverlayWindow : Window
         _isDragging = false;
         OverlayCanvas.ReleasePointerCapture(e.Pointer);
 
-        var current = e.GetCurrentPoint(OverlayCanvas).Position;
-        double w = Math.Abs(current.X - _dragStart.X);
-        double h = Math.Abs(current.Y - _dragStart.Y);
-
-        if (w < 10 && h < 10)
+        if (_isFreeform && _freeformPoints.Count > 5)
         {
-            Log.Debug("SnippingOverlay: click — capturing active window");
-            _tcs.TrySetResult(new SnippingResult(CaptureMode.ActiveWindow, null));
+            // Freeform: compute bounding box of all drawn points
+            double minX = double.MaxValue, minY = double.MaxValue;
+            double maxX = double.MinValue, maxY = double.MinValue;
+            foreach (var pt in _freeformPoints)
+            {
+                if (pt.X < minX) minX = pt.X;
+                if (pt.Y < minY) minY = pt.Y;
+                if (pt.X > maxX) maxX = pt.X;
+                if (pt.Y > maxY) maxY = pt.Y;
+            }
+
+            int x = (int)minX;
+            int y = (int)minY;
+            int w = (int)(maxX - minX);
+            int h = (int)(maxY - minY);
+
+            if (w > 10 && h > 10)
+            {
+                Log.Debug("SnippingOverlay: freeform region ({X},{Y} {W}x{H}) from {Points} points",
+                    x, y, w, h, _freeformPoints.Count);
+                _tcs.TrySetResult(new SnippingResult(CaptureMode.Region, new RectInt32(x, y, w, h)));
+            }
+            else
+            {
+                _tcs.TrySetResult(null); // Too small
+            }
         }
         else
         {
-            int x = (int)Math.Min(_dragStart.X, current.X);
-            int y = (int)Math.Min(_dragStart.Y, current.Y);
-            Log.Debug("SnippingOverlay: region selected ({X},{Y} {W}x{H})", x, y, (int)w, (int)h);
-            _tcs.TrySetResult(new SnippingResult(CaptureMode.Region, new RectInt32(x, y, (int)w, (int)h)));
+            var current = e.GetCurrentPoint(OverlayCanvas).Position;
+            double w = Math.Abs(current.X - _dragStart.X);
+            double h = Math.Abs(current.Y - _dragStart.Y);
+
+            if (w < 10 && h < 10)
+            {
+                Log.Debug("SnippingOverlay: click — capturing active window");
+                _tcs.TrySetResult(new SnippingResult(CaptureMode.ActiveWindow, null));
+            }
+            else
+            {
+                int x = (int)Math.Min(_dragStart.X, current.X);
+                int y = (int)Math.Min(_dragStart.Y, current.Y);
+                Log.Debug("SnippingOverlay: region selected ({X},{Y} {W}x{H})", x, y, (int)w, (int)h);
+                _tcs.TrySetResult(new SnippingResult(CaptureMode.Region, new RectInt32(x, y, (int)w, (int)h)));
+            }
         }
 
         Close();

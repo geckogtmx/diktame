@@ -9,8 +9,11 @@ public enum CaptureMode
     /// <summary>Capture a user-defined rectangular region.</summary>
     Region,
 
-    /// <summary>Capture the entire virtual screen.</summary>
+    /// <summary>Capture the active monitor (full screen).</summary>
     FullScreen,
+
+    /// <summary>Capture all monitors (entire virtual screen).</summary>
+    AllMonitors,
 }
 
 /// <summary>Where the Vision pipeline delivers its result.</summary>

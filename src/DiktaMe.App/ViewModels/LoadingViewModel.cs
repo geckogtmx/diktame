@@ -1740,10 +1740,18 @@ public sealed partial class LoadingViewModel : ObservableObject
 
             Log.Debug("Vision: capturing active monitor ({W}x{H} at {X},{Y})",
                 bounds.Width, bounds.Height, bounds.X, bounds.Y);
-            byte[] monitorPng = await Task.Run(
-                () => DiktaMe.Core.Vision.ScreenCapture.CaptureRegion(bounds.X, bounds.Y, bounds.Width, bounds.Height))
-                .ConfigureAwait(true);
-            Log.Debug("Vision: active monitor captured ({Size} bytes)", monitorPng.Length);
+
+            // Pre-capture both active monitor AND full virtual screen BEFORE showing overlay.
+            // This avoids the overlay (black dim) appearing in the captured image.
+            byte[] monitorPng = null!;
+            byte[] allMonitorsPng = null!;
+            await Task.Run(() =>
+            {
+                monitorPng = DiktaMe.Core.Vision.ScreenCapture.CaptureRegion(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+                allMonitorsPng = DiktaMe.Core.Vision.ScreenCapture.CaptureFullScreen();
+            }).ConfigureAwait(true);
+            Log.Debug("Vision: active monitor captured ({Size} bytes), all monitors ({AllSize} bytes)",
+                monitorPng.Length, allMonitorsPng.Length);
 
             if (monitorPng.Length == 0)
             {
@@ -1782,8 +1790,15 @@ public sealed partial class LoadingViewModel : ObservableObject
                     screenshot = DiktaMe.Core.Vision.ImageProcessor.CropRegion(
                         monitorPng, region.X, region.Y, region.Width, region.Height);
                 }
+                else if (snippingResult.Mode == DiktaMe.Core.Vision.CaptureMode.AllMonitors)
+                {
+                    // Use pre-captured full virtual screen (captured before overlay was shown)
+                    screenshot = allMonitorsPng;
+                    Log.Debug("Vision: using pre-captured all monitors ({Size} bytes)", screenshot.Length);
+                }
                 else
                 {
+                    // FullScreen (active monitor) or ActiveWindow — use pre-captured monitor PNG
                     screenshot = monitorPng;
                 }
 
