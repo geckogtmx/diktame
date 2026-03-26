@@ -1,11 +1,16 @@
 using System.Runtime.InteropServices.WindowsRuntime;
 using DiktaMe.App.Services;
+using DiktaMe.Core.Audio;
+using DiktaMe.Core.Config;
+using DiktaMe.Core.STT;
 using DiktaMe.Core.Vision;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Serilog;
 using Windows.Graphics;
 using Windows.Storage.Streams;
 using Windows.System;
@@ -20,14 +25,17 @@ namespace DiktaMe.App.Views;
 public sealed partial class VisionActionWindow : Window
 {
     private readonly TaskCompletionSource<VisionActionResult?> _tcs = new();
+    private bool _isRecording;
+    private AudioRecorder? _recorder;
+    private string? _recordingPath;
+    private Storyboard? _pulseStoryboard;
 
-    public VisionActionWindow(bool isLocalVision)
+    public VisionActionWindow()
     {
         InitializeComponent();
 
-        // Set initial Local/Cloud toggle
-        LocalRadio.IsChecked = isLocalVision;
-        CloudRadio.IsChecked = !isLocalVision;
+        // Default to None (no AI) — user explicitly selects Local/Cloud when needed
+        NoneRadio.IsChecked = true;
 
         // Window sizing — compact modal
         AppWindow.Resize(new SizeInt32(420, 440));
@@ -152,6 +160,145 @@ public sealed partial class VisionActionWindow : Window
             Complete(VisionAction.Clipboard);
             e.Handled = true;
         }
+    }
+
+    private async void OnMicToggle(object sender, RoutedEventArgs e)
+    {
+        if (_isRecording)
+        {
+            await StopMicRecordingAsync();
+        }
+        else
+        {
+            StartMicRecordingAsync();
+        }
+    }
+
+    private void StartMicRecordingAsync()
+    {
+        try
+        {
+            _isRecording = true;
+            MicIcon.Glyph = "\uE71A"; // Stop icon
+            MicButton.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkRed);
+            StartRecordingPulse();
+
+            var settings = App.Current.Services.GetRequiredService<SettingsManager>();
+            var audioSettings = settings.Current.Audio;
+            _recorder = new AudioRecorder();
+
+            string? deviceLabel = string.IsNullOrEmpty(audioSettings.DeviceName) ? null : audioSettings.DeviceName;
+            _recorder.StartRecording(deviceLabel: deviceLabel, maxDurationSeconds: 30);
+
+            Log.Debug("VisionActionWindow: mic recording started");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "VisionActionWindow: mic recording failed to start");
+            ResetMicButton();
+        }
+    }
+
+    private async Task StopMicRecordingAsync()
+    {
+        try
+        {
+            _recordingPath = _recorder is not null
+                ? await _recorder.StopRecordingAsync()
+                : null;
+
+            StopRecordingPulse();
+            MicIcon.Glyph = "\uE720"; // Mic icon
+            MicButton.Background = null;
+            _isRecording = false;
+
+            Log.Debug("VisionActionWindow: mic recording stopped, transcribing...");
+
+            if (_recordingPath is null || !File.Exists(_recordingPath))
+            {
+                return;
+            }
+
+            // Transcribe using the configured STT provider
+            var settings = App.Current.Services.GetRequiredService<SettingsManager>();
+            var sttFactory = App.Current.Services.GetRequiredService<STTProviderFactory>();
+            string sttProvider = "whisper"; // Default to local for quick dictation in modal
+
+            // Use the active mode's STT if available
+            if (settings.Current.ModeProfiles.TryGetValue("dictate_0", out var ms))
+            {
+                sttProvider = ms.SttProvider;
+            }
+
+            var stt = sttFactory.CreateProvider(sttProvider);
+            if (stt is null)
+            {
+                Log.Warning("VisionActionWindow: no STT provider available");
+                return;
+            }
+
+            string language = settings.Current.General.Language;
+            var result = await stt.TranscribeAsync(_recordingPath, language);
+
+            if (!string.IsNullOrWhiteSpace(result.Text))
+            {
+                // Append to existing text (don't replace what user already typed)
+                string existing = QueryInput.Text?.Trim() ?? "";
+                QueryInput.Text = string.IsNullOrEmpty(existing)
+                    ? result.Text.Trim()
+                    : $"{existing} {result.Text.Trim()}";
+                Log.Information("VisionActionWindow: mic transcribed {Chars} chars", result.Text.Length);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "VisionActionWindow: mic transcription failed");
+        }
+        finally
+        {
+            ResetMicButton();
+            // Clean up temp file
+            try
+            {
+                if (_recordingPath is not null && File.Exists(_recordingPath))
+                {
+                    File.Delete(_recordingPath);
+                }
+            }
+            catch { /* best-effort cleanup */ }
+        }
+    }
+
+    private void ResetMicButton()
+    {
+        _isRecording = false;
+        MicIcon.Glyph = "\uE720"; // Mic icon
+        MicButton.Background = null;
+        StopRecordingPulse();
+    }
+
+    private void StartRecordingPulse()
+    {
+        var animation = new DoubleAnimation
+        {
+            From = 0.0,
+            To = 1.0,
+            Duration = new Duration(TimeSpan.FromMilliseconds(600)),
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever,
+        };
+        Storyboard.SetTarget(animation, RecordingDot);
+        Storyboard.SetTargetProperty(animation, "Opacity");
+        _pulseStoryboard = new Storyboard();
+        _pulseStoryboard.Children.Add(animation);
+        _pulseStoryboard.Begin();
+    }
+
+    private void StopRecordingPulse()
+    {
+        _pulseStoryboard?.Stop();
+        _pulseStoryboard = null;
+        RecordingDot.Opacity = 0;
     }
 
     private void InjectControlBrushes(ThemePalette palette)

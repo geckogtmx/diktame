@@ -1,7 +1,7 @@
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using DiktaMe.Core.Vision;
 using Microsoft.UI;
+using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -15,6 +15,21 @@ using Windows.Graphics;
 using Windows.Storage.Streams;
 
 namespace DiktaMe.App.Views;
+
+/// <summary>
+/// Canvas subclass that exposes ProtectedCursor for crosshair cursor support.
+/// WinUI 3's ProtectedCursor is protected, requiring a subclass to set it.
+/// </summary>
+public sealed class CrosshairCanvas : Canvas
+{
+    public CrosshairCanvas()
+    {
+        Loaded += (_, _) =>
+        {
+            ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.Cross);
+        };
+    }
+}
 
 /// <summary>
 /// Fullscreen overlay for Vision screenshot region selection.
@@ -82,10 +97,20 @@ public sealed partial class SnippingOverlayWindow : Window
         OverlayCanvas.PointerMoved += OnPointerMoved;
         OverlayCanvas.PointerReleased += OnPointerReleased;
 
-        // Crosshair cursor for precise region selection
-        SetCrosshairCursor();
+        // Crosshair cursor set via CrosshairCanvas.ProtectedCursor (WinUI 3 native)
+
+        // ESC handling: hook KeyDown on both Content and Canvas, and force focus on activation.
+        // Without focus, KeyDown never fires — which makes ESC feel unresponsive.
         Content.KeyDown += OnKeyDown;
         Content.IsTabStop = true;
+        OverlayCanvas.IsTabStop = true;
+        OverlayCanvas.KeyDown += OnKeyDown;
+
+        // Force keyboard focus when the window activates
+        Activated += (_, _) =>
+        {
+            OverlayCanvas.Focus(FocusState.Programmatic);
+        };
 
         OverlayCanvas.SizeChanged += (_, _) => ResizeOverlayFull();
     }
@@ -248,23 +273,6 @@ public sealed partial class SnippingOverlayWindow : Window
         Fill = new SolidColorBrush(ColorHelper.FromArgb(0x80, 0x00, 0x00, 0x00)),
     };
 
-    // ── Crosshair cursor via Win32 ────────────────────────────────────────
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern IntPtr SetClassLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
-
-    private const int IDC_CROSS = 32515;
-    private const int GCLP_HCURSOR = -12;
-
-    private void SetCrosshairCursor()
-    {
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-        var crosshair = LoadCursor(IntPtr.Zero, IDC_CROSS);
-        SetClassLongPtr(hwnd, GCLP_HCURSOR, crosshair);
-    }
 }
 
 /// <summary>Result from the snipping overlay.</summary>

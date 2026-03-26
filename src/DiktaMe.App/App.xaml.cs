@@ -34,6 +34,7 @@ public partial class App : Application
     private Views.QuickChatWindow? _quickChatWindow;
     private ViewModels.LoadingViewModel? _loadingViewModel;
     private SingleInstanceManager? _singleInstance;
+    private bool _isExiting;
 
     /// <summary>
     /// Gets the current App instance.
@@ -384,6 +385,7 @@ public partial class App : Application
             // Intercept close: hide instead of destroying, so the tray icon keeps the app alive.
             _window.AppWindow.Closing += (s, e) =>
             {
+                if (_isExiting) return; // Allow close during app exit
                 e.Cancel = true;
                 _window.AppWindow.Hide();
             };
@@ -398,6 +400,17 @@ public partial class App : Application
     /// <summary>
     /// Hides the main window (to system tray).
     /// </summary>
+    /// <summary>
+    /// Sets the exiting flag and calls Application.Exit().
+    /// The flag prevents AppWindow.Closing handlers from cancelling the close.
+    /// </summary>
+    public void RequestExit()
+    {
+        Log.Information("App: exit requested, setting _isExiting flag");
+        _isExiting = true;
+        Exit();
+    }
+
     public void HideMainWindow()
     {
         _window?.AppWindow.Hide();
@@ -443,6 +456,7 @@ public partial class App : Application
         TrackWindow(window);
         window.AppWindow.Closing += (s, e) =>
         {
+            if (_isExiting) return;
             e.Cancel = true;
             window.AppWindow.Hide();
             UntrackWindow(window);
@@ -464,6 +478,7 @@ public partial class App : Application
         TrackWindow(_quickChatWindow);
         _quickChatWindow.AppWindow.Closing += (s, e) =>
         {
+            if (_isExiting) return;
             e.Cancel = true;
             _quickChatWindow.AppWindow.Hide();
             UntrackWindow(_quickChatWindow!);

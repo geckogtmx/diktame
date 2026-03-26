@@ -220,18 +220,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             else if (string.Equals(llmProvider, "ollama", StringComparison.OrdinalIgnoreCase)
                      && ollamaResult?.Status == OllamaStatus.Ready)
             {
-                // Lightweight fallback: at minimum warm the DI singleton so the model
-                // is loaded in Ollama's context (even if factory instance is cold).
-                StatusText = _loc.GetString("Loading_WarmingOllama");
-                try
-                {
-                    await _ollamaProvider.WarmUpAsync();
-                    LogOllamaGpuAssessment(_ollamaProvider);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Ollama warmup failed during loading");
-                }
+                await RunLightweightOllamaWarmupAsync();
             }
             Progress = 85;
 
@@ -589,6 +578,30 @@ public sealed partial class LoadingViewModel : ObservableObject
     // ── E2E Warmup (SPEC_011 §11) ──────────────────────────────────────────
 
     /// <summary>
+    /// Lightweight warmup: warm only the user's configured LLM model via factory.
+    /// Used when OllamaAutoWarmup is off but Ollama is ready.
+    /// </summary>
+    private async Task RunLightweightOllamaWarmupAsync()
+    {
+        StatusText = _loc.GetString("Loading_WarmingOllama");
+        try
+        {
+            string activeModel = GetActiveLlmModel();
+            Log.Debug("Ollama lightweight warmup: model '{Model}'", activeModel);
+            var factoryProvider = _llmFactory.CreateProvider("ollama", model: activeModel);
+            if (factoryProvider is OllamaProvider ollamaWarmup)
+            {
+                await ollamaWarmup.WarmUpAsync();
+                LogOllamaGpuAssessment(ollamaWarmup);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Ollama warmup failed during loading");
+        }
+    }
+
+    /// <summary>
     /// Full production-path warmup: warms both Whisper (model load + Vulkan shaders)
     /// and the factory-cached Ollama provider (HTTP connection + model context).
     /// Eliminates cold-start penalty on first dictation.
@@ -634,8 +647,10 @@ public sealed partial class LoadingViewModel : ObservableObject
             try
             {
                 var llmSw = System.Diagnostics.Stopwatch.StartNew();
+                string activeModel = GetActiveLlmModel();
+                Log.Debug("E2E warmup: warming active LLM model '{Model}'", activeModel);
                 var factoryProvider = _llmFactory.CreateProvider("ollama",
-                    model: _settings.Current.OllamaModel);
+                    model: activeModel);
 
                 await factoryProvider.ProcessAsync("Hi", "You are a text formatter. Output only the result.", "warmup");
                 llmMs = llmSw.ElapsedMilliseconds;
@@ -865,6 +880,21 @@ public sealed partial class LoadingViewModel : ObservableObject
             "LlmProvider" => ms.LlmProvider,
             _ => string.Empty,
         };
+    }
+
+    /// <summary>
+    /// Gets the LLM model configured in the active dictation mode.
+    /// Falls back to the global OllamaModel setting if no mode-specific model is set.
+    /// </summary>
+    private string GetActiveLlmModel()
+    {
+        if (_settings.Current.ModeProfiles.TryGetValue("dictate_0", out var ms)
+            && !string.IsNullOrEmpty(ms.LlmModel))
+        {
+            return ms.LlmModel;
+        }
+
+        return _settings.Current.OllamaModel;
     }
 
     /// <summary>
@@ -1890,7 +1920,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     {
         try
         {
-            var actionWindow = new Views.VisionActionWindow(_controlPanel.IsLocalVision);
+            var actionWindow = new Views.VisionActionWindow();
             await actionWindow.SetThumbnailAsync(imageData).ConfigureAwait(true);
             actionWindow.CenterOnMonitor(bounds);
             actionWindow.Activate();
@@ -1931,8 +1961,9 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         if (result.IsSuccess)
         {
-            ClipboardManager.SetText(result.Text);
-            Log.Information("Vision: copied {Chars} chars to clipboard", result.Text.Length);
+            // Copy both AI text AND screenshot image to clipboard (VG-1)
+            CopyTextAndImageToClipboard(result.Text, imageData);
+            Log.Information("Vision: copied {Chars} chars + image to clipboard", result.Text.Length);
             string preview = result.Text.Length > 200
                 ? string.Concat(result.Text.AsSpan(0, 200), "...")
                 : result.Text;
@@ -1997,73 +2028,25 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             Log.Information("Vision+Note: got description ({Chars} chars)", visionDescription.Length);
         }
-        else
-        {
-            Log.Warning("Vision+Note: vision pipeline failed, proceeding with voice note only");
-        }
 
-        // Phase 2: Record voice note (same as RunNotePipelineAsync)
-        _notifications.ShowToast("Vision+Note", "Recording voice note... Press hotkey to stop",
-            NotificationType.Info, suppressTts: true);
-        var (audioFile, recordingDurationMs) = await RecordAudioAsync("Note", isDictate: false);
-        if (audioFile == null)
+        // Phase 2: Save note directly (no auto-record — user types/dictates query in modal)
+        if (visionDescription is null && string.IsNullOrWhiteSpace(actionResult.UserQuery))
         {
-            Log.Warning("Vision+Note: No audio file produced");
-            // Still save the vision-only note if we have a description
-            if (visionDescription is not null)
-            {
-                await SaveVisionNoteAsync(visionDescription, savedImagePath, null).ConfigureAwait(false);
-                _notifications.ShowToast("Note Saved", "Vision note saved (no voice)",
-                    NotificationType.Success, spokenKey: "Loading_NoteSaved");
-            }
-            else
-            {
-                _notifications.ShowToast("Error", "No audio and no vision result",
-                    NotificationType.Error, suppressTts: true);
-            }
+            _notifications.ShowToast("Error", "No vision result and no query provided",
+                NotificationType.Error, suppressTts: true);
             return;
         }
 
-        // Stop ducking
-        await _audioDucker.RestoreAsync().ConfigureAwait(false);
+        await SaveVisionNoteAsync(visionDescription, savedImagePath, actionResult.UserQuery).ConfigureAwait(false);
 
-        // Phase 3: Run note pipeline with vision description as context
-        UtilityProfile profile = _pipelines.GetActiveProfile("note");
-        var noteOptions = new DiktaMe.Core.Pipeline.NoteOptions
-        {
-            SystemPrompt = profile.SystemPrompt,
-            ModelName = profile.ModelName,
-            Language = _settings.Current.General.Language,
-            NotesFilePath = _settings.Current.NotesFilePath,
-            TimestampFormat = "yyyy-MM-dd HH:mm:ss",
-            RecordingDurationMs = recordingDurationMs,
-            PreCapturedContext = BuildVisionNoteContext(actionResult.UserQuery, visionDescription, savedImagePath),
-        };
-
-        var notePipeline = _pipelineFactory.CreateNotePipeline();
-        notePipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
-        _recordingCts = new CancellationTokenSource();
-        var noteResult = await notePipeline.RunAsync(audioFile, noteOptions, _recordingCts.Token);
-
-        _controlPanel.OnPipelineCompleted(this, noteResult);
-        _pipelineEventBus.PublishCompleted(noteResult);
-
-        if (noteResult.IsSuccess)
-        {
-            Log.Information("Vision+Note: saved to {FilePath}", noteOptions.NotesFilePath);
-            _notifications.ShowToast(
-                _loc.GetString("Loading_NoteSaved_Title"),
-                _loc.GetFormatted("Loading_NoteSaved_Message", Path.GetFileName(noteOptions.NotesFilePath)),
-                NotificationType.Success, spokenKey: "Loading_NoteSaved");
-        }
-        else
-        {
-            _notifications.ShowToast("Error", noteResult.ErrorMessage ?? "Note pipeline failed",
-                NotificationType.Error);
-        }
+        Log.Information("Vision+Note: saved to notes");
+        _notifications.ShowToast(
+            _loc.GetString("Loading_NoteSaved_Title"),
+            "Vision note saved",
+            NotificationType.Success, spokenKey: "Loading_NoteSaved");
     }
 
-    private async Task SaveVisionNoteAsync(string visionDescription, string imagePath, string? voiceText)
+    private async Task SaveVisionNoteAsync(string? visionDescription, string imagePath, string? userQuery)
     {
         string notesPath = _settings.Current.NotesFilePath;
         string? dir = Path.GetDirectoryName(notesPath);
@@ -2076,18 +2059,47 @@ public sealed partial class LoadingViewModel : ObservableObject
         var sb = new System.Text.StringBuilder();
         sb.AppendLine();
         sb.AppendLine($"## {timestamp}");
-        sb.AppendLine();
-        sb.AppendLine($"**Vision**: {visionDescription.Trim()}");
-        sb.AppendLine();
-        sb.AppendLine($"![capture]({imagePath})");
-        if (!string.IsNullOrWhiteSpace(voiceText))
+        if (!string.IsNullOrWhiteSpace(userQuery))
         {
             sb.AppendLine();
-            sb.AppendLine(voiceText.Trim());
+            sb.AppendLine(userQuery.Trim());
         }
+        if (!string.IsNullOrWhiteSpace(visionDescription))
+        {
+            sb.AppendLine();
+            sb.AppendLine($"> **Vision**: {visionDescription.Trim()}");
+        }
+        sb.AppendLine();
+        sb.AppendLine($"![capture]({imagePath})");
 
         await File.AppendAllTextAsync(notesPath, sb.ToString()).ConfigureAwait(false);
-        Log.Information("Vision+Note: appended vision-only note to {Path}", notesPath);
+        Log.Information("Vision+Note: appended note to {Path}", notesPath);
+    }
+
+    /// <summary>
+    /// Copies both AI-generated text and the screenshot image to clipboard.
+    /// Paste into text editors gets the text; paste into image apps gets the image.
+    /// </summary>
+    private void CopyTextAndImageToClipboard(string text, byte[] pngData)
+    {
+        _uiDispatcher?.TryEnqueue(() =>
+        {
+            try
+            {
+                var package = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                package.SetText(text);
+                var stream = new InMemoryRandomAccessStream();
+                stream.WriteAsync(pngData.AsBuffer()).AsTask().GetAwaiter().GetResult();
+                stream.Seek(0);
+                package.SetBitmap(RandomAccessStreamReference.CreateFromStream(stream));
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
+                Log.Information("Vision: copied text ({Chars} chars) + image ({Size} bytes) to clipboard", text.Length, pngData.Length);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Vision: failed to copy text+image to clipboard");
+            }
+        });
     }
 
     private void CopyImageToClipboard(byte[] pngData)

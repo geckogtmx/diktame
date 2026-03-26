@@ -19,12 +19,30 @@
                        Stretch="Uniform"/>
             </Border>
 
-            <!-- Text input -->
-            <TextBox x:Name="QueryInput" Grid.Row="1"
-                     PlaceholderText="What should I look for? (optional)"
-                     AcceptsReturn="False" MaxLength="500"
-                     Foreground="{StaticResource AppTextBrush}"
-                     KeyDown="QueryInput_KeyDown"/>
+            <!-- Text input + mic button -->
+            <Grid Grid.Row="1" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="QueryInput" Grid.Column="0"
+                         PlaceholderText="What should I look for? (optional)"
+                         AcceptsReturn="False" MaxLength="500"
+                         Foreground="{StaticResource AppTextBrush}"
+                         KeyDown="QueryInput_KeyDown"/>
+                <Button x:Name="MicButton" Grid.Column="1" Click="OnMicToggle"
+                        Width="36" Height="36" Padding="0"
+                        ToolTipService.ToolTip="Dictate query (click to start/stop)"
+                        VerticalAlignment="Center">
+                    <Grid>
+                        <FontIcon x:Name="MicIcon" Glyph="&#xE720;" FontSize="16"/>
+                        <Ellipse x:Name="RecordingDot" Width="8" Height="8"
+                                 Fill="Red" Opacity="0"
+                                 HorizontalAlignment="Right" VerticalAlignment="Top"
+                                 Margin="0,-2,-2,0"/>
+                    </Grid>
+                </Button>
+            </Grid>
 
             <!-- Local/Cloud/None toggle -->
             <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="16"

@@ -54,11 +54,19 @@ public sealed partial class NotificationService
     {
         try
         {
-            new ToastContentBuilder()
+            var builder = new ToastContentBuilder()
                 .AddText(title)
                 .AddText(message)
-                .AddAudio(new Uri("ms-winsoundevent:Notification.Default"), silent: true)
-                .Show();
+                .AddAudio(new Uri("ms-winsoundevent:Notification.Default"), silent: true);
+
+            // App logo in toast notification (replaces generic blue icon)
+            string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "icon.png");
+            if (File.Exists(iconPath))
+            {
+                builder.AddAppLogoOverride(new Uri(iconPath));
+            }
+
+            builder.Show();
 
             // TTS: speak notification aloud if enabled (fire-and-forget, errors handled internally)
             if (!suppressTts)

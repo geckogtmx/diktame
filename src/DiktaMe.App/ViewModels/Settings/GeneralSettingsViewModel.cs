@@ -412,6 +412,6 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
             UseShellExecute = true,
         });
 
-        Application.Current.Exit();
+        ((App)Application.Current).RequestExit();
     }
 }

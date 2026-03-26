@@ -78,7 +78,7 @@ public sealed partial class TrayIconViewModel : ObservableObject
     private void Quit()
     {
         Log.Information("TrayIcon: Quit requested");
-        Application.Current.Exit();
+        ((App)Application.Current).RequestExit();
     }
 
     // ── State update helpers ─────────────────────────────────────────────────
