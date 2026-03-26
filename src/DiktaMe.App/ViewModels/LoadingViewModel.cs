@@ -1895,7 +1895,8 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (actionResult.SkipAi
                 && actionResult.Action != DiktaMe.Core.Vision.VisionAction.Save
                 && actionResult.Action != DiktaMe.Core.Vision.VisionAction.Color
-                && actionResult.Action != DiktaMe.Core.Vision.VisionAction.Record)
+                && actionResult.Action != DiktaMe.Core.Vision.VisionAction.Record
+                && actionResult.Action != DiktaMe.Core.Vision.VisionAction.Edit)
             {
                 CopyImageToClipboard(imageData);
                 _notifications.ShowToast("Vision", "Image copied to clipboard (no AI)",
@@ -1924,6 +1925,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             }
 
             // Step 5: Branch on action
+            processAction:
             switch (actionResult.Action)
             {
                 case DiktaMe.Core.Vision.VisionAction.Save:
@@ -1956,6 +1958,31 @@ public sealed partial class LoadingViewModel : ObservableObject
 
                 case DiktaMe.Core.Vision.VisionAction.Record:
                     await HandleVideoRecordAsync(bounds, snippingResult).ConfigureAwait(false);
+                    return;
+
+                case DiktaMe.Core.Vision.VisionAction.Edit:
+                    var editResult = await HandleAnnotationEditAsync(imageData).ConfigureAwait(false);
+                    if (editResult != null)
+                    {
+                        imageData = editResult.ImageData;
+                        _annotationContext = editResult.AnnotationContext;
+                        Log.Information("Vision: annotation edit complete — {Count} annotations, context={Len} chars",
+                            editResult.Annotations.Count, editResult.AnnotationContext.Length);
+                        // Re-show VisionActionWindow with the annotated image
+                        var reActionTcs = new TaskCompletionSource<DiktaMe.Core.Vision.VisionActionResult?>();
+                        _uiDispatcher!.TryEnqueue(() =>
+                        {
+                            _ = ShowVisionActionWindowAsync(reActionTcs, imageData, bounds);
+                        });
+                        actionResult = await reActionTcs.Task.ConfigureAwait(false);
+                        if (actionResult is null || actionResult.Action == DiktaMe.Core.Vision.VisionAction.Edit)
+                        {
+                            return; // Cancelled or tried to edit again (prevent infinite loop)
+                        }
+
+                        goto processAction; // Re-enter the switch with new action
+                    }
+
                     return;
 
                 case DiktaMe.Core.Vision.VisionAction.Clipboard:
@@ -2519,6 +2546,32 @@ public sealed partial class LoadingViewModel : ObservableObject
     }
 
     private bool _colorPickerAnalyzeRequested;
+    private string? _annotationContext;
+
+    private async Task<Views.AnnotationResult?> HandleAnnotationEditAsync(byte[] imageData)
+    {
+        var tcs = new TaskCompletionSource<Views.AnnotationResult?>();
+        _uiDispatcher?.TryEnqueue(() => _ = OpenAnnotationEditorAsync(tcs, imageData));
+        return await tcs.Task.ConfigureAwait(false);
+    }
+
+    private static async Task OpenAnnotationEditorAsync(
+        TaskCompletionSource<Views.AnnotationResult?> tcs, byte[] imageData)
+    {
+        try
+        {
+            var editor = new Views.AnnotationWindow();
+            await editor.SetImageAsync(imageData);
+            editor.Activate();
+            var result = await editor.GetResultAsync();
+            tcs.TrySetResult(result);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "AnnotationWindow: failed");
+            tcs.TrySetResult(null);
+        }
+    }
 
     private async Task ShowColorPickerOverlayAsync(
         TaskCompletionSource<List<Views.ColorPickResult>?> tcs, byte[] imageData)

@@ -26,6 +26,9 @@ public enum VisionAction
 
     /// <summary>Record a video clip of the screen region — no AI inference (V1).</summary>
     Record,
+
+    /// <summary>Open annotation editor to mark up the screenshot before processing.</summary>
+    Edit,
 }
 
 /// <summary>

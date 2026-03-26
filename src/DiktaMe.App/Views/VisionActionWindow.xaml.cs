@@ -147,6 +147,7 @@ public sealed partial class VisionActionWindow : Window
     private void OnTable(object sender, RoutedEventArgs e) => Complete(VisionAction.Table);
     private void OnColor(object sender, RoutedEventArgs e) => Complete(VisionAction.Color);
     private void OnRecord(object sender, RoutedEventArgs e) => Complete(VisionAction.Record);
+    private void OnEdit(object sender, RoutedEventArgs e) => Complete(VisionAction.Edit);
 
     private void QueryInput_KeyDown(object sender, KeyRoutedEventArgs e)
     {
