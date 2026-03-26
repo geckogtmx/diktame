@@ -56,6 +56,12 @@ public sealed partial class QuickChatViewModel : ObservableObject
     public bool HasImageAttachment => ImageAttachment is { Length: > 0 };
 
     /// <summary>
+    /// Model ID to pre-select once models finish loading.
+    /// Set by the Vision modal's Local/Cloud toggle.
+    /// </summary>
+    public string? PendingModelId { get; set; }
+
+    /// <summary>
     /// Sets image context from the Vision modal.
     /// The image will be included with the user's first chat message.
     /// </summary>
@@ -127,6 +133,13 @@ public sealed partial class QuickChatViewModel : ObservableObject
                 foreach (var model in models)
                 {
                     AvailableModels.Add(model);
+                }
+
+                // Apply pre-selected model from Vision modal if set
+                if (PendingModelId is not null)
+                {
+                    SelectedModelId = PendingModelId;
+                    PendingModelId = null;
                 }
             });
         }
@@ -211,7 +224,21 @@ public sealed partial class QuickChatViewModel : ObservableObject
             // Get context window for the selected model
             int contextWindow = GetContextWindowForModel(SelectedModelId);
 
-            var pipeline = _pipelineFactory.CreateChatPipeline();
+            // When an image is attached, resolve the correct provider for the selected model.
+            // CreateChatPipeline() returns the dictation LLM (Ollama text-only by default),
+            // which can't handle images if the user selected a cloud model like Gemini.
+            bool hasImage = history.Any(t => t.ImageData is { Length: > 0 });
+            ChatPipeline pipeline;
+            if (hasImage && !string.IsNullOrWhiteSpace(SelectedModelId))
+            {
+                string provider = ModelListService.ResolveProviderFromModelId(SelectedModelId);
+                pipeline = _pipelineFactory.CreateChatPipelineForModel(provider, SelectedModelId);
+            }
+            else
+            {
+                pipeline = _pipelineFactory.CreateChatPipeline();
+            }
+
             var options = new ChatOptions
             {
                 SystemPrompt = SystemPrompt,

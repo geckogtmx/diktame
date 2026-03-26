@@ -1217,4 +1217,18 @@ Open-source Python agent memory library by Plastic Labs. Researched for cognitiv
 
 ---
 
+### Visual Memory — Screenshot Indexing Service (→ SPEC_014 §6.6 + Phase PV)
+
+> **Added 2026-03-25** — Full design in [`SPEC_014_MEMORY_LAYER.md`](SPEC_014_MEMORY_LAYER.md) §6.6 + Phase PV (tasks PV.1–PV.10).
+
+Every Vision screenshot gets auto-indexed into the Memory Layer with structured metadata (description, keywords, content_type, ocr_text, app_name, window_title, dominant_colors). Background-indexed after each action — zero user latency. Enables "find that error screenshot" queries from Chat or Chaviz.
+
+**Off-pipeline batch mode**: The indexer can also run as a standalone service — point it at the `vision/` folder, it reads all PNGs + `.meta.json` sidecars, indexes anything not yet in the DB, and produces a `vision_index_report.md` summary (content_type distribution, top keywords, date range, failures). Useful for bootstrapping visual memory from existing screenshot history, or re-indexing after model upgrades.
+
+**Implementation phases**: PV.1–PV.6 (core indexing) ship with Phase P (pipeline hooks). PV.7–PV.8 (batch re-indexer + report) can ship independently. PV.9 (Chat integration) depends on Phase Q (memory search).
+
+**Moat extension**: No screenshot tool offers searchable visual memory. This turns ephemeral captures into a personal knowledge base.
+
+---
+
 *End of SPEC_015*

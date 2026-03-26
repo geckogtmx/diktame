@@ -226,7 +226,7 @@ Every module in the platform has a defined relationship with memory — what it 
 | **Connectors (SPEC_013)** | Context-aware LLM re-processing in presets | Connector activity patterns | `OnBeforeLlmProcessing` in preset LLM pass |
 | **Meetings (SPEC_001)** | "What was discussed about this topic before?", participant history, synthesis enrichment | Meeting observations (topics, decisions, action items, participants) | `IMemoryLayer.SearchAsync()` before synthesis |
 | **Refinemmarly (SPEC_016)** | User's style preferences and correction history for smarter grammar suggestions | Correction patterns ("user always changes X to Y"), style observations per mode | `OnBeforeLlmProcessing` + post-correction extraction |
-| **Vision (SPEC_002)** | Project context for visual queries | Visual context observations | `OnBeforeLlmProcessing` |
+| **Vision (SPEC_002)** | Visual history search ("find that error message screenshot"), project context for visual queries, past OCR text recall | **Visual Memory entries**: structured metadata per screenshot (description, keywords, content_type, ocr_text, dominant_colors, app_name, window_title) + embedding. Background-indexed after every Save/Clipboard/OCR/Table action. | `OnCompleted` (background indexing) + `OnBeforeLlmProcessing` (recall) + `IMemoryLayer.SearchAsync()` (Chat visual search) |
 | **Core Dictation** | User profile injected into LLM system prompt | Raw material for observation extraction | `OnBeforeLlmProcessing` + `OnCompleted` |
 | **Future plugins** | `IMemoryLayer` from DI — same interface, zero coupling | `IMemoryLayer.StoreAsync()` | DI resolution |
 
@@ -415,6 +415,140 @@ Connector preset "Meeting Debrief" fires after a meeting → Its LLM re-processi
 
 Chaviz session: user asks to "draft an email to Sarah about the budget" → Chaviz uses `recall` tool to find previous budget discussions → drafts email with relevant context → stores this interaction as observation → Next time user mentions "budget email", Chaviz remembers the previous draft.
 
+### 6.6 Visual Memory (Vision → Memory → Chat/Chaviz)
+
+Every screenshot captured through Vision (Ctrl+Alt+S) is automatically indexed into the Memory Layer as a rich, searchable entry. This transforms ephemeral screenshots into **persistent visual knowledge** — the user can later ask "what was that error I saw yesterday?" or "find the table from that dashboard" and get results.
+
+#### Capture-Time Metadata (Free — No AI)
+
+These fields are extracted at capture time with zero latency cost:
+
+| Field | Source | Example |
+|-------|--------|---------|
+| `file_path` | Save location in `AppData/DiktaMe/vision/` | `vision_20260325_143022.png` |
+| `timestamp` | `DateTime.UtcNow` | `2026-03-25T14:30:22Z` |
+| `app_name` | `GetForegroundWindow()` → process name | `devenv`, `chrome`, `excel` |
+| `window_title` | `GetWindowText()` on foreground HWND | `"Program.cs - DiktaMe - Visual Studio"` |
+| `monitor_index` | Which display the capture came from | `0`, `1` |
+| `region_type` | Full screen vs user-snipped region | `full_screen`, `snipped_region` |
+| `source_action` | Which VisionAction the user chose | `Save`, `Clipboard`, `Ocr`, `Table`, `Chat`, `Note` |
+| `dimensions` | Width × height of captured image | `1920x1080`, `640x480` |
+| `file_size_bytes` | PNG file size on disk | `245760` |
+
+#### AI-Indexed Metadata (Background — Post-Action)
+
+After the user's chosen action completes, a **background indexing task** runs a single structured vision prompt on the local model (minicpm-v). This adds zero latency to the user's flow:
+
+| Field | Source | Example |
+|-------|--------|---------|
+| `description` | AI one-line summary | `"Python traceback showing KeyError in data_loader.py line 42"` |
+| `keywords` | AI-generated tags (array) | `["error", "python", "traceback", "KeyError", "data_loader"]` |
+| `content_type` | AI classification | `screenshot`, `photo`, `document`, `table`, `diagram`, `code`, `error_message`, `chat`, `webpage` |
+| `ocr_text` | Full text extraction (cached) | `"Traceback (most recent call last):\n  File..."` |
+| `dominant_colors` | Pixel sampling (no AI needed) | `["#1e1e1e", "#d4d4d4", "#569cd6"]` — dark theme IDE |
+
+#### Indexing Prompt
+
+Single structured prompt, optimized for speed on local vision models:
+
+```
+Analyze this screenshot and return JSON only:
+{
+  "description": "one-line summary of what this shows (max 30 words)",
+  "keywords": ["tag1", "tag2", ...],  // 3-8 descriptive keywords
+  "content_type": "screenshot|document|table|diagram|code|error_message|chat|webpage|photo",
+  "ocr_text": "all visible text, preserve formatting"
+}
+```
+
+#### Background Indexing Flow
+
+```
+User action completes (Save/Clipboard/OCR/Table/Chat/Note)
+    │
+    └──► [fire-and-forget] BackgroundIndexVisionAsync(imageData, captureMetadata)
+            │
+            ├──► [1] STRUCTURED VISION PROMPT (local model, ~1-3s)
+            │       Returns: description, keywords, content_type, ocr_text
+            │
+            ├──► [2] DOMINANT COLOR EXTRACTION (pixel sampling, ~5ms)
+            │       Sample 9 points → quantize to nearest web colors
+            │
+            ├──► [3] EMBED description + keywords (MiniLM, ~50ms)
+            │       Vector for semantic similarity search
+            │
+            ├──► [4] STORE AS TIER 2 OBSERVATION
+            │       Type: context
+            │       Content: description
+            │       metadata: { all fields from both tables above }
+            │       mode_scope: NULL (global — screenshots are cross-mode)
+            │       source_pipeline_id: link to vision pipeline session
+            │
+            └──► [5] FTS INDEX ocr_text (for LIKE/FTS5 text search)
+```
+
+#### Storage Schema Extension
+
+Add to the existing `observations` table (no new table needed — visual memories are standard Tier 2 observations with richer metadata):
+
+```sql
+-- Visual Memory entries use the standard observations table.
+-- The `metadata` JSON column carries all vision-specific fields:
+-- {
+--   "vision": true,
+--   "file_path": "...",
+--   "app_name": "...",
+--   "window_title": "...",
+--   "monitor_index": 0,
+--   "region_type": "snipped_region",
+--   "source_action": "Ocr",
+--   "dimensions": "1920x1080",
+--   "file_size_bytes": 245760,
+--   "content_type": "error_message",
+--   "keywords": ["error", "python", "traceback"],
+--   "dominant_colors": ["#1e1e1e", "#d4d4d4"],
+--   "ocr_text": "full text here..."
+-- }
+
+-- FTS5 index for fast text search across OCR content
+CREATE VIRTUAL TABLE IF NOT EXISTS vision_fts USING fts5(
+    observation_id,
+    ocr_text,
+    window_title,
+    keywords,
+    content='',
+    tokenize='porter unicode61'
+);
+```
+
+#### Query Patterns
+
+| User Query | Search Strategy | Returns |
+|-----------|----------------|---------|
+| "find that error message" | Embed query → vector search on description + keyword embeddings | Top-N screenshots with error_message content_type |
+| "what was on the dashboard" | Embed → vector search, boost `content_type = 'table'` | Dashboard screenshots with table data |
+| "show me what I captured from VS Code" | Filter `app_name = 'Code'` + time range | All VS Code screenshots |
+| "find the Python code I saw yesterday" | FTS5 search `ocr_text MATCH 'python'` + date filter | Screenshots containing Python code |
+| "what did I look at this morning?" | Filter `timestamp > today_start` | Chronological screenshot timeline |
+
+#### Consumer Integration
+
+- **Chat (QuickChat)**: User asks "find that screenshot of the error" → memory search returns matching visual entries → Chat displays description + offers to re-attach the image from `file_path`
+- **Chaviz (SPEC_017)**: `recall` tool queries visual memory alongside text memory → orchestrator can reference past screenshots in multi-turn conversation
+- **Vision itself**: When capturing a new screenshot, inject recent visual context → "You previously captured a similar view showing X" → more contextual AI responses
+
+#### Design Decisions
+
+| Decision | Rationale |
+|----------|----------|
+| **Background indexing (fire-and-forget)** | Zero latency impact on user's chosen action. User doesn't wait for indexing. |
+| **Local model only for indexing** | Privacy-first — screenshot content never leaves the device for indexing. User's chosen action (Clipboard/OCR/Table) may use cloud, but the index always uses local. |
+| **Standard Tier 2 observations** | No separate table — visual memories participate in the same search, consolidation, and retention as all other observations. The `metadata.vision = true` flag distinguishes them. |
+| **FTS5 for OCR text** | Vector search is great for semantic queries ("find errors") but FTS5 is better for exact text matches ("find KeyError in data_loader.py"). Hybrid search (vector + FTS5 with RRF) is the long-term path. |
+| **Dominant colors via pixel sampling** | No AI needed — sample 9 points (3×3 grid), quantize to nearest named color. Enables queries like "that dark-themed screenshot" or "the blue dashboard." |
+| `mode_scope = NULL` (global) | Screenshots are inherently cross-mode — a code screenshot is useful context whether you're in Professional, Casual, or any mode. |
+| **Capture-time metadata is always collected** | Even if memory is disabled or indexing fails, the free metadata (app_name, window_title, dimensions) is stored in the vision file's companion JSON sidecar for future indexing when memory is enabled. |
+
 ---
 
 ## 7. Teach-by-Correction
@@ -551,6 +685,21 @@ Mapped to SPEC_015 Phases O-Q:
 | P.9 | **Teach-by-Correction LLM prompt**: structured extraction of trigger word, correction, rule description, and scope from before/after text pair |
 | P.10 | **Teach-by-Correction toast confirmation**: visual feedback on successful correction learning |
 | P.11 | Unit tests: teach-by-correction flow, rule extraction, storage, injection into future prompts |
+
+### Phase P-V: Visual Memory Indexing [SPEC_015-PV]
+
+| Task | Description |
+|------|-------------|
+| PV.1 | **Capture-time metadata collector**: `VisionCaptureMetadata` record with app_name (via `GetForegroundWindow` → process name), window_title (`GetWindowText`), monitor_index, region_type, source_action, dimensions, file_size_bytes. Collected in `RunVisionPipelineAsync` before action dispatch. |
+| PV.2 | **Background vision indexer**: `BackgroundIndexVisionAsync(byte[] imageData, string mimeType, VisionCaptureMetadata meta, string filePath)` — fire-and-forget after user action completes. Runs local vision model with structured JSON prompt → extracts description, keywords, content_type, ocr_text. |
+| PV.3 | **Dominant color extraction**: Pixel sampling (3×3 grid) from PNG bytes → quantize to nearest named web colors. Pure computation, no AI. |
+| PV.4 | **Store as Tier 2 observation**: Description as `content`, full metadata JSON (all fields) in `metadata` column, `observation_type = 'context'`, `mode_scope = NULL`, `metadata.vision = true` flag. Embed description + keywords for vector search. |
+| PV.5 | **FTS5 index for OCR text**: `vision_fts` virtual table for fast text search across `ocr_text`, `window_title`, `keywords`. Populated alongside observation storage. |
+| PV.6 | **JSON sidecar for offline metadata**: Write `{filename}.meta.json` alongside each saved PNG with capture-time metadata. Enables future batch re-indexing when memory is enabled later. |
+| PV.7 | **Batch re-indexer**: `VisionIndexService.ReindexFolderAsync(string folderPath)` — point at the `vision/` folder, read all PNGs + their `.meta.json` sidecars, index any not yet in the DB. Useful for bootstrapping memory from existing screenshot history. |
+| PV.8 | **Index report generator**: After batch indexing, produce a `vision_index_report.md` summarizing: total images indexed, content_type distribution, top keywords, date range covered, any failures. |
+| PV.9 | **Chat integration**: When user asks about past screenshots in QuickChat, query visual memory (vector + FTS5 hybrid) → return matching entries with descriptions + file paths → offer to re-attach image. |
+| PV.10 | Unit tests: metadata collection, structured prompt parsing, color extraction, FTS5 search, sidecar round-trip, batch re-index |
 
 ### Phase Q: Memory Settings Page [SPEC_015-Q]
 

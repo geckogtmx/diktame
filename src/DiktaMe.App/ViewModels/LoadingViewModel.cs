@@ -1760,7 +1760,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                 Log.Debug("Vision: captured {Size} bytes, preparing for API", screenshot.Length);
                 return DiktaMe.Core.Vision.ImageProcessor.PrepareForApi(
                     screenshot, visionSettings.MaxImageDimensionPx);
-            }).ConfigureAwait(false);
+            }).ConfigureAwait(true);
 
             if (imageData.Length == 0)
             {
@@ -1776,16 +1776,19 @@ public sealed partial class LoadingViewModel : ObservableObject
             string ext = string.Equals(mimeType, "image/jpeg", StringComparison.Ordinal) ? "jpg" : "png";
             string savedPath = Path.Combine(visionDir,
                 $"vision_{DateTime.Now:yyyyMMdd_HHmmss}.{ext}");
-            await File.WriteAllBytesAsync(savedPath, imageData).ConfigureAwait(false);
+            await File.WriteAllBytesAsync(savedPath, imageData).ConfigureAwait(true);
             Log.Information("Vision: image saved to {Path} ({MimeType}, {Size} bytes)",
                 savedPath, mimeType, imageData.Length);
 
             // Step 4: Show action modal — user picks Clipboard / Chat / Note + Local/Cloud
-            var actionWindow = new Views.VisionActionWindow(_controlPanel.IsLocalVision);
-            await actionWindow.SetThumbnailAsync(imageData).ConfigureAwait(true);
-            actionWindow.CenterOnMonitor(bounds);
-            actionWindow.Activate();
-            var actionResult = await actionWindow.GetResultAsync().ConfigureAwait(true);
+            // Must create Window on UI thread — DispatcherQueue ensures this even if
+            // we drifted off the UI thread after ConfigureAwait calls above.
+            var actionTcs = new TaskCompletionSource<DiktaMe.Core.Vision.VisionActionResult?>();
+            _uiDispatcher!.TryEnqueue(() =>
+            {
+                _ = ShowVisionActionWindowAsync(actionTcs, imageData, bounds);
+            });
+            var actionResult = await actionTcs.Task.ConfigureAwait(false);
 
             if (actionResult is null)
             {
@@ -1808,13 +1811,13 @@ public sealed partial class LoadingViewModel : ObservableObject
             switch (actionResult.Action)
             {
                 case DiktaMe.Core.Vision.VisionAction.Save:
-                    // No AI — save file + copy image to clipboard
+                    // No AI — copy image to clipboard + offer FileSavePicker for custom destination
                     CopyImageToClipboard(imageData);
-                    _notifications.ShowToast("Vision", $"Saved & copied to clipboard", NotificationType.Success, suppressTts: true);
+                    await SaveVisionWithPickerAsync(savedPath, imageData).ConfigureAwait(false);
                     return;
 
                 case DiktaMe.Core.Vision.VisionAction.Chat:
-                    await HandleVisionChatAsync(imageData, mimeType).ConfigureAwait(false);
+                    await HandleVisionChatAsync(imageData, mimeType, visionProvider, visionModelId, actionResult).ConfigureAwait(false);
                     return;
 
                 case DiktaMe.Core.Vision.VisionAction.Note:
@@ -1848,6 +1851,30 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Creates and shows the VisionActionWindow on the UI thread, completing the TCS with the result.
+    /// Extracted to avoid async-void lambda in DispatcherQueue.TryEnqueue.
+    /// </summary>
+    private async Task ShowVisionActionWindowAsync(
+        TaskCompletionSource<DiktaMe.Core.Vision.VisionActionResult?> tcs,
+        byte[] imageData,
+        (int X, int Y, int Width, int Height) bounds)
+    {
+        try
+        {
+            var actionWindow = new Views.VisionActionWindow(_controlPanel.IsLocalVision);
+            await actionWindow.SetThumbnailAsync(imageData).ConfigureAwait(true);
+            actionWindow.CenterOnMonitor(bounds);
+            actionWindow.Activate();
+            var result = await actionWindow.GetResultAsync().ConfigureAwait(true);
+            tcs.TrySetResult(result);
+        }
+        catch (Exception ex)
+        {
+            tcs.TrySetException(ex);
+        }
+    }
+
     // ── Vision Action Handlers ────────────────────────────────────────────────
 
     private async Task HandleVisionClipboardAsync(
@@ -1868,7 +1895,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         var options = BuildVisionOptions(visionSettings, visionModelId, actionResult.UserQuery,
             DiktaMe.Core.Vision.VisionOutputMode.Clipboard);
 
-        var result = await RunVisionPipelineCoreAsync(imageData, mimeType, options).ConfigureAwait(false);
+        var result = await RunVisionPipelineCoreAsync(imageData, mimeType, options, visionProvider, visionModelId).ConfigureAwait(false);
         if (result is null)
         {
             return;
@@ -1890,16 +1917,29 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
     }
 
-    private Task HandleVisionChatAsync(byte[] imageData, string mimeType)
+    private Task HandleVisionChatAsync(
+        byte[] imageData, string mimeType,
+        string visionProvider, string visionModelId,
+        DiktaMe.Core.Vision.VisionActionResult actionResult)
     {
         // Open QuickChat with image attached — no vision pipeline run here.
         // The user's first chat message goes to the multimodal LLM with the image.
-        Log.Information("Vision: opening QuickChat with image ({Size} bytes, {Mime})", imageData.Length, mimeType);
+        // Pre-select the model based on the modal's Local/Cloud toggle.
+        Log.Information("Vision: opening QuickChat with image ({Size} bytes, {Mime}), provider={Provider}, model={Model}",
+            imageData.Length, mimeType, visionProvider, visionModelId);
+
+        string? initialQuery = actionResult.UserQuery;
 
         _uiDispatcher?.TryEnqueue(() =>
         {
             var chatWindow = new Views.QuickChatWindow();
             chatWindow.AttachImage(imageData, mimeType);
+            chatWindow.SetInitialModel(visionModelId);
+            if (!string.IsNullOrWhiteSpace(initialQuery))
+            {
+                chatWindow.SetInitialInput(initialQuery);
+            }
+
             chatWindow.Activate();
         });
 
@@ -1918,7 +1958,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         var options = BuildVisionOptions(visionSettings, visionModelId, actionResult.UserQuery,
             DiktaMe.Core.Vision.VisionOutputMode.ToastOnly);
 
-        var visionResult = await RunVisionPipelineCoreAsync(imageData, mimeType, options).ConfigureAwait(false);
+        var visionResult = await RunVisionPipelineCoreAsync(imageData, mimeType, options, visionProvider, visionModelId).ConfigureAwait(false);
         string? visionDescription = visionResult?.IsSuccess == true ? visionResult.Text : null;
 
         if (visionDescription is not null)
@@ -1931,6 +1971,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
 
         // Phase 2: Record voice note (same as RunNotePipelineAsync)
+        _notifications.ShowToast("Vision+Note", "Recording voice note... Press hotkey to stop",
+            NotificationType.Info, suppressTts: true);
         var (audioFile, recordingDurationMs) = await RecordAudioAsync("Note", isDictate: false);
         if (audioFile == null)
         {
@@ -1963,9 +2005,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             NotesFilePath = _settings.Current.NotesFilePath,
             TimestampFormat = "yyyy-MM-dd HH:mm:ss",
             RecordingDurationMs = recordingDurationMs,
-            PreCapturedContext = visionDescription is not null
-                ? $"**Vision**: {visionDescription}\n\n![capture]({savedImagePath})"
-                : null,
+            PreCapturedContext = BuildVisionNoteContext(actionResult.UserQuery, visionDescription, savedImagePath),
         };
 
         var notePipeline = _pipelineFactory.CreateNotePipeline();
@@ -2051,7 +2091,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             "Extract ALL text from this image exactly as written. Preserve formatting, line breaks, and structure. Output only the extracted text, nothing else.",
             DiktaMe.Core.Vision.VisionOutputMode.Clipboard);
 
-        var result = await RunVisionPipelineCoreAsync(imageData, mimeType, options).ConfigureAwait(false);
+        var result = await RunVisionPipelineCoreAsync(imageData, mimeType, options, visionProvider, visionModelId).ConfigureAwait(false);
         if (result is null)
         {
             return;
@@ -2085,7 +2125,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             "Extract all tabular data from this image. Format as TSV (tab-separated values) with headers. If multiple tables exist, separate with a blank line. Output only the data, no explanation.",
             DiktaMe.Core.Vision.VisionOutputMode.Clipboard);
 
-        var result = await RunVisionPipelineCoreAsync(imageData, mimeType, options).ConfigureAwait(false);
+        var result = await RunVisionPipelineCoreAsync(imageData, mimeType, options, visionProvider, visionModelId).ConfigureAwait(false);
         if (result is null)
         {
             return;
@@ -2103,6 +2143,87 @@ public sealed partial class LoadingViewModel : ObservableObject
             _notifications.ShowToast("Table Error", result.ErrorMessage ?? "Table extraction failed",
                 NotificationType.Error, suppressTts: true);
         }
+    }
+
+    /// <summary>
+    /// Shows a FileSavePicker for the user to choose where to save the screenshot.
+    /// Falls back to clipboard-only if picker is cancelled.
+    /// </summary>
+    private async Task SaveVisionWithPickerAsync(string autoSavedPath, byte[] imageData)
+    {
+        var tcs = new TaskCompletionSource<string?>();
+        _uiDispatcher!.TryEnqueue(() =>
+        {
+            _ = ShowSavePickerAsync(tcs, autoSavedPath);
+        });
+
+        string? chosenPath = await tcs.Task.ConfigureAwait(false);
+        if (chosenPath is not null)
+        {
+            _notifications.ShowToast("Vision", $"Saved to {Path.GetFileName(chosenPath)} & copied to clipboard",
+                NotificationType.Success, suppressTts: true);
+        }
+        else
+        {
+            _notifications.ShowToast("Vision", "Image copied to clipboard",
+                NotificationType.Success, suppressTts: true);
+        }
+    }
+
+    private async Task ShowSavePickerAsync(TaskCompletionSource<string?> tcs, string autoSavedPath)
+    {
+        try
+        {
+            var picker = new Windows.Storage.Pickers.FileSavePicker();
+            picker.SuggestedFileName = Path.GetFileName(autoSavedPath);
+            picker.FileTypeChoices.Add("PNG Image", new List<string> { ".png" });
+            picker.FileTypeChoices.Add("JPEG Image", new List<string> { ".jpg" });
+
+            var mainWindow = App.Current.MainWindow;
+            if (mainWindow is not null)
+            {
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(mainWindow);
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            }
+
+            var file = await picker.PickSaveFileAsync();
+            if (file is not null)
+            {
+                // Copy the auto-saved file to the user-chosen location
+                File.Copy(autoSavedPath, file.Path, overwrite: true);
+                tcs.TrySetResult(file.Path);
+            }
+            else
+            {
+                tcs.TrySetResult(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Vision: FileSavePicker failed");
+            tcs.TrySetResult(null);
+        }
+    }
+
+    /// <summary>
+    /// Builds the PreCapturedContext markdown block for a vision+note entry.
+    /// Always includes the query and image link; vision description is optional.
+    /// </summary>
+    private static string BuildVisionNoteContext(string? userQuery, string? visionDescription, string imagePath)
+    {
+        var sb = new System.Text.StringBuilder();
+        if (!string.IsNullOrWhiteSpace(userQuery))
+        {
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"**Query**: {userQuery}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(visionDescription))
+        {
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"**Vision**: {visionDescription}");
+        }
+
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"\n![capture]({imagePath})");
+        return sb.ToString().TrimEnd();
     }
 
     private DiktaMe.Core.Vision.VisionOptions BuildVisionOptions(
@@ -2126,9 +2247,12 @@ public sealed partial class LoadingViewModel : ObservableObject
     }
 
     private async Task<DiktaMe.Core.Pipeline.PipelineResult?> RunVisionPipelineCoreAsync(
-        byte[] imageData, string mimeType, DiktaMe.Core.Vision.VisionOptions options)
+        byte[] imageData, string mimeType, DiktaMe.Core.Vision.VisionOptions options,
+        string? providerOverride = null, string? modelOverride = null)
     {
-        var pipeline = _pipelineFactory.CreateVisionPipeline();
+        var pipeline = (providerOverride is not null && modelOverride is not null)
+            ? _pipelineFactory.CreateVisionPipeline(providerOverride, modelOverride)
+            : _pipelineFactory.CreateVisionPipeline();
         pipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
         using var cts = new CancellationTokenSource();
 

@@ -100,6 +100,18 @@ public sealed class PipelineFactory
         return new ChatPipeline(llm!, _settings, stt, _eventBus);
     }
 
+    /// <summary>
+    /// Creates a ChatPipeline with an explicit LLM provider and model.
+    /// Used by QuickChat when an image is attached and the model was pre-selected
+    /// by the Vision modal (bypasses the default dictation LLM).
+    /// </summary>
+    public ChatPipeline CreateChatPipelineForModel(string providerName, string modelId)
+    {
+        var llm = _llmFactory.CreateProvider(providerName, apiKey: null, model: modelId);
+        var (stt, _) = GetProviders("chat", null);
+        return new ChatPipeline(llm, _settings, stt, _eventBus);
+    }
+
     public VisionPipeline CreateVisionPipeline(string? modeOverride = null)
     {
         // Wallet mode — override all provider selection with wallet proxies.
@@ -121,6 +133,31 @@ public sealed class PipelineFactory
         // STT still comes from the normal profile (for voice query transcription)
         string effectiveMode = modeOverride ?? "vision";
         ModeSettings ms = _profiles.GetModeSettings(effectiveMode);
+        var stt = _sttFactory.CreateProvider(ms.SttProvider);
+
+        return new VisionPipeline(llm, _injector, stt, _eventBus);
+    }
+
+    /// <summary>
+    /// Creates a VisionPipeline with explicit provider and model overrides.
+    /// Used when the VisionActionWindow's Local/Cloud toggle selects a
+    /// different provider than the default VisionSettings.
+    /// </summary>
+    public VisionPipeline CreateVisionPipeline(string providerName, string modelId)
+    {
+        // Wallet mode takes precedence
+        if (_settings.Current.AuthMode == AuthMode.Wallet && _walletStt is not null && _walletLlm is not null)
+        {
+            return new VisionPipeline(_walletLlm, _injector, _walletStt, _eventBus);
+        }
+
+        var vision = _settings.Current.Vision;
+        string? keepAlive = string.Equals(providerName, "ollama", StringComparison.OrdinalIgnoreCase)
+            ? $"{vision.OllamaKeepAliveSeconds}s"
+            : null;
+        var llm = _llmFactory.CreateProvider(providerName, apiKey: null, model: modelId, keepAlive: keepAlive);
+
+        ModeSettings ms = _profiles.GetModeSettings("vision");
         var stt = _sttFactory.CreateProvider(ms.SttProvider);
 
         return new VisionPipeline(llm, _injector, stt, _eventBus);

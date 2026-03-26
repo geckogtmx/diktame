@@ -201,6 +201,22 @@ public sealed partial class QuickChatWindow : Window
         ViewModel.SetImageContext(imageData, mimeType);
     }
 
+    /// <summary>
+    /// Pre-selects a model in the dropdown (e.g. vision model from the Vision modal toggle).
+    /// </summary>
+    public void SetInitialModel(string modelId)
+    {
+        ViewModel.PendingModelId = modelId;
+    }
+
+    /// <summary>
+    /// Pre-fills the input text box (e.g. user query from the Vision modal).
+    /// </summary>
+    public void SetInitialInput(string text)
+    {
+        ViewModel.InputText = text;
+    }
+
     private void InjectControlBrushes(ThemePalette palette)
     {
         if (Content is not FrameworkElement root)
