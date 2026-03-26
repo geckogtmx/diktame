@@ -579,7 +579,7 @@ Task<LlmResult> ProcessWithVideoAsync(
 |-------|-------|--------|------------|--------|
 | **V1** | Record region/window/fullscreen → MP4. Floating stop bar. Record button in VisionActionWindow. | 2-3 sessions | ScreenRecorderLib (Media Foundation) | ✅ Shipped |
 | **V2** | Mic audio mux into MP4. Voice narration during recording. | 1 session | V1 | ✅ Shipped (built into V1 via ScreenRecorderLib) |
-| **V3** | Gemini video upload + understanding prompts (describe/document/bug report). Post-capture AI actions. | 1-2 sessions | V2 + Gemini File API | Pending |
+| **V3** | Gemini video upload + understanding prompts (describe/document/bug report). Post-capture AI actions. VideoActionWindow modal. Tested: Describe 7.7s, Document 9.1s, Bug Report 15.8s. | 1-2 sessions | V2 + Gemini File API | ✅ Shipped |
 | **V4** | System audio capture (WASAPI loopback). Meeting clip use case. `IsOutputDeviceEnabled` flag. | 1 session | V2 | ✅ Shipped |
 | ~~**V5**~~ | ~~Share link — Supabase upload + short URL~~ | ~~1-2 sessions~~ | — | Deferred → SPEC_013 Connectors |
 | **V6** | **Camera bubble** — PIP webcam overlay during recording. 16:9 aspect ratio, bottom-right. Prefers USB cameras over virtual. | 1-2 sessions | V2 | ✅ Shipped |
@@ -594,7 +594,7 @@ Task<LlmResult> ProcessWithVideoAsync(
 - **Max clip duration:** 120s default (configurable). Not a meeting recorder — that's SPEC_001.
 - **File size:** 30s 1080p H.264 ≈ 15-30MB. Gemini accepts up to 2GB.
 - **Win10 compatibility:** `GraphicsCaptureItem.CreateFromDisplayId` works on Win10 1903+. Per-window `TryCreateFromWindowId` is Win11 only — use display capture + crop as fallback.
-- **Local inference:** No local video understanding models exist at usable quality. Video actions are **cloud-only** (Gemini/OpenAI). Save/Share work offline.
+- **Local inference:** Ollama's images API cannot decode MP4 containers — model runner crashes (status 500). MiniCPM-V expects image frames, not video. Local video understanding would require keyframe extraction (1 frame/sec → multi-image call). Video AI actions are **cloud-only** (Gemini). Save works offline.
 - **VRAM:** Zero GPU impact — video encoding uses CPU/Media Foundation, not CUDA.
 
 ---
@@ -703,10 +703,10 @@ public sealed record ColorPickerSettings
 
 | Phase | Scope | Effort |
 |-------|-------|--------|
-| **C1** | Basic picker: freeze screen, eyedropper cursor, click → hex to clipboard + toast | 0.5 session |
-| **C2** | Magnifier overlay (zoomed pixel grid + live hex/rgb display) | 0.5 session |
-| **C3** | Multi-pick palette mode (Shift+Click accumulator) | 0.5 session |
-| **C4** | AI palette generation (cloud LLM + memory context) + voice query | 1 session |
+| **C1** | Basic picker: freeze screen, crosshair cursor, click → hex to clipboard + toast. Live hex/rgb preview follows cursor. | 0.5 session | ✅ Shipped |
+| ~~**C2**~~ | ~~Magnifier overlay (zoomed pixel grid)~~ | — | ❌ Cut |
+| **C3** | Multi-pick palette: click accumulates swatches, Enter=copy, Tab=analyze, Backspace=undo. Palette strip UI at bottom. | 0.5 session | ✅ Shipped |
+| **C4** | AI palette analysis via Gemini: color names, style ID, WCAG AA pairs, CSS vars, complementary suggestions. Tab shortcut from C3. | 1 session | ✅ Shipped |
 | **C5** | Connector routing (Figma, Notion, Notes) | Depends on SPEC_013 |
 
 ---

@@ -26,6 +26,9 @@ public sealed partial class ColorPickerOverlayWindow : Window
     private int _imageWidth;
     private int _imageHeight;
 
+    /// <summary>True if the user pressed Tab to request AI palette analysis.</summary>
+    public bool AnalyzeRequested { get; private set; }
+
     public ColorPickerOverlayWindow()
     {
         InitializeComponent();
@@ -114,9 +117,18 @@ public sealed partial class ColorPickerOverlayWindow : Window
         }
         else if (e.Key == Windows.System.VirtualKey.Enter)
         {
-            // Enter = finish with current palette
+            // Enter = finish with current palette (copy only)
             Log.Information("ColorPicker: finishing palette with {Count} colors (Enter)", _palette.Count);
             _tcs.TrySetResult(_palette.Count > 0 ? _palette : null);
+            Close();
+            e.Handled = true;
+        }
+        else if (e.Key == Windows.System.VirtualKey.Tab && _palette.Count > 0)
+        {
+            // Tab = finish with AI analysis
+            Log.Information("ColorPicker: finishing palette with {Count} colors + AI analysis (Tab)", _palette.Count);
+            AnalyzeRequested = true;
+            _tcs.TrySetResult(_palette);
             Close();
             e.Handled = true;
         }
@@ -171,7 +183,7 @@ public sealed partial class ColorPickerOverlayWindow : Window
         }
 
         PaletteContainer.Visibility = _palette.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        PaletteCountText.Text = $"{_palette.Count} color{(_palette.Count == 1 ? "" : "s")}  |  Click more  |  Enter = Done  |  Backspace = Undo";
+        PaletteCountText.Text = $"{_palette.Count} color{(_palette.Count == 1 ? "" : "s")}  |  Click more  |  Enter = Copy  |  Tab = Analyze  |  Backspace = Undo";
     }
 
     private void UpdateColorPreview(Point pos)

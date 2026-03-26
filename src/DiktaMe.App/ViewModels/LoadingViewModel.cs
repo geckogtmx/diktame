@@ -2445,6 +2445,16 @@ public sealed partial class LoadingViewModel : ObservableObject
             _notifications.ShowToast("Color Picked", $"{c.Hex}  —  rgb({c.R}, {c.G}, {c.B})",
                 NotificationType.Success, suppressTts: true);
         }
+        else if (_colorPickerAnalyzeRequested)
+        {
+            // Multi-pick palette + AI analysis
+            var lines = palette.Select(c => $"{c.Hex}  rgb({c.R}, {c.G}, {c.B})");
+            var paletteText = string.Join(Environment.NewLine, lines);
+            ClipboardManager.SetText(paletteText);
+            Log.Information("ColorPicker: palette of {Count} colors — running AI analysis", palette.Count);
+            _notifications.ShowToast("Palette", "Analyzing palette with AI...", NotificationType.Info, suppressTts: true);
+            await AnalyzePaletteAsync(palette).ConfigureAwait(false);
+        }
         else
         {
             // Multi-pick palette — copy all as formatted text
@@ -2458,6 +2468,58 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
     }
 
+    private async Task AnalyzePaletteAsync(List<Views.ColorPickResult> palette)
+    {
+        try
+        {
+            var hexList = string.Join(", ", palette.Select(c => c.Hex));
+            var prompt = $"Palette: {hexList}\nFor each: name, then style summary, WCAG AA text pairs, CSS vars, 2 complementary colors. Be concise, no markdown headers.";
+
+            var appSettings = _settings.Current;
+            string provider = appSettings.Vision.CloudVisionProvider ?? "gemini";
+            string model = appSettings.Vision.CloudVisionModelId ?? "gemini-2.5-flash";
+            Log.Information("Palette AI: analyzing {Count} colors with {Provider}/{Model}", palette.Count, provider, model);
+
+            // Use vision pipeline (4096 maxOutputTokens) instead of text pipeline (1024) —
+            // palette analysis needs room for color names + accessibility + CSS + suggestions.
+            var pipeline = _pipelineFactory.CreateVisionPipeline(provider, model);
+            var visionOptions = new DiktaMe.Core.Vision.VisionOptions
+            {
+                DefaultQuery = prompt,
+                SystemPrompt = "You are a design system expert. Analyze color palettes concisely and practically.",
+            };
+
+            // Send palette text as a minimal 1x1 PNG to use the image/vision API path
+            byte[] minimalPng = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
+            var result = await pipeline.RunAsync(
+                minimalPng, "image/png",
+                audioFilePath: null,
+                visionOptions,
+                CancellationToken.None).ConfigureAwait(false);
+
+            if (result.IsSuccess && !string.IsNullOrWhiteSpace(result.Text))
+            {
+                ClipboardManager.SetText(result.Text);
+                Log.Information("Palette AI: analysis complete — {Chars} chars, {Ms}ms", result.Text.Length, result.TotalMs);
+                _notifications.ShowToast("Palette Analysis",
+                    $"Analysis copied to clipboard ({result.Text.Length} chars)",
+                    NotificationType.Success, suppressTts: true);
+            }
+            else
+            {
+                string errorMsg = result.ErrorMessage ?? "No response from AI.";
+                _notifications.ShowToast("Palette Analysis", errorMsg, NotificationType.Warning, suppressTts: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Palette AI: analysis failed");
+            _notifications.ShowToast("Palette Error", ex.Message, NotificationType.Error, suppressTts: true);
+        }
+    }
+
+    private bool _colorPickerAnalyzeRequested;
+
     private async Task ShowColorPickerOverlayAsync(
         TaskCompletionSource<List<Views.ColorPickResult>?> tcs, byte[] imageData)
     {
@@ -2469,6 +2531,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             await picker.SetBackgroundScreenshotAsync(imageData);
             picker.Activate();
             var result = await picker.GetResultAsync();
+            _colorPickerAnalyzeRequested = picker.AnalyzeRequested;
             tcs.TrySetResult(result);
         }
         catch (Exception ex)

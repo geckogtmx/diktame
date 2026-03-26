@@ -1,19 +1,16 @@
 # Developer Handoff
 
-## Next Session — V3 AI Video Understanding + SPEC_002 Remaining
+## Next Session — Video UX Polish + SPEC_002 Remaining
 
-**Priority 1:** V3 — Gemini video understanding (describe/document/bug report prompts). See SPEC_002 §15.4.
-- Upload MP4 to Gemini File API → poll until `state: ACTIVE` → `generateContent` with video reference
-- Post-capture modal with video-specific actions (Describe, Document, Bug Report)
-- This is the highest-value remaining video feature — unlocks AI-powered video analysis
-
-**Priority 2:** Video capture UX polish:
+**Priority 1:** Video UX polish:
 - Selection border overlay during recording (dotted rectangle like Windows Snipping Tool — user requested)
 - Recording toolbar → CP bar migration (decision made: use existing CP bar auto-collapse + snap instead of standalone window)
 - Error feedback: close recording bar if capture fails
 - Clean up 0-byte MP4 files on failure
 
-**Priority 3:** V7 — Filler word removal (post-STT cleanup pass on narration audio). MEDIUM priority.
+**Priority 2:** V7 — Filler word removal (post-STT cleanup pass on narration audio). MEDIUM priority.
+
+**Priority 3:** Phase 3: Markup & Annotation (M1-M3). Arrows, rectangles, freehand pen, blur, flatten export.
 
 **Also pending:**
 - Audit #3: Cloud provider retry (Polly). 2-3 hrs.
@@ -25,14 +22,15 @@
 | Feature | Status | Notes |
 |---------|--------|-------|
 | 5 capture modes (rect/window/full/all/freeform) | ✅ Shipped | All working |
-| C1 Color picker | ✅ Shipped | Single pick + live preview |
-| C3 Multi-pick palette | ✅ Shipped | Accumulate clicks, palette strip UI, Enter/Backspace/Esc |
+| C1 Color picker | ✅ Shipped | Single pick + live hex/rgb preview |
+| C3 Multi-pick palette | ✅ Shipped | Click accumulates, Enter=copy, Tab=analyze, Backspace=undo |
+| C4 AI palette analysis | ✅ Shipped | Gemini: color names, style ID, WCAG AA, CSS vars, complements |
 | ~~C2 Magnifier~~ | ❌ Cut | Not worth the effort |
 | V1 Screen recording → MP4 | ✅ Shipped | ScreenRecorderLib, region/fullscreen/window |
 | V2 Mic audio mux | ✅ Shipped | Built into V1 via ScreenRecorderLib |
-| V4 System audio (WASAPI loopback) | ✅ Shipped | `IsOutputDeviceEnabled` flag. Needs runtime test. |
+| V3 Gemini video understanding | ✅ Shipped | Describe (7.7s), Document (9.1s), Bug Report (15.8s). Cloud-only. |
+| V4 System audio (WASAPI loopback) | ✅ Shipped | `IsOutputDeviceEnabled` flag |
 | V6 Camera bubble (PIP webcam) | ✅ Shipped | 16:9 aspect, USB-preferred, bottom-right overlay in MP4 |
-| V3 Gemini video understanding | 🔜 Next | Upload + AI actions (describe/document/bug report) |
 | ~~V5 Share link~~ | ❌ Deferred | → SPEC_013 Connectors |
 | V7 Filler word removal | Pending | Post-STT cleanup. MEDIUM priority. |
 
@@ -89,10 +87,26 @@
 ### C3 Multi-Pick Palette (LOW — verified)
 - `ColorPickerOverlayWindow` now accumulates picks in `List<ColorPickResult>`
 - Palette strip UI at bottom: colored swatches + count + keyboard hints
-- Enter = finish, Backspace = undo last pick, Esc = finish (if picks) or cancel (if empty)
+- Enter = copy, Tab = analyze with AI, Backspace = undo last pick, Esc = finish/cancel
 - Single pick = same UX as before (one hex copied)
 - Multi-pick = formatted clipboard output (one `#HEX  rgb(R, G, B)` per line)
 - Tested: 7-color palette extracted from color grid screenshot
+
+### V3 Gemini Video Understanding (HIGH — verified)
+- `VideoActionWindow` modal: Describe / Document / Bug Report / Save Only
+- Uses existing `VisionPipeline` + `GeminiProvider` with video/mp4 inline base64
+- Tested all 3 AI actions with production-quality output:
+  - **Describe**: YouTube video + stop button interaction (7.7s, 214 chars)
+  - **Document**: CP bar interactions → numbered steps (9.1s, 377 chars)
+  - **Bug Report**: Chrome DevTools bug → structured report with repro steps (15.8s, 1,642 chars)
+- Local video AI (Ollama MiniCPM-V) crashes — model runner can't decode MP4 containers. Cloud-only.
+
+### C4 AI Palette Analysis (LOW — verified)
+- Tab key during multi-pick → sends hex list to Gemini for AI analysis
+- Uses vision API path (4096 `maxOutputTokens`) — text API (1024) was too short
+- Output: color names, style identification, WCAG AA contrast pairs, CSS custom properties, complementary colors
+- Tested: 5-color palette → 2,241 chars, 28.7s; 3-color palette → 877 chars, 25.5s
+- Uses `gemini-3.1-pro-preview` via cloud vision provider
 
 ---
 
@@ -125,10 +139,10 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1134 passing locally (479+ on CI) |
+| **Tests** | 1134+ passing locally (479+ on CI) |
 | **Build** | **PASSES** (0 warnings, 0 errors) |
 | **CI** | **PASSING** — lint, build, tests, gitleaks, vulnerability audit, publish all green |
-| **Branch** | main — 12+ commits ahead of origin |
+| **Branch** | main — all pushed to origin |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
 
 ## Completed Streams
@@ -142,7 +156,7 @@
 | **J** | CRUD Dictation Modes — all 7 tasks |
 | **K** | OAuth & Trial Credits — K.1-K.7 |
 | **L** | Deepgram Streaming — L.1-L.5 committed |
-| **SPEC_002** | Vision — 5 capture modes, color picker (C1+C3), video capture (V1+V2+V4+V6), 9 quick wins, telemetry, audits |
+| **SPEC_002** | Vision — 5 capture modes, color picker (C1+C3+C4), video capture (V1+V2+V3+V4+V6), 9 quick wins, telemetry, audits |
 | **SPEC_007** | Chat Feature Upgrade — 14/14 tasks |
 | **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-G, FIX-1 through FIX-16 |
 | **SPEC_011** | Ollama Management Hub |
