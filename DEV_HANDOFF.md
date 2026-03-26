@@ -1,16 +1,28 @@
 # Developer Handoff
 
-## Next Session — Video UX Polish + SPEC_002 Remaining
+## Next Session — AI-Aware Annotations + SPEC_002 Remaining
 
-**Priority 1:** Video UX polish:
+**CRITICAL — Runtime test needed first:**
+Post-annotation AI analysis was coded (`f3ba27a`) but NOT runtime-verified. The fix removes the
+`goto processAction` loop and instead directly calls `HandleVisionClipboardAsync` after annotation,
+injecting `_annotationContext` into the Gemini system prompt. Test flow:
+1. Ctrl+Alt+S → select region → click pencil → annotate with text labels → Done
+2. In re-shown modal, click Cloud (Clipboard)
+3. Should get AI analysis that references the annotation text (not just describe the screenshot)
+4. Check logs for `"post-edit → running AI analysis"` — if missing, the new code isn't running
+
+**If AI analysis works:** Phase 5 (AI-aware annotations) is done. Move to polish.
+**If it doesn't:** Debug the `HandleVisionClipboardAsync` call path after annotation edit.
+
+**Priority 1:** Verify post-annotation AI flow (above)
+
+**Priority 2:** Video UX polish:
 - Selection border overlay during recording (dotted rectangle like Windows Snipping Tool — user requested)
 - Recording toolbar → CP bar migration (decision made: use existing CP bar auto-collapse + snap instead of standalone window)
 - Error feedback: close recording bar if capture fails
 - Clean up 0-byte MP4 files on failure
 
-**Priority 2:** V7 — Filler word removal (post-STT cleanup pass on narration audio). MEDIUM priority.
-
-**Priority 3:** Phase 3: Markup & Annotation (M1-M3). Arrows, rectangles, freehand pen, blur, flatten export.
+**Priority 3:** V7 — Filler word removal (post-STT cleanup pass on narration audio). MEDIUM priority.
 
 **Also pending:**
 - Audit #3: Cloud provider retry (Polly). 2-3 hrs.
@@ -32,6 +44,9 @@
 | V4 System audio (WASAPI loopback) | ✅ Shipped | `IsOutputDeviceEnabled` flag |
 | V6 Camera bubble (PIP webcam) | ✅ Shipped | 16:9 aspect, USB-preferred, bottom-right overlay in MP4 |
 | ~~V5 Share link~~ | ❌ Deferred | → SPEC_013 Connectors |
+| M1 Annotation editor | ✅ Shipped | Arrow, rect, ellipse, freehand, text, step counter, color picker, flatten export |
+| Phase 5: AI-aware annotations | ⚠️ Coded, needs runtime test | `_annotationContext` injected into Gemini system prompt. `f3ba27a` |
+| C4 AI palette analysis | ✅ Shipped | Gemini: color names, WCAG AA, CSS vars, complements. Vision API path (4096 tokens) |
 | V7 Filler word removal | Pending | Post-STT cleanup. MEDIUM priority. |
 
 ### Video Recording Stats (from testing)
@@ -47,6 +62,12 @@
 - Webcam overlay: 200×112px (16:9), bottom-right with 20px offset
 - Auto-selects USB cameras over virtual (Snap Camera, OBS Virtual, etc.)
 - System audio (WASAPI loopback) enabled by default alongside mic
+
+### WinUI Gotcha Discovered This Session
+- **Unused C# labels crash XAML compiler (exit code 1, silent):** An unused `processAction:` label
+  (CS0164 warning) caused the WinUI 3 XAML compiler to fail during XBF generation. No error in
+  output.json. Fix: remove the unused label. This is a new WinUI gotcha — C# warnings from source
+  generators can trigger XAML compiler crashes.
 
 ### Latency Baselines (from 2026-03-26 logs)
 
