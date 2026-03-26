@@ -76,7 +76,9 @@ public sealed class VisionPipeline
                 var ctx = new BeforeLlmContext { UserText = queryText, SystemPrompt = effectivePrompt, Mode = Mode };
                 _eventBus.PublishBeforeLlm(ctx);
                 if (ctx.AdditionalSystemContext.Length > 0)
+                {
                     effectivePrompt = $"{effectivePrompt}\n\n{ctx.AdditionalSystemContext}";
+                }
             }
 
             Log.Information("VisionPipeline: sending screenshot + query to LLM ({Provider})", _llm.ProviderName);

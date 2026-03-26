@@ -23,7 +23,11 @@ public sealed class JsonPluginSettingsStore : IPluginSettingsStore
 
     public async Task<T> LoadAsync<T>() where T : new()
     {
-        if (!File.Exists(_filePath)) return new T();
+        if (!File.Exists(_filePath))
+        {
+            return new T();
+        }
+
         var json = await File.ReadAllTextAsync(_filePath).ConfigureAwait(false);
         return JsonSerializer.Deserialize<T>(json, JsonOptions) ?? new T();
     }

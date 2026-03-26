@@ -132,7 +132,9 @@ public sealed class ChatPipeline
                 var ctx = new BeforeLlmContext { UserText = question, SystemPrompt = effectivePrompt, Mode = Mode };
                 _eventBus.PublishBeforeLlm(ctx);
                 if (ctx.AdditionalSystemContext.Length > 0)
+                {
                     effectivePrompt = $"{effectivePrompt}\n\n{ctx.AdditionalSystemContext}";
+                }
             }
 
             Log.Information("ChatPipeline: sending to LLM ({Provider})", _llm.ProviderName);
@@ -238,7 +240,9 @@ public sealed class ChatPipeline
                 };
                 _eventBus.PublishBeforeLlm(ctx);
                 if (ctx.AdditionalSystemContext.Length > 0)
+                {
                     convEffectivePrompt = $"{convEffectivePrompt}\n\n{ctx.AdditionalSystemContext}";
+                }
             }
 
             Log.Information("ChatPipeline: sending {Count} turns to LLM ({Provider})",

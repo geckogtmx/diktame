@@ -183,7 +183,9 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>
         {
             if (t.IsFaulted)
+            {
                 Log.Error(t.Exception, "Failed to save Vision pipeline settings");
+            }
         }, TaskScheduler.Default);
     }
 }

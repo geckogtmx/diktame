@@ -232,7 +232,11 @@ public sealed class DictationPipeline
 
     private string ApplyBeforeLlmHooks(string userText, string systemPrompt, string mode)
     {
-        if (_eventBus is null) return systemPrompt;
+        if (_eventBus is null)
+        {
+            return systemPrompt;
+        }
+
         var ctx = new BeforeLlmContext { UserText = userText, SystemPrompt = systemPrompt, Mode = mode };
         _eventBus.PublishBeforeLlm(ctx);
         return ctx.AdditionalSystemContext.Length > 0

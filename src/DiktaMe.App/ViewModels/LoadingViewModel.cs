@@ -1,4 +1,5 @@
 
+using System.Runtime.InteropServices.WindowsRuntime;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DiktaMe.App.Services;
 using DiktaMe.Core.Account;
@@ -16,7 +17,6 @@ using DiktaMe.Plugin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using Serilog;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Storage.Streams;
 
 

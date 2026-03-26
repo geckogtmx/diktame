@@ -16,11 +16,17 @@ public static class ScreenCapture
     public static (int X, int Y, int Width, int Height) GetActiveMonitorBounds()
     {
         IntPtr hwnd = NativeMethods.GetForegroundWindow();
-        if (hwnd == IntPtr.Zero) return (0, 0, 0, 0);
+        if (hwnd == IntPtr.Zero)
+        {
+            return (0, 0, 0, 0);
+        }
 
         IntPtr hMonitor = NativeMethods.MonitorFromWindow(hwnd, NativeMethods.MONITOR_DEFAULTTONEAREST);
         var mi = new NativeMethods.MONITORINFO { cbSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf<NativeMethods.MONITORINFO>() };
-        if (!NativeMethods.GetMonitorInfo(hMonitor, ref mi)) return (0, 0, 0, 0);
+        if (!NativeMethods.GetMonitorInfo(hMonitor, ref mi))
+        {
+            return (0, 0, 0, 0);
+        }
 
         var r = mi.rcMonitor;
         return (r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top);
@@ -33,12 +39,18 @@ public static class ScreenCapture
     private static IntPtr FindTargetWindow()
     {
         IntPtr hwnd = NativeMethods.GetForegroundWindow();
-        if (hwnd == IntPtr.Zero) return IntPtr.Zero;
+        if (hwnd == IntPtr.Zero)
+        {
+            return IntPtr.Zero;
+        }
 
         uint myPid = (uint)Environment.ProcessId;
         NativeMethods.GetWindowThreadProcessId(hwnd, out uint fgPid);
 
-        if (fgPid != myPid) return hwnd;
+        if (fgPid != myPid)
+        {
+            return hwnd;
+        }
 
         // Foreground is our own window — walk Z-order to find next visible window
         Log.Debug("ScreenCapture: foreground is own process, walking Z-order");
@@ -46,12 +58,21 @@ public static class ScreenCapture
         for (int i = 0; i < 20; i++) // safety limit
         {
             next = NativeMethods.GetWindow(next, NativeMethods.GW_HWNDNEXT);
-            if (next == IntPtr.Zero) break;
+            if (next == IntPtr.Zero)
+            {
+                break;
+            }
 
             NativeMethods.GetWindowThreadProcessId(next, out uint pid);
-            if (pid == myPid) continue;
+            if (pid == myPid)
+            {
+                continue;
+            }
 
-            if (!NativeMethods.IsWindowVisible(next)) continue;
+            if (!NativeMethods.IsWindowVisible(next))
+            {
+                continue;
+            }
 
             if (NativeMethods.GetWindowRect(next, out NativeMethods.RECT r)
                 && (r.Right - r.Left) > 100 && (r.Bottom - r.Top) > 100)
@@ -327,7 +348,10 @@ public static class ScreenCapture
         {
             uint c = i;
             for (int k = 0; k < 8; k++)
+            {
                 c = (c & 1) != 0 ? 0xEDB88320u ^ (c >> 1) : c >> 1;
+            }
+
             table[i] = c;
         }
 
@@ -337,8 +361,16 @@ public static class ScreenCapture
     private static uint Crc32(byte[] type, byte[] data)
     {
         uint crc = 0xFFFFFFFF;
-        foreach (byte b in type) crc = Crc32Table[(crc ^ b) & 0xFF] ^ (crc >> 8);
-        foreach (byte b in data) crc = Crc32Table[(crc ^ b) & 0xFF] ^ (crc >> 8);
+        foreach (byte b in type)
+        {
+            crc = Crc32Table[(crc ^ b) & 0xFF] ^ (crc >> 8);
+        }
+
+        foreach (byte b in data)
+        {
+            crc = Crc32Table[(crc ^ b) & 0xFF] ^ (crc >> 8);
+        }
+
         return crc ^ 0xFFFFFFFF;
     }
 

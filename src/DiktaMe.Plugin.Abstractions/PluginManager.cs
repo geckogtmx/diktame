@@ -42,7 +42,10 @@ public sealed class PluginManager
                     foreach (var type in assembly.GetTypes())
                     {
                         var attr = type.GetCustomAttribute<PluginEntryAttribute>();
-                        if (attr is null || !typeof(IPlugin).IsAssignableFrom(type)) continue;
+                        if (attr is null || !typeof(IPlugin).IsAssignableFrom(type))
+                        {
+                            continue;
+                        }
 
                         var plugin = (IPlugin)Activator.CreateInstance(type)!;
                         await plugin.InitializeAsync(context).ConfigureAwait(false);
@@ -88,7 +91,11 @@ public sealed class PluginManager
 
     private async Task<Dictionary<string, bool>> LoadEnabledStatesAsync()
     {
-        if (!File.Exists(_stateFilePath)) return [];
+        if (!File.Exists(_stateFilePath))
+        {
+            return [];
+        }
+
         try
         {
             var json = await File.ReadAllTextAsync(_stateFilePath).ConfigureAwait(false);

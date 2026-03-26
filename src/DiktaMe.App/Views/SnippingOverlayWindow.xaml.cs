@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 using DiktaMe.Core.Vision;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
@@ -10,8 +12,6 @@ using Microsoft.UI.Xaml.Shapes;
 using Serilog;
 using Windows.Foundation;
 using Windows.Graphics;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Storage.Streams;
 
 namespace DiktaMe.App.Views;
@@ -159,17 +159,27 @@ public sealed partial class SnippingOverlayWindow : Window
         OverlayCanvas.CapturePointer(e.Pointer);
 
         // Switch from full dim to 4-rect cutout
-        if (_overlayFull is not null) _overlayFull.Visibility = Visibility.Collapsed;
+        if (_overlayFull is not null)
+        {
+            _overlayFull.Visibility = Visibility.Collapsed;
+        }
+
         _overlayTop.Visibility = Visibility.Visible;
         _overlayBottom.Visibility = Visibility.Visible;
         _overlayLeft.Visibility = Visibility.Visible;
         _overlayRight.Visibility = Visibility.Visible;
-        if (_selectionRect is not null) _selectionRect.Visibility = Visibility.Visible;
+        if (_selectionRect is not null)
+        {
+            _selectionRect.Visibility = Visibility.Visible;
+        }
     }
 
     private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (!_isDragging || _selectionRect is null) return;
+        if (!_isDragging || _selectionRect is null)
+        {
+            return;
+        }
 
         var current = e.GetCurrentPoint(OverlayCanvas).Position;
         double x = Math.Min(_dragStart.X, current.X);
@@ -187,7 +197,11 @@ public sealed partial class SnippingOverlayWindow : Window
 
     private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        if (!_isDragging) return;
+        if (!_isDragging)
+        {
+            return;
+        }
+
         _isDragging = false;
         OverlayCanvas.ReleasePointerCapture(e.Pointer);
 

@@ -474,7 +474,9 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
             {
                 LocalVisionModelNames.Clear();
                 foreach (var name in ollamaModels)
+                {
                     LocalVisionModelNames.Add(name);
+                }
 
                 string target = _settings.Current.Vision.LocalVisionModelId;
                 int idx = -1;
@@ -530,7 +532,10 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     [RelayCommand]
     private void SaveVision()
     {
-        if (_isLoading) return;
+        if (_isLoading)
+        {
+            return;
+        }
 
         string cloudModelId = CloudVisionModelIndex >= 0 && CloudVisionModelIndex < _cloudVisionModelIds.Count
             ? _cloudVisionModelIds[CloudVisionModelIndex] : "gemini-2.5-flash";
@@ -560,7 +565,9 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>
         {
             if (t.IsFaulted)
+            {
                 Log.Error(t.Exception, "Failed to save Vision settings");
+            }
         }, TaskScheduler.Default);
     }
 

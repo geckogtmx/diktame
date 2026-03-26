@@ -13,32 +13,52 @@ public sealed class PipelineEventBus : IPipelineEventBus
 
     public IDisposable OnCompleted(Action<PipelineResult> handler)
     {
-        lock (_lock) _completedHandlers.Add(handler);
-        return new Subscription(() => { lock (_lock) _completedHandlers.Remove(handler); });
+        lock (_lock)
+        {
+            _completedHandlers.Add(handler);
+        }
+
+        return new Subscription(() => { lock (_lock) { _completedHandlers.Remove(handler); } });
     }
 
     public IDisposable OnBeforeLlmProcessing(Action<BeforeLlmContext> handler)
     {
-        lock (_lock) _beforeLlmHandlers.Add(handler);
-        return new Subscription(() => { lock (_lock) _beforeLlmHandlers.Remove(handler); });
+        lock (_lock)
+        {
+            _beforeLlmHandlers.Add(handler);
+        }
+
+        return new Subscription(() => { lock (_lock) { _beforeLlmHandlers.Remove(handler); } });
     }
 
     public IDisposable OnAfterTranscription(Action<AfterTranscriptionContext> handler)
     {
-        lock (_lock) _afterTranscriptionHandlers.Add(handler);
-        return new Subscription(() => { lock (_lock) _afterTranscriptionHandlers.Remove(handler); });
+        lock (_lock)
+        {
+            _afterTranscriptionHandlers.Add(handler);
+        }
+
+        return new Subscription(() => { lock (_lock) { _afterTranscriptionHandlers.Remove(handler); } });
     }
 
     public IDisposable OnStateChanged(Action<PipelineState> handler)
     {
-        lock (_lock) _stateChangedHandlers.Add(handler);
-        return new Subscription(() => { lock (_lock) _stateChangedHandlers.Remove(handler); });
+        lock (_lock)
+        {
+            _stateChangedHandlers.Add(handler);
+        }
+
+        return new Subscription(() => { lock (_lock) { _stateChangedHandlers.Remove(handler); } });
     }
 
     public void PublishCompleted(PipelineResult result)
     {
         List<Action<PipelineResult>> snapshot;
-        lock (_lock) snapshot = [.. _completedHandlers];
+        lock (_lock)
+        {
+            snapshot = [.. _completedHandlers];
+        }
+
         foreach (var handler in snapshot)
         {
             try { handler(result); }
@@ -49,7 +69,11 @@ public sealed class PipelineEventBus : IPipelineEventBus
     public void PublishBeforeLlm(BeforeLlmContext context)
     {
         List<Action<BeforeLlmContext>> snapshot;
-        lock (_lock) snapshot = [.. _beforeLlmHandlers];
+        lock (_lock)
+        {
+            snapshot = [.. _beforeLlmHandlers];
+        }
+
         foreach (var handler in snapshot)
         {
             try { handler(context); }
@@ -60,7 +84,11 @@ public sealed class PipelineEventBus : IPipelineEventBus
     public void PublishAfterTranscription(AfterTranscriptionContext context)
     {
         List<Action<AfterTranscriptionContext>> snapshot;
-        lock (_lock) snapshot = [.. _afterTranscriptionHandlers];
+        lock (_lock)
+        {
+            snapshot = [.. _afterTranscriptionHandlers];
+        }
+
         foreach (var handler in snapshot)
         {
             try { handler(context); }
@@ -71,7 +99,11 @@ public sealed class PipelineEventBus : IPipelineEventBus
     public void PublishStateChanged(PipelineState state)
     {
         List<Action<PipelineState>> snapshot;
-        lock (_lock) snapshot = [.. _stateChangedHandlers];
+        lock (_lock)
+        {
+            snapshot = [.. _stateChangedHandlers];
+        }
+
         foreach (var handler in snapshot)
         {
             try { handler(state); }

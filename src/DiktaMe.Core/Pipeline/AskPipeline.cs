@@ -79,7 +79,9 @@ public sealed class AskPipeline
                 var ctx = new BeforeLlmContext { UserText = question, SystemPrompt = effectivePrompt, Mode = Mode };
                 _eventBus.PublishBeforeLlm(ctx);
                 if (ctx.AdditionalSystemContext.Length > 0)
+                {
                     effectivePrompt = $"{effectivePrompt}\n\n{ctx.AdditionalSystemContext}";
+                }
             }
 
             Log.Information("AskPipeline: sending to LLM ({Provider})", _llm.ProviderName);
