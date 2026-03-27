@@ -1742,10 +1742,10 @@ public sealed partial class LoadingViewModel : ObservableObject
         Log.Information("Vision: Entering vision mode via CP bar");
 
         // Show dim overlay on active monitor (freeze/dim the screen)
-        #pragma warning disable MA0147 // Async void delegate — fire-and-forget with try/catch
+#pragma warning disable MA0147 // Async void delegate — fire-and-forget with try/catch
         _uiDispatcher?.TryEnqueue(async () =>
         {
-            #pragma warning restore MA0147
+#pragma warning restore MA0147
             try
             {
                 var monitor = ScreenCapture.GetActiveMonitorBounds();
@@ -1885,10 +1885,10 @@ public sealed partial class LoadingViewModel : ObservableObject
             Views.SnippingResult? snippingResult = null;
             var overlayTcs = new TaskCompletionSource<Views.SnippingResult?>();
 
-            #pragma warning disable MA0147 // Async void delegate — exceptions routed via TCS
+#pragma warning disable MA0147 // Async void delegate — exceptions routed via TCS
             _uiDispatcher!.TryEnqueue(async () =>
             {
-                #pragma warning restore MA0147
+#pragma warning restore MA0147
                 try
                 {
                     var overlay = _dimOverlay;
@@ -1983,7 +1983,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                 var monitorPng = ScreenCapture.CaptureRegion(left, top, width, height);
                 Views.SnippingResult? snippingResult = null;
                 var overlayTcs = new TaskCompletionSource<Views.SnippingResult?>();
-                #pragma warning disable MA0147
+#pragma warning disable MA0147
                 _uiDispatcher!.TryEnqueue(async () =>
                 {
                     try
@@ -1996,7 +1996,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                     }
                     catch (Exception ex) { overlayTcs.TrySetException(ex); }
                 });
-                #pragma warning restore MA0147
+#pragma warning restore MA0147
                 snippingResult = await overlayTcs.Task.ConfigureAwait(false);
 
                 if (snippingResult == null)
@@ -2161,7 +2161,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         Log.Information("Vision: Saved capture to {Path}", _visionCapturedImagePath);
 
         // Create thumbnail and show post-capture phase
-        #pragma warning disable MA0147 // Async void delegate — fire-and-forget UI update with try/catch
+#pragma warning disable MA0147 // Async void delegate — fire-and-forget UI update with try/catch
         _uiDispatcher?.TryEnqueue(async () =>
         {
             try
@@ -2183,7 +2183,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             // Show CP window (don't force expand — vision row is visible regardless)
             App.Current?.ShowMainWindow();
         });
-        #pragma warning restore MA0147
+#pragma warning restore MA0147
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Pipeline orchestrator")]
@@ -2331,10 +2331,10 @@ public sealed partial class LoadingViewModel : ObservableObject
     private async Task HandleVisionSaveAsync(byte[] imageData, string? savedPath)
     {
         var saveTcs = new TaskCompletionSource<string?>();
-        #pragma warning disable MA0147 // Async void delegate — exceptions routed via TCS
+#pragma warning disable MA0147 // Async void delegate — exceptions routed via TCS
         _uiDispatcher?.TryEnqueue(async () =>
         {
-            #pragma warning restore MA0147
+#pragma warning restore MA0147
             try
             {
                 var picker = new Windows.Storage.Pickers.FileSavePicker();
