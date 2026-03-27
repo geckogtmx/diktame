@@ -132,6 +132,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _controlPanel.VisionCaptureRequested += OnVisionCaptureRequested;
         _controlPanel.VisionActionChosen += OnVisionActionChosen;
         _controlPanel.VisionExited += (_, _) => DismissDimOverlay();
+        _controlPanel.VisionDefaultOverridden += OnVisionDefaultOverridden;
         _controlPanel.RecordingStopRequested += OnRecordingStopRequested;
         _controlPanel.RecordingPauseToggleRequested += OnRecordingPauseToggleRequested;
     }
@@ -403,6 +404,13 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             try
             {
+                // Block all hotkeys during video recording (except Vision which could stop it in the future)
+                if (_controlPanel.VisionPhase == VisionWizardStep.Recording && e.Id != HotkeyId.Vision)
+                {
+                    Log.Information("Hotkey {Id}: blocked — video recording in progress", e.Id);
+                    return;
+                }
+
                 // Toggle-stop: if already recording, stop instead of starting a new pipeline
                 if (_isRecording && _currentRecorder is not null)
                 {
@@ -1755,7 +1763,9 @@ public sealed partial class LoadingViewModel : ObservableObject
                 var overlay = new Views.SnippingOverlayWindow();
                 overlay.SetBounds(monitor.X, monitor.Y, monitor.Width, monitor.Height);
                 await overlay.SetBackgroundScreenshotAsync(monitorPng).ConfigureAwait(true);
-                overlay.SetDimOnlyMode();
+                // Default-to-Region: enable selection immediately (skip Steps 1-2 for the common case).
+                // CP still shows Image/Video/Color as overrides — clicking those cancels the active selection.
+                overlay.EnableSelection();
                 overlay.Activate();
                 _dimOverlay = overlay;
                 _dimOverlayMonitorBounds = monitor;
@@ -1764,14 +1774,52 @@ public sealed partial class LoadingViewModel : ObservableObject
                 App.Current?.ShowMainWindow();
                 App.Current?.MainWindow?.Activate();
 
-                // Listen for ESC on dim overlay — exit wizard if dismissed while in dim-only mode
+                // Listen for overlay result — ESC cancels, region/window completes default image capture
                 _ = overlay.GetResultAsync().ContinueWith(t =>
                 {
-                    if (t.Result == null && _dimOverlay == overlay)
+                    var result = t.Result;
+                    if (_dimOverlay != overlay)
+                        return; // Overlay was superseded by a CP button click
+
+                    _dimOverlay = null;
+
+                    if (result == null)
                     {
-                        _dimOverlay = null;
+                        // ESC — exit vision mode
                         _uiDispatcher?.TryEnqueue(() => _controlPanel.VisionExitModeCommand.Execute(null));
+                        return;
                     }
+
+                    // Default-to-Region: user drew a region (or clicked for window/pressed F for full) directly
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var capturedScreenshot = _dimOverlayScreenshot;
+                            _dimOverlayScreenshot = null;
+
+                            var basePng = capturedScreenshot ?? ScreenCapture.CaptureRegion(monitor.X, monitor.Y, monitor.Width, monitor.Height);
+                            byte[]? croppedPng = result.Mode switch
+                            {
+                                CaptureMode.Region when result.Region is { } r =>
+                                    ImageProcessor.CropRegion(basePng, r.X, r.Y, r.Width, r.Height),
+                                CaptureMode.AllMonitors => ScreenCapture.CaptureFullScreen(),
+                                _ => basePng,
+                            };
+
+                            _visionCapturedImageData = croppedPng;
+                            await ShowPostCaptureInCpAsync(croppedPng!).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Vision: Default-to-region capture failed");
+                            _uiDispatcher?.TryEnqueue(() =>
+                            {
+                                _controlPanel.VisionExitModeCommand.Execute(null);
+                                App.Current?.ShowMainWindow();
+                            });
+                        }
+                    });
                 }, TaskScheduler.Default);
             }
             catch (Exception ex)
@@ -1790,6 +1838,19 @@ public sealed partial class LoadingViewModel : ObservableObject
     private Views.SnippingOverlayWindow? _dimOverlay;
     private byte[]? _dimOverlayScreenshot;
     private (int X, int Y, int Width, int Height) _dimOverlayMonitorBounds;
+
+    /// <summary>User clicked a Step 1 override button — cancel the default-to-region overlay without exiting vision mode.</summary>
+    private void OnVisionDefaultOverridden(object? sender, EventArgs e)
+    {
+        _uiDispatcher?.TryEnqueue(() =>
+        {
+            var overlay = _dimOverlay;
+            if (overlay == null) return;
+            _dimOverlay = null; // Null first so the GetResultAsync continuation exits early
+            overlay.DismissDim();
+            Log.Information("Vision: Default-to-region cancelled — user chose override");
+        });
+    }
 
     /// <summary>Close the dim overlay if open.</summary>
     private void DismissDimOverlay()
@@ -2036,6 +2097,8 @@ public sealed partial class LoadingViewModel : ObservableObject
                 _controlPanel.VisionPhase = VisionWizardStep.Recording;
                 _controlPanel.RecordingTimerText = "00:00";
                 _controlPanel.IsRecordingPaused = false;
+                _controlPanel.StatusText = "WORKING";
+                _controlPanel.CurrentState = PipelineState.Processing; // Prevents audio monitor from overwriting to "READY"
 
                 if (isFullScreen)
                 {
@@ -2102,6 +2165,9 @@ public sealed partial class LoadingViewModel : ObservableObject
                 {
                     _recordingTimer?.Stop();
                     _recordingTimer = null;
+                    _controlPanel.StatusText = "READY";
+                    _controlPanel.CurrentState = PipelineState.Idle;
+
                 });
                 _videoRecordingCts?.Dispose();
                 _videoRecordingCts = null;

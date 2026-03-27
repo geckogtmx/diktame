@@ -439,6 +439,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     /// <summary>Fired when vision wizard exits (for dim overlay cleanup).</summary>
     public event EventHandler? VisionExited;
 
+    /// <summary>Fired when user clicks a Step 1 button, overriding the default-to-region selection.</summary>
+    public event EventHandler? VisionDefaultOverridden;
+
     [ObservableProperty]
     private VisionWizardStep _visionPhase = VisionWizardStep.None;
 
@@ -561,6 +564,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [RelayCommand]
     private void VisionSelectImage()
     {
+        VisionDefaultOverridden?.Invoke(this, EventArgs.Empty);
         _captureTypeIsVideo = false;
         VisionPhase = VisionWizardStep.CaptureMode;
     }
@@ -568,6 +572,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [RelayCommand]
     private void VisionSelectVideo()
     {
+        VisionDefaultOverridden?.Invoke(this, EventArgs.Empty);
         _captureTypeIsVideo = true;
         VisionPhase = VisionWizardStep.CaptureMode;
     }
@@ -575,6 +580,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     [RelayCommand]
     private void VisionSelectColor()
     {
+        VisionDefaultOverridden?.Invoke(this, EventArgs.Empty);
         VisionCaptureRequested?.Invoke(this, VisionCaptureType.ColorPick);
     }
 
