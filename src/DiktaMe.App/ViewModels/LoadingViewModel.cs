@@ -1,5 +1,5 @@
-
 using System.Runtime.InteropServices.WindowsRuntime;
+
 using CommunityToolkit.Mvvm.ComponentModel;
 using DiktaMe.App.Services;
 using DiktaMe.Core.Account;
@@ -12,8 +12,8 @@ using DiktaMe.Core.Pipeline;
 using DiktaMe.Core.Security;
 using DiktaMe.Core.STT;
 using DiktaMe.Core.SystemManagement;
-using DiktaMe.Core.Vision;
 using DiktaMe.Core.TTS;
+using DiktaMe.Core.Vision;
 using DiktaMe.Plugin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
