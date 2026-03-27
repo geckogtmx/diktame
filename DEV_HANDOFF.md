@@ -1,33 +1,20 @@
 # Developer Handoff
 
-## Next Session — AI-Aware Annotations + SPEC_002 Remaining
+## Next Session — Video UX Polish + SPEC_002 Remaining
 
-**CRITICAL — Runtime test needed first:**
-Post-annotation AI analysis was coded (`f3ba27a`) but NOT runtime-verified. The fix removes the
-`goto processAction` loop and instead directly calls `HandleVisionClipboardAsync` after annotation,
-injecting `_annotationContext` into the Gemini system prompt. Test flow:
-1. Ctrl+Alt+S → select region → click pencil → annotate with text labels → Done
-2. In re-shown modal, click Cloud (Clipboard)
-3. Should get AI analysis that references the annotation text (not just describe the screenshot)
-4. Check logs for `"post-edit → running AI analysis"` — if missing, the new code isn't running
-
-**If AI analysis works:** Phase 5 (AI-aware annotations) is done. Move to polish.
-**If it doesn't:** Debug the `HandleVisionClipboardAsync` call path after annotation edit.
-
-**Priority 1:** Verify post-annotation AI flow (above)
-
-**Priority 2:** Video UX polish:
+**Priority 1:** Video UX polish:
 - Selection border overlay during recording (dotted rectangle like Windows Snipping Tool — user requested)
 - Recording toolbar → CP bar migration (decision made: use existing CP bar auto-collapse + snap instead of standalone window)
 - Error feedback: close recording bar if capture fails
 - Clean up 0-byte MP4 files on failure
 
-**Priority 3:** V7 — Filler word removal (post-STT cleanup pass on narration audio). MEDIUM priority.
+**Priority 2:** V7 — Filler word removal (post-STT cleanup pass on narration audio). MEDIUM priority.
 
 **Also pending:**
 - Audit #3: Cloud provider retry (Polly). 2-3 hrs.
 - VG-4: Scrolling capture research (effort TBD — complex Win32 scroll-and-stitch)
 - Freeform transparency masking (currently crops to bounding box, Windows does shape mask)
+- Vision clipboard UX: focus/cursor issues when injecting AI text — user must position cursor before AI finishes. Needs UI polish pass (auto-focus target window, or queue injection).
 
 ### SPEC_002 Feature Status
 
@@ -45,9 +32,31 @@ injecting `_annotationContext` into the Gemini system prompt. Test flow:
 | V6 Camera bubble (PIP webcam) | ✅ Shipped | 16:9 aspect, USB-preferred, bottom-right overlay in MP4 |
 | ~~V5 Share link~~ | ❌ Deferred | → SPEC_013 Connectors |
 | M1 Annotation editor | ✅ Shipped | Arrow, rect, ellipse, freehand, text, step counter, color picker, flatten export |
-| Phase 5: AI-aware annotations | ⚠️ Coded, needs runtime test | `_annotationContext` injected into Gemini system prompt. `f3ba27a` |
-| C4 AI palette analysis | ✅ Shipped | Gemini: color names, WCAG AA, CSS vars, complements. Vision API path (4096 tokens) |
+| Phase 5: AI-aware annotations | ✅ Shipped | `_annotationContext` injected into Gemini system prompt. Verified runtime. |
+| M1 flatten quality | ✅ Fixed | Bilinear interpolation via BitmapTransform (was nearest-neighbor → squished circles) |
+| Annotated image saving | ✅ Shipped | `*_annotated.png` saved alongside originals in `%APPDATA%\DiktaMe\vision\` |
+| Vision clipboard UX | ✅ Shipped | AI text injected into active window → image placed on clipboard for Ctrl+V |
 | V7 Filler word removal | Pending | Post-STT cleanup. MEDIUM priority. |
+
+### Session Log (2026-03-26, evening session)
+
+**What shipped:**
+
+#### Phase 5: AI-Aware Annotations — VERIFIED + FIXED
+- **Bug found**: `HandleVisionClipboardAsync` was passed `null` UserQuery → hit early return (no-AI path), silently copied image only
+- **Fix** (`a0526d6`): Default annotation prompt + user query from re-shown modal. Annotation context injected into Gemini system prompt.
+- **Runtime verified**: Gemini correctly interprets annotations (arrows, steps, text labels) — 7-10s latency
+- Annotated images now saved as `*_annotated.png` alongside originals
+
+#### Flatten Quality Fix
+- **Bug**: `RenderTargetBitmap` captures at layout-pixel size (DPI-dependent), old nearest-neighbor pixel loop caused squished circles
+- **Fix** (`536fc44`): `BitmapTransform` with `BitmapInterpolationMode.Linear` for proper bilinear resampling
+
+#### Vision Clipboard UX Improvement
+- **Before**: Both text + image on clipboard → double-paste confusion
+- **After** (`b2b4387`): AI text injected via `TextInjector` into active window → annotated image placed on clipboard
+- User sees text appear, then can Ctrl+V to paste the screenshot
+- **Known issue**: Focus/cursor positioning friction — user must position cursor before AI finishes. Deferred to UI polish pass.
 
 ### Video Recording Stats (from testing)
 
@@ -63,11 +72,10 @@ injecting `_annotationContext` into the Gemini system prompt. Test flow:
 - Auto-selects USB cameras over virtual (Snap Camera, OBS Virtual, etc.)
 - System audio (WASAPI loopback) enabled by default alongside mic
 
-### WinUI Gotcha Discovered This Session
+### WinUI Gotchas Discovered
 - **Unused C# labels crash XAML compiler (exit code 1, silent):** An unused `processAction:` label
   (CS0164 warning) caused the WinUI 3 XAML compiler to fail during XBF generation. No error in
-  output.json. Fix: remove the unused label. This is a new WinUI gotcha — C# warnings from source
-  generators can trigger XAML compiler crashes.
+  output.json. Fix: remove the unused label. C# warnings from source generators can trigger XAML compiler crashes.
 
 ### Latency Baselines (from 2026-03-26 logs)
 
@@ -80,79 +88,13 @@ injecting `_annotationContext` into the Gemini system prompt. Test flow:
 | PrepareForApi (resize+compress) | 3-45ms |
 | Whisper STT (16-24s audio) | 470-611ms (GPU, 0.03x ratio) |
 | Video recording startup | ~400ms |
+| Post-annotation AI (Gemini) | 7-10s |
 
 ### Key Architecture Decisions
 
 - **ScreenRecorderLib** over raw D3D11/Media Foundation — D3D11 P/Invoke crashed with COM interop issues (`D3D11_CREATE_DEVICE_VIDEO_SUPPORT` flag not universally supported). ScreenRecorderLib wraps all this cleanly.
 - **Recording toolbar → CP bar** — Instead of a separate floating window, future work will use the existing Control Panel bar (auto-collapse + snap-to-position) as recording controls. See SPEC_002 §15.8.
 - **Multi-pick palette** — Click accumulates, no close-on-pick. Enter=done, Backspace=undo last, Esc=finish if picks exist/cancel if empty. Palette strip shows swatches at bottom of overlay.
-
----
-
-## Session Log (2026-03-26, afternoon session)
-
-**What shipped:**
-
-### V6 Camera Bubble (HIGH — verified)
-- `VideoCaptureOverlay` with 16:9 aspect ratio (200×112px)
-- Auto-prefers USB cameras over virtual cameras (checks device path for `usb` prefix)
-- Webcam feed composited directly into MP4 stream (no floating window — Loom-style)
-- Tested with Elgato Facecam — visible in recorded video
-
-### V4 System Audio (MEDIUM — built, needs runtime test)
-- Single flag: `IsOutputDeviceEnabled = options.EnableSystemAudio`
-- `EnableSystemAudio` defaults to `true` on `VideoRecordingOptions`
-- WASAPI loopback captures desktop audio (YouTube, meetings, music)
-- Mic + system audio mix into MP4 automatically
-
-### C3 Multi-Pick Palette (LOW — verified)
-- `ColorPickerOverlayWindow` now accumulates picks in `List<ColorPickResult>`
-- Palette strip UI at bottom: colored swatches + count + keyboard hints
-- Enter = copy, Tab = analyze with AI, Backspace = undo last pick, Esc = finish/cancel
-- Single pick = same UX as before (one hex copied)
-- Multi-pick = formatted clipboard output (one `#HEX  rgb(R, G, B)` per line)
-- Tested: 7-color palette extracted from color grid screenshot
-
-### V3 Gemini Video Understanding (HIGH — verified)
-- `VideoActionWindow` modal: Describe / Document / Bug Report / Save Only
-- Uses existing `VisionPipeline` + `GeminiProvider` with video/mp4 inline base64
-- Tested all 3 AI actions with production-quality output:
-  - **Describe**: YouTube video + stop button interaction (7.7s, 214 chars)
-  - **Document**: CP bar interactions → numbered steps (9.1s, 377 chars)
-  - **Bug Report**: Chrome DevTools bug → structured report with repro steps (15.8s, 1,642 chars)
-- Local video AI (Ollama MiniCPM-V) crashes — model runner can't decode MP4 containers. Cloud-only.
-
-### C4 AI Palette Analysis (LOW — verified)
-- Tab key during multi-pick → sends hex list to Gemini for AI analysis
-- Uses vision API path (4096 `maxOutputTokens`) — text API (1024) was too short
-- Output: color names, style identification, WCAG AA contrast pairs, CSS custom properties, complementary colors
-- Tested: 5-color palette → 2,241 chars, 28.7s; 3-color palette → 877 chars, 25.5s
-- Uses `gemini-3.1-pro-preview` via cloud vision provider
-
----
-
-## Previous Sessions (2026-03-26, morning + early afternoon)
-
-### Vision Telemetry
-- 5 new columns in history.db: `capture_mode`, `action_type`, `image_width`, `image_height`, `capture_ms`
-- Color picks logged as `mode = "color_pick"`
-- 2 new tests (1134 total)
-
-### Video Capture V1+V2
-- `VideoCapture.cs` — ScreenRecorderLib (Media Foundation + Windows.Graphics.Capture)
-- Region, fullscreen, and window capture → H.264 MP4 with mic audio
-- `VideoRecordingBarWindow.xaml/.cs` — Floating always-on-top bar: blinking red REC dot, mm:ss timer, pause/stop buttons
-- `HandleVideoRecordAsync()` in LoadingViewModel — full pipeline wiring
-
-### Vision Quick Wins (9 fixes)
-- Crosshair cursor via WinUI ProtectedCursor
-- Phantom warmup fix (uses configured model, not hardcoded gemma3:1b)
-- VG-1: clipboard copies both AI text AND screenshot image
-- App quit stalling fix, Note UX, ESC responsiveness, toast icon
-
-### Audit Critical Fixes
-- HistoryManager: SemaphoreSlim(1,1) on all 4 DB methods
-- Gemini API key: migrated from ?key= URL param to x-goog-api-key header
 
 ---
 
@@ -177,7 +119,7 @@ injecting `_annotationContext` into the Gemini system prompt. Test flow:
 | **J** | CRUD Dictation Modes — all 7 tasks |
 | **K** | OAuth & Trial Credits — K.1-K.7 |
 | **L** | Deepgram Streaming — L.1-L.5 committed |
-| **SPEC_002** | Vision — 5 capture modes, color picker (C1+C3+C4), video capture (V1+V2+V3+V4+V6), 9 quick wins, telemetry, audits |
+| **SPEC_002** | Vision — 5 capture modes, color picker (C1+C3+C4), video (V1-V6), M1 annotations + Phase 5 AI-aware, telemetry, audits |
 | **SPEC_007** | Chat Feature Upgrade — 14/14 tasks |
 | **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-G, FIX-1 through FIX-16 |
 | **SPEC_011** | Ollama Management Hub |
