@@ -1968,6 +1968,13 @@ public sealed partial class LoadingViewModel : ObservableObject
                         _annotationContext = editResult.AnnotationContext;
                         Log.Information("Vision: annotation edit complete — {Count} annotations, context={Len} chars",
                             editResult.Annotations.Count, editResult.AnnotationContext.Length);
+
+                        // Save annotated image alongside the original
+                        string annotatedPath = Path.Combine(visionDir,
+                            $"vision_{DateTime.Now:yyyyMMdd_HHmmss}_annotated.{ext}");
+                        await File.WriteAllBytesAsync(annotatedPath, imageData).ConfigureAwait(false);
+                        Log.Information("Vision: annotated image saved to {Path} ({Size} bytes)",
+                            annotatedPath, imageData.Length);
                         // Re-show VisionActionWindow with the annotated image
                         var reActionTcs = new TaskCompletionSource<DiktaMe.Core.Vision.VisionActionResult?>();
                         _uiDispatcher!.TryEnqueue(() =>
@@ -1980,25 +1987,19 @@ public sealed partial class LoadingViewModel : ObservableObject
                             return; // Cancelled or tried to edit again (prevent infinite loop)
                         }
 
-                        // Re-resolve provider from new actionResult (user may have changed Local/Cloud)
-                        visionProvider = actionResult.UseLocal
-                            ? "ollama"
-                            : (visionSettings.CloudVisionProvider ?? "gemini");
-                        visionModelId = actionResult.UseLocal
-                            ? (visionSettings.LocalVisionModelId ?? "minicpm-v")
-                            : (visionSettings.CloudVisionModelId ?? "gemini-2.5-flash");
-
-                        // After annotation, go straight to AI analysis (Cloud) — no second modal
+                        // Force cloud provider for post-annotation AI analysis
                         visionProvider = visionSettings.CloudVisionProvider ?? "gemini";
                         visionModelId = visionSettings.CloudVisionModelId ?? "gemini-2.5-flash";
                         Log.Information("Vision: post-edit → running AI analysis with {Provider}/{Model}",
                             visionProvider, visionModelId);
 
-                        // Also copy annotated image to clipboard
-                        CopyImageToClipboard(imageData);
+                        // Use user's query from re-shown modal, or default annotation prompt
+                        string annotationQuery = !string.IsNullOrWhiteSpace(actionResult.UserQuery)
+                            ? actionResult.UserQuery
+                            : "Describe this annotated screenshot. Focus on what the annotations highlight or label.";
 
                         await HandleVisionClipboardAsync(imageData, mimeType, visionProvider, visionModelId, visionSettings,
-                            new DiktaMe.Core.Vision.VisionActionResult(DiktaMe.Core.Vision.VisionAction.Clipboard, null, UseLocal: false))
+                            new DiktaMe.Core.Vision.VisionActionResult(DiktaMe.Core.Vision.VisionAction.Clipboard, annotationQuery, UseLocal: false))
                             .ConfigureAwait(false);
                         return;
                     }
