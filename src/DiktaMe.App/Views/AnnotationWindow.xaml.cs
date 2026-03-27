@@ -692,54 +692,67 @@ public sealed partial class AnnotationWindow : Window
                 int origW = (int)decoder.PixelWidth;
                 int origH = (int)decoder.PixelHeight;
 
-                // Scale overlay to original image dimensions and composite
+                // Scale overlay to original image dimensions using BitmapTransform (bilinear)
                 int outW = origW;
                 int outH = origH;
                 byte[] result = new byte[outW * outH * 4];
                 Array.Copy(origPixels, result, Math.Min(origPixels.Length, result.Length));
 
-                // Alpha-blend overlay onto original
-                double scaleX = (double)outW / overlayW;
-                double scaleY = (double)outH / overlayH;
+                Log.Debug("AnnotationWindow: overlay={OW}x{OH}, original={W}x{H}",
+                    overlayW, overlayH, origW, origH);
 
-                for (int oy = 0; oy < overlayH; oy++)
+                // Resize overlay to match original image dimensions via BitmapTransform
+                byte[] scaledOverlay;
+                if (overlayW == outW && overlayH == outH)
                 {
-                    int destY = (int)(oy * scaleY);
-                    if (destY >= outH) { break; }
+                    scaledOverlay = overlayPixels;
+                }
+                else
+                {
+                    using var overlayStream = new InMemoryRandomAccessStream();
+                    var tmpEncoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, overlayStream);
+                    tmpEncoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
+                        (uint)overlayW, (uint)overlayH, 96, 96, overlayPixels);
+                    await tmpEncoder.FlushAsync();
+                    overlayStream.Seek(0);
 
-                    for (int ox = 0; ox < overlayW; ox++)
+                    var overlayDecoder = await BitmapDecoder.CreateAsync(overlayStream);
+                    var transform = new BitmapTransform
                     {
-                        int destX = (int)(ox * scaleX);
-                        if (destX >= outW) { break; }
+                        ScaledWidth = (uint)outW,
+                        ScaledHeight = (uint)outH,
+                        InterpolationMode = BitmapInterpolationMode.Linear
+                    };
+                    var scaledProvider = await overlayDecoder.GetPixelDataAsync(
+                        BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
+                        transform, ExifOrientationMode.IgnoreExifOrientation,
+                        ColorManagementMode.DoNotColorManage);
+                    scaledOverlay = scaledProvider.DetachPixelData();
+                }
 
-                        int srcIdx = (oy * overlayW + ox) * 4;
-                        int dstIdx = (destY * outW + destX) * 4;
+                // Alpha-blend scaled overlay onto original
+                for (int i = 0; i < outW * outH; i++)
+                {
+                    int idx = i * 4;
+                    if (idx + 3 >= scaledOverlay.Length || idx + 3 >= result.Length) { break; }
 
-                        if (srcIdx + 3 >= overlayPixels.Length || dstIdx + 3 >= result.Length) { continue; }
+                    byte sA = scaledOverlay[idx + 3];
+                    if (sA == 0) { continue; }
 
-                        byte sB = overlayPixels[srcIdx];
-                        byte sG = overlayPixels[srcIdx + 1];
-                        byte sR = overlayPixels[srcIdx + 2];
-                        byte sA = overlayPixels[srcIdx + 3];
-
-                        if (sA == 0) { continue; }
-
-                        if (sA == 255)
-                        {
-                            result[dstIdx] = sB;
-                            result[dstIdx + 1] = sG;
-                            result[dstIdx + 2] = sR;
-                            result[dstIdx + 3] = 255;
-                        }
-                        else
-                        {
-                            // Alpha blend
-                            float a = sA / 255f;
-                            result[dstIdx] = (byte)(sB * a + result[dstIdx] * (1 - a));
-                            result[dstIdx + 1] = (byte)(sG * a + result[dstIdx + 1] * (1 - a));
-                            result[dstIdx + 2] = (byte)(sR * a + result[dstIdx + 2] * (1 - a));
-                            result[dstIdx + 3] = 255;
-                        }
+                    if (sA == 255)
+                    {
+                        result[idx] = scaledOverlay[idx];
+                        result[idx + 1] = scaledOverlay[idx + 1];
+                        result[idx + 2] = scaledOverlay[idx + 2];
+                        result[idx + 3] = 255;
+                    }
+                    else
+                    {
+                        float a = sA / 255f;
+                        result[idx] = (byte)(scaledOverlay[idx] * a + result[idx] * (1 - a));
+                        result[idx + 1] = (byte)(scaledOverlay[idx + 1] * a + result[idx + 1] * (1 - a));
+                        result[idx + 2] = (byte)(scaledOverlay[idx + 2] * a + result[idx + 2] * (1 - a));
+                        result[idx + 3] = 255;
                     }
                 }
 
