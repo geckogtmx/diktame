@@ -263,9 +263,12 @@ public sealed partial class AnnotationWindow : Window
         // Shaft
         var line = new Line
         {
-            X1 = a.StartX, Y1 = a.StartY,
-            X2 = a.EndX, Y2 = a.EndY,
-            Stroke = brush, StrokeThickness = a.StrokeWidth,
+            X1 = a.StartX,
+            Y1 = a.StartY,
+            X2 = a.EndX,
+            Y2 = a.EndY,
+            Stroke = brush,
+            StrokeThickness = a.StrokeWidth,
             StrokeStartLineCap = PenLineCap.Round,
         };
         canvas.Children.Add(line);
@@ -296,8 +299,10 @@ public sealed partial class AnnotationWindow : Window
     {
         var rect = new Rectangle
         {
-            Width = r.Width, Height = r.Height,
-            Stroke = brush, StrokeThickness = r.StrokeWidth,
+            Width = r.Width,
+            Height = r.Height,
+            Stroke = brush,
+            StrokeThickness = r.StrokeWidth,
         };
         Canvas.SetLeft(rect, r.X);
         Canvas.SetTop(rect, r.Y);
@@ -308,8 +313,10 @@ public sealed partial class AnnotationWindow : Window
     {
         var ellipse = new Ellipse
         {
-            Width = el.RadiusX * 2, Height = el.RadiusY * 2,
-            Stroke = brush, StrokeThickness = el.StrokeWidth,
+            Width = el.RadiusX * 2,
+            Height = el.RadiusY * 2,
+            Stroke = brush,
+            StrokeThickness = el.StrokeWidth,
         };
         Canvas.SetLeft(ellipse, el.CenterX - el.RadiusX);
         Canvas.SetTop(ellipse, el.CenterY - el.RadiusY);
@@ -320,7 +327,8 @@ public sealed partial class AnnotationWindow : Window
     {
         var polyline = new Polyline
         {
-            Stroke = brush, StrokeThickness = f.StrokeWidth,
+            Stroke = brush,
+            StrokeThickness = f.StrokeWidth,
             StrokeLineJoin = PenLineJoin.Round,
             StrokeStartLineCap = PenLineCap.Round,
             StrokeEndLineCap = PenLineCap.Round,
@@ -353,7 +361,8 @@ public sealed partial class AnnotationWindow : Window
         grid.Children.Add(new Ellipse
         {
             Fill = brush,
-            Width = 28, Height = 28,
+            Width = 28,
+            Height = 28,
         });
         grid.Children.Add(new TextBlock
         {
@@ -373,7 +382,8 @@ public sealed partial class AnnotationWindow : Window
     {
         var rect = new Rectangle
         {
-            Width = h.Width, Height = h.Height,
+            Width = h.Width,
+            Height = h.Height,
             Fill = new SolidColorBrush(Color.FromArgb(80, color.R, color.G, color.B)),
         };
         Canvas.SetLeft(rect, h.X);
@@ -386,7 +396,8 @@ public sealed partial class AnnotationWindow : Window
         // Visual placeholder — checkerboard pattern suggests redaction
         var rect = new Rectangle
         {
-            Width = b.Width, Height = b.Height,
+            Width = b.Width,
+            Height = b.Height,
             Fill = new SolidColorBrush(Color.FromArgb(200, 60, 60, 60)),
             Stroke = new SolidColorBrush(Colors.Gray),
             StrokeThickness = 1,
@@ -405,8 +416,10 @@ public sealed partial class AnnotationWindow : Window
 
         var line = new Line
         {
-            X1 = start.X, Y1 = start.Y,
-            X2 = end.X, Y2 = end.Y,
+            X1 = start.X,
+            Y1 = start.Y,
+            X2 = end.X,
+            Y2 = end.Y,
             Stroke = new SolidColorBrush(_currentColor),
             StrokeThickness = WidthSlider.Value,
             Opacity = 0.6,
@@ -428,16 +441,20 @@ public sealed partial class AnnotationWindow : Window
         {
             shape = new Ellipse
             {
-                Width = w, Height = h,
-                Stroke = brush, StrokeThickness = WidthSlider.Value,
-                Opacity = 0.6, StrokeDashArray = { 4, 2 },
+                Width = w,
+                Height = h,
+                Stroke = brush,
+                StrokeThickness = WidthSlider.Value,
+                Opacity = 0.6,
+                StrokeDashArray = { 4, 2 },
             };
         }
         else if (_currentTool == AnnotationType.Highlight)
         {
             shape = new Rectangle
             {
-                Width = w, Height = h,
+                Width = w,
+                Height = h,
                 Fill = new SolidColorBrush(Color.FromArgb(40, _currentColor.R, _currentColor.G, _currentColor.B)),
             };
         }
@@ -445,9 +462,11 @@ public sealed partial class AnnotationWindow : Window
         {
             shape = new Rectangle
             {
-                Width = w, Height = h,
+                Width = w,
+                Height = h,
                 Stroke = new SolidColorBrush(Colors.Gray),
-                StrokeThickness = 1, StrokeDashArray = { 4, 2 },
+                StrokeThickness = 1,
+                StrokeDashArray = { 4, 2 },
                 Opacity = 0.6,
             };
         }
@@ -455,9 +474,12 @@ public sealed partial class AnnotationWindow : Window
         {
             shape = new Rectangle
             {
-                Width = w, Height = h,
-                Stroke = brush, StrokeThickness = WidthSlider.Value,
-                Opacity = 0.6, StrokeDashArray = { 4, 2 },
+                Width = w,
+                Height = h,
+                Stroke = brush,
+                StrokeThickness = WidthSlider.Value,
+                Opacity = 0.6,
+                StrokeDashArray = { 4, 2 },
             };
         }
 
@@ -668,115 +690,115 @@ public sealed partial class AnnotationWindow : Window
 
     private async Task FlattenCoreAsync(TaskCompletionSource<byte[]> tcs)
     {
-            try
+        try
+        {
+            // Capture the drawing canvas as a bitmap
+            var rtb = new RenderTargetBitmap();
+            await rtb.RenderAsync(DrawingCanvas);
+            var overlayPixels = (await rtb.GetPixelsAsync()).ToArray();
+            int overlayW = rtb.PixelWidth;
+            int overlayH = rtb.PixelHeight;
+
+            // Decode original image
+            using var origStream = new InMemoryRandomAccessStream();
+            await origStream.WriteAsync(_originalPngData.AsBuffer());
+            origStream.Seek(0);
+            var decoder = await BitmapDecoder.CreateAsync(origStream);
+            var origProvider = await decoder.GetPixelDataAsync(
+                BitmapPixelFormat.Bgra8,
+                BitmapAlphaMode.Premultiplied,
+                new BitmapTransform(),
+                ExifOrientationMode.IgnoreExifOrientation,
+                ColorManagementMode.DoNotColorManage);
+            byte[] origPixels = origProvider.DetachPixelData();
+            int origW = (int)decoder.PixelWidth;
+            int origH = (int)decoder.PixelHeight;
+
+            // Scale overlay to original image dimensions using BitmapTransform (bilinear)
+            int outW = origW;
+            int outH = origH;
+            byte[] result = new byte[outW * outH * 4];
+            Array.Copy(origPixels, result, Math.Min(origPixels.Length, result.Length));
+
+            Log.Debug("AnnotationWindow: overlay={OW}x{OH}, original={W}x{H}",
+                overlayW, overlayH, origW, origH);
+
+            // Resize overlay to match original image dimensions via BitmapTransform
+            byte[] scaledOverlay;
+            if (overlayW == outW && overlayH == outH)
             {
-                // Capture the drawing canvas as a bitmap
-                var rtb = new RenderTargetBitmap();
-                await rtb.RenderAsync(DrawingCanvas);
-                var overlayPixels = (await rtb.GetPixelsAsync()).ToArray();
-                int overlayW = rtb.PixelWidth;
-                int overlayH = rtb.PixelHeight;
+                scaledOverlay = overlayPixels;
+            }
+            else
+            {
+                using var overlayStream = new InMemoryRandomAccessStream();
+                var tmpEncoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, overlayStream);
+                tmpEncoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
+                    (uint)overlayW, (uint)overlayH, 96, 96, overlayPixels);
+                await tmpEncoder.FlushAsync();
+                overlayStream.Seek(0);
 
-                // Decode original image
-                using var origStream = new InMemoryRandomAccessStream();
-                await origStream.WriteAsync(_originalPngData.AsBuffer());
-                origStream.Seek(0);
-                var decoder = await BitmapDecoder.CreateAsync(origStream);
-                var origProvider = await decoder.GetPixelDataAsync(
-                    BitmapPixelFormat.Bgra8,
-                    BitmapAlphaMode.Premultiplied,
-                    new BitmapTransform(),
-                    ExifOrientationMode.IgnoreExifOrientation,
-                    ColorManagementMode.DoNotColorManage);
-                byte[] origPixels = origProvider.DetachPixelData();
-                int origW = (int)decoder.PixelWidth;
-                int origH = (int)decoder.PixelHeight;
-
-                // Scale overlay to original image dimensions using BitmapTransform (bilinear)
-                int outW = origW;
-                int outH = origH;
-                byte[] result = new byte[outW * outH * 4];
-                Array.Copy(origPixels, result, Math.Min(origPixels.Length, result.Length));
-
-                Log.Debug("AnnotationWindow: overlay={OW}x{OH}, original={W}x{H}",
-                    overlayW, overlayH, origW, origH);
-
-                // Resize overlay to match original image dimensions via BitmapTransform
-                byte[] scaledOverlay;
-                if (overlayW == outW && overlayH == outH)
+                var overlayDecoder = await BitmapDecoder.CreateAsync(overlayStream);
+                var transform = new BitmapTransform
                 {
-                    scaledOverlay = overlayPixels;
+                    ScaledWidth = (uint)outW,
+                    ScaledHeight = (uint)outH,
+                    InterpolationMode = BitmapInterpolationMode.Linear
+                };
+                var scaledProvider = await overlayDecoder.GetPixelDataAsync(
+                    BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
+                    transform, ExifOrientationMode.IgnoreExifOrientation,
+                    ColorManagementMode.DoNotColorManage);
+                scaledOverlay = scaledProvider.DetachPixelData();
+            }
+
+            // Alpha-blend scaled overlay onto original
+            for (int i = 0; i < outW * outH; i++)
+            {
+                int idx = i * 4;
+                if (idx + 3 >= scaledOverlay.Length || idx + 3 >= result.Length) { break; }
+
+                byte sA = scaledOverlay[idx + 3];
+                if (sA == 0) { continue; }
+
+                if (sA == 255)
+                {
+                    result[idx] = scaledOverlay[idx];
+                    result[idx + 1] = scaledOverlay[idx + 1];
+                    result[idx + 2] = scaledOverlay[idx + 2];
+                    result[idx + 3] = 255;
                 }
                 else
                 {
-                    using var overlayStream = new InMemoryRandomAccessStream();
-                    var tmpEncoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, overlayStream);
-                    tmpEncoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
-                        (uint)overlayW, (uint)overlayH, 96, 96, overlayPixels);
-                    await tmpEncoder.FlushAsync();
-                    overlayStream.Seek(0);
-
-                    var overlayDecoder = await BitmapDecoder.CreateAsync(overlayStream);
-                    var transform = new BitmapTransform
-                    {
-                        ScaledWidth = (uint)outW,
-                        ScaledHeight = (uint)outH,
-                        InterpolationMode = BitmapInterpolationMode.Linear
-                    };
-                    var scaledProvider = await overlayDecoder.GetPixelDataAsync(
-                        BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
-                        transform, ExifOrientationMode.IgnoreExifOrientation,
-                        ColorManagementMode.DoNotColorManage);
-                    scaledOverlay = scaledProvider.DetachPixelData();
+                    float a = sA / 255f;
+                    result[idx] = (byte)(scaledOverlay[idx] * a + result[idx] * (1 - a));
+                    result[idx + 1] = (byte)(scaledOverlay[idx + 1] * a + result[idx + 1] * (1 - a));
+                    result[idx + 2] = (byte)(scaledOverlay[idx + 2] * a + result[idx + 2] * (1 - a));
+                    result[idx + 3] = 255;
                 }
-
-                // Alpha-blend scaled overlay onto original
-                for (int i = 0; i < outW * outH; i++)
-                {
-                    int idx = i * 4;
-                    if (idx + 3 >= scaledOverlay.Length || idx + 3 >= result.Length) { break; }
-
-                    byte sA = scaledOverlay[idx + 3];
-                    if (sA == 0) { continue; }
-
-                    if (sA == 255)
-                    {
-                        result[idx] = scaledOverlay[idx];
-                        result[idx + 1] = scaledOverlay[idx + 1];
-                        result[idx + 2] = scaledOverlay[idx + 2];
-                        result[idx + 3] = 255;
-                    }
-                    else
-                    {
-                        float a = sA / 255f;
-                        result[idx] = (byte)(scaledOverlay[idx] * a + result[idx] * (1 - a));
-                        result[idx + 1] = (byte)(scaledOverlay[idx + 1] * a + result[idx + 1] * (1 - a));
-                        result[idx + 2] = (byte)(scaledOverlay[idx + 2] * a + result[idx + 2] * (1 - a));
-                        result[idx + 3] = 255;
-                    }
-                }
-
-                // Encode to PNG
-                using var outStream = new InMemoryRandomAccessStream();
-                var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, outStream);
-                encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
-                    (uint)outW, (uint)outH, 96, 96, result);
-                await encoder.FlushAsync();
-
-                outStream.Seek(0);
-                byte[] pngBytes = new byte[outStream.Size];
-                await outStream.ReadAsync(pngBytes.AsBuffer(), (uint)pngBytes.Length, InputStreamOptions.None);
-
-                Log.Information("AnnotationWindow: flattened {Count} annotations onto {W}x{H} image ({Size}KB)",
-                    _annotations.Count, outW, outH, pngBytes.Length / 1024);
-
-                tcs.SetResult(pngBytes);
             }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "AnnotationWindow: flatten error");
-                tcs.SetException(ex);
-            }
+
+            // Encode to PNG
+            using var outStream = new InMemoryRandomAccessStream();
+            var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, outStream);
+            encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
+                (uint)outW, (uint)outH, 96, 96, result);
+            await encoder.FlushAsync();
+
+            outStream.Seek(0);
+            byte[] pngBytes = new byte[outStream.Size];
+            await outStream.ReadAsync(pngBytes.AsBuffer(), (uint)pngBytes.Length, InputStreamOptions.None);
+
+            Log.Information("AnnotationWindow: flattened {Count} annotations onto {W}x{H} image ({Size}KB)",
+                _annotations.Count, outW, outH, pngBytes.Length / 1024);
+
+            tcs.SetResult(pngBytes);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "AnnotationWindow: flatten error");
+            tcs.SetException(ex);
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────
