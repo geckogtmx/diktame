@@ -1,17 +1,17 @@
 # Developer Handoff
 
-## Next Session — Vision Wizard Polish
+## Next Session — B7 Recording Border + Remaining Polish
 
-**Priority 1:** Default-to-Region optimization:
-- Hotkey should enable region selection immediately (skip Steps 1-2 for the default case)
-- CP wizard still shows Image/Video/Color as overrides, but user can start drawing right away
-- Eliminates z-order bug where clicking frozen screen pushes CP behind dim overlay
-- Future: "Remember Last Option on Key" setting
+**Priority 1:** B7 — Video region recording border overlay:
+- **BLOCKED:** WinUI 3 cannot create transparent windows. 5 approaches tried and failed.
+- **Full analysis + untried approaches:** See [`plans/RECORD_AREA_LAYER.md`](plans/RECORD_AREA_LAYER.md)
+- **Recommended next:** Try DesktopAcrylicBackdrop with TintOpacity=0, then 4 thin opaque strips, then pure Win32 GDI
+- **DO NOT re-attempt:** XAML Background="Transparent", LWA_COLORKEY, keeping SnippingOverlay alive, hiding XAML children on opaque window, TransparentBackdrop custom SystemBackdrop
 
-**Priority 2:** Remaining polish:
-- B6: CP shows "READY" during recording — should show "WORKING" and lock dictation
-- B7: No visual border for video region recording (dotted rectangle around selected area)
-- V7: Filler word removal (post-STT cleanup). MEDIUM priority.
+**Completed this session:**
+- ✅ Default-to-Region: Hotkey enables region selection immediately (committed `be15f43`)
+- ✅ B6: CP shows "WORKING" + locks dictation hotkeys during video recording (committed `be15f43`)
+- ❌ V7 (filler word removal): CANNED — too complex, too low value
 
 **Also pending:**
 - Audit #3: Cloud provider retry (Polly). 2-3 hrs.
