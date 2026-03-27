@@ -1,20 +1,23 @@
 # Developer Handoff
 
-## Next Session — Video UX Polish + SPEC_002 Remaining
+## Next Session — Vision Wizard Polish
 
-**Priority 1:** Video UX polish:
-- Selection border overlay during recording (dotted rectangle like Windows Snipping Tool — user requested)
-- Recording toolbar → CP bar migration (decision made: use existing CP bar auto-collapse + snap instead of standalone window)
-- Error feedback: close recording bar if capture fails
-- Clean up 0-byte MP4 files on failure
+**Priority 1:** Default-to-Region optimization:
+- Hotkey should enable region selection immediately (skip Steps 1-2 for the default case)
+- CP wizard still shows Image/Video/Color as overrides, but user can start drawing right away
+- Eliminates z-order bug where clicking frozen screen pushes CP behind dim overlay
+- Future: "Remember Last Option on Key" setting
 
-**Priority 2:** V7 — Filler word removal (post-STT cleanup pass on narration audio). MEDIUM priority.
+**Priority 2:** Remaining polish:
+- B6: CP shows "READY" during recording — should show "WORKING" and lock dictation
+- B7: No visual border for video region recording (dotted rectangle around selected area)
+- V7: Filler word removal (post-STT cleanup). MEDIUM priority.
 
 **Also pending:**
 - Audit #3: Cloud provider retry (Polly). 2-3 hrs.
 - VG-4: Scrolling capture research (effort TBD — complex Win32 scroll-and-stitch)
 - Freeform transparency masking (currently crops to bounding box, Windows does shape mask)
-- Vision clipboard UX: focus/cursor issues when injecting AI text — user must position cursor before AI finishes. Needs UI polish pass (auto-focus target window, or queue injection).
+- Vision clipboard UX: focus/cursor issues when injecting AI text — user must position cursor before AI finishes. Needs UI polish pass.
 
 ### SPEC_002 Feature Status
 
@@ -27,74 +30,63 @@
 | ~~C2 Magnifier~~ | ❌ Cut | Not worth the effort |
 | V1 Screen recording → MP4 | ✅ Shipped | ScreenRecorderLib, region/fullscreen/window |
 | V2 Mic audio mux | ✅ Shipped | Built into V1 via ScreenRecorderLib |
-| V3 Gemini video understanding | ✅ Shipped | Describe (7.7s), Document (9.1s), Bug Report (15.8s). Cloud-only. |
+| V3 Gemini video understanding | ✅ Shipped | Describe, Document, Bug Report — cloud-only |
 | V4 System audio (WASAPI loopback) | ✅ Shipped | `IsOutputDeviceEnabled` flag |
 | V6 Camera bubble (PIP webcam) | ✅ Shipped | 16:9 aspect, USB-preferred, bottom-right overlay in MP4 |
 | ~~V5 Share link~~ | ❌ Deferred | → SPEC_013 Connectors |
 | M1 Annotation editor | ✅ Shipped | Arrow, rect, ellipse, freehand, text, step counter, color picker, flatten export |
 | Phase 5: AI-aware annotations | ✅ Shipped | `_annotationContext` injected into Gemini system prompt. Verified runtime. |
-| M1 flatten quality | ✅ Fixed | Bilinear interpolation via BitmapTransform (was nearest-neighbor → squished circles) |
-| Annotated image saving | ✅ Shipped | `*_annotated.png` saved alongside originals in `%APPDATA%\DiktaMe\vision\` |
-| Vision clipboard UX | ✅ Shipped | AI text injected into active window → image placed on clipboard for Ctrl+V |
+| M1 flatten quality | ✅ Fixed | Bilinear interpolation via BitmapTransform |
+| Annotated image saving | ✅ Shipped | `*_annotated.png` saved alongside originals |
+| Vision clipboard UX | ✅ Shipped | AI text injected → image on clipboard |
+| **Vision Wizard (CP bar)** | ✅ Shipped | Single-row wizard in CP bar — see §21 |
+| **Screen freeze/dim** | ✅ Shipped | Active monitor frozen on hotkey, CP on top |
+| **Video post-capture in wizard** | ✅ Shipped | Describe/Document/BugReport/Save in CP (retired modal) |
+| **FileSavePicker for Save** | ✅ Shipped | Save-as dialog with default location |
+| **Thinking state** | ✅ Shipped | ProgressRing + "Thinking..." during AI, buttons disabled |
+| **Edit action wired** | ✅ Shipped | Opens annotation editor from wizard, returns to PostCapture |
+| **ESC during full-screen recording** | ✅ Shipped | Polls VK_ESCAPE, stops recording, restores CP |
 | V7 Filler word removal | Pending | Post-STT cleanup. MEDIUM priority. |
 
-### Session Log (2026-03-26, evening session)
+### Session Log (2026-03-27, evening session)
 
-**What shipped:**
+**Vision Wizard — Major UI Refactor**
 
-#### Phase 5: AI-Aware Annotations — VERIFIED + FIXED
-- **Bug found**: `HandleVisionClipboardAsync` was passed `null` UserQuery → hit early return (no-AI path), silently copied image only
-- **Fix** (`a0526d6`): Default annotation prompt + user query from re-shown modal. Annotation context injected into Gemini system prompt.
-- **Runtime verified**: Gemini correctly interprets annotations (arrows, steps, text labels) — 7-10s latency
-- Annotated images now saved as `*_annotated.png` alongside originals
+Replaced the old 3-sub-row vision layout + VisionActionWindow modal with a single-row wizard integrated into the CP bar. See SPEC_002 §21 for canonical flow.
 
-#### Flatten Quality Fix
-- **Bug**: `RenderTargetBitmap` captures at layout-pixel size (DPI-dependent), old nearest-neighbor pixel loop caused squished circles
-- **Fix** (`536fc44`): `BitmapTransform` with `BitmapInterpolationMode.Linear` for proper bilinear resampling
+#### Wizard Steps Implemented
+1. **CaptureType**: Image / Video / Color (3 buttons)
+2. **CaptureMode**: Region / Full Screen (adapts for image vs video)
+3. **Recording**: REC dot + timer + pause + stop
+4. **PostCapture**: Image actions (Save/Clip/Chat/Note/OCR/Table/Edit) or Video actions (Describe/Document/BugReport/Save) — with thumbnail preview
+5. **Query**: TextBox + Local/Cloud/None toggle + Go
 
-#### Vision Clipboard UX Improvement
-- **Before**: Both text + image on clipboard → double-paste confusion
-- **After** (`b2b4387`): AI text injected via `TextInjector` into active window → annotated image placed on clipboard
-- User sees text appear, then can Ctrl+V to paste the screenshot
-- **Known issue**: Focus/cursor positioning friction — user must position cursor before AI finishes. Deferred to UI polish pass.
+#### Bug Fixes (FIX-1 through FIX-8)
+- FIX-1: Audio ducking no longer triggers for Save action
+- FIX-2: Save shows FileSavePicker dialog (not silent save)
+- FIX-3: Screen freeze/dim on hotkey press (active monitor)
+- FIX-4: Thumbnail preview in PostCapture panel
+- FIX-5: CP auto-collapses during wizard (only Header + Vision row visible)
+- FIX-6: Video post-capture uses wizard (retired VideoActionWindow modal)
+- FIX-7: Full-screen recording keeps CP visible for region, hides for full-screen
+- FIX-8: "Thinking..." spinner during AI processing
 
-### Video Recording Stats (from testing)
+#### Critical Bug Fixes (CRIT-1 through CRIT-4)
+- CRIT-1: Black images regression — `_dimOverlayScreenshot` was nulled before use in crop
+- CRIT-2: "None" (no AI) is now default on Query step
+- CRIT-3: ESC stops full-screen video recording (via `GetAsyncKeyState` polling)
+- CRIT-4: Clipboard/Note with "None" skip AI entirely (just copy image)
+- Toast suppressed during full-screen recording
 
-| Recording | Duration | File Size | Bitrate |
-|-----------|----------|-----------|---------|
-| Fullscreen 1080p | 15s | 3.25 MB | ~1.7 Mbps |
-| Fullscreen 1080p | 50s | 6.5 MB | ~1.0 Mbps |
-| Region capture | 15s | 702 KB | ~0.4 Mbps |
-
-- H.264 encoding via ScreenRecorderLib (Media Foundation)
-- 30 FPS, 5 Mbps target bitrate (actual varies with content complexity)
-- Webcam overlay: 200×112px (16:9), bottom-right with 20px offset
-- Auto-selects USB cameras over virtual (Snap Camera, OBS Virtual, etc.)
-- System audio (WASAPI loopback) enabled by default alongside mic
-
-### WinUI Gotchas Discovered
-- **Unused C# labels crash XAML compiler (exit code 1, silent):** An unused `processAction:` label
-  (CS0164 warning) caused the WinUI 3 XAML compiler to fail during XBF generation. No error in
-  output.json. Fix: remove the unused label. C# warnings from source generators can trigger XAML compiler crashes.
-
-### Latency Baselines (from 2026-03-26 logs)
-
-| Operation | Latency |
-|-----------|---------|
-| Monitor capture (1920x1080 GDI) | 60-100ms |
-| All monitors pre-capture (3 screens) | 200-350ms |
-| PNG decode for color picker | <10ms |
-| Image crop (CropRegion) | 5-20ms |
-| PrepareForApi (resize+compress) | 3-45ms |
-| Whisper STT (16-24s audio) | 470-611ms (GPU, 0.03x ratio) |
-| Video recording startup | ~400ms |
-| Post-annotation AI (Gemini) | 7-10s |
+#### New WinUI Gotcha
+- `IsHitTestVisible = false` on a canvas disables ALL input including keyboard (ESC). For dim-only mode, guard pointer handlers individually instead.
 
 ### Key Architecture Decisions
-
-- **ScreenRecorderLib** over raw D3D11/Media Foundation — D3D11 P/Invoke crashed with COM interop issues (`D3D11_CREATE_DEVICE_VIDEO_SUPPORT` flag not universally supported). ScreenRecorderLib wraps all this cleanly.
-- **Recording toolbar → CP bar** — Instead of a separate floating window, future work will use the existing Control Panel bar (auto-collapse + snap-to-position) as recording controls. See SPEC_002 §15.8.
-- **Multi-pick palette** — Click accumulates, no close-on-pick. Enter=done, Backspace=undo last, Esc=finish if picks exist/cancel if empty. Palette strip shows swatches at bottom of overlay.
+- **VisionWizardStep enum**: 6 states (None, CaptureType, CaptureMode, Recording, PostCapture, Query) replace old `VisionRowPhase`
+- **Dim overlay reuse**: `SnippingOverlayWindow` with `SetDimOnlyMode()` / `EnableSelection()` for lazy transition
+- **Monitor bounds snapshot**: `_dimOverlayMonitorBounds` stored at Step 1, used for all capture paths (prevents wrong-monitor bug)
+- **ESC via polling**: `GetAsyncKeyState(VK_ESCAPE)` on background thread during full-screen recording (no WndProc/RegisterHotKey needed)
+- **Video actions in wizard**: `IsVideoPostCapture` flag switches PostCapture panel between image buttons and video buttons (Describe/Document/BugReport/Save)
 
 ---
 
@@ -104,8 +96,8 @@
 |--------|-------|
 | **Tests** | 1134+ passing locally (479+ on CI) |
 | **Build** | **PASSES** (0 warnings, 0 errors) |
-| **CI** | **PASSING** — lint, build, tests, gitleaks, vulnerability audit, publish all green |
-| **Branch** | main — all pushed to origin |
+| **CI** | Green (last push) |
+| **Branch** | main — needs commit + push |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
 
 ## Completed Streams
@@ -119,7 +111,7 @@
 | **J** | CRUD Dictation Modes — all 7 tasks |
 | **K** | OAuth & Trial Credits — K.1-K.7 |
 | **L** | Deepgram Streaming — L.1-L.5 committed |
-| **SPEC_002** | Vision — 5 capture modes, color picker (C1+C3+C4), video (V1-V6), M1 annotations + Phase 5 AI-aware, telemetry, audits |
+| **SPEC_002** | Vision — 5 capture modes, color picker (C1+C3+C4), video (V1-V6), M1 annotations + Phase 5, wizard UI, telemetry, audits |
 | **SPEC_007** | Chat Feature Upgrade — 14/14 tasks |
 | **SPEC_009** | Local Mode E2E + Wizard Fixes — Phases A-G, FIX-1 through FIX-16 |
 | **SPEC_011** | Ollama Management Hub |

@@ -43,6 +43,7 @@ public sealed partial class SnippingOverlayWindow : Window
     private Point _dragStart;
     private bool _isDragging;
     private bool _isFreeform;
+    private bool _isDimOnly; // When true, shows dim without selection capability
     private readonly List<Point> _freeformPoints = [];
     private Polyline? _freeformLine;
     private Rectangle? _selectionRect;
@@ -170,6 +171,27 @@ public sealed partial class SnippingOverlayWindow : Window
 
     public Task<SnippingResult?> GetResultAsync() => _tcs.Task;
 
+    /// <summary>Put overlay in dim-only mode (no selection, just frozen dimmed screenshot). Keeps keyboard (ESC) active.</summary>
+    public void SetDimOnlyMode()
+    {
+        _isDimOnly = true;
+        // Pointer handlers already guard with `if (_isDimOnly) return;`
+        // Keep IsHitTestVisible=true so keyboard (ESC) still works
+    }
+
+    /// <summary>Switch from dim-only to selection mode (re-enable pointer events).</summary>
+    public void EnableSelection()
+    {
+        _isDimOnly = false;
+    }
+
+    /// <summary>Close the overlay without producing a result.</summary>
+    public void DismissDim()
+    {
+        _tcs.TrySetResult(null);
+        Close();
+    }
+
     private void ResizeOverlayFull()
     {
         if (_overlayFull is not null)
@@ -208,6 +230,7 @@ public sealed partial class SnippingOverlayWindow : Window
 
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
+        if (_isDimOnly) return;
         var point = e.GetCurrentPoint(OverlayCanvas);
         _dragStart = point.Position;
         _isDragging = true;

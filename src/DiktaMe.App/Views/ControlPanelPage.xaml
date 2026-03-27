@@ -17,6 +17,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>  <!-- VisionRow -->
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -192,7 +193,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 1: Dictation Presets (Dynamic 2×4 Grid)
              ═══════════════════════════════════════════════════════════════ -->
-        <Border x:Name="ModesRow" Grid.Row="1"
+        <Border x:Name="ModesRow" Grid.Row="2"
                 Visibility="{x:Bind ViewModel.ShowModesRowEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Padding="8,6">
                 <ItemsRepeater ItemsSource="{x:Bind ViewModel.AvailableModes, Mode=OneWay}">
@@ -252,7 +253,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 2: Cycle Buttons (6-column: STT | LLM | TTS | SOUND | +KEY | REFINE)
              ═══════════════════════════════════════════════════════════════ -->
-        <Border x:Name="ActionsRow" Grid.Row="2"
+        <Border x:Name="ActionsRow" Grid.Row="3"
                 Visibility="{x:Bind ViewModel.ShowActionsRowEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Padding="8,4" ColumnSpacing="4">
                 <Grid.ColumnDefinitions>
@@ -417,9 +418,381 @@
         </Border>
 
         <!-- ═══════════════════════════════════════════════════════════════════
-             Row 3: Session Stats (4-column metric grid)
+             Vision Wizard Row — Single row, 5 panels (only one visible at a time)
+             See SPEC_002 §21 for the canonical wizard flow.
              ═══════════════════════════════════════════════════════════════ -->
-        <Border x:Name="SessionStatsRow" Grid.Row="3"
+        <Border x:Name="VisionRow" Grid.Row="1"
+                Visibility="{x:Bind ViewModel.ShowVisionRow, Converter={StaticResource BoolToVis}, Mode=OneWay}"
+                BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="0,1,0,0">
+            <Grid Padding="8,6" Background="{StaticResource AppSurfaceBrush}">
+
+                <!-- ── Panel 1: CaptureType — Image / Video / Color ── -->
+                <Grid Visibility="{x:Bind ViewModel.IsStep_CaptureType, Converter={StaticResource BoolToVis}, Mode=OneWay}"
+                      ColumnSpacing="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Command="{x:Bind ViewModel.VisionSelectImageCommand}"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="2,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Capture screenshot">
+                        <Button.Resources>
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        </Button.Resources>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE722;" FontSize="12" Foreground="{StaticResource AppAccentBrush}"/>
+                            <TextBlock Text="Image" FontSize="10" Foreground="{StaticResource AppTextBrush}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="1" Command="{x:Bind ViewModel.VisionSelectVideoCommand}"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="2,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Record video">
+                        <Button.Resources>
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        </Button.Resources>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE714;" FontSize="12" Foreground="{StaticResource AppAccentBrush}"/>
+                            <TextBlock Text="Video" FontSize="10" Foreground="{StaticResource AppTextBrush}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="2" Command="{x:Bind ViewModel.VisionSelectColorCommand}"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="2,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Pick colors">
+                        <Button.Resources>
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        </Button.Resources>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xEF3C;" FontSize="12" Foreground="{StaticResource AppAccentBrush}"/>
+                            <TextBlock Text="Color" FontSize="10" Foreground="{StaticResource AppTextBrush}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="3" Command="{x:Bind ViewModel.VisionExitModeCommand}"
+                            Background="Transparent" BorderThickness="0" CornerRadius="4"
+                            Padding="6,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Cancel">
+                        <FontIcon Glyph="&#xE711;" FontSize="10" Foreground="{StaticResource AppTextDimBrush}"/>
+                    </Button>
+                </Grid>
+
+                <!-- ── Panel 2: CaptureMode — Region / Full Screen ── -->
+                <Grid Visibility="{x:Bind ViewModel.IsStep_CaptureMode, Converter={StaticResource BoolToVis}, Mode=OneWay}"
+                      ColumnSpacing="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Command="{x:Bind ViewModel.VisionCaptureRegionCommand}"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="2,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Select a region">
+                        <Button.Resources>
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        </Button.Resources>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE7A5;" FontSize="12" Foreground="{StaticResource AppAccentBrush}"/>
+                            <TextBlock Text="Region" FontSize="10" Foreground="{StaticResource AppTextBrush}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="1" Command="{x:Bind ViewModel.VisionCaptureFullCommand}"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="2,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Capture full screen">
+                        <Button.Resources>
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        </Button.Resources>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE740;" FontSize="12" Foreground="{StaticResource AppAccentBrush}"/>
+                            <TextBlock Text="Full Screen" FontSize="10" Foreground="{StaticResource AppTextBrush}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="2" Command="{x:Bind ViewModel.VisionExitModeCommand}"
+                            Background="Transparent" BorderThickness="0" CornerRadius="4"
+                            Padding="6,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Back">
+                        <FontIcon Glyph="&#xE72B;" FontSize="10" Foreground="{StaticResource AppTextDimBrush}"/>
+                    </Button>
+                </Grid>
+
+                <!-- ── Panel 3: Recording — REC dot + timer + pause + stop ── -->
+                <Grid Visibility="{x:Bind ViewModel.IsStep_Recording, Converter={StaticResource BoolToVis}, Mode=OneWay}"
+                      ColumnSpacing="8" HorizontalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Ellipse Grid.Column="0" Width="8" Height="8" Fill="#FF3333" VerticalAlignment="Center"
+                             x:Name="RecordingDot"/>
+                    <TextBlock Grid.Column="1" Text="REC" FontSize="10" FontWeight="Bold"
+                               Foreground="#FF3333" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.RecordingTimerText, Mode=OneWay}"
+                               FontSize="12" FontWeight="SemiBold" FontFamily="Consolas"
+                               Foreground="{StaticResource AppTextBrush}" VerticalAlignment="Center"/>
+                    <Button Grid.Column="3" Command="{x:Bind ViewModel.VisionRecordingPauseToggleCommand}"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            Padding="8,4" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Pause / Resume">
+                        <Button.Resources>
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
+                        </Button.Resources>
+                        <FontIcon Glyph="&#xE769;" FontSize="12" Foreground="{StaticResource AppTextBrush}"/>
+                    </Button>
+                    <Button Grid.Column="4" Command="{x:Bind ViewModel.VisionRecordingStopCommand}"
+                            Background="#992222" BorderThickness="0" CornerRadius="4"
+                            Padding="10,4" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Stop Recording">
+                        <Button.Resources>
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#CC3333"/>
+                        </Button.Resources>
+                        <FontIcon Glyph="&#xE71A;" FontSize="12" Foreground="White"/>
+                    </Button>
+                </Grid>
+
+                <!-- ── Panel 4: PostCapture — Image or Video actions ── -->
+                <Grid Visibility="{x:Bind ViewModel.IsStep_PostCapture, Converter={StaticResource BoolToVis}, Mode=OneWay}">
+
+                <!-- Panel 4a: Image PostCapture — Thumbnail + Save/Clip/Chat/Note/OCR/Table/Edit/✕ -->
+                <Grid Visibility="{x:Bind ViewModel.IsVideoPostCapture, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}"
+                      ColumnSpacing="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Thumbnail preview -->
+                    <Border Grid.Column="0" CornerRadius="3" MaxWidth="48" VerticalAlignment="Center">
+                        <Image Source="{x:Bind ViewModel.VisionThumbnail, Mode=OneWay}"
+                               Height="32" Stretch="Uniform"/>
+                    </Border>
+
+                    <Button Grid.Column="1" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Save"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Save to file">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE74E;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Save" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="2" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Clipboard"
+                            Background="#00607a" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="AI analyze → clipboard">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#007a9a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE8C8;" FontSize="11" Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Clip" FontSize="8" Foreground="White" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="3" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Chat"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Open in Chat">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE8F2;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Chat" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="4" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Note"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Vision + voice note">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE70B;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Note" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="5" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Ocr"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="OCR text extraction">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE8AC;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="OCR" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="6" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Table"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Extract table data">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE80A;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Table" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="7" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Edit"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Annotate image">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE70F;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Edit" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="8" Command="{x:Bind ViewModel.VisionExitModeCommand}"
+                            Background="Transparent" BorderThickness="0" CornerRadius="4"
+                            Padding="6,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Cancel">
+                        <FontIcon Glyph="&#xE711;" FontSize="10" Foreground="{StaticResource AppTextDimBrush}"/>
+                    </Button>
+                </Grid>
+
+                <!-- Panel 4b: Video PostCapture — Describe/Document/BugReport/Save/✕ -->
+                <Grid Visibility="{x:Bind ViewModel.IsVideoPostCapture, Converter={StaticResource BoolToVis}, Mode=OneWay}"
+                      ColumnSpacing="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Clipboard"
+                            Background="#00607a" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="2,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Describe video content">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#007a9a"/></Button.Resources>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE8AC;" FontSize="12" Foreground="White"/>
+                            <TextBlock Text="Describe" FontSize="10" Foreground="White"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="1" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Chat"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="2,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Document steps">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE70B;" FontSize="12" Foreground="{StaticResource AppAccentBrush}"/>
+                            <TextBlock Text="Document" FontSize="10" Foreground="{StaticResource AppTextBrush}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="2" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Note"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="2,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Generate bug report">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xEBE8;" FontSize="12" Foreground="{StaticResource AppAccentBrush}"/>
+                            <TextBlock Text="Bug Report" FontSize="10" Foreground="{StaticResource AppTextBrush}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="3" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Save"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="2,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Save video only">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE74E;" FontSize="12" Foreground="{StaticResource AppAccentBrush}"/>
+                            <TextBlock Text="Save" FontSize="10" Foreground="{StaticResource AppTextBrush}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="4" Command="{x:Bind ViewModel.VisionExitModeCommand}"
+                            Background="Transparent" BorderThickness="0" CornerRadius="4"
+                            Padding="6,6" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Cancel">
+                        <FontIcon Glyph="&#xE711;" FontSize="10" Foreground="{StaticResource AppTextDimBrush}"/>
+                    </Button>
+                </Grid>
+
+                </Grid> <!-- Close outer PostCapture Grid -->
+
+                <!-- ── Panel 5: Query — TextBox + L/C/— + Go ── -->
+                <Grid Visibility="{x:Bind ViewModel.IsStep_Query, Converter={StaticResource BoolToVis}, Mode=OneWay}"
+                      ColumnSpacing="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0" Text="{x:Bind ViewModel.VisionQueryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="Ask about this image..."
+                             FontSize="11" Padding="6,4" MinHeight="0" CornerRadius="4"
+                             Background="#15FFFFFF" BorderThickness="1"
+                             BorderBrush="{StaticResource AppBorderBrush}"
+                             Foreground="{StaticResource AppTextBrush}"/>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="1" VerticalAlignment="Center">
+                        <Button x:Name="VisionAiLocal" Content="L" FontSize="9" FontWeight="SemiBold"
+                                MinWidth="0" MinHeight="0" Padding="6,3" CornerRadius="3,0,0,3"
+                                BorderThickness="0" Background="{StaticResource AppSurfaceBrush}"
+                                Click="VisionAiToggle_Click" Tag="0" ToolTipService.ToolTip="Local AI">
+                            <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        </Button>
+                        <Button x:Name="VisionAiCloud" Content="C" FontSize="9" FontWeight="SemiBold"
+                                MinWidth="0" MinHeight="0" Padding="6,3" CornerRadius="0"
+                                BorderThickness="0" Background="{StaticResource AppSurfaceBrush}"
+                                Click="VisionAiToggle_Click" Tag="1" ToolTipService.ToolTip="Cloud AI">
+                            <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        </Button>
+                        <Button x:Name="VisionAiNone" Content="—" FontSize="9" FontWeight="SemiBold"
+                                MinWidth="0" MinHeight="0" Padding="6,3" CornerRadius="0,3,3,0"
+                                BorderThickness="0" Background="#00607a"
+                                Click="VisionAiToggle_Click" Tag="2" ToolTipService.ToolTip="No AI">
+                            <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#007a9a"/></Button.Resources>
+                        </Button>
+                    </StackPanel>
+
+                    <Button Grid.Column="2" Command="{x:Bind ViewModel.VisionSubmitQueryCommand}"
+                            Background="#00607a" BorderThickness="0" CornerRadius="4"
+                            Padding="8,4" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Go">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#007a9a"/></Button.Resources>
+                        <FontIcon Glyph="&#xE768;" FontSize="11" Foreground="White"/>
+                    </Button>
+                </Grid>
+
+                <!-- ── Processing overlay — "Thinking..." ── -->
+                <Grid Visibility="{x:Bind ViewModel.IsVisionProcessing, Converter={StaticResource BoolToVis}, Mode=OneWay}"
+                      Background="#E0101828" HorizontalAlignment="Stretch">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                        <ProgressRing IsActive="True" Width="16" Height="16" Foreground="{StaticResource AppAccentBrush}"/>
+                        <TextBlock Text="Thinking..." FontSize="11" Foreground="{StaticResource AppTextBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════════════
+             Row 4: Session Stats (4-column metric grid)
+             ═══════════════════════════════════════════════════════════════ -->
+        <Border x:Name="SessionStatsRow" Grid.Row="4"
                 Visibility="{x:Bind ViewModel.ShowSessionStatsEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Background="Transparent" ColumnSpacing="2">
                 <Grid.ColumnDefinitions>
@@ -490,7 +863,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 4: Performance Stats (5-column metric grid)
              ═══════════════════════════════════════════════════════════════ -->
-        <Border x:Name="PerfStatsRow" Grid.Row="4"
+        <Border x:Name="PerfStatsRow" Grid.Row="5"
                 Visibility="{x:Bind ViewModel.ShowPerformanceStatsEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Background="Transparent" ColumnSpacing="2">
                 <Grid.ColumnDefinitions>
@@ -581,7 +954,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              Row 5: Footer — App branding
              ═══════════════════════════════════════════════════════════════ -->
-        <Grid x:Name="FooterRow" Grid.Row="5" Background="{StaticResource AppSurfaceBrush}" Padding="10,4,10,16"
+        <Grid x:Name="FooterRow" Grid.Row="6" Background="{StaticResource AppSurfaceBrush}" Padding="10,4,10,16"
               Visibility="{x:Bind ViewModel.ShowFooterEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <TextBlock Text="dIKta.me V2.0" FontSize="10" FontWeight="Medium"
                        Foreground="#666666"
@@ -609,7 +982,7 @@
         </Border>
 
         <!-- Edge glow highlight (top + side edges) -->
-        <Border x:Name="EdgeGlow" Grid.Row="0" Grid.RowSpan="6"
+        <Border x:Name="EdgeGlow" Grid.Row="0" Grid.RowSpan="7"
                 IsHitTestVisible="False" Opacity="0" BorderThickness="2,3,2,0">
             <Border.BorderBrush>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -621,7 +994,7 @@
         </Border>
 
         <!-- Shimmer sweep: whole app -->
-        <Border x:Name="ShimmerOverlayFull" Grid.Row="0" Grid.RowSpan="6"
+        <Border x:Name="ShimmerOverlayFull" Grid.Row="0" Grid.RowSpan="7"
                 IsHitTestVisible="False" Opacity="0">
             <Border.Background>
                 <LinearGradientBrush x:Name="ShimmerBrushFull" StartPoint="0,0.5" EndPoint="1,0.5">

@@ -37,6 +37,52 @@ public enum RefineMode
 }
 
 /// <summary>
+/// Event args for post-capture action selection from the CP vision row.
+/// </summary>
+public sealed record VisionActionChosenEventArgs(
+    DiktaMe.Core.Vision.VisionAction Action,
+    string? UserQuery,
+    bool UseLocal,
+    bool SkipAi = false);
+
+/// <summary>
+/// Wizard step for the vision row in the CP bar (see SPEC_002 §21.4).
+/// Controls which panel is visible in the single-row wizard.
+/// </summary>
+public enum VisionWizardStep
+{
+    /// <summary>Wizard inactive — vision row hidden.</summary>
+    None,
+
+    /// <summary>Step 1: User picks capture type — Image / Video / Color.</summary>
+    CaptureType,
+
+    /// <summary>Step 2: User picks capture mode — Region / Full Screen.</summary>
+    CaptureMode,
+
+    /// <summary>Step 2b: Video recording in progress — timer + pause + stop.</summary>
+    Recording,
+
+    /// <summary>Step 3: Post-capture actions — Save / Clipboard / Chat / Note / OCR / Table / Edit.</summary>
+    PostCapture,
+
+    /// <summary>Step 4: Query input + provider toggle + Go button.</summary>
+    Query,
+}
+
+/// <summary>
+/// Event args for vision capture requests from CP bar buttons.
+/// </summary>
+public enum VisionCaptureType
+{
+    ScreenshotRegion,
+    ScreenshotFull,
+    VideoRegion,
+    VideoFull,
+    ColorPick,
+}
+
+/// <summary>
 /// ViewModel for the Control Panel (HUD dashboard).
 /// Displays real-time pipeline state, session metrics, quick action toggles, and provider badges.
 /// </summary>
@@ -375,6 +421,243 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     public bool ShowSessionStatsEffective => IsExpanded && ShowSessionStats;
     public bool ShowPerformanceStatsEffective => IsExpanded && ShowPerformanceStats;
     public bool ShowFooterEffective => IsExpanded;
+
+    // ── Vision Row state ─────────────────────────────────────────────────
+
+    /// <summary>Raised when user clicks a pre-capture button (screenshot, video, color).</summary>
+    public event EventHandler<VisionCaptureType>? VisionCaptureRequested;
+
+    /// <summary>Raised when user picks a post-capture action (save, clipboard, chat, etc.).</summary>
+    public event EventHandler<VisionActionChosenEventArgs>? VisionActionChosen;
+
+    /// <summary>Raised when user clicks Stop during video recording.</summary>
+    public event EventHandler? RecordingStopRequested;
+
+    /// <summary>Raised when user clicks Pause/Resume during video recording.</summary>
+    public event EventHandler? RecordingPauseToggleRequested;
+
+    /// <summary>Fired when vision wizard exits (for dim overlay cleanup).</summary>
+    public event EventHandler? VisionExited;
+
+    [ObservableProperty]
+    private VisionWizardStep _visionPhase = VisionWizardStep.None;
+
+    /// <summary>Vision row is visible whenever phase is not None — ignores IsExpanded.</summary>
+    public bool ShowVisionRow => VisionPhase != VisionWizardStep.None;
+
+    /// <summary>Pre-capture buttons visible.</summary>
+    /// <summary>Step 1: Capture type selection (Image/Video/Color).</summary>
+    public bool IsStep_CaptureType => VisionPhase == VisionWizardStep.CaptureType;
+
+    /// <summary>Step 2: Capture mode selection (Region/Full Screen).</summary>
+    public bool IsStep_CaptureMode => VisionPhase == VisionWizardStep.CaptureMode;
+
+    /// <summary>Step 2b: Video recording in progress (timer + pause + stop).</summary>
+    public bool IsStep_Recording => VisionPhase == VisionWizardStep.Recording;
+
+    /// <summary>Step 3: Post-capture actions.</summary>
+    public bool IsStep_PostCapture => VisionPhase == VisionWizardStep.PostCapture;
+
+    /// <summary>Step 4: Query input + provider + Go.</summary>
+    public bool IsStep_Query => VisionPhase == VisionWizardStep.Query;
+
+    /// <summary>Suppress auto-collapse while vision flow is active.</summary>
+    public bool SuppressAutoCollapse => VisionPhase != VisionWizardStep.None;
+
+    [ObservableProperty]
+    private string _visionQueryText = "";
+
+    /// <summary>True while AI is processing a vision request. Shows spinner, disables buttons.</summary>
+    [ObservableProperty]
+    private bool _isVisionProcessing;
+
+    /// <summary>True when PostCapture shows video actions (Describe/Document/BugReport) instead of image actions.</summary>
+    [ObservableProperty]
+    private bool _isVideoPostCapture;
+
+    /// <summary>AI provider mode for vision: 0=Local, 1=Cloud, 2=None.</summary>
+    [ObservableProperty]
+    private int _visionAiMode = 2; // Default: None (no AI)
+
+    /// <summary>Show query sub-row (when post-capture action needs AI input).</summary>
+    [ObservableProperty]
+    private bool _showVisionQueryRow;
+
+    /// <summary>Captured image thumbnail for post-capture preview.</summary>
+    [ObservableProperty]
+    private Microsoft.UI.Xaml.Media.ImageSource? _visionThumbnail;
+
+    /// <summary>Snapshot of IsExpanded before vision mode activated — restored on exit.</summary>
+    private bool _preVisionIsExpanded;
+
+    /// <summary>Pending post-capture action (set when user clicks action that needs query input).</summary>
+    private DiktaMe.Core.Vision.VisionAction? _pendingVisionAction;
+
+    /// <summary>Video recording elapsed time display.</summary>
+    [ObservableProperty]
+    private string _recordingTimerText = "00:00";
+
+    /// <summary>Whether video recording is paused.</summary>
+    [ObservableProperty]
+    private bool _isRecordingPaused;
+
+    partial void OnVisionPhaseChanged(VisionWizardStep value)
+    {
+        OnPropertyChanged(nameof(ShowVisionRow));
+        OnPropertyChanged(nameof(IsStep_CaptureType));
+        OnPropertyChanged(nameof(IsStep_CaptureMode));
+        OnPropertyChanged(nameof(IsStep_Recording));
+        OnPropertyChanged(nameof(IsStep_PostCapture));
+        OnPropertyChanged(nameof(IsStep_Query));
+        OnPropertyChanged(nameof(SuppressAutoCollapse));
+
+        // Reset query text when leaving query step
+        if (value != VisionWizardStep.Query)
+        {
+            VisionQueryText = "";
+        }
+
+        Log.Information("VisionRow: Phase → {Phase}", value);
+    }
+
+    // ── Vision Row commands ──────────────────────────────────────────────
+
+    // Old individual capture commands removed — replaced by Step 1/2 wizard flow
+
+    /// <summary>Enter vision mode — snapshots current CP state for restore on exit.</summary>
+    public void EnterVision()
+    {
+        _preVisionIsExpanded = IsExpanded;
+        IsExpanded = false; // Force collapse so only Header + Vision row show
+        VisionPhase = VisionWizardStep.CaptureType;
+        Log.Information("VisionRow: Entered vision mode (was expanded={WasExpanded})", _preVisionIsExpanded);
+    }
+
+    [RelayCommand]
+    private void VisionExitMode()
+    {
+        var wasExpanded = _preVisionIsExpanded;
+        VisionPhase = VisionWizardStep.None;
+        VisionThumbnail = null;
+        IsVideoPostCapture = false;
+        IsVisionProcessing = false;
+
+        // Restore pre-vision expand state
+        if (IsExpanded != wasExpanded)
+        {
+            IsExpanded = wasExpanded;
+        }
+
+        VisionExited?.Invoke(this, EventArgs.Empty);
+
+        Log.Information("VisionRow: Exited vision mode (restored expanded={Expanded})", wasExpanded);
+    }
+
+    // ── Step 1: Capture Type selection ─────────────────────────────────
+
+    /// <summary>Tracks whether user chose Image or Video at Step 1 (affects Step 2 options).</summary>
+    private bool _captureTypeIsVideo; // false = image, true = video
+
+    [RelayCommand]
+    private void VisionSelectImage()
+    {
+        _captureTypeIsVideo = false;
+        VisionPhase = VisionWizardStep.CaptureMode;
+    }
+
+    [RelayCommand]
+    private void VisionSelectVideo()
+    {
+        _captureTypeIsVideo = true;
+        VisionPhase = VisionWizardStep.CaptureMode;
+    }
+
+    [RelayCommand]
+    private void VisionSelectColor()
+    {
+        VisionCaptureRequested?.Invoke(this, VisionCaptureType.ColorPick);
+    }
+
+    /// <summary>Whether Step 2 is showing Image options (Region/Full) vs Video options.</summary>
+    public bool IsCaptureModeImage => !_captureTypeIsVideo;
+
+    // ── Step 2: Capture Mode selection ──────────────────────────────────
+
+    [RelayCommand]
+    private void VisionCaptureRegion()
+    {
+        var type = _captureTypeIsVideo ? VisionCaptureType.VideoRegion : VisionCaptureType.ScreenshotRegion;
+        VisionCaptureRequested?.Invoke(this, type);
+    }
+
+    [RelayCommand]
+    private void VisionCaptureFull()
+    {
+        var type = _captureTypeIsVideo ? VisionCaptureType.VideoFull : VisionCaptureType.ScreenshotFull;
+        VisionCaptureRequested?.Invoke(this, type);
+    }
+
+    // ── Step 3: Post-Capture action selection ───────────────────────────
+
+    [RelayCommand]
+    private void VisionChooseAction(string actionName)
+    {
+        if (!Enum.TryParse<DiktaMe.Core.Vision.VisionAction>(actionName, out var action))
+            return;
+
+        // Save — fire immediately, no AI
+        if (action == DiktaMe.Core.Vision.VisionAction.Save)
+        {
+            VisionActionChosen?.Invoke(this, new VisionActionChosenEventArgs(action, null, false, true));
+            return;
+        }
+
+        // OCR and Table — auto-run with current provider, no query needed
+        if (action == DiktaMe.Core.Vision.VisionAction.Ocr || action == DiktaMe.Core.Vision.VisionAction.Table)
+        {
+            var useLocal = VisionAiMode == 0;
+            VisionActionChosen?.Invoke(this, new VisionActionChosenEventArgs(action, null, useLocal));
+            return;
+        }
+
+        // Edit — fire immediately, will return to Query step after annotation
+        if (action == DiktaMe.Core.Vision.VisionAction.Edit)
+        {
+            VisionActionChosen?.Invoke(this, new VisionActionChosenEventArgs(action, null, false));
+            return;
+        }
+
+        // Clipboard, Chat, Note — need query input → slide to Step 4
+        _pendingVisionAction = action;
+        VisionPhase = VisionWizardStep.Query;
+    }
+
+    // ── Step 4: Query submission ────────────────────────────────────────
+
+    [RelayCommand]
+    private void VisionSubmitQuery()
+    {
+        if (_pendingVisionAction is not { } action)
+            return;
+
+        var useLocal = VisionAiMode == 0;
+        var skipAi = VisionAiMode == 2; // "None" mode
+        var query = string.IsNullOrWhiteSpace(VisionQueryText) ? null : VisionQueryText.Trim();
+
+        _pendingVisionAction = null;
+
+        VisionActionChosen?.Invoke(this, new VisionActionChosenEventArgs(action, query, useLocal, skipAi));
+    }
+
+    [RelayCommand]
+    private void VisionRecordingStop() => RecordingStopRequested?.Invoke(this, EventArgs.Empty);
+
+    [RelayCommand]
+    private void VisionRecordingPauseToggle()
+    {
+        IsRecordingPaused = !IsRecordingPaused;
+        RecordingPauseToggleRequested?.Invoke(this, EventArgs.Empty);
+    }
 
     /// <summary>Chevron icon reflecting expand direction. Points toward the direction content will collapse.</summary>
     public string ExpandCollapseIcon => ExpandUpward

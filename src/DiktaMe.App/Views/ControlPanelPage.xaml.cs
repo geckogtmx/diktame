@@ -252,17 +252,19 @@ public sealed partial class ControlPanelPage : Page
         // Content rows fill the remaining positions in forward or reverse order
         if (expandUpward)
         {
-            // Up mode: footer at top (row 0), content rows 1-4, header at bottom (row 5)
+            // Up mode: footer at top (row 0), content rows 1-5, header at bottom (row 6)
             Grid.SetRow(FooterRow, 0);
-            Grid.SetRow(ModesRow, 1);
-            Grid.SetRow(ActionsRow, 2);
-            Grid.SetRow(SessionStatsRow, 3);
-            Grid.SetRow(PerfStatsRow, 4);
-            Grid.SetRow(HeaderBar, 5);
+            Grid.SetRow(PerfStatsRow, 1);
+            Grid.SetRow(SessionStatsRow, 2);
+            Grid.SetRow(ActionsRow, 3);
+            Grid.SetRow(ModesRow, 4);
+            Grid.SetRow(VisionRow, 5);
+            Grid.SetRow(HeaderBar, 6);
 
-            // Flip border lines: content rows get top border, header gets top border
+            // Flip border lines: content rows get bottom border, header gets top border
             ModesRow.BorderThickness = new Thickness(0, 0, 0, 1);
             ActionsRow.BorderThickness = new Thickness(0, 0, 0, 1);
+            VisionRow.BorderThickness = new Thickness(0, 0, 0, 1);
             SessionStatsRow.BorderThickness = new Thickness(0, 0, 0, 1);
             PerfStatsRow.BorderThickness = new Thickness(0, 0, 0, 1);
             HeaderBar.BorderThickness = new Thickness(0, 1, 0, 0);
@@ -272,24 +274,26 @@ public sealed partial class ControlPanelPage : Page
             EdgeGlow.BorderThickness = new Thickness(2, 0, 2, 3);
 
             // Shimmer header overlay follows header row
-            Grid.SetRow(ShimmerOverlayHeader, 5);
+            Grid.SetRow(ShimmerOverlayHeader, 6);
 
             // Footer padding: modest top margin at window edge, tight against content below
             FooterRow.Padding = new Thickness(10, 8, 10, 4);
         }
         else
         {
-            // Down mode (default): header at top (row 0), content rows 1-5
+            // Down mode (default): header at top (row 0), content rows 1-6
             Grid.SetRow(HeaderBar, 0);
-            Grid.SetRow(ModesRow, 1);
-            Grid.SetRow(ActionsRow, 2);
-            Grid.SetRow(SessionStatsRow, 3);
-            Grid.SetRow(PerfStatsRow, 4);
-            Grid.SetRow(FooterRow, 5);
+            Grid.SetRow(VisionRow, 1);
+            Grid.SetRow(ModesRow, 2);
+            Grid.SetRow(ActionsRow, 3);
+            Grid.SetRow(SessionStatsRow, 4);
+            Grid.SetRow(PerfStatsRow, 5);
+            Grid.SetRow(FooterRow, 6);
 
             // Default borders: content rows have bottom border, header has bottom border
             ModesRow.BorderThickness = new Thickness(0, 0, 0, 1);
             ActionsRow.BorderThickness = new Thickness(0, 0, 0, 1);
+            VisionRow.BorderThickness = new Thickness(0, 1, 0, 0);
             SessionStatsRow.BorderThickness = new Thickness(0, 0, 0, 1);
             PerfStatsRow.BorderThickness = new Thickness(0, 0, 0, 1);
             HeaderBar.BorderThickness = new Thickness(0, 0, 0, 1);
@@ -306,6 +310,26 @@ public sealed partial class ControlPanelPage : Page
         }
 
         Log.Information("ControlPanel: ApplyExpandDirection expandUpward={ExpandUpward}", expandUpward);
+    }
+
+    // ── Vision AI toggle ──────────────────────────────────────────────────
+
+    private void VisionAiToggle_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        if (sender is not Button btn || btn.Tag is not string tagStr || !int.TryParse(tagStr, System.Globalization.CultureInfo.InvariantCulture, out var mode))
+            return;
+
+        ViewModel.VisionAiMode = mode;
+        UpdateVisionAiToggleVisuals();
+    }
+
+    private void UpdateVisionAiToggleVisuals()
+    {
+        var active = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 96, 122));   // #00607a
+        var inactive = (SolidColorBrush)Microsoft.UI.Xaml.Application.Current.Resources["AppSurfaceBrush"];
+        VisionAiLocal.Background = ViewModel.VisionAiMode == 0 ? active : inactive;
+        VisionAiCloud.Background = ViewModel.VisionAiMode == 1 ? active : inactive;
+        VisionAiNone.Background = ViewModel.VisionAiMode == 2 ? active : inactive;
     }
 
     // ── Visual effects engine ─────────────────────────────────────────────
@@ -508,6 +532,18 @@ public sealed partial class ControlPanelPage : Page
         int hideDelay = ViewModel.AutoHideDelaySeconds;
         bool collapseEnabled = ViewModel.AutoCollapseEnabled;
         int collapseDelay = ViewModel.AutoCollapseDelaySeconds;
+
+        // Suppress auto-collapse/hide during active vision flow
+        if (ViewModel.SuppressAutoCollapse)
+        {
+            _idleTicks = 0;
+            // If bar is horizontally collapsed, force-expand it so vision row is usable
+            if (_isBarCollapsed || _isBarCollapsing)
+            {
+                RestoreBarWidth();
+            }
+            return;
+        }
 
         // If both features are completely disabled, reset state
         bool anyEnabled = (hideEnabled && hideDelay > 0) || collapseEnabled;

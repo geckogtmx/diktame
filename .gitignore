@@ -66,3 +66,6 @@ test-session-log.md
 tests/fixtures/downloads/
 *.srt
 nul
+
+# Remotion video project (entire directory — never committed)
+video/

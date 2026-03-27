@@ -12,6 +12,7 @@ using DiktaMe.Core.Pipeline;
 using DiktaMe.Core.Security;
 using DiktaMe.Core.STT;
 using DiktaMe.Core.SystemManagement;
+using DiktaMe.Core.Vision;
 using DiktaMe.Core.TTS;
 using DiktaMe.Plugin;
 using Microsoft.Extensions.DependencyInjection;
@@ -126,6 +127,13 @@ public sealed partial class LoadingViewModel : ObservableObject
         _pipelineEventBus = pipelineEventBus;
         _pluginManager = pluginManager;
         _statusText = _loc.GetString("Loading_Initializing");
+
+        // Subscribe to vision row events from CP bar
+        _controlPanel.VisionCaptureRequested += OnVisionCaptureRequested;
+        _controlPanel.VisionActionChosen += OnVisionActionChosen;
+        _controlPanel.VisionExited += (_, _) => DismissDimOverlay();
+        _controlPanel.RecordingStopRequested += OnRecordingStopRequested;
+        _controlPanel.RecordingPauseToggleRequested += OnRecordingPauseToggleRequested;
     }
 
     public async Task InitializeAsync()
@@ -456,7 +464,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                         break;
 
                     case HotkeyId.Vision:
-                        _ = RunVisionPipelineAsync();
+                        EnterVisionMode();
                         break;
                 }
             }
@@ -1726,7 +1734,713 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
     }
 
-    // ── Vision Pipeline (SPEC_015-0C) ────────────────────────────────────
+    // ── Vision Row (CP bar integration) ──────────────────────────────────
+
+    /// <summary>Show vision pre-capture controls in CP bar.</summary>
+    private void EnterVisionMode()
+    {
+        Log.Information("Vision: Entering vision mode via CP bar");
+
+        // Show dim overlay on active monitor (freeze/dim the screen)
+        #pragma warning disable MA0147 // Async void delegate — fire-and-forget with try/catch
+        _uiDispatcher?.TryEnqueue(async () =>
+        {
+            #pragma warning restore MA0147
+            try
+            {
+                var monitor = ScreenCapture.GetActiveMonitorBounds();
+                var monitorPng = ScreenCapture.CaptureRegion(monitor.X, monitor.Y, monitor.Width, monitor.Height);
+                _dimOverlayScreenshot = monitorPng;
+
+                var overlay = new Views.SnippingOverlayWindow();
+                overlay.SetBounds(monitor.X, monitor.Y, monitor.Width, monitor.Height);
+                await overlay.SetBackgroundScreenshotAsync(monitorPng).ConfigureAwait(true);
+                overlay.SetDimOnlyMode();
+                overlay.Activate();
+                _dimOverlay = overlay;
+                _dimOverlayMonitorBounds = monitor;
+
+                // Re-activate CP so it's above the dim overlay
+                App.Current?.ShowMainWindow();
+                App.Current?.MainWindow?.Activate();
+
+                // Listen for ESC on dim overlay — exit wizard if dismissed while in dim-only mode
+                _ = overlay.GetResultAsync().ContinueWith(t =>
+                {
+                    if (t.Result == null && _dimOverlay == overlay)
+                    {
+                        _dimOverlay = null;
+                        _uiDispatcher?.TryEnqueue(() => _controlPanel.VisionExitModeCommand.Execute(null));
+                    }
+                }, TaskScheduler.Default);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Vision: Failed to create dim overlay");
+            }
+        });
+
+        _controlPanel.EnterVision(); // Snapshots state + sets CaptureType
+
+        // Ensure CP is visible
+        _uiDispatcher?.TryEnqueue(() => App.Current?.ShowMainWindow());
+    }
+
+    /// <summary>Dim overlay shown during vision wizard Steps 1-2.</summary>
+    private Views.SnippingOverlayWindow? _dimOverlay;
+    private byte[]? _dimOverlayScreenshot;
+    private (int X, int Y, int Width, int Height) _dimOverlayMonitorBounds;
+
+    /// <summary>Close the dim overlay if open.</summary>
+    private void DismissDimOverlay()
+    {
+        _uiDispatcher?.TryEnqueue(() =>
+        {
+            _dimOverlay?.DismissDim();
+            _dimOverlay = null;
+            _dimOverlayScreenshot = null;
+        });
+    }
+
+    /// <summary>Captured image data held between capture and action selection.</summary>
+    private byte[]? _visionCapturedImageData;
+    private string? _visionCapturedImagePath;
+
+    /// <summary>Captured video path + size held between recording and action selection.</summary>
+    private string? _capturedVideoPath;
+    private long _capturedVideoSize;
+
+    private void OnVisionCaptureRequested(object? sender, VisionCaptureType captureType)
+    {
+        // Dispatch off UI thread to avoid blocking button click
+        _ = Task.Run(() => HandleVisionCaptureAsync(captureType));
+    }
+
+    private void OnVisionActionChosen(object? sender, VisionActionChosenEventArgs args)
+    {
+        // Dispatch off UI thread immediately to avoid blocking
+        _ = Task.Run(() => HandleVisionActionAsync(args));
+    }
+
+    private CancellationTokenSource? _videoRecordingCts;
+
+    private void OnRecordingStopRequested(object? sender, EventArgs e)
+    {
+        _videoRecordingCts?.Cancel();
+    }
+
+    private void OnRecordingPauseToggleRequested(object? sender, EventArgs e)
+    {
+        // [PHASE_5] Wire to VideoCapture pause/resume when migrating video controls
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Pipeline orchestrator")]
+    private async Task HandleVisionCaptureAsync(VisionCaptureType captureType)
+    {
+        try
+        {
+            Log.Information("Vision: Capture requested — {Type}", captureType);
+
+            if (captureType == VisionCaptureType.ColorPick)
+            {
+                // Color picker uses the dim overlay screenshot, then dismisses dim
+                var colorCapture = _dimOverlayScreenshot;
+                DismissDimOverlay();
+                _uiDispatcher?.TryEnqueue(() => _controlPanel.VisionExitModeCommand.Execute(null));
+                if (colorCapture != null)
+                    await HandleVisionColorPickAsync(colorCapture).ConfigureAwait(false);
+                return;
+            }
+
+            if (captureType == VisionCaptureType.VideoRegion || captureType == VisionCaptureType.VideoFull)
+            {
+                DismissDimOverlay(); // Dismiss dim before recording (or it appears in video)
+                await HandleVideoCaptureViaCpAsync(captureType).ConfigureAwait(false);
+                return;
+            }
+
+            // Screenshot Full: use the already-captured dim overlay screenshot
+            if (captureType == VisionCaptureType.ScreenshotFull)
+            {
+                var monitorPng = _dimOverlayScreenshot;
+                DismissDimOverlay();
+                if (monitorPng != null)
+                {
+                    _visionCapturedImageData = monitorPng;
+                    await ShowPostCaptureInCpAsync(monitorPng).ConfigureAwait(false);
+                }
+                return;
+            }
+
+            // Screenshot Region: enable selection on existing dim overlay
+            Log.Information("Vision: Enabling selection on dim overlay...");
+            var activeMonitor = _dimOverlayMonitorBounds.Width > 0
+                ? _dimOverlayMonitorBounds
+                : ScreenCapture.GetActiveMonitorBounds();
+            byte[]? fullPng = ScreenCapture.CaptureFullScreen();
+
+            // Hide CP, enable selection on existing dim overlay
+            _uiDispatcher?.TryEnqueue(() => App.Current?.HideMainWindow());
+
+            Views.SnippingResult? snippingResult = null;
+            var overlayTcs = new TaskCompletionSource<Views.SnippingResult?>();
+
+            #pragma warning disable MA0147 // Async void delegate — exceptions routed via TCS
+            _uiDispatcher!.TryEnqueue(async () =>
+            {
+                #pragma warning restore MA0147
+                try
+                {
+                    var overlay = _dimOverlay;
+                    if (overlay != null)
+                    {
+                        overlay.EnableSelection();
+                        overlay.Activate();
+                        var result = await overlay.GetResultAsync().ConfigureAwait(true);
+                        _dimOverlay = null; // Overlay closes itself after result
+                        overlayTcs.TrySetResult(result);
+                    }
+                    else
+                    {
+                        // No dim overlay — fallback: create fresh overlay
+                        var monitorPng = ScreenCapture.CaptureRegion(activeMonitor.X, activeMonitor.Y, activeMonitor.Width, activeMonitor.Height);
+                        var freshOverlay = new Views.SnippingOverlayWindow();
+                        freshOverlay.SetBounds(activeMonitor.X, activeMonitor.Y, activeMonitor.Width, activeMonitor.Height);
+                        await freshOverlay.SetBackgroundScreenshotAsync(monitorPng).ConfigureAwait(true);
+                        freshOverlay.Activate();
+                        overlayTcs.TrySetResult(await freshOverlay.GetResultAsync().ConfigureAwait(true));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    overlayTcs.TrySetException(ex);
+                }
+            });
+            snippingResult = await overlayTcs.Task.ConfigureAwait(false);
+            var capturedScreenshot = _dimOverlayScreenshot; // Save before nulling
+            _dimOverlayScreenshot = null;
+            Log.Information("Vision: Snipping result — {Mode}", snippingResult?.Mode);
+
+            if (snippingResult == null)
+            {
+                // Cancelled — show CP again, return to capture type
+                _uiDispatcher?.TryEnqueue(() =>
+                {
+                    App.Current?.ShowMainWindow();
+                    _controlPanel.VisionPhase = VisionWizardStep.CaptureType;
+                });
+                return;
+            }
+
+            // Crop the captured image based on selection
+            var basePng = capturedScreenshot ?? ScreenCapture.CaptureRegion(activeMonitor.X, activeMonitor.Y, activeMonitor.Width, activeMonitor.Height);
+            byte[]? croppedPng = snippingResult.Mode switch
+            {
+                CaptureMode.Region when snippingResult.Region is { } r =>
+                    ImageProcessor.CropRegion(basePng, r.X, r.Y, r.Width, r.Height),
+                CaptureMode.AllMonitors => fullPng,
+                _ => basePng,
+            };
+
+            _visionCapturedImageData = croppedPng;
+
+            // Save original + show post-capture UI
+            await ShowPostCaptureInCpAsync(croppedPng!).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Vision: Capture failed");
+            _uiDispatcher?.TryEnqueue(() =>
+            {
+                _controlPanel.VisionExitModeCommand.Execute(null);
+                App.Current?.ShowMainWindow();
+            });
+        }
+    }
+
+    private DispatcherQueueTimer? _recordingTimer;
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Video recording orchestrator")]
+    private async Task HandleVideoCaptureViaCpAsync(VisionCaptureType captureType)
+    {
+        try
+        {
+            bool isFullScreen = captureType == VisionCaptureType.VideoFull;
+
+            // Use the frozen monitor bounds from Step 1 (not current active monitor)
+            var monitorBounds = _dimOverlayMonitorBounds.Width > 0
+                ? _dimOverlayMonitorBounds
+                : ScreenCapture.GetActiveMonitorBounds();
+            int left = monitorBounds.X, top = monitorBounds.Y;
+            int width = monitorBounds.Width, height = monitorBounds.Height;
+
+            // For region: show snipping overlay first
+            if (!isFullScreen)
+            {
+                _uiDispatcher?.TryEnqueue(() => App.Current?.HideMainWindow());
+                await Task.Delay(100).ConfigureAwait(false);
+
+                var monitorPng = ScreenCapture.CaptureRegion(left, top, width, height);
+                Views.SnippingResult? snippingResult = null;
+                var overlayTcs = new TaskCompletionSource<Views.SnippingResult?>();
+                #pragma warning disable MA0147
+                _uiDispatcher!.TryEnqueue(async () =>
+                {
+                    try
+                    {
+                        var overlay = new Views.SnippingOverlayWindow();
+                        overlay.SetBounds(left, top, width, height);
+                        await overlay.SetBackgroundScreenshotAsync(monitorPng).ConfigureAwait(true);
+                        overlay.Activate();
+                        overlayTcs.TrySetResult(await overlay.GetResultAsync().ConfigureAwait(true));
+                    }
+                    catch (Exception ex) { overlayTcs.TrySetException(ex); }
+                });
+                #pragma warning restore MA0147
+                snippingResult = await overlayTcs.Task.ConfigureAwait(false);
+
+                if (snippingResult == null)
+                {
+                    _uiDispatcher?.TryEnqueue(() =>
+                    {
+                        App.Current?.ShowMainWindow();
+                        _controlPanel.VisionPhase = VisionWizardStep.CaptureType;
+                    });
+                    return;
+                }
+
+                if (snippingResult.Mode == CaptureMode.Region && snippingResult.Region is { } r)
+                {
+                    left = monitorBounds.X + r.X;
+                    top = monitorBounds.Y + r.Y;
+                    width = r.Width;
+                    height = r.Height;
+                }
+            }
+
+            // Prepare output path
+            string visionDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DiktaMe", "vision");
+            Directory.CreateDirectory(visionDir);
+            string outputPath = Path.Combine(visionDir,
+                $"video_{DateTime.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture)}.mp4");
+
+            // Switch CP to recording phase
+            var stopTcs = new TaskCompletionSource<bool>();
+            _videoRecordingCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+            var recordingStart = DateTime.UtcNow;
+
+            // Start recording timer on UI thread
+            _uiDispatcher?.TryEnqueue(() =>
+            {
+                _controlPanel.VisionPhase = VisionWizardStep.Recording;
+                _controlPanel.RecordingTimerText = "00:00";
+                _controlPanel.IsRecordingPaused = false;
+
+                if (isFullScreen)
+                {
+                    // Full screen: hide CP so it doesn't appear in recording
+                    App.Current?.HideMainWindow();
+
+                    // Poll ESC key to stop recording (no WndProc needed)
+                    _ = Task.Run(async () =>
+                    {
+                        while (!_videoRecordingCts?.IsCancellationRequested ?? false)
+                        {
+                            if ((NativeMethods.GetAsyncKeyState(0x1B) & 0x8000) != 0) // VK_ESCAPE
+                            {
+                                Log.Information("Video: ESC pressed — stopping full-screen recording");
+                                _videoRecordingCts?.Cancel();
+                                break;
+                            }
+                            await Task.Delay(100).ConfigureAwait(false);
+                        }
+                    });
+                }
+                else
+                {
+                    // Region: keep CP visible for controls
+                    App.Current?.ShowMainWindow();
+                }
+
+                // Timer for elapsed display
+                _recordingTimer = _uiDispatcher!.CreateTimer();
+                _recordingTimer.Interval = TimeSpan.FromMilliseconds(500);
+                _recordingTimer.Tick += (s, e) =>
+                {
+                    var elapsed = DateTime.UtcNow - recordingStart;
+                    _controlPanel.RecordingTimerText = elapsed.ToString(@"mm\:ss", System.Globalization.CultureInfo.InvariantCulture);
+                };
+                _recordingTimer.Start();
+            });
+
+            // Wire stop event
+            void OnStop(object? s, EventArgs e) => stopTcs.TrySetResult(true);
+            _controlPanel.RecordingStopRequested += OnStop;
+
+            // Start capture
+            var options = new VideoRecordingOptions { EnableWebcam = true };
+            using var capture = new VideoCapture();
+
+            _ = stopTcs.Task.ContinueWith(_ => capture.Stop(), TaskScheduler.Default);
+            _ = _videoRecordingCts.Token.Register(() => stopTcs.TrySetResult(true));
+
+            try
+            {
+                if (!isFullScreen)
+                    _notifications.ShowToast("Video", "Recording started...", NotificationType.Info, suppressTts: true);
+                await capture.RecordAsync(left, top, width, height, outputPath, options, _videoRecordingCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                Log.Information("Video: recording stopped by user or timeout");
+            }
+            finally
+            {
+                _controlPanel.RecordingStopRequested -= OnStop;
+                _uiDispatcher?.TryEnqueue(() =>
+                {
+                    _recordingTimer?.Stop();
+                    _recordingTimer = null;
+                });
+                _videoRecordingCts?.Dispose();
+                _videoRecordingCts = null;
+            }
+
+            // Post-recording
+            long fileSize = File.Exists(outputPath) ? new FileInfo(outputPath).Length : 0;
+            Log.Information("Video: saved to {Path} ({Size} bytes)", outputPath, fileSize);
+
+            if (fileSize == 0)
+            {
+                // 0-byte cleanup
+                try { File.Delete(outputPath); } catch { /* ignore */ }
+                _notifications.ShowToast("Video", "Recording failed (empty file)", NotificationType.Error, suppressTts: true);
+                _uiDispatcher?.TryEnqueue(() =>
+                {
+                    _controlPanel.VisionExitModeCommand.Execute(null);
+                    App.Current?.ShowMainWindow();
+                });
+                return;
+            }
+
+            // Transition to PostCapture in wizard (video-specific buttons)
+            _capturedVideoPath = outputPath;
+            _capturedVideoSize = fileSize;
+            _uiDispatcher?.TryEnqueue(() =>
+            {
+                _controlPanel.IsVideoPostCapture = true;
+                _controlPanel.VisionPhase = VisionWizardStep.PostCapture;
+                App.Current?.ShowMainWindow();
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Video: capture via CP failed");
+            _uiDispatcher?.TryEnqueue(() =>
+            {
+                _controlPanel.VisionExitModeCommand.Execute(null);
+                _recordingTimer?.Stop();
+                _recordingTimer = null;
+                App.Current?.ShowMainWindow();
+            });
+            _notifications.ShowToast("Video Error", ex.Message, NotificationType.Error, suppressTts: true);
+        }
+    }
+
+    private async Task ShowPostCaptureInCpAsync(byte[] imageData)
+    {
+        // Save the raw capture
+        var visionDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "DiktaMe", "vision");
+        Directory.CreateDirectory(visionDir);
+        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture);
+        _visionCapturedImagePath = Path.Combine(visionDir, $"vision_{timestamp}.png");
+        await File.WriteAllBytesAsync(_visionCapturedImagePath, imageData).ConfigureAwait(false);
+        Log.Information("Vision: Saved capture to {Path}", _visionCapturedImagePath);
+
+        // Create thumbnail and show post-capture phase
+        #pragma warning disable MA0147 // Async void delegate — fire-and-forget UI update with try/catch
+        _uiDispatcher?.TryEnqueue(async () =>
+        {
+            try
+            {
+                // Create BitmapImage from byte array for thumbnail
+                var bitmapImage = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
+                using var stream = new MemoryStream(imageData);
+                var ras = stream.AsRandomAccessStream();
+                await bitmapImage.SetSourceAsync(ras);
+                _controlPanel.VisionThumbnail = bitmapImage;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Vision: Failed to create thumbnail");
+            }
+
+            _controlPanel.VisionPhase = VisionWizardStep.PostCapture;
+
+            // Show CP window (don't force expand — vision row is visible regardless)
+            App.Current?.ShowMainWindow();
+        });
+        #pragma warning restore MA0147
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Pipeline orchestrator")]
+    private async Task HandleVisionActionAsync(VisionActionChosenEventArgs args)
+    {
+        try
+        {
+            Log.Information("Vision: Action chosen — {Action}, Query={Query}, Local={Local}, SkipAi={SkipAi}",
+                args.Action, args.UserQuery, args.UseLocal, args.SkipAi);
+
+            // Video post-capture: route to video handlers
+            if (_controlPanel.IsVideoPostCapture && _capturedVideoPath != null)
+            {
+                await HandleVideoActionFromWizardAsync(args).ConfigureAwait(false);
+                return;
+            }
+
+            var imageData = _visionCapturedImageData;
+            if (imageData == null)
+            {
+                Log.Warning("Vision: No captured image data for action");
+                _uiDispatcher?.TryEnqueue(() => _controlPanel.VisionExitModeCommand.Execute(null));
+                return;
+            }
+
+            // Build a VisionActionResult to reuse the existing dispatch logic
+            var actionResult = new DiktaMe.Core.Vision.VisionActionResult(
+                args.Action, args.UserQuery, args.UseLocal, args.SkipAi);
+
+            // Resolve provider + model (same logic as old RunVisionPipelineAsync)
+            var visionSettings = _settings.Current.Vision;
+            string visionProvider;
+            string visionModelId;
+            if (args.UseLocal)
+            {
+                visionProvider = "ollama";
+                visionModelId = visionSettings.LocalVisionModelId;
+            }
+            else
+            {
+                visionProvider = visionSettings.CloudVisionProvider;
+                visionModelId = visionSettings.CloudVisionModelId;
+            }
+
+            // Prepare image for API (returns (byte[] Data, string MimeType) tuple)
+            var prepared = ImageProcessor.PrepareForApi(imageData);
+            var apiImage = prepared.Data;
+            var mimeType = prepared.MimeType;
+            var savedPath = _visionCapturedImagePath;
+
+            Log.Information("Vision: Dispatching action {Action} to {Provider}/{Model}...", args.Action, visionProvider, visionModelId);
+
+            // Show "Thinking..." for AI actions
+            bool isAiAction = args.Action is not (DiktaMe.Core.Vision.VisionAction.Save or DiktaMe.Core.Vision.VisionAction.Edit);
+            if (isAiAction && !args.SkipAi)
+            {
+                _uiDispatcher?.TryEnqueue(() => _controlPanel.IsVisionProcessing = true);
+            }
+
+            try
+            {
+                switch (args.Action)
+                {
+                    case DiktaMe.Core.Vision.VisionAction.Save:
+                        await HandleVisionSaveAsync(imageData, savedPath).ConfigureAwait(false);
+                        break;
+
+                    case DiktaMe.Core.Vision.VisionAction.Clipboard:
+                        if (args.SkipAi)
+                        {
+                            CopyImageToClipboard(imageData);
+                            _notifications.ShowToast("Vision", "Image copied to clipboard", suppressTts: true);
+                        }
+                        else
+                        {
+                            await HandleVisionClipboardAsync(apiImage, mimeType, visionProvider, visionModelId, visionSettings, actionResult).ConfigureAwait(false);
+                        }
+                        break;
+
+                    case DiktaMe.Core.Vision.VisionAction.Chat:
+                        await HandleVisionChatAsync(imageData, mimeType, visionProvider, visionModelId, actionResult).ConfigureAwait(false);
+                        break;
+
+                    case DiktaMe.Core.Vision.VisionAction.Note:
+                        if (args.SkipAi)
+                        {
+                            // Save note with image only, no AI description
+                            CopyImageToClipboard(imageData);
+                            _notifications.ShowToast("Vision", "Image saved (no AI)", suppressTts: true);
+                        }
+                        else
+                        {
+                            await HandleVisionNoteAsync(imageData, mimeType, savedPath ?? "", visionProvider, visionModelId, visionSettings, actionResult).ConfigureAwait(false);
+                        }
+                        break;
+
+                    case DiktaMe.Core.Vision.VisionAction.Ocr:
+                        await HandleVisionOcrAsync(imageData, mimeType, visionProvider, visionModelId, visionSettings, actionResult).ConfigureAwait(false);
+                        break;
+
+                    case DiktaMe.Core.Vision.VisionAction.Table:
+                        await HandleVisionTableAsync(imageData, mimeType, visionProvider, visionModelId, visionSettings, actionResult).ConfigureAwait(false);
+                        break;
+
+                    case DiktaMe.Core.Vision.VisionAction.Edit:
+                        Log.Information("Vision: Opening annotation editor");
+                        var editTcs = new TaskCompletionSource<Views.AnnotationResult?>();
+                        _uiDispatcher?.TryEnqueue(() => _ = OpenAnnotationEditorAsync(editTcs, imageData));
+                        var editResult = await editTcs.Task.ConfigureAwait(false);
+                        if (editResult?.ImageData != null)
+                        {
+                            _visionCapturedImageData = editResult.ImageData;
+                            // Save annotated version
+                            var annotatedPath = _visionCapturedImagePath?.Replace(".png", "_annotated.png", StringComparison.OrdinalIgnoreCase);
+                            if (annotatedPath != null)
+                                await File.WriteAllBytesAsync(annotatedPath, editResult.ImageData).ConfigureAwait(false);
+                        }
+                        // Return to PostCapture with updated image (don't exit wizard)
+                        _uiDispatcher?.TryEnqueue(() => _controlPanel.VisionPhase = VisionWizardStep.PostCapture);
+                        return; // Skip the exit-vision at the bottom
+
+                    default:
+                        Log.Warning("Vision: Unhandled action {Action}", args.Action);
+                        break;
+                }
+            }
+            finally
+            {
+                _uiDispatcher?.TryEnqueue(() => _controlPanel.IsVisionProcessing = false);
+            }
+
+            // Done — exit vision mode (must dispatch to UI thread for property change notifications)
+            Log.Information("Vision: Action {Action} completed, exiting vision mode", args.Action);
+            _visionCapturedImageData = null;
+            _visionCapturedImagePath = null;
+            _uiDispatcher?.TryEnqueue(() => _controlPanel.VisionExitModeCommand.Execute(null));
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Vision: Action {Action} failed", args.Action);
+            _uiDispatcher?.TryEnqueue(() => _controlPanel.VisionExitModeCommand.Execute(null));
+        }
+    }
+
+    private async Task HandleVisionSaveAsync(byte[] imageData, string? savedPath)
+    {
+        var saveTcs = new TaskCompletionSource<string?>();
+        #pragma warning disable MA0147 // Async void delegate — exceptions routed via TCS
+        _uiDispatcher?.TryEnqueue(async () =>
+        {
+            #pragma warning restore MA0147
+            try
+            {
+                var picker = new Windows.Storage.Pickers.FileSavePicker();
+                // WinUI 3 requires InitializeWithWindow
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Current?.MainWindow);
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+                picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.PicturesLibrary;
+                picker.SuggestedFileName = $"vision_{DateTime.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture)}";
+                picker.FileTypeChoices.Add("PNG Image", new List<string> { ".png" });
+
+                var file = await picker.PickSaveFileAsync();
+                saveTcs.TrySetResult(file?.Path);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Vision: FileSavePicker failed");
+                saveTcs.TrySetResult(null);
+            }
+        });
+
+        var chosenPath = await saveTcs.Task.ConfigureAwait(false);
+        if (!string.IsNullOrEmpty(chosenPath))
+        {
+            await File.WriteAllBytesAsync(chosenPath, imageData).ConfigureAwait(false);
+            _notifications.ShowToast("Vision", $"Saved to {Path.GetFileName(chosenPath)}");
+            Log.Information("Vision: Saved to user-chosen path {Path}", chosenPath);
+        }
+        else if (savedPath != null)
+        {
+            // User cancelled picker — file is still in vision folder
+            _notifications.ShowToast("Vision", $"Auto-saved to {Path.GetFileName(savedPath)}");
+        }
+    }
+
+    /// <summary>Handle video post-capture actions from the wizard (Describe/Document/BugReport/Save).</summary>
+    private async Task HandleVideoActionFromWizardAsync(VisionActionChosenEventArgs args)
+    {
+        var videoPath = _capturedVideoPath!;
+        var fileSize = _capturedVideoSize;
+
+        try
+        {
+            // Save action — just notify
+            if (args.Action == DiktaMe.Core.Vision.VisionAction.Save)
+            {
+                _notifications.ShowToast("Video", $"Saved ({fileSize / 1024}KB) → {Path.GetFileName(videoPath)}", NotificationType.Success, suppressTts: true);
+                _uiDispatcher?.TryEnqueue(() => _controlPanel.VisionExitModeCommand.Execute(null));
+                return;
+            }
+
+            // Map vision actions to video prompts
+            string defaultQuery = args.UserQuery ?? args.Action switch
+            {
+                DiktaMe.Core.Vision.VisionAction.Clipboard => "Describe what happens in this screen recording. Be concise. Focus on the key actions and UI elements shown.",
+                DiktaMe.Core.Vision.VisionAction.Chat => "Write step-by-step instructions for the workflow shown in this screen recording. Use numbered steps.",
+                DiktaMe.Core.Vision.VisionAction.Note => "This is a screen recording of a software bug. Generate a structured bug report with: (1) Summary, (2) Expected behavior, (3) Actual behavior, (4) Steps to reproduce, (5) Environment details.",
+                _ => "Describe what happens in this screen recording.",
+            };
+
+            _uiDispatcher?.TryEnqueue(() => _controlPanel.IsVisionProcessing = true);
+            _notifications.ShowToast("Video AI", "Analyzing video with Gemini...", NotificationType.Info, suppressTts: true);
+
+            byte[] videoData = await File.ReadAllBytesAsync(videoPath).ConfigureAwait(false);
+            var appSettings = _settings.Current;
+            string provider = appSettings.Vision.CloudVisionProvider ?? "gemini";
+            string model = appSettings.Vision.CloudVisionModelId ?? "gemini-2.5-flash";
+            var pipeline = _pipelineFactory.CreateVisionPipeline(provider, model);
+
+            var visionOptions = new DiktaMe.Core.Vision.VisionOptions
+            {
+                DefaultQuery = defaultQuery,
+                SystemPrompt = "You are analyzing a screen recording video. Provide accurate, useful analysis based on what you observe.",
+            };
+
+            var result = await pipeline.RunAsync(videoData, "video/mp4", audioFilePath: null, visionOptions, CancellationToken.None).ConfigureAwait(false);
+
+            if (result.IsSuccess && !string.IsNullOrWhiteSpace(result.Text))
+            {
+                // Inject text into active window
+                _textInjector.InjectText(result.Text, trailingSpace: false);
+                _notifications.ShowToast("Video AI", $"Analysis complete ({result.Text.Length} chars)", NotificationType.Success, suppressTts: true);
+            }
+            else
+            {
+                _notifications.ShowToast("Video AI", result.ErrorMessage ?? "No result", NotificationType.Warning, suppressTts: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Video AI: wizard action failed");
+            _notifications.ShowToast("Video AI", ex.Message, NotificationType.Error, suppressTts: true);
+        }
+        finally
+        {
+            _capturedVideoPath = null;
+            _capturedVideoSize = 0;
+            _uiDispatcher?.TryEnqueue(() =>
+            {
+                _controlPanel.IsVisionProcessing = false;
+                _controlPanel.VisionExitModeCommand.Execute(null);
+            });
+        }
+    }
+
+    // ── Vision Pipeline (SPEC_015-0C) — Legacy flow ──────────────────────
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Pipeline orchestrator")]
     private async Task RunVisionPipelineAsync()
@@ -2837,4 +3551,11 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         return result;
     }
+}
+
+/// <summary>Win32 P/Invoke helpers for keyboard polling.</summary>
+internal static class NativeMethods
+{
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    internal static extern short GetAsyncKeyState(int vKey);
 }

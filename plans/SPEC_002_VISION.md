@@ -961,3 +961,105 @@ Items 1-3 are our differentiation angle. Items 4-5 are table stakes for async vi
 - SimpleRecorder (MS reference app): https://github.com/MicrosoftDocs/SimpleRecorder
 - Win32CaptureSample: https://github.com/robmikh/Win32CaptureSample
 - Loom (product reference): https://www.loom.com
+
+## 21. Vision Wizard — CP Bar Integrated Flow
+
+> **This section is the canonical source of truth for the vision UX.**
+> All previous modal-based flows (VisionActionWindow) are superseded by this wizard.
+
+### 21.1 Overview
+
+The vision feature uses a **single-row wizard** embedded in the Control Panel bar. The row walks the user through a sequence of steps, sliding content horizontally between each step. No separate modal windows.
+
+### 21.2 Wizard Steps
+
+#### Step 1: Activation (CaptureType)
+- **Trigger**: Vision hotkey (default: `Ctrl+Alt+S`)
+- **Screen**: All monitors dim (semi-transparent dark overlay) + crosshair cursor everywhere
+- **CP bar**: If horizontally collapsed → expand. Vision row appears (top position, right after header). Shows only if bar was vertically collapsed — other rows stay as they were.
+- **Row content**: `📷 Image` | `🎥 Video` | `🎨 Color` | `✕ Cancel`
+- **Esc**: Exits wizard, removes dim, restores CP state.
+
+#### Step 2: Capture Mode (varies by selection)
+
+**Image path** → row slides to: `Region` | `Full Screen`
+- Region: Snipping overlay (existing) — user draws rectangle
+- Full Screen: Instant capture of active monitor
+- After capture → slides to Step 3
+
+**Video path** → row slides to: `Region` | `Full Screen`
+- Region: Snipping overlay for area selection → recording starts
+- Full Screen: Recording starts immediately
+- Row slides to **Recording controls**: `🔴 REC` | `elapsed timer` | `⏸ Pause` | `⏹ Stop`
+- On Stop → slides to Step 3
+
+**Color Picker path** → activates color picker overlay
+- Existing multi-pick palette flow (click accumulates, Enter=copy, Backspace=undo)
+- On completion → wizard exits (no Step 3)
+
+#### Step 3: Post-Capture Actions (PostCapture)
+Row slides to: `Save` | `Clipboard` | `Chat` | `Note` | `OCR` | `Table` | `Edit` | `✕`
+
+| Action | Behavior |
+|--------|----------|
+| **Save** | Opens folder picker → saves file → wizard exits |
+| **OCR** | Auto-runs OCR pipeline → result to clipboard → wizard exits |
+| **Table** | Auto-runs table extraction → TSV to clipboard → wizard exits |
+| **Edit/Annotate** | Opens annotation editor (M1) → on Finish → slides to Step 4 |
+| **Clipboard** | → slides to Step 4 (query input) |
+| **Chat** | → slides to Step 4 (query input) |
+| **Note** | → slides to Step 4 (query input) |
+| **✕** | Cancels → wizard exits |
+
+#### Step 4: Query + Provider (Query)
+Row slides to: `[TextBox: "Ask about this image..."]` | `L / C / —` | `▶ Go`
+
+- **TextBox**: Optional text prompt (empty = use default prompt per action)
+- **L/C/—**: Local (Ollama) / Cloud (Gemini) / None (skip AI, raw copy)
+- **▶ Go**: Executes the AI pipeline → result injected into active window + image on clipboard → wizard exits
+
+### 21.3 CP Bar Behavior
+
+- **State preservation**: Snapshot `IsExpanded` + horizontal collapse on enter, restore on exit
+- **Row position**: Always Grid.Row="1" (right after Header bar)
+- **Additive**: Vision row shows regardless of `IsExpanded`. Other rows follow their normal visibility rules — never hidden by vision.
+- **Auto-collapse suppressed** during entire wizard flow
+- **Horizontal collapse**: If bar was collapsed, force-expand on activation, re-collapse on exit
+
+### 21.4 State Machine
+
+```
+enum VisionWizardStep {
+    None,           // Wizard inactive
+    CaptureType,    // Step 1: Image / Video / Color
+    CaptureMode,    // Step 2: Region / Full Screen
+    Recording,      // Step 2b: Video recording in progress
+    PostCapture,    // Step 3: Post-capture actions
+    Query,          // Step 4: Text prompt + provider + Go
+}
+```
+
+```
+[None] → hotkey → [CaptureType]
+    → Image → [CaptureMode] → capture → [PostCapture]
+    → Video → [CaptureMode] → record → [Recording] → stop → [PostCapture]
+    → Color → color picker overlay → [None]
+
+[PostCapture]
+    → Save/OCR/Table → execute → [None]
+    → Clipboard/Chat/Note → [Query] → Go → execute → [None]
+    → Edit → annotation editor → [Query]
+    → ✕ → [None]
+
+[Any step] → Esc → [None]
+```
+
+### 21.5 Animation
+- Step transitions use horizontal slide (TranslateTransform, ~200ms ease-out)
+- Forward: current panel slides left, new panel slides in from right
+- Back/cancel: reverse direction
+
+### 21.6 Retired Components
+- `VisionActionWindow.xaml/.cs` — replaced by wizard Steps 3-4
+- `VideoRecordingBarWindow.xaml/.cs` — replaced by wizard Recording step
+- Legacy `RunVisionPipelineAsync` in LoadingViewModel — replaced by wizard event handlers
