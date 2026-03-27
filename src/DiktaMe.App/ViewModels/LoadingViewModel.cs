@@ -2078,9 +2078,12 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         if (result.IsSuccess)
         {
-            // Copy both AI text AND screenshot image to clipboard (VG-1)
-            CopyTextAndImageToClipboard(result.Text, imageData);
-            Log.Information("Vision: copied {Chars} chars + image to clipboard", result.Text.Length);
+            // Inject AI text into the active window, then put annotated image on clipboard
+            // so user sees text appear → knows they can Ctrl+V to paste the image
+            _textInjector.InjectText(result.Text, trailingSpace: false);
+            Log.Information("Vision: injected {Chars} chars, placing image on clipboard", result.Text.Length);
+            CopyImageToClipboard(imageData);
+
             string preview = result.Text.Length > 200
                 ? string.Concat(result.Text.AsSpan(0, 200), "...")
                 : result.Text;
