@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
     branches: [main]
 
@@ -165,6 +166,18 @@ jobs:
           }
           Write-Host "OK: publish size $mb MB is within expected range"
 
+      # ── Inno Setup installer ─────────────────────────────────────────
+      # Compiles publish/win-x64/ into a single installer .exe (~47 MB)
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        working-directory: installer
+        shell: pwsh
+        run: >
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" diktame-setup.iss
+
       # ── Upload coverage artifact ──────────────────────────────────────
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -182,3 +195,34 @@ jobs:
           name: diktame-win-x64
           path: publish/win-x64/
           retention-days: 7
+
+      # ── Upload installer artifact ───────────────────────────────────
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: diktame-installer
+          path: installer/output/*.exe
+          retention-days: 30
+
+  # ══════════════════════════════════════════════════════════════════════
+  #  Release — creates a GitHub Release when a v* tag is pushed
+  # ══════════════════════════════════════════════════════════════════════
+  release:
+    name: GitHub Release
+    needs: ci
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download installer
+        uses: actions/download-artifact@v4
+        with:
+          name: diktame-installer
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.exe"
+          generate_release_notes: true
