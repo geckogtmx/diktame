@@ -2020,6 +2020,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     }
 
     private DispatcherQueueTimer? _recordingTimer;
+    private Views.RecordingBorderOverlay? _recordingBorderOverlay;
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Video recording orchestrator")]
     private async Task HandleVideoCaptureViaCpAsync(VisionCaptureType captureType)
@@ -2077,6 +2078,15 @@ public sealed partial class LoadingViewModel : ObservableObject
                     width = r.Width;
                     height = r.Height;
                 }
+            }
+
+            // Show recording border (pure Win32 layered window, excluded from capture)
+            if (!isFullScreen)
+            {
+                _recordingBorderOverlay = new Views.RecordingBorderOverlay(
+                    left, top, width, height,
+                    monitorBounds.X, monitorBounds.Y, monitorBounds.Width, monitorBounds.Height);
+                await _recordingBorderOverlay.ShowAsync().ConfigureAwait(false);
             }
 
             // Prepare output path
@@ -2161,13 +2171,14 @@ public sealed partial class LoadingViewModel : ObservableObject
             finally
             {
                 _controlPanel.RecordingStopRequested -= OnStop;
+                _recordingBorderOverlay?.Dispose();
+                _recordingBorderOverlay = null;
                 _uiDispatcher?.TryEnqueue(() =>
                 {
                     _recordingTimer?.Stop();
                     _recordingTimer = null;
                     _controlPanel.StatusText = "READY";
                     _controlPanel.CurrentState = PipelineState.Idle;
-
                 });
                 _videoRecordingCts?.Dispose();
                 _videoRecordingCts = null;
@@ -2203,6 +2214,8 @@ public sealed partial class LoadingViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Video: capture via CP failed");
+            _recordingBorderOverlay?.Dispose();
+            _recordingBorderOverlay = null;
             _uiDispatcher?.TryEnqueue(() =>
             {
                 _controlPanel.VisionExitModeCommand.Execute(null);

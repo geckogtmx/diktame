@@ -1,9 +1,11 @@
 # RECORD_AREA_LAYER: Transparent Border Overlay for Video Region Recording
 
-> **Status:** BLOCKED — WinUI 3 transparent window limitation
+> **Status:** ✅ SOLVED — Pure Win32 layered window + GDI+ (Attempt 6)
 > **Related:** SPEC_002 (Vision), B7 bug
 > **Date:** 2026-03-27
-> **Sessions spent:** 1 session, 5 failed attempts
+> **Sessions spent:** 1 session, 6 attempts (5 failed, 1 succeeded)
+> **Solution:** `src/DiktaMe.App/Views/RecordingBorderOverlay.cs` — pure Win32 `CreateWindowEx(WS_EX_LAYERED)` + `UpdateLayeredWindow` + GDI+ `System.Drawing`. Bypasses WinUI 3 compositor entirely.
+> **Polish remaining:** Dim overlay outside the recording region (currently only the dashed border is shown, no dim coat)
 
 ---
 
@@ -66,6 +68,13 @@ When recording a video of a screen region (not full-screen), the user selects a 
 **Approach:** Custom `SystemBackdrop` subclass using `Compositor.CreateColorBrush(Color.FromArgb(0,255,255,255))` — fully transparent color brush as the window backdrop. Combined with `WS_EX_LAYERED`. Pattern from [GuildOfCalamity/Transparency](https://github.com/GuildOfCalamity/Transparency).
 **Result:** Black opaque window covering the recording region.
 **Why:** Unknown. The GuildOfCalamity project claims this works, but in our case the window still rendered opaque. Possible causes: OS version difference, missing DWM setup, or the technique only works for main app windows (not secondary overlay windows).
+
+### Attempt 6: Pure Win32 Layered Window + GDI+ (SUCCESS ✅)
+**Approach:** Bypass WinUI 3 entirely. Create a pure Win32 window via `CreateWindowEx` with `WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE`. Render dashed border with `System.Drawing` GDI+ into a DIB section, then blit via `UpdateLayeredWindow` with per-pixel alpha (`AC_SRC_ALPHA`). Apply `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` to the Win32 HWND.
+**Result:** Transparent background, dashed white border with marching ants animation, click-through, NOT captured in recording.
+**Why it worked:** `UpdateLayeredWindow` with `ULW_ALPHA` uses per-pixel alpha from the GDI+ bitmap — no WinUI 3 compositor involved. The Win32 window is a true layered window with alpha channel support, which is the same mechanism used by OBS, ShareX, and other screen recording tools.
+**File:** `src/DiktaMe.App/Views/RecordingBorderOverlay.cs`
+**Proposal:** `plans/B7_BORDER_PROPOSAL_SONNET.md`
 
 ---
 
