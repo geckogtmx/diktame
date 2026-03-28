@@ -245,7 +245,12 @@ public sealed record VisionSettings
     public int MaxResponseTokens { get; init; } = 4096;
     public double Temperature { get; init; } = 0.3;
     public int OllamaKeepAliveSeconds { get; init; } = 300;
-    public string OutputMode { get; init; } = "inject";
+    public string OutputMode { get; init; } = "inject"; // Legacy — kept for backwards compat
+
+    // Inject-at-cursor toggles (AI text always goes to clipboard; these control whether it also injects)
+    public bool ClipInjectAtCursor { get; init; } = true;
+    public bool OcrInjectAtCursor { get; init; } = true;
+    public bool ColorPickerInjectAtCursor { get; init; } = true;
 
     // Cloud vision settings
     public string CloudVisionProvider { get; init; } = "gemini";
@@ -258,6 +263,14 @@ public sealed record VisionSettings
     // Kept for backwards compat with existing settings.json files.
     public string VisionModelId { get; init; } = "minicpm-v";
     public string VisionProvider { get; init; } = "ollama";
+
+    // Screen recording settings
+    public string VideoQuality { get; init; } = "medium";       // "low" (1.5Mbps/24fps), "medium" (5Mbps/30fps), "high" (8Mbps/60fps)
+    public bool EnableWebcam { get; init; } = true;
+    public int WebcamSize { get; init; } = 200;                  // px width (height auto-calculated at 16:9)
+    public string WebcamPosition { get; init; } = "bottom-right"; // "bottom-right", "bottom-left", "top-right", "top-left"
+    public bool EnableMicAudio { get; init; } = true;
+    public bool EnableSystemAudio { get; init; } = true;
 }
 
 /// <summary>

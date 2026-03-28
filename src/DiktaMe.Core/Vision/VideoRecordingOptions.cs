@@ -28,4 +28,7 @@ public sealed record VideoRecordingOptions
 
     /// <summary>Webcam device name/path. Null = auto-select first available camera.</summary>
     public string? WebcamDeviceName { get; init; }
+
+    /// <summary>Webcam overlay position. Default "bottom-right". Values: "bottom-right", "bottom-left", "top-right", "top-left".</summary>
+    public string WebcamPosition { get; init; } = "bottom-right";
 }

@@ -85,9 +85,17 @@ public sealed class VideoCapture : IDisposable
                     dev.DeviceName, dev.DeviceName);
             }
 
+            var anchor = options.WebcamPosition switch
+            {
+                "bottom-left" => Anchor.BottomLeft,
+                "top-right" => Anchor.TopRight,
+                "top-left" => Anchor.TopLeft,
+                _ => Anchor.BottomRight,
+            };
+
             var webcamOverlay = new VideoCaptureOverlay
             {
-                AnchorPoint = Anchor.BottomRight,
+                AnchorPoint = anchor,
                 Offset = new ScreenSize(20, 20),
                 Size = new ScreenSize(options.WebcamBubbleSize, (int)(options.WebcamBubbleSize * 9.0 / 16.0)),
             };

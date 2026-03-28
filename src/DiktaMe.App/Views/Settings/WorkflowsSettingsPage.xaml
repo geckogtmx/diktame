@@ -161,13 +161,18 @@
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.VisionEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
 
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="Output Mode" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
-                                <TextBlock Text="How the vision response is delivered" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
-                                <ComboBox ItemsSource="{x:Bind ViewModel.VisionOutputModes}"
-                                          SelectedIndex="{x:Bind ViewModel.VisionOutputModeIndex, Mode=TwoWay}"
-                                          HorizontalAlignment="Stretch"/>
-                            </StackPanel>
+                            <!-- Inject-at-cursor toggles (AI text always goes to clipboard; these control cursor injection) -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Text="Clip: Inject at Cursor" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Also inject AI text at cursor position (always copied to clipboard)" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ClipInjectAtCursor, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            </Grid>
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -175,10 +180,22 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="Auto-Record Voice Query" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
-                                    <TextBlock Text="Automatically start recording after screen capture" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="OCR: Inject at Cursor" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Also inject extracted text at cursor position (always copied to clipboard)" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
-                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.VisionAutoRecordQuery, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.OcrInjectAtCursor, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Text="Color Picker: Inject at Cursor" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Also inject color value at cursor position (always copied to clipboard)" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ColorPickerInjectAtCursor, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
 
                             <StackPanel Spacing="4">
@@ -193,6 +210,79 @@
                                 <TextBlock Text="Screenshots larger than this are downscaled before sending to the AI" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
                                 <muxc:NumberBox Value="{x:Bind ViewModel.VisionMaxImageDimensionPx, Mode=TwoWay}"
                                                 Minimum="512" Maximum="4096" SpinButtonPlacementMode="Compact"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Screen Recording settings -->
+                    <TextBlock Text="Screen Recording" FontSize="20" FontWeight="SemiBold"
+                               Foreground="{StaticResource AppTextBrush}"
+                               Margin="0,8,0,0"/>
+
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="16">
+                            <!-- Video Quality -->
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Video Quality" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="Higher quality produces larger files" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.VideoQualityOptions}"
+                                          SelectedIndex="{x:Bind ViewModel.VideoQualityIndex, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+
+                            <!-- Mic Audio -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Text="Microphone Audio" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Record microphone input in the video" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.EnableMicAudio, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- System Audio -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Text="System Audio" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Record desktop/application audio via WASAPI loopback" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.EnableSystemAudio, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Webcam Overlay -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Text="Webcam Overlay" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Show picture-in-picture webcam bubble in recording" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.EnableWebcam, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Webcam Size (visible only when webcam is on) -->
+                            <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.EnableWebcam, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Webcam Size" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.WebcamSizeOptions}"
+                                          SelectedIndex="{x:Bind ViewModel.WebcamSizeIndex, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+
+                            <!-- Webcam Position (visible only when webcam is on) -->
+                            <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.EnableWebcam, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Webcam Position" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.WebcamPositionOptions}"
+                                          SelectedIndex="{x:Bind ViewModel.WebcamPositionIndex, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>

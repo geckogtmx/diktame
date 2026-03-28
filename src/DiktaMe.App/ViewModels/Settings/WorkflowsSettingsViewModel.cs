@@ -49,10 +49,13 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
     private string _visionDefaultQuery = "";
 
     [ObservableProperty]
-    private int _visionOutputModeIndex;
+    private bool _clipInjectAtCursor = true;
 
     [ObservableProperty]
-    private bool _visionAutoRecordQuery = true;
+    private bool _ocrInjectAtCursor = true;
+
+    [ObservableProperty]
+    private bool _colorPickerInjectAtCursor = true;
 
     [ObservableProperty]
     private int _visionMaxResponseTokens = 4096;
@@ -70,8 +73,35 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _visionLocalSystemPrompt = "";
 
-    public string[] VisionOutputModes => ["Inject at cursor", "Clipboard only", "Toast only", "Toast + Inject", "Toast + Clipboard"];
-    private static readonly string[] OutputModeCodes = ["inject", "clipboard", "toast", "toast_inject", "toast_clipboard"];
+    // ── Screen recording settings ────────────────────────────────────────
+
+    [ObservableProperty]
+    private int _videoQualityIndex = 1; // 0=Low, 1=Medium, 2=High
+
+    [ObservableProperty]
+    private bool _enableMicAudio = true;
+
+    [ObservableProperty]
+    private bool _enableSystemAudio = true;
+
+    [ObservableProperty]
+    private bool _enableWebcam = true;
+
+    [ObservableProperty]
+    private int _webcamSizeIndex = 1; // 0=Small(150), 1=Medium(200), 2=Large(300), 3=XL(400)
+
+    [ObservableProperty]
+    private int _webcamPositionIndex; // 0=BottomRight, 1=BottomLeft, 2=TopRight, 3=TopLeft
+
+    public string[] VideoQualityOptions => ["Low (1.5 Mbps, 24 fps)", "Medium (5 Mbps, 30 fps)", "High (8 Mbps, 60 fps)"];
+    private static readonly string[] VideoQualityCodes = ["low", "medium", "high"];
+
+    public string[] WebcamSizeOptions => ["Small (150px)", "Medium (200px)", "Large (300px)", "XL (400px)"];
+    private static readonly int[] WebcamSizeValues = [150, 200, 300, 400];
+
+    public string[] WebcamPositionOptions => ["Bottom Right", "Bottom Left", "Top Right", "Top Left"];
+    private static readonly string[] WebcamPositionCodes = ["bottom-right", "bottom-left", "top-right", "top-left"];
+
 
     // ── Constructor ─────────────────────────────────────────────────────
 
@@ -154,18 +184,33 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
         var v = _settings.Current.Vision;
         VisionEnabled = v.Enabled;
         VisionDefaultQuery = v.DefaultQuery;
-        VisionAutoRecordQuery = v.AutoRecordQuery;
         VisionMaxResponseTokens = v.MaxResponseTokens;
         VisionMaxImageDimensionPx = v.MaxImageDimensionPx;
-        VisionOutputModeIndex = Array.IndexOf(OutputModeCodes, v.OutputMode) is var oi and >= 0 ? oi : 0;
         IsVisionCloudTab = !string.Equals(v.VisionProvider, "ollama", StringComparison.OrdinalIgnoreCase);
+
+        // Inject-at-cursor toggles
+        ClipInjectAtCursor = v.ClipInjectAtCursor;
+        OcrInjectAtCursor = v.OcrInjectAtCursor;
+        ColorPickerInjectAtCursor = v.ColorPickerInjectAtCursor;
+
+        // Screen recording settings
+        VideoQualityIndex = Array.IndexOf(VideoQualityCodes, v.VideoQuality) is var qi and >= 0 ? qi : 1;
+        EnableMicAudio = v.EnableMicAudio;
+        EnableSystemAudio = v.EnableSystemAudio;
+        EnableWebcam = v.EnableWebcam;
+        WebcamSizeIndex = Array.IndexOf(WebcamSizeValues, v.WebcamSize) is var si and >= 0 ? si : 1;
+        WebcamPositionIndex = Array.IndexOf(WebcamPositionCodes, v.WebcamPosition) is var pi and >= 0 ? pi : 0;
     }
 
     [RelayCommand]
     private void SaveVision()
     {
-        string outputMode = VisionOutputModeIndex >= 0 && VisionOutputModeIndex < OutputModeCodes.Length
-            ? OutputModeCodes[VisionOutputModeIndex] : "inject";
+        string videoQuality = VideoQualityIndex >= 0 && VideoQualityIndex < VideoQualityCodes.Length
+            ? VideoQualityCodes[VideoQualityIndex] : "medium";
+        int webcamSize = WebcamSizeIndex >= 0 && WebcamSizeIndex < WebcamSizeValues.Length
+            ? WebcamSizeValues[WebcamSizeIndex] : 200;
+        string webcamPosition = WebcamPositionIndex >= 0 && WebcamPositionIndex < WebcamPositionCodes.Length
+            ? WebcamPositionCodes[WebcamPositionIndex] : "bottom-right";
 
         var updated = _settings.Current with
         {
@@ -173,10 +218,17 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
             {
                 Enabled = VisionEnabled,
                 DefaultQuery = VisionDefaultQuery,
-                AutoRecordQuery = VisionAutoRecordQuery,
                 MaxResponseTokens = VisionMaxResponseTokens,
                 MaxImageDimensionPx = VisionMaxImageDimensionPx,
-                OutputMode = outputMode,
+                ClipInjectAtCursor = ClipInjectAtCursor,
+                OcrInjectAtCursor = OcrInjectAtCursor,
+                ColorPickerInjectAtCursor = ColorPickerInjectAtCursor,
+                VideoQuality = videoQuality,
+                EnableWebcam = EnableWebcam,
+                WebcamSize = webcamSize,
+                WebcamPosition = webcamPosition,
+                EnableMicAudio = EnableMicAudio,
+                EnableSystemAudio = EnableSystemAudio,
             },
         };
 

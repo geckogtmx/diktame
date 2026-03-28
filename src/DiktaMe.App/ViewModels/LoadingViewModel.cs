@@ -2151,8 +2151,24 @@ public sealed partial class LoadingViewModel : ObservableObject
             void OnStop(object? s, EventArgs e) => stopTcs.TrySetResult(true);
             _controlPanel.RecordingStopRequested += OnStop;
 
-            // Start capture
-            var options = new VideoRecordingOptions { EnableWebcam = true };
+            // Start capture — read recording settings from AppSettings
+            var vs = _settings.Current.Vision;
+            var (bitrate, fps) = vs.VideoQuality switch
+            {
+                "low" => (1500, 24),
+                "high" => (8000, 60),
+                _ => (5000, 30),
+            };
+            var options = new VideoRecordingOptions
+            {
+                EnableWebcam = vs.EnableWebcam,
+                WebcamBubbleSize = vs.WebcamSize,
+                WebcamPosition = vs.WebcamPosition,
+                BitrateKbps = bitrate,
+                FrameRateHz = fps,
+                EnableMicAudio = vs.EnableMicAudio,
+                EnableSystemAudio = vs.EnableSystemAudio,
+            };
             using var capture = new VideoCapture();
 
             _ = stopTcs.Task.ContinueWith(_ => capture.Stop(), TaskScheduler.Default);
@@ -2874,11 +2890,16 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         if (result.IsSuccess)
         {
-            // Inject AI text into the active window, then put annotated image on clipboard
-            // so user sees text appear → knows they can Ctrl+V to paste the image
-            _textInjector.InjectText(result.Text, trailingSpace: false);
-            Log.Information("Vision: injected {Chars} chars, placing image on clipboard", result.Text.Length);
-            CopyImageToClipboard(imageData);
+            // Always copy AI text to clipboard
+            CopyTextToClipboard(result.Text);
+            Log.Information("Vision: Clip result ({Chars} chars) → clipboard", result.Text.Length);
+
+            // Optionally also inject at cursor position
+            if (_settings.Current.Vision.ClipInjectAtCursor)
+            {
+                _textInjector.InjectText(result.Text, trailingSpace: false);
+                Log.Information("Vision: also injected at cursor");
+            }
 
             string preview = result.Text.Length > 200
                 ? string.Concat(result.Text.AsSpan(0, 200), "...")
@@ -3018,6 +3039,24 @@ public sealed partial class LoadingViewModel : ObservableObject
         });
     }
 
+    private void CopyTextToClipboard(string text)
+    {
+        _uiDispatcher?.TryEnqueue(() =>
+        {
+            try
+            {
+                var package = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                package.SetText(text);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
+                Log.Debug("Vision: copied text ({Chars} chars) to clipboard", text.Length);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Vision: failed to copy text to clipboard");
+            }
+        });
+    }
+
     private void CopyImageToClipboard(byte[] pngData)
     {
         _uiDispatcher?.TryEnqueue(() =>
@@ -3079,10 +3118,23 @@ public sealed partial class LoadingViewModel : ObservableObject
             _ = CompleteBarAsync(barTcs, recordingBar);
         });
 
-        // Start capture with max duration timeout
+        // Start capture — read recording settings from AppSettings
+        var vs2 = _settings.Current.Vision;
+        var (bitrate2, fps2) = vs2.VideoQuality switch
+        {
+            "low" => (1500, 24),
+            "high" => (8000, 60),
+            _ => (5000, 30),
+        };
         var options = new DiktaMe.Core.Vision.VideoRecordingOptions
         {
-            EnableWebcam = true, // V6: PIP webcam bubble
+            EnableWebcam = vs2.EnableWebcam,
+            WebcamBubbleSize = vs2.WebcamSize,
+            WebcamPosition = vs2.WebcamPosition,
+            BitrateKbps = bitrate2,
+            FrameRateHz = fps2,
+            EnableMicAudio = vs2.EnableMicAudio,
+            EnableSystemAudio = vs2.EnableSystemAudio,
         };
         using var capture = new VideoCapture();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(options.MaxDurationSeconds));
@@ -3284,12 +3336,19 @@ public sealed partial class LoadingViewModel : ObservableObject
             return; // Cancelled
         }
 
+        bool injectColor = _settings.Current.Vision.ColorPickerInjectAtCursor;
+
         if (palette.Count == 1)
         {
-            // Single pick — same behavior as before
+            // Single pick
             var c = palette[0];
             ClipboardManager.SetText(c.Hex);
-            Log.Information("ColorPicker: {Hex} copied to clipboard", c.Hex);
+            if (injectColor)
+            {
+                _textInjector.InjectText(c.Hex, trailingSpace: false);
+            }
+
+            Log.Information("ColorPicker: {Hex} → clipboard{Inject}", c.Hex, injectColor ? " + cursor" : "");
             _notifications.ShowToast("Color Picked", $"{c.Hex}  —  rgb({c.R}, {c.G}, {c.B})",
                 NotificationType.Success, suppressTts: true);
         }
@@ -3299,6 +3358,11 @@ public sealed partial class LoadingViewModel : ObservableObject
             var lines = palette.Select(c => $"{c.Hex}  rgb({c.R}, {c.G}, {c.B})");
             var paletteText = string.Join(Environment.NewLine, lines);
             ClipboardManager.SetText(paletteText);
+            if (injectColor)
+            {
+                _textInjector.InjectText(paletteText, trailingSpace: false);
+            }
+
             Log.Information("ColorPicker: palette of {Count} colors — running AI analysis", palette.Count);
             _notifications.ShowToast("Palette", "Analyzing palette with AI...", NotificationType.Info, suppressTts: true);
             await AnalyzePaletteAsync(palette).ConfigureAwait(false);
@@ -3309,7 +3373,12 @@ public sealed partial class LoadingViewModel : ObservableObject
             var lines = palette.Select(c => $"{c.Hex}  rgb({c.R}, {c.G}, {c.B})");
             var paletteText = string.Join(Environment.NewLine, lines);
             ClipboardManager.SetText(paletteText);
-            Log.Information("ColorPicker: palette of {Count} colors copied to clipboard", palette.Count);
+            if (injectColor)
+            {
+                _textInjector.InjectText(paletteText, trailingSpace: false);
+            }
+
+            Log.Information("ColorPicker: palette of {Count} colors → clipboard{Inject}", palette.Count, injectColor ? " + cursor" : "");
             _notifications.ShowToast("Palette Copied",
                 $"{palette.Count} colors copied to clipboard",
                 NotificationType.Success, suppressTts: true);
@@ -3435,8 +3504,17 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         if (result.IsSuccess)
         {
+            // Always copy to clipboard
             ClipboardManager.SetText(result.Text);
             Log.Information("Vision OCR: copied {Chars} chars to clipboard", result.Text.Length);
+
+            // Optionally also inject at cursor
+            if (_settings.Current.Vision.OcrInjectAtCursor)
+            {
+                _textInjector.InjectText(result.Text, trailingSpace: false);
+                Log.Information("Vision OCR: also injected at cursor");
+            }
+
             string preview = result.Text.Length > 200
                 ? string.Concat(result.Text.AsSpan(0, 200), "...")
                 : result.Text;
