@@ -990,6 +990,47 @@
     <value>{0:N0} / {1:N0} words</value>
   </data>
 
+  <!-- License -->
+  <data name="License_Title.Text" xml:space="preserve">
+    <value>Power License</value>
+  </data>
+  <data name="License_Unlocked.Text" xml:space="preserve">
+    <value>Licensed</value>
+  </data>
+  <data name="License_UnlockedStatus" xml:space="preserve">
+    <value>Licensed</value>
+  </data>
+  <data name="License_UnlockedDesc.Text" xml:space="preserve">
+    <value>Local STT, LLM, TTS, and bring-your-own API keys are unlocked.</value>
+  </data>
+  <data name="License_DeactivateLink.Content" xml:space="preserve">
+    <value>Deactivate license</value>
+  </data>
+  <data name="License_RequiredDesc.Text" xml:space="preserve">
+    <value>Unlock local AI (4x faster), bring-your-own API keys, and full offline mode. One-time purchase.</value>
+  </data>
+  <data name="License_BuyButton.Text" xml:space="preserve">
+    <value>Get Power License — $20</value>
+  </data>
+  <data name="License_AlreadyPurchased.Text" xml:space="preserve">
+    <value>Already purchased? Paste your key below:</value>
+  </data>
+  <data name="License_KeyPlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Paste license key</value>
+  </data>
+  <data name="License_ActivateButton.Content" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="License_InvalidKey" xml:space="preserve">
+    <value>Invalid license key. Check your email for the correct key.</value>
+  </data>
+  <data name="License_Activated" xml:space="preserve">
+    <value>License activated! Local AI is now unlocked.</value>
+  </data>
+  <data name="License_FallbackToast" xml:space="preserve">
+    <value>Local mode requires Power License. Using cloud instead.</value>
+  </data>
+
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Ollama
        ══════════════════════════════════════════════════════════════════════ -->

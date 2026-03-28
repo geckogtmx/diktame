@@ -377,6 +377,19 @@
   <data name="Settings_Account_Status_DaysRemaining" xml:space="preserve"><value>{0} d&#237;as restantes</value></data>
   <data name="Settings_Account_UsageText" xml:space="preserve"><value>{0:N0} / {1:N0} palabras</value></data>
 
+  <data name="License_Title.Text" xml:space="preserve"><value>Licencia Power</value></data>
+  <data name="License_Unlocked.Text" xml:space="preserve"><value>Licenciado</value></data>
+  <data name="License_UnlockedStatus" xml:space="preserve"><value>Licenciado</value></data>
+  <data name="License_UnlockedDesc.Text" xml:space="preserve"><value>STT local, LLM, TTS y claves API propias desbloqueados.</value></data>
+  <data name="License_DeactivateLink.Content" xml:space="preserve"><value>Desactivar licencia</value></data>
+  <data name="License_RequiredDesc.Text" xml:space="preserve"><value>Desbloquea IA local (4x m&#225;s r&#225;pido), claves API propias y modo sin conexi&#243;n. Compra &#250;nica.</value></data>
+  <data name="License_BuyButton.Text" xml:space="preserve"><value>Obtener Licencia Power — $20</value></data>
+  <data name="License_AlreadyPurchased.Text" xml:space="preserve"><value>&#191;Ya compraste? Pega tu clave abajo:</value></data>
+  <data name="License_KeyPlaceholder.PlaceholderText" xml:space="preserve"><value>Pegar clave de licencia</value></data>
+  <data name="License_ActivateButton.Content" xml:space="preserve"><value>Activar</value></data>
+  <data name="License_InvalidKey" xml:space="preserve"><value>Clave de licencia inv&#225;lida. Revisa tu correo para la clave correcta.</value></data>
+  <data name="License_Activated" xml:space="preserve"><value>&#161;Licencia activada! La IA local est&#225; desbloqueada.</value></data>
+  <data name="License_FallbackToast" xml:space="preserve"><value>El modo local requiere Licencia Power. Usando la nube.</value></data>
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Ollama
        ══════════════════════════════════════════════════════════════════════ -->

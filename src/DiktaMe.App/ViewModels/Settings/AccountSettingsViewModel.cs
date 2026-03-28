@@ -7,6 +7,7 @@ using DiktaMe.App.Services;
 using DiktaMe.Core.Account;
 using DiktaMe.Core.Config;
 using DiktaMe.Core.Data;
+using DiktaMe.Core.Security;
 using Serilog;
 
 namespace DiktaMe.App.ViewModels.Settings;
@@ -16,6 +17,7 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     private readonly SettingsManager _settings;
     private readonly WalletManager _wallet;
     private readonly LocalizationService _loc;
+    private readonly LicenseManager _licenseManager;
 
     [ObservableProperty] private bool _isSignedIn;
     [ObservableProperty] private string _email = string.Empty;
@@ -24,6 +26,11 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     [ObservableProperty] private string _balanceColorHex = "#FFFFFF";
     [ObservableProperty] private bool _useWalletProxy;
 
+    // License state
+    [ObservableProperty] private bool _isLicensed;
+    [ObservableProperty] private string _licenseStatusText = "";
+    [ObservableProperty] private string _licenseKeyInput = "";
+
     /// <summary>Recent wallet transactions for the history list.</summary>
     public ObservableCollection<WalletTransactionItem> RecentTransactions { get; } = [];
 
@@ -31,13 +38,62 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
         IAccountService accountService,
         SettingsManager settings,
         WalletManager wallet,
-        LocalizationService loc)
+        LocalizationService loc,
+        LicenseManager licenseManager)
     {
         _accountService = accountService;
         _settings = settings;
         _wallet = wallet;
         _loc = loc;
+        _licenseManager = licenseManager;
         Refresh();
+    }
+
+    [RelayCommand]
+    private void ActivateLicense()
+    {
+        if (string.IsNullOrWhiteSpace(LicenseKeyInput))
+        {
+            LicenseStatusText = _loc.GetString("License_InvalidKey");
+            return;
+        }
+
+        if (_licenseManager.Activate(LicenseKeyInput.Trim()))
+        {
+            IsLicensed = true;
+            LicenseStatusText = _loc.GetString("License_Activated");
+            LicenseKeyInput = "";
+            Log.Information("AccountSettings: Power License activated");
+        }
+        else
+        {
+            LicenseStatusText = _loc.GetString("License_InvalidKey");
+        }
+    }
+
+    [RelayCommand]
+    private static void BuyLicense()
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://www.dikta.me/pricing")
+            {
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "AccountSettingsViewModel: failed to open pricing page");
+        }
+    }
+
+    [RelayCommand]
+    private void DeactivateLicense()
+    {
+        _licenseManager.Deactivate();
+        IsLicensed = false;
+        LicenseStatusText = "";
+        Log.Information("AccountSettings: Power License deactivated");
     }
 
     [RelayCommand]
@@ -99,6 +155,12 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
         IsSignedIn = _accountService.HasValidToken;
         Email = _accountService.Email ?? string.Empty;
         UseWalletProxy = _settings.Current.AuthMode == AuthMode.Wallet;
+
+        // License state
+        IsLicensed = _licenseManager.IsLicensed;
+        LicenseStatusText = IsLicensed
+            ? _loc.GetString("License_UnlockedStatus")
+            : "";
 
         // Format wallet balance from cached microdollars
         long balanceMicro = _settings.Current.Account.WalletBalanceMicro;

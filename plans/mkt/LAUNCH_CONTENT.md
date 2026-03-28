@@ -13,7 +13,8 @@
 3. [Show HN Post](#3-show-hn-post)
 4. [Reddit Launch Posts](#4-reddit-launch-posts)
 5. [Launch Week Social Batch (7 Days)](#5-launch-week-social-batch-7-days)
-6. [SEO Blog Outlines (4)](#6-seo-blog-outlines-4)
+6. [Video Content (2 pieces)](#6-video-content-2-pieces)
+7. [SEO Blog Outlines (4)](#7-seo-blog-outlines-4)
 
 ---
 
@@ -257,7 +258,7 @@ dIKta.me es la primera pieza de eso.
 
 ## 2. Product Hunt Launch Page
 
-> **[ES VERSION NEEDED]** for tagline and first two description paragraphs on any bilingual-capable listing.
+> Spanish tagline and description paragraphs below — Eduardo to review.
 
 ---
 
@@ -274,6 +275,14 @@ Stop typing at your AI models. Just talk to them.
 ```
 
 *(Alternate: "Voice + Vision + LLM. Any app. Any model. $20 once.")*
+
+**Tagline 🇪🇸**
+
+```
+Deja de escribirle a tus modelos de IA. Háblales.
+```
+
+*(Alternativa: "Voz + Visión + LLM. Cualquier app. Cualquier modelo. $20 una vez.")*
 
 ---
 
@@ -324,6 +333,14 @@ Knowledge workers who live in productivity tools. Privacy-conscious professional
 **Built by:** Eduardo Garcia-Torres — a marketing and business executive from Mexico with 20+ years in IT consulting and digital media. Not a software engineer by training. This is his first desktop application, built with C#, WinUI 3, and AI coding tools. One developer. Three months. 1,014 tests.
 
 **Open source:** MIT license. GitHub public at launch. Build from source if you prefer — .NET 8 SDK required.
+
+---
+
+**Full Description — 🇪🇸 (first two paragraphs)**
+
+**El problema:** Escribes a 60 palabras por minuto. Piensas a 150. La brecha es trabajo de pegamento — copiar y pegar entre apps, cambiar de contexto a ventanas de chat, pagar cinco suscripciones de IA separadas que no se comunican entre sí.
+
+**Lo que hace dIKta.me:** Presiona un atajo en cualquier aplicación de Windows — Word, VS Code, Slack, tu navegador, lo que sea — y tu voz se convierte en texto procesado en tu cursor. No transcripción cruda. Salida refinada por IA, consciente del contexto, exactamente donde la necesitas.
 
 ---
 
@@ -519,8 +536,8 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 ## 5. Launch Week Social Batch (7 Days)
 
 > Template per RELEASE_ROADMAP.md Appendix A. Day 0 = announcement.
-> Each day: LinkedIn (long-form) + X/Twitter (punchy, ≤280 chars).
-> **[ES VERSION NEEDED]** for all LinkedIn posts and X/Twitter posts — follow the bilingual pattern from SOCIAL_W13_MAR24-30.md.
+> Each day: LinkedIn (long-form) + X/Twitter (punchy, ≤280 chars). English + Spanish.
+> Eduardo to review and correct Spanish.
 
 ---
 
@@ -543,8 +560,24 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 > Free to try. $20 to own. MIT license if you want to build from source.
 >
 > dikta.me — I read every piece of feedback.
+
+**LinkedIn 🇪🇸**
+
+> **dIKta.me V2.0 ya está disponible.**
 >
-> **[ES VERSION NEEDED]**
+> Tres meses. Un desarrollador. 1,014 pruebas. Licencia MIT. Esto es lo que construí.
+>
+> El problema: los modelos de IA mejoraron 3x. Las ventanas de contexto crecieron 250x. Pero sigues escribiendo en un cuadro de chat y copiando y pegando entre apps. Nadie arregló la capa de entrada.
+>
+> dIKta.me lo hace.
+>
+> 8 modos activados por atajos que funcionan en cualquier app de Windows — Dictar, Refinar, Preguntar, Traducir, Visión, Nota, Chat Rápido, Leer Selección. Los resultados aparecen en tu cursor. Sin cambiar de app. Sin copiar y pegar.
+>
+> Corre completamente local: Whisper V3 para STT, Ollama para LLM, Kokoro para TTS. O usa proveedores en la nube con tus propias claves. Tu elección.
+>
+> Gratis para probar. $20 para ser tuyo. Licencia MIT si quieres compilarlo desde el código fuente.
+>
+> dikta.me — Leo cada comentario.
 
 **X / Twitter 🇺🇸**
 
@@ -556,7 +589,15 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 >
 > dikta.me
 
-**[ES VERSION NEEDED]** for X/Twitter
+**X / Twitter 🇪🇸**
+
+> dIKta.me V2.0 ya está disponible.
+>
+> 8 modos de voz con IA. Cualquier app de Windows. Whisper + Ollama + Kokoro local o nube. Habla → resultado en tu cursor.
+>
+> Gratis para probar. $20 para ser tuyo.
+>
+> dikta.me
 
 ---
 
@@ -579,8 +620,24 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 > Thanks to everyone who tried it, upvoted, commented, or sent notes. Every one of those matters more than you'd think when you're building alone.
 >
 > dikta.me
+
+**LinkedIn 🇪🇸**
+
+> 24 horas después. Esto es lo que pasó.
 >
-> **[ES VERSION NEEDED]**
+> [Reemplazar con números reales: descargas, instalaciones, posición en PH, comentarios, DMs]
+>
+> Tres cosas que aprendí del feedback del Día 1:
+>
+> [Reemplazar con 3 observaciones reales del feedback]
+>
+> La pregunta más frecuente: [pregunta más común]. La respuesta: [respuesta].
+>
+> Lo que se está corrigiendo primero: [bug principal o problema de UX del feedback].
+>
+> Gracias a todos los que lo probaron, votaron, comentaron o enviaron notas. Cada uno de esos importa más de lo que imaginas cuando construyes solo.
+>
+> dikta.me
 
 **X / Twitter 🇺🇸**
 
@@ -594,7 +651,17 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 >
 > dikta.me
 
-**[ES VERSION NEEDED]** for X/Twitter
+**X / Twitter 🇪🇸**
+
+> Día 1 de @dIKtaMe:
+> [X] instalaciones
+> Posición en Product Hunt: [X]
+> Pregunta más frecuente: [pregunta]
+> Bug principal: [bug]
+>
+> Construyendo en público. Esto es lo que corrijo primero: [fix]
+>
+> dikta.me
 
 ---
 
@@ -615,8 +682,22 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 > Local mode: Whisper + Ollama. Sub-2 second combined latency on a mid-range GPU.
 >
 > dikta.me
+
+**LinkedIn 🇪🇸**
+
+> **Los dos modos que uso 20 veces al día.**
 >
-> **[ES VERSION NEEDED]**
+> **Modo Dictar** (`Ctrl+Alt+D`): presiona, habla, suelta. El texto limpio aparece en el cursor. No transcripción cruda — puntuado, formateado, listo para enviar o publicar. Funciona en cualquier app: correo, Slack, VS Code, Google Docs, Word, tu IDE, lo que sea.
+>
+> La diferencia con el dictado básico: no es solo volcar palabras. Está pasando tu habla por un modelo de lenguaje que maneja puntuación, saltos de párrafo y correcciones menores, mientras preserva tu significado.
+>
+> **Refinar Voz** (`Ctrl+Alt+R` mantener): selecciona texto, mantén el atajo, di "hazlo más formal" o "córtalo a la mitad" o "traduce al español" — suelta. El texto se reescribe en su lugar. Sin nueva ventana. Sin copiar y pegar. El cursor se queda donde estaba.
+>
+> Lo uso para corregir correos que redacté demasiado rápido, condensar notas de reunión y adaptar el mismo párrafo para diferentes audiencias sin cambiar de app.
+>
+> Modo local: Whisper + Ollama. Latencia combinada menor a 2 segundos en una GPU de gama media.
+>
+> dikta.me
 
 **X / Twitter 🇺🇸**
 
@@ -630,7 +711,17 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 >
 > dikta.me
 
-**[ES VERSION NEEDED]** for X/Twitter
+**X / Twitter 🇪🇸**
+
+> Dos modos que uso constantemente:
+>
+> Dictar: presiona el atajo, habla, el texto aparece en el cursor en cualquier app.
+>
+> Refinar Voz: selecciona texto, di "córtalo a la mitad" o "hazlo más formal" → el texto se reescribe en su lugar.
+>
+> Ambos corren localmente. Latencia menor a 2s. Cualquier app.
+>
+> dikta.me
 
 ---
 
@@ -656,8 +747,27 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 > The architecture is provider-agnostic throughout — same interface for Ollama as for OpenAI or Gemini if you want cloud. Swap one setting.
 >
 > dikta.me
+
+**LinkedIn 🇪🇸**
+
+> **Cómo funciona el stack de IA local en dIKta.me.**
 >
-> **[ES VERSION NEEDED]**
+> Tres modelos de IA separados, todos corriendo en tu GPU (o CPU), ninguno requiriendo internet.
+>
+> **STT — Whisper V3 Turbo**
+> Construido sobre whisper.cpp vía Whisper.net (bindings de C#). Aceleración GPU vía Vulkan — funciona en NVIDIA y AMD sin CUDA. La primera ejecución descarga el modelo (~1.5GB para large-v3). Después de eso: sin conexión.
+>
+> **LLM — Ollama**
+> Cualquier modelo que hayas descargado: gemma3:4b (rápido, bueno para refinado), llama3.1:8b (más preciso), qwen2.5 (multilingüe sólido), minicpm-v (visión). HTTP keep-alive con instancias de proveedores en caché — me tomó un tiempo darme cuenta de que crear un nuevo HttpClient por dictado estaba añadiendo 2500ms de overhead de TCP.
+>
+> **TTS — Kokoro ONNX**
+> ~88MB de descarga. Corre completamente local. Más de 20 estilos de voz. Sin nube para la lectura de retorno.
+>
+> Latencia combinada en una GPU de gama media: ~800ms para dictar+refinar. Eso es suficientemente rápido para ser invisible.
+>
+> La arquitectura es agnóstica al proveedor — misma interfaz para Ollama que para OpenAI o Gemini si quieres nube. Cambia una configuración.
+>
+> dikta.me
 
 **X / Twitter 🇺🇸**
 
@@ -671,7 +781,17 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 >
 > dikta.me
 
-**[ES VERSION NEEDED]** for X/Twitter
+**X / Twitter 🇪🇸**
+
+> Cómo funciona la IA local de dIKta.me:
+>
+> STT: Whisper V3 vía whisper.cpp (Vulkan GPU, NVIDIA + AMD)
+> LLM: Ollama, HTTP keep-alive, caché de proveedores (~550ms vs 3000ms sin caché)
+> TTS: Kokoro ONNX, ~88MB, 20+ voces
+>
+> Sin internet después de la primera descarga.
+>
+> dikta.me
 
 ---
 
@@ -698,8 +818,28 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 > The free trial is the free trial. No credit card to start. Try the full app with $1 in cloud credits. If local mode is 4x faster (it is), the Power License pays for itself in about 4 minutes of not waiting for cloud API calls.
 >
 > dikta.me
+
+**LinkedIn 🇪🇸**
+
+> **El stack de suscripciones de IA típico de un trabajador del conocimiento en 2026:**
 >
-> **[ES VERSION NEEDED]**
+> - Grammarly Pro: $12/mes
+> - Otter.ai: $10/mes
+> - Dragon / otro dictado: $15/mes
+> - ChatGPT Plus: $20/mes
+> - Granola / IA de reuniones: $14/mes
+>
+> Son $71/mes. $852/año. Por rentar software que todavía te obliga a copiar y pegar entre todos ellos.
+>
+> dIKta.me hace todo lo que esos cinco productos hacen, en cualquier app, desde un solo atajo. Precio único: $20.
+>
+> O usa IA local (Whisper + Ollama) y el costo de operación es $0/mes después de eso.
+>
+> No estoy en contra del SaaS. Yo uso herramientas SaaS. Pero el modelo no tiene sentido cuando la inferencia de IA puede correr en tu propio hardware de forma gratuita. Estás pagando mensualmente por un envoltorio alrededor de modelos que podrías correr tú mismo.
+>
+> La prueba gratuita es la prueba gratuita. Sin tarjeta de crédito para empezar. Prueba la app completa con $1 en créditos de nube. Si el modo local es 4x más rápido (lo es), la Licencia Power se paga sola en aproximadamente 4 minutos de no esperar llamadas a APIs en la nube.
+>
+> dikta.me
 
 **X / Twitter 🇺🇸**
 
@@ -713,7 +853,17 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 >
 > dikta.me
 
-**[ES VERSION NEEDED]** for X/Twitter
+**X / Twitter 🇪🇸**
+
+> Grammarly + Otter + dictado + ChatGPT + IA de reuniones = $71/mes = $852/año.
+>
+> dIKta.me hace todo eso. Un atajo. Cualquier app.
+>
+> Pago único: $20. Costo de IA local: $0/mes.
+>
+> Deja de rentar.
+>
+> dikta.me
 
 ---
 
@@ -739,8 +889,27 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 > It runs the same pipeline as the dictation modes — same providers, same settings, just image input instead of voice.
 >
 > dikta.me
+
+**LinkedIn 🇪🇸**
+
+> **La función que nadie espera en una app de dictado.**
 >
-> **[ES VERSION NEEDED]**
+> `Ctrl+Alt+S`. Dibuja una región en tu pantalla. Aparece un menú:
+>
+> - **Guardar** — captura a archivo
+> - **Portapapeles** — copiar al portapapeles
+> - **Chat** — abrir la imagen en el overlay de chat rápido, hacer preguntas
+> - **Nota** — nota de voz con la imagen como contexto
+> - **OCR** — extraer todo el texto de la imagen
+> - **Tabla** — extraer datos estructurados como tabla lista para hoja de cálculo
+>
+> Todas estas opciones enrutan a IA. El OCR y la extracción de tablas corren localmente (vía minicpm-v en Ollama) o en Gemini en modo nube.
+>
+> Lo uso más para: extraer texto de capturas de pantalla de PDFs, obtener tablas de páginas web de las que no puedo copiar y pegar, hacer preguntas sobre gráficas y diagramas, y anotar rápidamente visuales en mis notas.
+>
+> Corre el mismo pipeline que los modos de dictado — mismos proveedores, misma configuración, solo entrada de imagen en lugar de voz.
+>
+> dikta.me
 
 **X / Twitter 🇺🇸**
 
@@ -754,7 +923,17 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 >
 > dikta.me
 
-**[ES VERSION NEEDED]** for X/Twitter
+**X / Twitter 🇪🇸**
+
+> dIKta.me tiene un modo de visión.
+>
+> Ctrl+Alt+S → dibuja una región → OCR, extrae tabla, haz preguntas, guarda en notas.
+>
+> Corre localmente vía minicpm-v (Ollama) o Gemini en la nube.
+>
+> No es lo que esperas de una app de dictado.
+>
+> dikta.me
 
 ---
 
@@ -783,8 +962,30 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 > [Results summary and what it means]
 >
 > dikta.me
+
+**LinkedIn 🇪🇸**
+
+> **Números de la Semana 1. Lo que construí, lo que lancé, lo que aprendí.**
 >
-> **[ES VERSION NEEDED]**
+> [Reemplazar con métricas reales]
+>
+> Descargas: [X]
+> Licencias Power vendidas: [X]
+> Posición en Product Hunt: [X]
+> Estrellas en GitHub: [X]
+> Tema de feedback más común: [tema]
+>
+> Lo que hice mal el Día 0: [error honesto]
+>
+> Lo que hice bien: [cosa que funcionó]
+>
+> Lo que viene próximamente: [correcciones de V2.0.1 o primer módulo de V2.1]
+>
+> Empecé este proyecto porque estaba frustrado. Lo terminé porque pensé que podría ser útil para otras personas frustradas por las mismas cosas. La Semana 1 me dice si tenía razón.
+>
+> [Resumen de resultados y lo que significan]
+>
+> dikta.me
 
 **X / Twitter 🇺🇸**
 
@@ -799,17 +1000,145 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 >
 > dikta.me
 
-**[ES VERSION NEEDED]** for X/Twitter
+**X / Twitter 🇪🇸**
+
+> Semana 1 de dIKta.me:
+> [X] descargas · [X] licencias · [X] estrellas en GitHub
+>
+> Feedback más común: [tema]
+> Mayor sorpresa: [sorpresa]
+> Lo que viene después: [feature]
+>
+> Construyendo en público. Empieza la Semana 2.
+>
+> dikta.me
 
 ---
 
 ---
 
-## 6. SEO Blog Outlines (4)
+## 6. Video Content (2 pieces)
+
+> Eduardo has screen recording, video editing (DaVinci Resolve), audio editing (Audacity), and a full streaming setup.
+> Both videos are designed to be recorded in one or two takes with minimal editing — no face required unless you want it.
+> Format: MP4, landscape 1080p. Publish to YouTube (primary) + repurpose clips for X, LinkedIn, Reddit.
+
+---
+
+### Video 1 — "The 90-second demo" (Launch trailer)
+
+**Purpose:** The asset that goes everywhere on Day 0. Product Hunt gallery, GitHub README, dikta.me homepage, every social post. The first thing a skeptic watches.
+
+**Target length:** 60–90 seconds
+
+**Tone:** No narration required. Let the product speak. If you narrate, speak like you would to a colleague — one sentence at a time, no script reading.
+
+**What to show (in order):**
+
+1. **(0:00–0:10)** Open a blank document (Word, Notion, or VS Code). No dIKta.me visible yet. Just a cursor blinking.
+
+2. **(0:10–0:25)** Press `Ctrl+Alt+D`. The waveform appears on the control panel. Speak one or two natural sentences — something real, not "testing testing." Release. Clean, punctuated text appears at the cursor. **No cut here** — show the real latency.
+
+3. **(0:25–0:40)** Select a sentence of that text. Hold `Ctrl+Alt+R`. Say "make this more direct." Release. Watch it rewrite in-place. No cut — show the real speed.
+
+4. **(0:40–0:55)** Press `Ctrl+Alt+S`. Draw a region over something on screen (a table, a chart, a PDF snippet). Choose OCR or Table. Text extracts. One beat of pause to let it land.
+
+5. **(0:55–1:10)** End on the dIKta.me logo + dikta.me URL.
+
+**Overlay text (minimal, add in DaVinci Resolve):**
+- At step 2: `Ctrl+Alt+D — Dictate`
+- At step 3: `Ctrl+Alt+R — Refine`
+- At step 4: `Ctrl+Alt+S — Vision`
+- End card: `dIKta.me · Free to try · $20 to own`
+
+**Audio:** No music needed — the sound of real keystrokes and the waveform animation carry it. If you add music, keep it instrumental and quiet so the UI sounds come through.
+
+**DaVinci Resolve notes:**
+- Cut only to remove dead air between steps — keep real-time latency visible
+- Add subtle zoom-in (1.05–1.1x) on the cursor area during text injection so viewers can see the output clearly
+- Color grade: keep it close to the Midnight theme palette — cool dark tones, no warm grade
+- Export: H.264, 1080p, ~30fps. Under 90 seconds = fine for X native upload
+
+**Recording tips:**
+- Do one real take before the "clean" take — genuine latency is the pitch, not a liability
+- Dictate something real: a sentence you'd actually write in your work
+- Recommended app: VS Code or Notion (recognizable to the target audience)
+
+**Repurpose as:**
+- Product Hunt gallery (first asset)
+- GitHub README embed
+- Day 0 X/Twitter native upload (no YouTube link — autoplay matters)
+- Day 0 LinkedIn post
+- Reddit posts (r/productivity, r/LocalLLaMA)
+
+---
+
+### Video 2 — "Local AI dictation setup in 5 minutes" (Technical walkthrough)
+
+**Purpose:** Trust-building for the privacy / self-hosted audience. Shows exactly what "local mode" means in practice. Also an SEO asset for "how to set up local AI dictation windows."
+
+**Target length:** 4–6 minutes
+
+**Tone:** Calm, technical, honest. You're walking someone through your own setup. Not a tutorial read from a script — more like pairing with a colleague who hasn't done this before.
+
+**Structure:**
+
+**Part 1 — Hook (30 sec)**
+Spoken or title card: *"Most AI dictation tools send your voice to a server. Here's how to run the whole stack locally — STT, LLM, TTS — on your own machine."*
+
+**Part 2 — The first-run wizard (60 sec)**
+- Open dIKta.me, show the wizard
+- Highlight the three provider choices: STT, LLM, TTS
+- "I'm going to pick local for all three"
+
+**Part 3 — Whisper download (90 sec)**
+- Select Whisper in the wizard, pick a model size
+- Show the download progress
+- Callout: *"This is whisper.cpp. Runs on your GPU via Vulkan — NVIDIA and AMD, no CUDA required."*
+
+**Part 4 — Ollama setup (90 sec)**
+- Show the Ollama wizard step. If already installed, say so and skip ahead.
+- `ollama pull gemma3:4b` — show the pull progress
+- *"This is the model that rewrites and refines your text. You can swap it for anything you already have — llama3, qwen2.5, whatever."*
+
+**Part 5 — Live demo with proof (60–90 sec)**
+- Same dictate + refine sequence as Video 1
+- This time, call it out explicitly: *"Watch the network — nothing is going out. This is running on my machine."*
+- Show Task Manager network graph briefly, or use a network monitor overlay — flat line during dictation is the proof
+- State your GPU: *"I'm on an RTX 3060 — about 800ms total for Whisper plus Ollama."*
+
+**Part 6 — Wrap (30 sec)**
+- *"Free to try with cloud credits. $20 one-time for local mode. MIT license if you want to build from source."*
+- dikta.me URL on screen
+
+**On-screen text to add in DaVinci Resolve:**
+- Part 3: `Whisper V3 Turbo · ~800MB · runs offline after download`
+- Part 4: `Ollama · gemma3:4b · ~2.5GB · $0/month`
+- Part 5: `~800ms total · Whisper + Ollama · no internet · RTX 3060`
+
+**Audacity notes:**
+- Record narration separately from screen capture if your streaming setup allows it — easier to re-record a line without re-recording the screen
+- Light noise reduction pass. No compression needed — keep it natural, not podcast-polished
+
+**DaVinci Resolve notes:**
+- Hard cuts only — no transitions
+- The network monitor moment in Part 5 can be a picture-in-picture inset (small, bottom corner) while the main screen shows dictation
+- Export: H.264, 1080p. YouTube SEO title: *"Local AI dictation on Windows — Whisper + Ollama + Kokoro (dIKta.me setup guide)"*
+
+**Repurpose as:**
+- YouTube (primary SEO asset for "local ai dictation windows")
+- r/selfhosted and r/LocalLLaMA launch posts — embed directly
+- Day 3 LinkedIn post (technical deep-dive day)
+- dikta.me/getting-started page
+- Clip Part 5 (~90 sec) as a standalone short for X/Twitter
+
+---
+
+## 7. SEO Blog Outlines (4)
 
 > Outlines only. Full posts to be written separately.
 > All posts link to dikta.me and cross-link each other.
-> **[ES VERSION NEEDED]** for each — separate URL slugs (`/es/blog/...`).
+> Spanish versions: use same structure, translate titles and section headers. Separate URL slugs (`/es/blog/...`). Eduardo to review keyword targeting for MX/LATAM search intent.
 
 ---
 
