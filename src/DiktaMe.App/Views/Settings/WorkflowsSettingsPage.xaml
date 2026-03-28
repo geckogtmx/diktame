@@ -198,6 +198,18 @@
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.ColorPickerInjectAtCursor, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
 
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Text="Video AI: Inject at Cursor" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Also inject Describe/Document/Bug Report result at cursor (always copied to clipboard)" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.VideoAiInjectAtCursor, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            </Grid>
+
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Max Response Tokens" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
                                 <TextBlock Text="Maximum length of the AI response" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>

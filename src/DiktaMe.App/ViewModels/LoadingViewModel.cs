@@ -2512,8 +2512,17 @@ public sealed partial class LoadingViewModel : ObservableObject
 
             if (result.IsSuccess && !string.IsNullOrWhiteSpace(result.Text))
             {
-                // Inject text into active window
-                _textInjector.InjectText(result.Text, trailingSpace: false);
+                // Always copy to clipboard
+                CopyTextToClipboard(result.Text);
+
+                // Optionally also inject at cursor
+                if (_settings.Current.Vision.VideoAiInjectAtCursor)
+                {
+                    _textInjector.InjectText(result.Text, trailingSpace: false);
+                }
+
+                Log.Information("Video AI: {Chars} chars → clipboard{Inject}", result.Text.Length,
+                    _settings.Current.Vision.VideoAiInjectAtCursor ? " + cursor" : "");
                 _notifications.ShowToast("Video AI", $"Analysis complete ({result.Text.Length} chars)", NotificationType.Success, suppressTts: true);
             }
             else

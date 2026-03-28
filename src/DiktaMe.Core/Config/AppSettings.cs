@@ -251,6 +251,7 @@ public sealed record VisionSettings
     public bool ClipInjectAtCursor { get; init; } = true;
     public bool OcrInjectAtCursor { get; init; } = true;
     public bool ColorPickerInjectAtCursor { get; init; } = true;
+    public bool VideoAiInjectAtCursor { get; init; } = true;
 
     // Cloud vision settings
     public string CloudVisionProvider { get; init; } = "gemini";

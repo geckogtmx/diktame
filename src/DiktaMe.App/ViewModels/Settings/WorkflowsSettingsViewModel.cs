@@ -58,6 +58,9 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
     private bool _colorPickerInjectAtCursor = true;
 
     [ObservableProperty]
+    private bool _videoAiInjectAtCursor = true;
+
+    [ObservableProperty]
     private int _visionMaxResponseTokens = 4096;
 
     [ObservableProperty]
@@ -192,6 +195,7 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
         ClipInjectAtCursor = v.ClipInjectAtCursor;
         OcrInjectAtCursor = v.OcrInjectAtCursor;
         ColorPickerInjectAtCursor = v.ColorPickerInjectAtCursor;
+        VideoAiInjectAtCursor = v.VideoAiInjectAtCursor;
 
         // Screen recording settings
         VideoQualityIndex = Array.IndexOf(VideoQualityCodes, v.VideoQuality) is var qi and >= 0 ? qi : 1;
@@ -223,6 +227,7 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
                 ClipInjectAtCursor = ClipInjectAtCursor,
                 OcrInjectAtCursor = OcrInjectAtCursor,
                 ColorPickerInjectAtCursor = ColorPickerInjectAtCursor,
+                VideoAiInjectAtCursor = VideoAiInjectAtCursor,
                 VideoQuality = videoQuality,
                 EnableWebcam = EnableWebcam,
                 WebcamSize = webcamSize,
