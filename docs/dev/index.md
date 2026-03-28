@@ -18,4 +18,9 @@ Learn how to interact with the Dependency Injection container to securely inject
 *   [Speech-to-Text Providers](api/stt-providers.md)
 *   [Large Language Model Providers](api/llm-providers.md)
 *   [Text-to-Speech Providers](api/tts-providers.md)
+*   [Vision Pipeline & Multimodal LLM](api/vision.md)
+
+## 👁️ Vision Architecture
+
+*   [Vision Pipeline internals — ScreenCapture, ImageProcessor, VisionPipeline, VideoCapture, ColorPicker](api/vision.md)
 

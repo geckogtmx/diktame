@@ -20,5 +20,9 @@
 - **[Chat Rápido](features/quick-chat.md)**: Un asistente flotante para cuando necesitas una segunda opinión.
 - **[Nota](features/note.md)**: Captura pensamientos a un archivo de texto sin perder el foco.
 
+## 👁️ Vision
+
+- **[Vision](features/vision.md)**: Captura tu pantalla, una región o una ventana y pregúntale a la IA sobre lo que ve.
+
 ---
 *¿Atascado? Echa un vistazo a nuestros [Problemas en GitHub](https://github.com/geckogtmx/diktame/issues) para ver si otros ya han encontrado una solución.*

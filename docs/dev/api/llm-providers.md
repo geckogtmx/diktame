@@ -9,28 +9,44 @@ If you wish to add support for a new Language Model endpoint (like Groq, Togethe
 ```csharp
 public interface ILLMProvider
 {
-    // The human-readable name of the provider (e.g. "Ollama Local")
     string Name { get; }
 
-    // Ensures the API key exists or the local server is actually running
-    Task<bool> IsReadyAsync();
+    // Health check — confirms API key exists or local server is reachable
+    Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default);
 
-    // The core execution loop for one-shot text replacement
-    Task<string> ProcessTextAsync(
-        string input, 
-        string systemPrompt, 
-        CancellationToken cancellationToken);
+    // One-shot text formatting (Dictation, Ask, Refine, Translate, Note)
+    Task<LlmResult> ProcessAsync(
+        string text,
+        string systemPrompt,
+        string mode = "dictate",
+        CancellationToken cancellationToken = default);
 
-    // C# 8.0 Async Streams for yielding chat responses natively
-    // Required to support the Quick Chat overlay
-    IAsyncEnumerable<string> ProcessChatStreamAsync(
-        IEnumerable<ChatMessage> history, 
-        string systemPrompt, 
-        CancellationToken cancellationToken);
+    // Multi-turn conversation (Quick Chat)
+    Task<LlmResult> ProcessConversationAsync(
+        IReadOnlyList<ConversationTurn> history,
+        string systemPrompt,
+        CancellationToken cancellationToken = default);
+
+    // Multimodal — default throws NotSupportedException; providers opt in by overriding
+    virtual Task<LlmResult> ProcessWithImageAsync(
+        byte[] imageData,
+        string mimeType,
+        string text,
+        string systemPrompt,
+        string mode = "vision",
+        CancellationToken cancellationToken = default);
 }
 ```
 
-*Examples in codebase*: `AnthropicProvider.cs`, `GeminiProvider.cs`, `OllamaProvider.cs`, `OpenAICompatProvider.cs`
+`LlmResult` is a record with `Text`, `Provider`, `LatencyMs`, optional `InputTokens`, `OutputTokens`, `TokensPerSec`, and a computed `IsSuccess` property.
+
+`ConversationTurn` is a record with `Role`, `Content`, and optional `ImageData`/`ImageMimeType` for attaching images to chat turns.
+
+*Implementations*: `AnthropicProvider.cs`, `GeminiProvider.cs`, `OllamaProvider.cs`, `OpenAICompatibleProvider.cs`
+
+### Multimodal support
+
+`ProcessWithImageAsync` has a default virtual implementation that throws `NotSupportedException`. All four current providers override it. See [Vision Pipeline](vision.md) for a full walkthrough of adding multimodal support to a new provider.
 
 ---
 

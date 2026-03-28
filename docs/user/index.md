@@ -23,6 +23,13 @@ Learn how to use the primary dictation systems and text pipelines.
 *   [The "Oops" Hotkey](features/oops.md)
 *   [Text-to-Speech (TTS)](features/tts.md)
 
+## 👁️ Vision Features
+
+Capture your screen and let AI analyse it — screenshot, region, video, or colour.
+*   [Vision (See) — Screenshot & Screen Analysis](features/vision.md)
+*   [Color Picker](features/vision.md#color-picker)
+*   [Video Recording (Capture Moments)](features/vision.md#video-recording-capture-moments)
+
 ## ⚙️ Settings Exhaustive Guide
 
 A deep dive into everything you can configure within the multi-tab Settings Window.
@@ -39,6 +46,7 @@ A deep dive into everything you can configure within the multi-tab Settings Wind
 *   [Ollama Local Inference](settings/ollama.md)
 *   [Privacy Controls & History](settings/privacy.md)
 *   [Control Panel HUD](settings/control-panel.md)
+*   [Vision Settings](settings/vision.md)
 
 ## 🛠️ Support
 

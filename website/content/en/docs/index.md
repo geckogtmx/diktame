@@ -20,5 +20,9 @@ Hi there! 👋 Welcome to the manual.
 - **[Quick Chat](features/quick-chat.md)**: A floating assistant for when you need a second opinion.
 - **[Note](features/note.md)**: Capture thoughts to a file without losing focus.
 
+## 👁️ Vision
+
+- **[Vision (See)](features/vision.md)**: Capture your screen and ask an AI about it — screenshot, region, color picker, or video clip.
+
 ---
 *Stuck? Check out our [GitHub Issues](https://github.com/geckogtmx/diktame/issues) to see if others have found a solution.*
