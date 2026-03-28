@@ -323,6 +323,8 @@ public sealed partial class ControlPanelPage : Page
         UpdateVisionAiToggleVisuals();
     }
 
+    private void QueryPanel_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e) => UpdateVisionAiToggleVisuals();
+
     private void UpdateVisionAiToggleVisuals()
     {
         var active = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 96, 122));   // #00607a

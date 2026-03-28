@@ -532,6 +532,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     {
         _preVisionIsExpanded = IsExpanded;
         IsExpanded = false; // Force collapse so only Header + Vision row show
+        VisionAiMode = 2; // Always default to "None" (no AI) on each wizard entry
         VisionPhase = VisionWizardStep.CaptureType;
         Log.Information("VisionRow: Entered vision mode (was expanded={WasExpanded})", _preVisionIsExpanded);
     }

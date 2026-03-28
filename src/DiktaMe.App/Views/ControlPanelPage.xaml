@@ -563,12 +563,11 @@
                 <!-- ── Panel 4: PostCapture — Image or Video actions ── -->
                 <Grid Visibility="{x:Bind ViewModel.IsStep_PostCapture, Converter={StaticResource BoolToVis}, Mode=OneWay}">
 
-                <!-- Panel 4a: Image PostCapture — Thumbnail + Save/Clip/Chat/Note/OCR/Table/Edit/✕ -->
+                <!-- Panel 4a: Image PostCapture — Thumbnail + Save/Clip/Chat/Note/OCR/Edit/✕ -->
                 <Grid Visibility="{x:Bind ViewModel.IsVideoPostCapture, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}"
                       ColumnSpacing="3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -584,6 +583,7 @@
                                Height="32" Stretch="Uniform"/>
                     </Border>
 
+                    <!-- Group 1: Immediate actions (no AI query step) -->
                     <Button Grid.Column="1" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Save"
                             Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
@@ -595,40 +595,7 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Grid.Column="2" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Clipboard"
-                            Background="#00607a" BorderThickness="0" CornerRadius="4"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="AI analyze → clipboard">
-                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#007a9a"/></Button.Resources>
-                        <StackPanel HorizontalAlignment="Center" Spacing="1">
-                            <FontIcon Glyph="&#xE8C8;" FontSize="11" Foreground="White" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Clip" FontSize="8" Foreground="White" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Grid.Column="3" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Chat"
-                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Open in Chat">
-                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
-                        <StackPanel HorizontalAlignment="Center" Spacing="1">
-                            <FontIcon Glyph="&#xE8F2;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Chat" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Grid.Column="4" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Note"
-                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Vision + voice note">
-                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
-                        <StackPanel HorizontalAlignment="Center" Spacing="1">
-                            <FontIcon Glyph="&#xE70B;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Note" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Grid.Column="5" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Ocr"
+                    <Button Grid.Column="2" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Ocr"
                             Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                             Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="OCR text extraction">
@@ -639,18 +606,7 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Grid.Column="6" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Table"
-                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Extract table data">
-                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
-                        <StackPanel HorizontalAlignment="Center" Spacing="1">
-                            <FontIcon Glyph="&#xE80A;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Table" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Grid.Column="7" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Edit"
+                    <Button Grid.Column="3" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Edit"
                             Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                             Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Annotate image">
@@ -661,7 +617,41 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Grid.Column="8" Command="{x:Bind ViewModel.VisionExitModeCommand}"
+                    <!-- Group 2: AI query actions (proceed to query text field) -->
+                    <Button Grid.Column="4" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Clipboard"
+                            Background="#00607a" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="AI analyze → clipboard">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#007a9a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE8C8;" FontSize="11" Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Clip" FontSize="8" Foreground="White" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="5" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Chat"
+                            Background="#00607a" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Open in Chat">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#007a9a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE8F2;" FontSize="11" Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Chat" FontSize="8" Foreground="White" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="6" Command="{x:Bind ViewModel.VisionChooseActionCommand}" CommandParameter="Note"
+                            Background="#00607a" BorderThickness="0" CornerRadius="4"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="1,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Vision + voice note">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#007a9a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE70B;" FontSize="11" Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Note" FontSize="8" Foreground="White" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="7" Command="{x:Bind ViewModel.VisionExitModeCommand}"
                             Background="Transparent" BorderThickness="0" CornerRadius="4"
                             Padding="6,5" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Cancel">
                         <FontIcon Glyph="&#xE711;" FontSize="10" Foreground="{StaticResource AppTextDimBrush}"/>
@@ -734,9 +724,11 @@
 
                 <!-- ── Panel 5: Query — TextBox + L/C/— + Go ── -->
                 <Grid Visibility="{x:Bind ViewModel.IsStep_Query, Converter={StaticResource BoolToVis}, Mode=OneWay}"
-                      ColumnSpacing="4">
+                      Loaded="QueryPanel_Loaded" ColumnSpacing="3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
@@ -748,32 +740,47 @@
                              BorderBrush="{StaticResource AppBorderBrush}"
                              Foreground="{StaticResource AppTextBrush}"/>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="1" VerticalAlignment="Center">
-                        <Button x:Name="VisionAiLocal" Content="L" FontSize="9" FontWeight="SemiBold"
-                                MinWidth="0" MinHeight="0" Padding="6,3" CornerRadius="3,0,0,3"
-                                BorderThickness="0" Background="{StaticResource AppSurfaceBrush}"
-                                Click="VisionAiToggle_Click" Tag="0" ToolTipService.ToolTip="Local AI">
-                            <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
-                        </Button>
-                        <Button x:Name="VisionAiCloud" Content="C" FontSize="9" FontWeight="SemiBold"
-                                MinWidth="0" MinHeight="0" Padding="6,3" CornerRadius="0"
-                                BorderThickness="0" Background="{StaticResource AppSurfaceBrush}"
-                                Click="VisionAiToggle_Click" Tag="1" ToolTipService.ToolTip="Cloud AI">
-                            <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
-                        </Button>
-                        <Button x:Name="VisionAiNone" Content="—" FontSize="9" FontWeight="SemiBold"
-                                MinWidth="0" MinHeight="0" Padding="6,3" CornerRadius="0,3,3,0"
-                                BorderThickness="0" Background="#00607a"
-                                Click="VisionAiToggle_Click" Tag="2" ToolTipService.ToolTip="No AI">
-                            <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#007a9a"/></Button.Resources>
-                        </Button>
-                    </StackPanel>
+                    <Button x:Name="VisionAiLocal" Grid.Column="1"
+                            Click="VisionAiToggle_Click" Tag="0" ToolTipService.ToolTip="Local AI"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            Padding="1,5" MinWidth="36" MinHeight="0">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE968;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="LOC" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
 
-                    <Button Grid.Column="2" Command="{x:Bind ViewModel.VisionSubmitQueryCommand}"
-                            Background="#00607a" BorderThickness="0" CornerRadius="4"
-                            Padding="8,4" MinWidth="0" MinHeight="0" ToolTipService.ToolTip="Go">
-                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#007a9a"/></Button.Resources>
-                        <FontIcon Glyph="&#xE768;" FontSize="11" Foreground="White"/>
+                    <Button x:Name="VisionAiCloud" Grid.Column="2"
+                            Click="VisionAiToggle_Click" Tag="1" ToolTipService.ToolTip="Cloud AI"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            Padding="1,5" MinWidth="36" MinHeight="0">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE753;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="CLD" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="VisionAiNone" Grid.Column="3"
+                            Click="VisionAiToggle_Click" Tag="2" ToolTipService.ToolTip="No AI"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            Padding="1,5" MinWidth="36" MinHeight="0">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE711;" FontSize="11" Foreground="{StaticResource AppAccentBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="NON" FontSize="8" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="4" Command="{x:Bind ViewModel.VisionSubmitQueryCommand}"
+                            Background="{StaticResource AppSurfaceBrush}" BorderThickness="0" CornerRadius="4"
+                            Padding="1,5" MinWidth="36" MinHeight="0" ToolTipService.ToolTip="Submit query">
+                        <Button.Resources><SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/></Button.Resources>
+                        <StackPanel HorizontalAlignment="Center" Spacing="1">
+                            <FontIcon Glyph="&#xE768;" FontSize="13" Foreground="#FF8C00" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Go" FontSize="8" FontWeight="SemiBold" Foreground="{StaticResource AppTextDimBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
                     </Button>
                 </Grid>
 
