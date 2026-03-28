@@ -74,7 +74,7 @@ When recording a video of a screen region (not full-screen), the user selects a 
 **Result:** Transparent background, dashed white border with marching ants animation, click-through, NOT captured in recording.
 **Why it worked:** `UpdateLayeredWindow` with `ULW_ALPHA` uses per-pixel alpha from the GDI+ bitmap — no WinUI 3 compositor involved. The Win32 window is a true layered window with alpha channel support, which is the same mechanism used by OBS, ShareX, and other screen recording tools.
 **File:** `src/DiktaMe.App/Views/RecordingBorderOverlay.cs`
-**Proposal:** `plans/B7_BORDER_PROPOSAL_SONNET.md`
+**Credit:** Cross-model consultation — Sonnet 4.6 proposed the winning approach (pure Win32 + GDI+), Gemini proposed similar (Win32 + GDI color-key), Nemotron proposed DirectComposition (viable but incomplete). All three converged on "bypass WinUI 3 entirely."
 
 ---
 
@@ -108,57 +108,19 @@ When recording a video of a screen region (not full-screen), the user selects a 
 
 ---
 
-## 5. Approaches NOT Yet Tried
+## 5. Resolution
 
-### A. Win2D CanvasControl on a Non-WinUI Window
-Create a pure Win32 window (via `CreateWindowEx` with `WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW`) and attach a Win2D `CanvasControl` or use `Direct2D` to render the dashed border. Win32 layered windows support true per-pixel alpha via `UpdateLayeredWindow`. This bypasses WinUI 3's opaque compositor entirely.
+**The answer: bypass WinUI 3 entirely for the overlay.** Use pure Win32 `CreateWindowEx(WS_EX_LAYERED)` + `UpdateLayeredWindow` with GDI+ per-pixel alpha. This is the same mechanism used by OBS, ShareX, Greenshot, and every other screen overlay tool.
 
-**Pros:** True transparency via Win32. Proven pattern (classic overlay apps use this).
-**Cons:** Complex — requires CreateWindowEx, message pump, D2D rendering. No XAML support.
-**Effort:** Medium-High
+### Why Win32 layered windows work where WinUI 3 doesn't
+- WinUI 3 windows use DirectComposition — the compositor always renders an opaque root. No XAML property, SystemBackdrop, or Win32 extended style can override this.
+- Win32 layered windows (`WS_EX_LAYERED`) predate DirectComposition. `UpdateLayeredWindow` with `ULW_ALPHA` blends a GDI bitmap with per-pixel alpha directly with the desktop. The window has no compositor — it IS the bitmap.
+- `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` works on Win32 HWNDs (confirmed by Microsoft's Win32CaptureSample).
 
-### B. DesktopAcrylicBackdrop with TintOpacity = 0
-Use `DesktopAcrylicController` with `TintOpacity = 0`, `TintColor = Transparent`, `LuminosityOpacity = 0`. This might produce a nearly-transparent window (just the XAML content visible). Simpler than custom SystemBackdrop.
-
-**Pros:** Uses official WinUI 3 API. Simple to implement.
-**Cons:** May still have minimum opacity. Blur effect may be visible. Untested.
-**Effort:** Low — worth trying first.
-
-### C. Four Thin Opaque Windows (No Transparency Needed)
-Create 4 narrow WinUI 3 windows (2px each), positioned at the top/bottom/left/right edges of the recording region. Each is a solid white bar. No transparency needed — they're just thin strips.
-
-**Pros:** No transparency whatsoever — guaranteed to work visually. Each can have `WDA_EXCLUDEFROMCAPTURE`.
-**Cons:** 4 windows for a border feels hacky. User previously expressed skepticism ("does NOT sound reasonable").
-**Effort:** Low
-
-### D. DirectComposition Visual Overlay (No Window)
-Use `Compositor` + `ContainerVisual` + `ShapeVisual` to render a dashed rectangle directly via the composition layer, without a WinUI 3 window at all. Attach to the desktop via `DesktopWindowTarget`.
-
-**Pros:** No window = no opacity problem. DirectComposition supports transparency natively.
-**Cons:** Complex composition API. May still be captured by screen recording. No precedent in codebase.
-**Effort:** High
-
-### E. GDI Overlay (Pure Win32, No WinUI)
-Classic Win32 `CreateWindowEx` with `WS_EX_LAYERED`, then `SetLayeredWindowAttributes` with `LWA_COLORKEY` and a GDI-painted border. This is the pre-DirectComposition approach used by many screen recording tools.
-
-**Pros:** Proven Win32 pattern. True transparency. Click-through via `WS_EX_TRANSPARENT`.
-**Cons:** No XAML. Requires GDI painting. DPI-awareness complexity.
-**Effort:** Medium
-
-### F. Accept No Border (Pragmatic)
-Document B7 as a known WinUI 3 limitation. The user already knows where the region is after selecting it. Many professional screen recording tools (OBS, ShareX) don't show a border during recording.
-
-**Pros:** Zero effort. Ship what works.
-**Cons:** Missing a nice-to-have UX feature.
-
----
-
-## 6. Recommended Next Steps
-
-1. **Try B first** (DesktopAcrylicBackdrop TintOpacity=0) — lowest effort, may work
-2. **If B fails, try C** (4 thin opaque strips) — guaranteed to work visually, test WDA_EXCLUDEFROMCAPTURE
-3. **If WDA_EXCLUDEFROMCAPTURE fails on thin strips, try E** (pure Win32 GDI window)
-4. **If all fail, accept F** (no border)
+### Other viable approaches (not needed but documented)
+- **4 thin opaque WinUI 3 windows** (2px strips at edges) — would work, no transparency needed. More complex lifecycle but avoids Win32/GDI entirely.
+- **DirectComposition visual overlay** (no window) — theoretically sound but `ICompositorDesktopInterop` has no C# interface definition. Would need manual COM interop.
+- **DesktopAcrylicBackdrop with TintOpacity=0** — untested, may have minimum opacity floor.
 
 ---
 
