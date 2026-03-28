@@ -858,6 +858,15 @@ Governance-first 4-layer memory hierarchy for long-horizon AI collaboration.
 | **One-way authority** (higher layers constrain lower) | Tier 3 profile influences all LLM prompts; Tier 2 feeds Tier 3 only via consolidation |
 | **TEMPO** (pacing/depth control) | Not adopted — dIKta.me doesn't have reasoning depth modes |
 
+### Airweave (github.com/airweave-ai/airweave) — Researched 2026-03-27
+
+Open-source context retrieval layer for AI agents (YC X25). FastAPI + Vespa + Temporal. 50+ data connectors.
+
+| Pattern | Applicability |
+|---------|--------------|
+| **Temporal relevance scoring** (`score = similarity × decay(age, recency_bias)`, bias 0.0–1.0, default 0.3) | **Adopt.** Our `SearchAsync` is pure vector — a 6-month-old fact ranks equally to yesterday's. Add `RecencyBias` float to `MemoryPluginSettings`, apply decay in search scoring. ~20 lines, high value for "what was I working on?" queries. |
+| **Hybrid search** (semantic + keyword + LLM reranking, tiered: instant/classic/agentic) | **Promote from future to Phase O.** FTS5 already planned for vision OCR — extend to all observations. Vector misses exact matches on proper nouns, codes, brand names. RRF (Reciprocal Rank Fusion) to merge vector + FTS5 results. |
+
 ### SurfSense (github.com/MODSetter/SurfSense) — Previously Researched
 
 | Pattern | Applicability |

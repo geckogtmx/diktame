@@ -51,39 +51,8 @@
 
 **📰 Hook:** Multimodal AI models now process text, audio, image, and video simultaneously — making single-input tools feel outdated.
 
-### LinkedIn 🇺🇸
-> **AI went multimodal. Your workflow should too.**
->
-> The defining shift of 2026: AI models now process text, audio, image, and video in a single inference pass. Google's Gemini, OpenAI's GPT-5, and open-source contenders like LLaMA 4 all treat multiple modalities as first-class inputs.
->
-> Yet the average knowledge worker still interacts with AI through exactly one channel: a text box. We have multimodal models trapped behind single-modal interfaces.
->
-> dIKta.me breaks that pattern by giving you two native inputs with infinite output:
-> - 🎤 **Voice** — Dictate, ask questions, translate, take voice notes
-> - ⌨️ **Text** — Refine selected text, expand Macros, chat with a floating AI overlay
->
-> 7 distinct workflow modes. One global hotkey each. Works inside *any* application — VS Code, Slack, Excel, Chrome, Discord, WhatsApp.
->
-> Your AI is multimodal. Your input layer should be too.
->
-> 🔗 dikta.me
 
-### LinkedIn 🇪🇸
-> **La IA se volvió multimodal. Tu flujo de trabajo también debería.**
->
-> El cambio definitorio de 2026: los modelos de IA ahora procesan texto, audio, imagen y video en una sola pasada de inferencia. Gemini de Google, GPT-5 de OpenAI y contendientes open-source como LLaMA 4 tratan múltiples modalidades como entradas de primera clase.
->
-> Sin embargo, el trabajador del conocimiento promedio sigue interactuando con la IA a través de exactamente un canal: una caja de texto. Tenemos modelos multimodales atrapados detrás de interfaces uni-modales.
->
-> dIKta.me rompe ese patrón dándote dos entradas nativas con output infinito:
-> - 🎤 **Voz** — Dicta, pregunta, traduce, toma notas de voz
-> - ⌨️ **Texto** — Refina texto seleccionado, expande Macros, chatea con un overlay flotante de IA
->
-> 7 modos de flujo de trabajo distintos. Un atajo global cada uno. Funciona dentro de *cualquier* aplicación — VS Code, Slack, Excel, Chrome, Discord, WhatsApp.
->
-> Tu IA es multimodal. Tu capa de entrada también debería serlo.
->
-> 🔗 dikta.me
+
 
 ### X / Twitter 🇺🇸
 > AI is multimodal now. Your workflow isn't.
@@ -152,7 +121,7 @@
 ### X / Twitter 🇺🇸
 > Open-source AI models are now genuinely good.
 >
-> dIKta.me lets you run them — Ollama, Llama, Deepseek — as your STT brain or LLM refiner. Locally. Free.
+> dIKta.me lets you run them — Ollama, Gemma, LMF, Kokoro — as your STT brain or LLM refiner. Locally. Free.
 >
 > Or use cloud APIs with YOUR keys. No markup.
 >
