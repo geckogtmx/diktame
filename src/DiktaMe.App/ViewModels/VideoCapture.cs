@@ -29,7 +29,9 @@ public sealed class VideoCapture : IDisposable
         string outputPath,
         VideoRecordingOptions options,
         CancellationToken cancellationToken,
-        string? monitorDeviceName = null)
+        string? monitorDeviceName = null,
+        int monitorOffsetX = 0,
+        int monitorOffsetY = 0)
     {
         if (_recorder is not null)
         {
@@ -61,10 +63,13 @@ public sealed class VideoCapture : IDisposable
             throw new InvalidOperationException("No display monitor found for recording.");
         }
 
-        // Set crop region on the display source
-        displaySource.SourceRect = new ScreenRect(left, top, width, height);
-        Log.Debug("VideoCapture: source DeviceName={Dev}, SourceRect=({L},{T} {W}x{H})",
-            displaySource.DeviceName, left, top, width, height);
+        // Set crop region relative to the target monitor's origin
+        // (absolute screen coords → monitor-local coords)
+        int relLeft = left - monitorOffsetX;
+        int relTop = top - monitorOffsetY;
+        displaySource.SourceRect = new ScreenRect(relLeft, relTop, width, height);
+        Log.Debug("VideoCapture: source DeviceName={Dev}, SourceRect=({L},{T} {W}x{H}), monitorOffset=({OX},{OY})",
+            displaySource.DeviceName, relLeft, relTop, width, height, monitorOffsetX, monitorOffsetY);
 
         // Build source and overlay lists
         var sources = new List<RecordingSourceBase> { displaySource };

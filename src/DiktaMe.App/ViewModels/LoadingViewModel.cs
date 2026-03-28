@@ -2164,7 +2164,8 @@ public sealed partial class LoadingViewModel : ObservableObject
                     _notifications.ShowToast("Video", "Recording started...", NotificationType.Info, suppressTts: true);
                 // Resolve the correct monitor for multi-monitor recording
                 var monitorDevice = ScreenCapture.GetMonitorDeviceName(left + width / 2, top + height / 2);
-                await capture.RecordAsync(left, top, width, height, outputPath, options, _videoRecordingCts.Token, monitorDevice).ConfigureAwait(false);
+                await capture.RecordAsync(left, top, width, height, outputPath, options, _videoRecordingCts.Token,
+                    monitorDevice, monitorBounds.X, monitorBounds.Y).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -3096,7 +3097,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             var monitorDevice2 = ScreenCapture.GetMonitorDeviceName(left + width / 2, top + height / 2);
             await capture.RecordAsync(
                 left, top, width, height,
-                outputPath, options, cts.Token, monitorDevice2).ConfigureAwait(false);
+                outputPath, options, cts.Token, monitorDevice2, bounds.X, bounds.Y).ConfigureAwait(false);
 
             long fileSize = File.Exists(outputPath) ? new FileInfo(outputPath).Length : 0;
             Log.Information("Video: recording saved to {Path} ({Size} bytes)", outputPath, fileSize);
