@@ -1,7 +1,7 @@
 # SPEC_002: Vision Module ("See")
 
-> **Status:** READY FOR IMPLEMENTATION
-> **Date:** 2026-03-01 (revised 2026-03-24)
+> **Status:** ✅ COMPLETE (revised 2026-03-27) — Settings gap analysis in §22
+> **Date:** 2026-03-01 (revised 2026-03-24, completed 2026-03-27)
 > **Supersedes:** V1 `SPEC_004_VISIONARY_MODULE.md` (researched, never implemented)
 > **Hotkey:** `Ctrl+Alt+S` ("See")
 > **Role:** Design reference for [`SPEC_015_MODULES_SPRINT.md`](SPEC_015_MODULES_SPRINT.md) Phase 0C. This spec defines *what* and *why*; SPEC_015 defines *when* and *how* within the sprint.
@@ -1063,3 +1063,86 @@ enum VisionWizardStep {
 - `VisionActionWindow.xaml/.cs` — replaced by wizard Steps 3-4
 - `VideoRecordingBarWindow.xaml/.cs` — replaced by wizard Recording step
 - Legacy `RunVisionPipelineAsync` in LoadingViewModel — replaced by wizard event handlers
+
+---
+
+## 22. Vision Settings — Gaps & Plan
+
+> **Status:** NOT STARTED — documented 2026-03-27
+> **Priority:** Webcam quality (HIGH), Save folder (HIGH), Video quality (MEDIUM)
+
+### 22.1 Current State
+
+**Configurable (6 settings, 2 pages):**
+
+| Setting | Page | Property |
+|---------|------|----------|
+| Enable Vision | Workflows | `Vision.Enabled` |
+| Output Mode | Workflows | `Vision.OutputMode` |
+| Auto-Record Query | Workflows | `Vision.AutoRecordQuery` |
+| Cloud Vision Model | AI Engine | `Vision.CloudVisionModelId` |
+| Local Vision Model | AI Engine | `Vision.LocalVisionModelId` |
+| Ollama Keep-Alive | AI Engine | `Vision.OllamaKeepAliveSeconds` |
+
+**Not configurable (hardcoded):**
+
+| Setting | Current Value | File |
+|---------|---------------|------|
+| Webcam on/off | `true` (hardcoded) | `LoadingViewModel.cs:2155, 3082` |
+| Webcam bubble size | 200px | `VideoRecordingOptions.cs:27` |
+| Webcam device | Auto-select first USB | `VideoCapture.cs:81-92` |
+| Video bitrate | 5000 kbps | `VideoRecordingOptions.cs:15` |
+| Video framerate | 30 FPS | `VideoRecordingOptions.cs:12` |
+| Video max duration | 10 min (runtime) | `LoadingViewModel.cs` CTS timeout |
+| Mic audio | Always on | `VideoRecordingOptions.cs:20` |
+| System audio | Always on | `VideoRecordingOptions.cs:21` |
+| Save folder | `%APPDATA%\DiktaMe\vision\` | `LoadingViewModel.cs:2094, 2235` |
+| Image format | PNG (lossless) | `ScreenCapture.cs` |
+
+### 22.2 Settings to Add
+
+#### Priority 1: Webcam Quality (HIGH)
+The webcam PIP looks terrible in recordings. Root causes:
+- **200px bubble is tiny** — should offer 200/300/400px options
+- **No resolution control** — ScreenRecorderLib's `VideoCaptureOverlay` may accept resolution hints
+- **No quality/compression setting** — the overlay is re-encoded at the video's bitrate
+
+**Proposed settings:**
+- `Vision.EnableWebcam` — toggle (default: true)
+- `Vision.WebcamSize` — dropdown: Small (150px) / Medium (200px) / Large (300px) / XL (400px)
+- `Vision.WebcamPosition` — dropdown: Bottom-Right / Bottom-Left / Top-Right / Top-Left
+- `Vision.WebcamDevice` — dropdown populated from `Recorder.GetSystemVideoCaptureDevices()`
+
+#### Priority 2: Save Folder (HIGH)
+Users want to choose where screenshots and recordings are saved. Currently hardcoded to `%APPDATA%\DiktaMe\vision\`.
+
+**Proposed settings:**
+- `Vision.SaveFolder` — folder path with Browse button (default: `%APPDATA%\DiktaMe\vision\`)
+- Consider: auto-copy to user-chosen folder with AI metadata in filename (e.g., `screenshot_2026-03-27_office-meeting.png`)
+
+#### Priority 3: Video Quality (MEDIUM)
+**Proposed settings:**
+- `Vision.VideoQuality` — dropdown preset: Low (1500kbps/24fps) / Medium (5000kbps/30fps) / High (8000kbps/60fps)
+- `Vision.EnableMicAudio` — toggle (default: true)
+- `Vision.EnableSystemAudio` — toggle (default: true)
+- `Vision.MaxRecordingMinutes` — number box (default: 10, range: 1-60)
+
+### 22.3 Settings to Review (Possibly Irrelevant)
+
+These Workflows page settings may be obsolete given the new wizard flow:
+- **Output Mode** — the wizard now handles output per-action (Save/Clip/Chat/Note). A global "inject vs clipboard" toggle is confusing when the user explicitly chooses an action.
+- **Auto-Record Query** — with the new LOC/CLD/NON/Go buttons, voice query recording is no longer automatic. This toggle may be dead code.
+
+### 22.4 Proposed Settings Page Location
+
+Add a **"Recording"** section within the existing Settings nav, or group under the existing **Hardware** page alongside audio device settings. Recording settings (webcam, quality, save folder) are hardware-adjacent.
+
+### 22.5 Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/DiktaMe.Core/Config/AppSettings.cs` | Add webcam, video quality, save folder properties to `VisionSettings` |
+| `src/DiktaMe.Core/Vision/VideoRecordingOptions.cs` | Wire properties from settings |
+| `src/DiktaMe.App/ViewModels/VideoCapture.cs` | Read webcam size/position/device from options |
+| `src/DiktaMe.App/ViewModels/LoadingViewModel.cs` | Use configurable save folder, pass settings to VideoRecordingOptions |
+| `src/DiktaMe.App/Views/Settings/` | New recording settings section (or add to Hardware page) |
