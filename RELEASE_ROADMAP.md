@@ -33,7 +33,7 @@
 
 ### What exists right now
 
-A fully functional, native Windows AI dictation app. Complete rewrite from Python/Electron (V1) to C#/WinUI 3. One developer. 3+ months of work. 1,014 passing tests. Zero external funding. 
+A fully functional, native Windows AI dictation app. Complete rewrite from Python/Electron (V1) to C#/WinUI 3. One developer. 3+ months of work. 1,134 passing tests. Zero external funding. 
 
 | Dimension                                             | Status          |
 | ----------------------------------------------------- | --------------- |
@@ -737,7 +737,7 @@ We're launching V2.0 with the core Dictation engine, full Vision module for scre
 
 The market is $20B+ (speech recognition) growing 20% CAGR. We're positioned at the intersection of three trends: local AI viability, SaaS subscription fatigue, and the broken human-AI input layer.
 
-Current state: feature-complete V2.0, 1,014 tests, live website, payment infrastructure (LemonSqueezy + Supabase). Single developer, zero funding, near-zero burn.
+Current state: feature-complete V2.0, 1,134 tests, live website, payment infrastructure (LemonSqueezy + Supabase). Single developer, zero funding, near-zero burn.
 
 Business model: one-time license ($20-25) + pay-as-you-go cloud credits. Fully local mode = $0/month running cost. Target: $3,000/month = full-time indie sustainability at ~150 licenses/month.
 

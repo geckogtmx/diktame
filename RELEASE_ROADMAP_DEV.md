@@ -381,7 +381,7 @@ Base on `DEVELOPMENT_ROADMAP.md` completed streams. Scannable, not exhaustive.
 
 **Sections:**
 - `[2.0.0] - 2026-04-XX` (fill date at release)
-- **Added:** 8 workflow modes, multi-provider STT/LLM/TTS, wizard, wallet/auth, vision module, Quick Chat, 3 themes, audio ducking, i18n (EN + ES), system tray, 1014 tests
+- **Added:** 8 workflow modes, multi-provider STT/LLM/TTS, wizard, wallet/auth, vision module, Quick Chat, 3 themes, audio ducking, i18n (EN + ES), system tray, 1134 tests
 - **Changed:** Complete rewrite from Python/Electron to C#/.NET 8/WinUI 3
 - **Architecture:** Self-contained x64, ~70MB installer, local-first
 

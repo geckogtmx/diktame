@@ -41,7 +41,7 @@ dotnet test DiktaMe.sln
 
 - `src/DiktaMe.App` — UI (Views, ViewModels, XAML)
 - `src/DiktaMe.Core` — Lógica de negocio (Pipelines, Providers, Services)
-- `tests/DiktaMe.Core.Tests` — Tests xUnit (1,014 y subiendo)
+- `tests/DiktaMe.Core.Tests` — Tests xUnit (1,134 y subiendo)
 
 ## Estándares de Código
 

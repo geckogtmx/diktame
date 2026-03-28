@@ -14,7 +14,9 @@
 4. [Reddit Launch Posts](#4-reddit-launch-posts)
 5. [Launch Week Social Batch (7 Days)](#5-launch-week-social-batch-7-days)
 6. [Video Content (2 pieces)](#6-video-content-2-pieces)
-7. [SEO Blog Outlines (4)](#7-seo-blog-outlines-4)
+7. [Feature-Driven Marketing Ideas](#7-feature-driven-marketing-ideas)
+8. [Feature Post Library](#8-feature-post-library)
+9. [SEO Blog Outlines (4)](#9-seo-blog-outlines-4)
 
 ---
 
@@ -136,7 +138,7 @@ dIKta.me is the first piece of that.
 
 *dIKta.me V2.0 is available now at [dikta.me](https://dikta.me). Free to try. $20 to own.*
 
-*Built by Eduardo Garcia-Torres. One developer. Three months. 1,014 tests. MIT license.*
+*Built by Eduardo Garcia-Torres. One developer. Three months. 1,134 tests. MIT license.*
 
 ---
 
@@ -250,7 +252,7 @@ dIKta.me es la primera pieza de eso.
 
 *dIKta.me V2.0 ya está disponible en [dikta.me](https://dikta.me). Gratis para probar. $20 para ser tuyo.*
 
-*Construido por Eduardo Garcia-Torres. Un desarrollador. Tres meses. 1,014 pruebas. Licencia MIT.*
+*Construido por Eduardo Garcia-Torres. Un desarrollador. Tres meses. 1,134 pruebas. Licencia MIT.*
 
 ---
 
@@ -330,7 +332,7 @@ Knowledge workers who live in productivity tools. Privacy-conscious professional
 
 **What's next:** App connectors (Obsidian, Discord, webhooks), grammar checking pipeline (Grammarly-style, works in every app), meeting intelligence, semantic memory layer.
 
-**Built by:** Eduardo Garcia-Torres — a marketing and business executive from Mexico with 20+ years in IT consulting and digital media. Not a software engineer by training. This is his first desktop application, built with C#, WinUI 3, and AI coding tools. One developer. Three months. 1,014 tests.
+**Built by:** Eduardo Garcia-Torres — a marketing and business executive from Mexico with 20+ years in IT consulting and digital media. Not a software engineer by training. This is his first desktop application, built with C#, WinUI 3, and AI coding tools. One developer. Three months. 1,134 tests.
 
 **Open source:** MIT license. GitHub public at launch. Build from source if you prefer — .NET 8 SDK required.
 
@@ -350,7 +352,7 @@ Hi — I'm Eduardo. I built dIKta.me because I was spending too much time managi
 
 I've been in consulting and project management for 20 years. I'm bilingual (English/Spanish), work across multiple apps simultaneously, and generate a lot of written output. I started dictating years ago, then started layering in AI. At some point I had five subscriptions and was still doing manual copy-paste between all of them.
 
-So I rewrote my Python prototype from scratch in C#/WinUI 3. It took three months and 1,014 tests to get here.
+So I rewrote my Python prototype from scratch in C#/WinUI 3. It took three months and 1,134 tests to get here.
 
 dIKta.me is free to try — sign in, get $1 in cloud credits, run the full app, see if it fits your workflow. If you want local AI (4x faster, offline, private), the Power License is $20 once.
 
@@ -407,7 +409,7 @@ LLMProviderFactory uses a `ConcurrentDictionary` cache keyed by `"{type}:{model}
 
 Text injection is OS-level: `SendInput` for most apps, clipboard paste as fallback (with original clipboard restore via delay + Win32 clipboard chain).
 
-1,014 unit tests (xUnit + Moq + FluentAssertions). CI on GitHub Actions.
+1,134 unit tests (xUnit + Moq + FluentAssertions). CI on GitHub Actions.
 
 **Honest about what it isn't:**
 
@@ -547,7 +549,7 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 
 > **dIKta.me V2.0 is live.**
 >
-> Three months. One developer. 1,014 tests. MIT license. Here's what I built.
+> Three months. One developer. 1,134 tests. MIT license. Here's what I built.
 >
 > The problem: AI models improved 3x. Context windows grew 250x. But you're still typing into a chat box and copy-pasting between apps. Nobody fixed the input layer.
 >
@@ -565,7 +567,7 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 
 > **dIKta.me V2.0 ya está disponible.**
 >
-> Tres meses. Un desarrollador. 1,014 pruebas. Licencia MIT. Esto es lo que construí.
+> Tres meses. Un desarrollador. 1,134 pruebas. Licencia MIT. Esto es lo que construí.
 >
 > El problema: los modelos de IA mejoraron 3x. Las ventanas de contexto crecieron 250x. Pero sigues escribiendo en un cuadro de chat y copiando y pegando entre apps. Nadie arregló la capa de entrada.
 >
@@ -1134,7 +1136,871 @@ Spoken or title card: *"Most AI dictation tools send your voice to a server. Her
 
 ---
 
-## 7. SEO Blog Outlines (4)
+## 7. Feature-Driven Marketing Ideas
+
+> These are specific copy angles and video moments that come directly from reading the feature docs.
+> Use these as raw material — drop them into social posts, Reddit comments, Product Hunt Q&A, or the demo video script.
+
+---
+
+### The moments worth showing (video / GIF candidates)
+
+**1. Oops recovery**
+The scenario: you dictate a paragraph, your cursor was in the wrong window, it lands in Slack. You hit `Ctrl+Z` in Slack to undo it, click where you actually wanted it, press `Ctrl+Alt+V`. It re-injects instantly. Nobody expects this. Show it unedited — wrong window, undo, re-inject, done. 10 seconds. This is the moment that makes people say "wait, it does *that*?"
+
+Copy angle: *"Dictated into the wrong window. One hotkey to fix it. No re-recording."*
+
+**2. Refine autopilot on a bad email draft**
+Type a rough, typo-ridden email draft. Select all. `Ctrl+Alt+R`. Watch it clean up in place. Don't narrate. Let the before/after speak. This is the Grammarly comparison in 15 seconds.
+
+Copy angle: *"Grammarly corrects your typing. Refine corrects your thinking."*
+
+**3. Vision → Table → Excel**
+Screenshot a table from a web page or a PDF you can't copy-paste. `Ctrl+Alt+S`, draw region, Table. TSV result. Paste into Excel/Sheets. Structured data from an image in under 10 seconds. This one plays extremely well on LinkedIn to finance, ops, and analyst audiences.
+
+Copy angle: *"Screenshot → spreadsheet. No manual re-typing."*
+
+**4. Voice Macro triggered mid-dictation**
+Set up a macro for a signature or a boilerplate phrase. Dictate naturally, say the trigger phrase mid-sentence, watch it expand. Nobody thinks of dictation software having text expansion built in.
+
+Copy angle: *"It's a dictation app. It's also a text expander. Same hotkey."*
+
+**5. Translate in a live Slack conversation**
+Open Slack. Spanish message on screen. `Ctrl+Alt+T`, speak in English, Spanish text appears in the message box. Or reverse — bilingual reply without a separate tab. This is the one that lands with the 40M+ bilingual professionals angle.
+
+Copy angle: *"Reply in Spanish without switching tabs. Speak English, send Spanish."*
+
+**6. Ask → Clipboard → Paste**
+Hold `Ctrl+Alt+A`, ask a factual question or request a regex. Release. A toast notification shows the answer and it's already in your clipboard. Paste it anywhere. This is the "AI that doesn't interrupt you" moment.
+
+Copy angle: *"Asked the AI a question. Didn't leave my IDE."*
+
+**7. Quick Chat + Clipboard Attach**
+Copy a confusing error message. `Ctrl+Alt+C`, attach clipboard, say "what does this mean?" Answer in the overlay. No browser tab, no copy-paste loop. Strong developer audience play.
+
+Copy angle: *"Error in terminal. Answer in overlay. Cursor never left VS Code."*
+
+**8. Video recording → Document**
+Record 60 seconds of yourself doing a workflow. Stop. Click Document. Gemini returns step-by-step instructions for what it just watched. This is the "documentation writes itself" moment — strong LinkedIn angle for team leads, ops, and trainers.
+
+Copy angle: *"Recorded myself doing it once. Got the documentation automatically."*
+
+**9. Note → Obsidian vault**
+Set the Notes file path to point directly into your Obsidian vault. `Ctrl+Alt+N` mid-meeting, voice note appends with timestamp. Done. No tab switch, no copy-paste, no friction. This is the teaser for the Connectors module — but it works *right now* via file path.
+
+Copy angle: *"I pointed the Notes file at my Obsidian vault. Voice notes have been going there ever since."*
+
+**10. Audio ducking mid-Spotify**
+Start dictating while music is playing. Spotify fades down automatically, you speak, it fades back up. Show this in a screen recording with the audio — it's a production quality detail that signals care. Very shareable by the "I use my computer for everything" audience.
+
+Copy angle: *"It knows when you're talking. Spotify disagrees."*
+
+**11. Mute detection catch**
+Attempt to dictate while hardware-muted. dIKta.me alerts you instantly instead of silently eating the dictation. Simple QoL moment — everyone has been burned by this.
+
+Copy angle: *"Your mic was muted. dIKta.me told you. Dragon did not."*
+
+**12. Custom Dictation Mode: "Medical Transcriber" or "C# XML comments"**
+Show creating a preset named "C# XML Doc Comments" with a specific cloud prompt and a shorter local prompt. Switch to it from the Control Panel dropdown. Dictate a function description — it comes out as perfectly formatted XML doc comment. This is the power user moment that makes developers stop scrolling.
+
+Copy angle: *"I made a preset called 'C# XML Comments.' Now I just say what the function does."*
+
+**13. Ghost Mode**
+Show Ghost Mode being toggled on. Nothing written to disk. Nothing logged. Then dictate something. Then show the (empty) logs folder. For legal, medical, and security professionals — this is the feature that matters more than anything else.
+
+Copy angle: *"Ghost Mode. Nothing written to disk. Not even token counts. The application operates completely namelessly."*
+
+**14. Macro expansion post-LLM**
+Key detail from the docs: macros expand *after* the LLM finishes, so the LLM can't accidentally reword or hallucinate your template content. This is a technical trust argument — your signature, your legal disclaimer, your boilerplate are never touched by AI. Show a macro with a precise legal disclaimer expanding verbatim.
+
+Copy angle: *"The AI formats your words. The macro expands after. Your legal disclaimer arrives exactly as written — AI-proof."*
+
+**15. Translate with a custom target language prompt**
+The Translate mode isn't just EN↔ES — it's any language pair, driven by a system prompt. Show changing the prompt to "Translate to formal Japanese" and dictating in English. Japanese text appears at the cursor. This opens the product to a global audience beyond the bilingual-professionals angle.
+
+Copy angle: *"The translate mode speaks every language. You just change the prompt."*
+
+**16. Quick Chat web search grounding (Gemini)**
+Show Quick Chat with Gemini + web search enabled. Ask a time-sensitive question ("what's the latest version of React?"). The answer cites sources and is current. This is the ChatGPT comparison — but it stays in an overlay, doesn't leave your workflow.
+
+Copy angle: *"AI overlay with live web search. Never left my IDE."*
+
+**17. Video recording + "Document" — the accidental documentation machine**
+Record a 60-second workflow in an app. Click Stop. Click Document. Get back step-by-step instructions for what the recording showed. Frame this for team leads and ops people who spend hours writing SOPs and training guides.
+
+Copy angle: *"Recorded my workflow once. Got the SOP automatically. That's the whole use case."*
+
+---
+
+### Additional video ideas
+
+> Beyond the 2 launch videos — these are YouTube / content library pieces for weeks 2–8 post-launch.
+
+---
+
+**Video 3 — "5 things dIKta.me does that ChatGPT can't"**
+*Format: 3–4 minutes, screen recording + narration*
+*Audience: general AI users, LinkedIn, YouTube*
+
+1. Injects text directly at your cursor — ChatGPT gives you text to copy
+2. Works in any app without switching tabs
+3. Runs fully offline — ChatGPT requires internet and an account
+4. Vision mode analyzes what's on *your* screen, not an uploaded file
+5. Audio ducking, macro expansion, and Oops recovery — ChatGPT has none of these
+
+Each point: 30 seconds, quick demo, no lingering. Fast-cut. End with: *"$20 once. Free to try. dikta.me."*
+
+DaVinci notes: split-screen comparison works well here — ChatGPT on left, dIKta.me on right doing the same task. Keep it fair and factual, not mocking.
+
+---
+
+**Video 4 — "I replaced Grammarly with a hotkey"**
+*Format: 2–3 minutes, screen recording*
+*Audience: writers, productivity crowd, LinkedIn*
+
+The entire video is a single workflow:
+1. Write a rough paragraph (visibly rough — typos, passive voice, unclear)
+2. Select all
+3. `Ctrl+Alt+R` — Autopilot Refine with a "fix grammar and clarity" prompt
+4. Watch it rewrite in-place
+5. Try Voice Instruction Refine: "make this sound more like a Forbes op-ed"
+6. Watch it rewrite again
+
+No narration needed. Text on screen: *"Grammarly: $12/month. This: included."*
+
+---
+
+**Video 5 — "The $0/month AI dictation setup" (local mode tutorial, extended)**
+*Format: 8–10 minutes, tutorial*
+*Audience: r/selfhosted, r/LocalLLaMA, privacy-focused, cost-conscious*
+
+The deeper version of Video 2 — goes further into model selection, performance tradeoffs, and privacy verification.
+
+Structure:
+1. Why local-first (2 min) — privacy argument, cost argument, latency argument
+2. Hardware requirements and expectations (1 min) — GPU vs CPU, what to expect without a GPU
+3. Whisper model comparison (2 min) — base vs small vs large-v3, accuracy vs speed tradeoff, live demo of both
+4. Ollama model comparison for LLM (2 min) — gemma3:4b vs llama3.1:8b, what makes a good dictation LLM
+5. Kokoro TTS voices (1 min) — play a few voice styles
+6. Privacy verification: network monitor showing zero outbound during dictation (1 min)
+
+YouTube SEO title: *"Zero-cost AI dictation on Windows — Whisper + Ollama + Kokoro full setup 2026"*
+
+---
+
+**Video 6 — "Voice notes to Obsidian in 30 seconds" (niche, high-share)**
+*Format: 60–90 seconds, no narration*
+*Audience: Obsidian community, r/ObsidianMD, PKM crowd*
+
+1. Show Obsidian vault open
+2. Open dIKta.me settings, show Note file path pointed at a vault .md file
+3. Close settings
+4. `Ctrl+Alt+N`, speak a note, release
+5. Switch to Obsidian — note is there, timestamped, formatted
+
+End card: *"Voice → Obsidian. One hotkey. No plugin required."*
+
+This one is specifically designed for organic sharing in the Obsidian community. Short, zero friction, does exactly what that audience wants. Post to r/ObsidianMD and the Obsidian Discord.
+
+---
+
+**Video 7 — "The Ghost Mode demo" (privacy audience)**
+*Format: 2–3 minutes, calm, methodical*
+*Audience: r/privacy, legal/medical professionals, security-conscious*
+
+1. Open Settings → Privacy, explain the four logging levels (30 sec)
+2. Enable Ghost Mode (10 sec)
+3. Open the logs folder — show it's empty
+4. Dictate a full paragraph using cloud mode
+5. Return to logs folder — still empty
+6. Open Task Manager → network tab — show the single outbound call to the API, then nothing
+7. Enable local mode — repeat steps 4–6 — truly zero network activity
+
+No hype. Just evidence. Methodical narration: *"Here's what gets logged. Here's what doesn't. Here's the proof."*
+
+---
+
+**Video 8 — "The developer workflow" (developer-specific)**
+*Format: 4–5 minutes, VS Code visible throughout*
+*Audience: developers, r/programming, r/LocalLLaMA*
+
+A realistic developer session:
+1. Set up a "C# XML Doc Comments" dictation preset (30 sec)
+2. Dictate a function summary — XML comment appears
+3. Highlight a confusing piece of code — `Ctrl+Alt+R` Voice Instruction: "explain what this does in plain English" — explanation appears as a comment
+4. `Ctrl+Alt+A`: "give me a regex that matches ISO 8601 dates" — answer in clipboard, paste it
+5. Quick Chat with clipboard attach: copy a stack trace, ask "what's causing this" — answer in overlay
+6. Voice macro: say the trigger, boilerplate expands
+7. End: *"All of that without leaving VS Code."*
+
+---
+
+**Video 9 — "Bilingual workflow demo" (EN/ES)**
+*Format: 2–3 minutes, bilingual narration (Eduardo speaks)*
+*Audience: LinkedIn ES, bilingual professionals, MX/LATAM market*
+
+This is the only video where Eduardo's voice and bilingual fluency is the product feature. He switches between English and Spanish naturally, showing:
+1. Reply to an English email in Spanish: `Ctrl+Alt+T`, speak English, Spanish appears
+2. Switch back: speak Spanish, English appears
+3. Quick Chat in Spanish: model responds in Spanish
+4. Note in Spanish: appended to markdown file
+
+The authenticity of a Mexican builder, demonstrating the bilingual workflow he actually uses, is more powerful than any scripted demo. This one is the LATAM launch asset.
+
+**[ES NARRATION — Eduardo records this one himself, in his natural voice, no script]**
+
+---
+
+**Video 10 — "Shorts / Reels batch" (social clips)**
+*Format: 15–30 seconds each, vertical crop for Reels/Shorts*
+*Source: clip from longer videos*
+
+Eight clips to extract and crop vertical from existing recordings:
+
+| Clip | Source | Hook line |
+|------|--------|-----------|
+| Oops recovery | Video 1 or standalone | *"Dictated into the wrong window. Here's the fix."* |
+| Spotify ducking | Video 8 or standalone | *"It knows when you're talking."* |
+| Vision → Table | Video 1 | *"Screenshot → spreadsheet. 10 seconds."* |
+| Ghost Mode toggle | Video 7 | *"Nothing written to disk. Not even token counts."* |
+| Macro expansion | Video 8 | *"Said three words. Got the whole template."* |
+| Translate EN→ES | Video 9 | *"Spoke English. Sent Spanish."* |
+| Refine rewrite | Video 4 | *"Rough draft. One hotkey. Done."* |
+| Ask → clipboard | Video 8 | *"Asked the AI a question. Didn't leave my IDE."* |
+
+These feed Instagram Reels, YouTube Shorts, TikTok (if relevant), and X. Batch-produce from existing footage — no extra recording needed.
+
+---
+
+### Additional marketing angles not yet in the plan
+
+**The "16 custom prompts" angle**
+You have 8 modes × 2 profiles (cloud/local) = 16 distinct AI behaviors configured per-user. That's not a setting — that's a personalized AI workflow stack. Nobody else offers this level of per-mode prompt control in a desktop dictation app. Angle: *"16 AI behaviors. Configured by you. One hotkey each."*
+
+**The "trailing space per preset" detail**
+The fact that you can configure whether a trailing space is added *per preset* is a signal of genuine attention to craft. Terminal commands need no trailing space. Prose does. This detail is invisible until you need it — then it's the reason you trust the product. Use it in a "details that matter" LinkedIn post.
+
+**The "auto-titles your conversations" detail**
+Quick Chat auto-titles after your second message. Small thing. Nobody else mentions it. It's a thoughtfulness signal — the app is taking care of your history without asking you to. Worth a tweet.
+
+**The convergence pricing post (specific math)**
+This exists in the manifesto but deserves its own standalone LinkedIn post with a table:
+
+| Tool | What it does | Monthly cost |
+|------|-------------|-------------|
+| Wispr Flow | Dictation | $12 |
+| Grammarly Pro | Grammar | $12 |
+| Otter.ai | Meeting notes | $10 |
+| ChatGPT Plus | AI chat | $20 |
+| Granola | Meeting AI | $14 |
+| Screenshot AI tool | Vision | $10 |
+| **Total** | | **$78/month** |
+| **dIKta.me** | **All of the above** | **$20 once** |
+
+**The "build log" series**
+Eduardo's non-engineer background is a story, not a liability. 20 years of business experience + 10 weeks of C# + AI coding tools = a product built by someone who deeply understands the workflow problem. The build log series (weekly, LinkedIn + blog) is both marketing and community-building. Topics:
+- "I'm not a software engineer. I built this anyway."
+- "What 20 years of consulting taught me about software product design"
+- "The C# mistake that cost me 3 days (and what I learned)"
+- "Why I chose local-first when cloud would have been easier"
+- "What shipping alone feels like"
+
+These posts build the audience that buys V2.1. Each one earns trust independently of the product.
+
+---
+
+### Angles by audience (from the features)
+
+**For developers** (r/LocalLLaMA, r/programming, HN):
+- Ask pipeline output modes — "always outputs JSON" custom prompt
+- Voice Macro for git commands, code snippets, boilerplate
+- Quick Chat with clipboard attach for debugging
+- Local-only mode: no voice data to any server
+- Refine Voice: "explain this code" on selected text
+
+**For writers / knowledge workers** (r/productivity, LinkedIn):
+- Refine autopilot as Grammarly replacement
+- Dictate → Refine Voice: draft fast, polish fast, never leave the document
+- Ask clipboard toast: research without context-switching
+- Translate for international communication
+- Note → markdown file: voice journal that never requires a separate app
+
+**For privacy-conscious users** (r/selfhosted, r/privacy):
+- Full local stack: Whisper + Ollama + Kokoro
+- Zero telemetry, DPAPI key encryption
+- 4-level PII scrubber (Level 3 strips all identifiers before LLM)
+- Network monitor demo: flat line during local dictation
+- "Your voice never leaves your machine unless you choose"
+
+**For bilingual professionals** (LinkedIn ES, specific targeting):
+- Translate mode: auto-detects source, one hotkey
+- Customizable target language via system prompt (not a dropdown)
+- "Translate to formal Japanese" — any language pair, not just EN↔ES
+- Full UI in English + Spanish
+
+**For accessibility / RSI users**:
+- Dictation as primary input — keyboard optional
+- Read Selection for proofreading without re-reading
+- Voice Macros eliminate repetitive typing entirely
+- Push-to-talk vs always-on: user controls the activation model
+
+---
+
+### One-liners mined from the features
+
+> *"It copies your selection, sends it to AI, and puts the rewritten version back. Works in every app. Doesn't care about the app."* — Refine
+
+> *"The AI doesn't answer in a chat window. It answers in your clipboard."* — Ask
+
+> *"You dictated into Slack by accident. Undo it there, click where you meant, press one key. Done."* — Oops
+
+> *"You said 'insert signature.' 3 lines of formatted text appeared. That's a macro."* — Voice Macros
+
+> *"Screenshot. Draw a box. 'Table.' Paste into Excel."* — Vision Table
+
+> *"It recorded your screen for 90 seconds and wrote the documentation for what it watched."* — Video → Document
+
+> *"The Chat window remembers the conversation. Auto-titles it after your second message. Saves it locally."* — Quick Chat
+
+> *"Level 3 privacy scrubs your name, company, location, and email before anything reaches the LLM."* — PII scrubber
+
+---
+
+## 8. Feature Post Library
+
+> Ready-to-use or lightly-edited posts. Not tied to launch week — these are the ongoing content engine for weeks 2–12.
+> Each post stands alone. No setup required from prior posts.
+> Eduardo reviews and personalizes where marked **[PERSONALIZE]**.
+> **[ES VERSION NEEDED]** marks posts that should be translated for LinkedIn ES and X/Twitter ES audiences.
+
+---
+
+### OOPS — "Wrong window" posts
+
+**LinkedIn**
+
+> **I solved the most annoying thing about AI dictation.**
+>
+> You know the moment. You dictate a paragraph. The AI processes it. The text appears — in the wrong window. In Slack. In a chat you didn't mean to type in.
+>
+> Now you have to undo it there, re-dictate everything, hope the AI formats it the same way again.
+>
+> dIKta.me has a hotkey for this: `Ctrl+Alt+V`.
+>
+> The text injector remembers exactly what it last injected. Undo it where it landed. Click where it should have gone. Press the hotkey. It re-injects — same text, same formatting, zero re-recording.
+>
+> It's called Oops. It does exactly what the name says.
+>
+> **[PERSONALIZE]** — add a specific moment where this happened to you during development or testing.
+>
+> dikta.me
+
+**X / Twitter**
+
+> The most relatable dictation problem:
+>
+> You speak. AI processes. Text appears — in Slack. Not your doc.
+>
+> dIKta.me fix: Ctrl+Z in Slack, click where you meant, press Ctrl+Alt+V.
+>
+> It remembers the last injection. Re-injects it. Exactly.
+>
+> Called "Oops." Does what it says.
+>
+> dikta.me
+
+**Reddit (r/productivity)**
+
+> **Title:** My dictation app has a re-injection hotkey and I use it constantly
+>
+> I've been using AI dictation for about a year. The thing that drove me crazy wasn't accuracy — it was cursor position. You dictate, the AI takes 800ms to process, and in that time you click somewhere else. The text lands in the wrong place.
+>
+> dIKta.me has a feature called Oops (`Ctrl+Alt+V`). The injector stores the last piece of text it produced. If it lands wrong, you undo it there, click the right spot, press the hotkey. Re-injects identically.
+>
+> Sounds small. It's not. I use it multiple times a day.
+>
+> The app is dikta.me if anyone wants to check it out. Free to try with cloud credits.
+
+---
+
+### REFINE — "Grammarly killer" posts
+
+**LinkedIn**
+
+> **I stopped paying for Grammarly. Here's what replaced it.**
+>
+> Grammarly works where it has a native integration — about 60% of apps if you're lucky. It doesn't work in your terminal. It doesn't work in most internal tools. It doesn't work in anything custom or niche.
+>
+> dIKta.me's Refine mode works everywhere. It uses `Ctrl+C` to grab whatever you've highlighted, sends it through the LLM with your system prompt, and puts the rewritten version back. Works in 100% of Windows apps. If `Ctrl+C` works, Refine works.
+>
+> My Refine prompt: *"Fix all grammar and clarity errors. Keep the original tone. Don't change the meaning."*
+>
+> I highlight. I press `Ctrl+Alt+R`. It's done.
+>
+> Voice Instruction mode goes further: hold the hotkey, say "make this sound more direct" or "cut this in half" or "translate to Spanish" — and it does that instead.
+>
+> $12/month for Grammarly. $20 once for everything.
+>
+> **[PERSONALIZE]** — mention a specific writing context (emails, docs, Slack, code comments).
+>
+> **[ES VERSION NEEDED]**
+
+**X / Twitter**
+
+> Grammarly works in ~60% of apps.
+>
+> dIKta.me Refine works in 100%.
+>
+> If Ctrl+C works in your app, Refine works. Highlight → hotkey → rewritten in-place.
+>
+> Or hold the hotkey, say "make this more direct." Does that instead.
+>
+> $12/mo vs $20 once.
+>
+> dikta.me
+
+**[ES VERSION NEEDED]** for X/Twitter
+
+**Reddit (r/productivity)**
+
+> **Title:** I replaced Grammarly with a hotkey that works in every app
+>
+> Grammarly's biggest problem is coverage — it works natively in Chrome, Word, and a few others. Anything custom, internal, or niche and you're on your own.
+>
+> dIKta.me Refine mode doesn't care what app you're in. It grabs your selection with Ctrl+C, runs it through an LLM with a system prompt you configure, and puts the result back with Ctrl+V. Works anywhere Ctrl+C works — which is basically everywhere on Windows.
+>
+> There's also Voice Instruction mode: hold the hotkey and say what you want it to do. "Translate to Spanish." "Make this three bullet points." "Rewrite this for a non-technical audience." The instruction changes what the LLM does with the text.
+>
+> Replaced Grammarly for me. Not for everyone — if you need the browser extension suggestions inline as you type, this isn't that. But for post-writing cleanup, it covers everything.
+
+---
+
+### VISION TABLE — "Screenshot to spreadsheet" posts
+
+**LinkedIn**
+
+> **The workflow that saves me 20 minutes a week.**
+>
+> You've seen data trapped in a web page. A table you can't select. A PDF where the copy comes out garbled. A screenshot from a client with numbers you need in a spreadsheet.
+>
+> The old workflow: screenshot → retype manually → pray you didn't miss a cell.
+>
+> dIKta.me Vision: `Ctrl+Alt+S` → draw a box around the table → click Table → paste into Excel.
+>
+> It extracts the structure as tab-separated values. Rows, columns, headers. Ready to paste.
+>
+> Takes about 10 seconds.
+>
+> **[PERSONALIZE]** — name a specific type of table you deal with: pricing tables, project timelines, financial data, etc.
+>
+> **[ES VERSION NEEDED]**
+
+**X / Twitter**
+
+> Data trapped in a screenshot.
+>
+> Ctrl+Alt+S → draw a box → Table → paste into Excel.
+>
+> Tab-separated values. Rows, columns, headers. ~10 seconds.
+>
+> dIKta.me Vision mode.
+>
+> dikta.me
+
+**[ES VERSION NEEDED]** for X/Twitter
+
+**Reddit (r/productivity)**
+
+> **Title:** dIKta.me's Vision mode extracts tables from screenshots directly into spreadsheet format
+>
+> I deal with a lot of data that lives in PDFs and web pages where copy-paste produces garbage. Spent a while manually retyping tables.
+>
+> dIKta.me has a Vision mode (`Ctrl+Alt+S`) that lets you draw a region on your screen and choose what to do with it. One of the options is "Table" — it sends the image to AI and gets back tab-separated values, which paste cleanly into Excel or Sheets.
+>
+> Works on most reasonably clean tables. Not magic, but better than retyping. Runs locally on Ollama (minicpm-v model) or via Gemini in cloud mode.
+>
+> Free to try at dikta.me.
+
+---
+
+### AUDIO DUCKING — "It knows when you're talking" posts
+
+**LinkedIn**
+
+> **A small feature that signals a lot about how much a product cares.**
+>
+> Audio ducking: when you start dictating, dIKta.me automatically fades down whatever else is playing — Spotify, YouTube, background audio. When you stop, it fades back up.
+>
+> You can set the attenuation level (how much it fades) and the fade duration (how smooth the transition is). 100% attenuation = complete mute. 20% = barely noticeable dip. The fade can be a hard cut or a smooth crossfade.
+>
+> Nobody asks for this feature. Nobody puts it in a list of requirements. But once you've used it for a week, you notice every dictation tool that doesn't have it.
+>
+> It's the kind of detail that tells you the developer actually uses the product.
+>
+> dikta.me
+
+**X / Twitter**
+
+> dIKta.me auto-fades Spotify when you dictate. Fades it back when you stop.
+>
+> Configurable attenuation. Configurable crossfade duration.
+>
+> Nobody asks for this feature. Nobody stops noticing it once they have it.
+>
+> dikta.me
+
+**Reddit (r/selfhosted, r/productivity)**
+
+> **Title:** The audio ducking in dIKta.me is the kind of detail that tells you the developer uses their own product
+>
+> Small thing: when you press the dictation hotkey, the app automatically lowers the volume of other applications. When you release, they fade back. You configure how much (attenuation %) and how smoothly (fade duration).
+>
+> I know this is a minor feature. But it's the feature that tells you a product was made by someone who actually uses it every day, not just built to a spec. The developer clearly dictates with music on.
+>
+> dIKta.me is dikta.me. Free trial, $20 one-time for local mode.
+
+---
+
+### GHOST MODE — "Nothing written to disk" posts
+
+**LinkedIn**
+
+> **Four privacy levels. The last one is called Ghost Mode.**
+>
+> Most apps claim to be "privacy-first." Usually that means a toggle that changes where data is sent.
+>
+> dIKta.me has four logging levels:
+>
+> 1. Full logging — everything, for debugging
+> 2. Balanced — strips PII before writing to disk
+> 3. Stats only — timestamps and token counts, no text
+> 4. Ghost Mode — nothing. No logs. No token counts. No latency records. Not even error messages.
+>
+> In Ghost Mode, the application operates completely namelessly. If something goes wrong, there's no log to debug from. That's the tradeoff — and it's documented honestly.
+>
+> For legal professionals, medical dictation, executive communications — this isn't a nice-to-have. It's the requirement.
+>
+> **[ES VERSION NEEDED]**
+
+**X / Twitter**
+
+> dIKta.me privacy levels:
+>
+> 1. Full logging
+> 2. Balanced (PII stripped)
+> 3. Stats only
+> 4. Ghost Mode — nothing written to disk. Not even error messages.
+>
+> The tradeoff: if something breaks in Ghost Mode, there's no log to debug from. Documented honestly.
+>
+> dikta.me
+
+**[ES VERSION NEEDED]** for X/Twitter
+
+**Reddit (r/privacy, r/selfhosted)**
+
+> **Title:** dIKta.me has a "Ghost Mode" that writes absolutely nothing to disk — not even token counts
+>
+> Privacy levels in dIKta.me:
+>
+> - Full logging: captures everything including transcriptions and LLM output
+> - Balanced: runs a local PII scrubber before writing (strips emails, SSNs, phone numbers, credit card patterns)
+> - Stats only: timestamps, error codes, token counts — no text
+> - Ghost Mode: nothing. Zero. The logs folder stays empty.
+>
+> The docs are honest about the tradeoff: if you encounter a bug in Ghost Mode, there's no stack trace to help debug it.
+>
+> Combined with local mode (Whisper + Ollama, no internet), Ghost Mode means your voice never leaves your machine and nothing is written to disk. That's about as private as a desktop AI tool gets.
+>
+> Code is MIT-licensed and on GitHub if you want to verify the claims.
+
+---
+
+### MACROS — "AI-proof templates" posts
+
+**LinkedIn**
+
+> **The dictation feature nobody talks about: post-LLM macro expansion.**
+>
+> dIKta.me has a macro engine. You define a trigger phrase and a replacement block. When you say the trigger in dictation, the macro expands after the LLM finishes processing.
+>
+> That last part matters: *after* the LLM.
+>
+> The LLM can't reword, hallucinate, or reformat your macro content. If your trigger maps to a legal disclaimer, a precise URL, or a formatted signature block — it arrives verbatim. Every time. The AI touched everything else. Your template is untouched.
+>
+> Use cases I've seen: email signatures, code snippets, legal boilerplate, meeting note templates, git commands, API endpoints.
+>
+> **[PERSONALIZE]** — add one macro you personally use.
+>
+> dikta.me
+
+**X / Twitter**
+
+> dIKta.me macros expand AFTER the LLM finishes.
+>
+> The AI formats your words. Your template expands last. Verbatim. Every time.
+>
+> Legal disclaimers, signatures, code snippets — untouched by AI.
+>
+> Say the trigger. Get the template.
+>
+> dikta.me
+
+**Reddit (r/productivity, r/LocalLLaMA)**
+
+> **Title:** dIKta.me's macro expansion happens post-LLM — your templates are AI-proof
+>
+> Most text expanders run before any AI processing. The risk: the LLM might reword your macro content as part of formatting the surrounding text.
+>
+> dIKta.me macros run after the LLM pipeline finishes. The LLM formats your dictated words. Then the macro engine does a final sweep and expands your triggers. Verbatim replacement, no AI involved.
+>
+> Practical impact: your email signature, your legal disclaimer, your boilerplate template — exactly as you defined them, every time, regardless of what model you're using or how the surrounding text was processed.
+>
+> Small architectural detail, meaningful if you rely on precise templates.
+
+---
+
+### TRANSLATE (any language) posts
+
+**LinkedIn**
+
+> **The translation mode isn't EN↔ES. It's any language pair.**
+>
+> dIKta.me's Translate mode is driven by a system prompt, not a language dropdown.
+>
+> Default prompt: "Translate to Spanish." But you can set it to anything:
+> - "Translate to formal Japanese."
+> - "Translate to Brazilian Portuguese, keeping technical terms in English."
+> - "Translate to French and maintain a formal register."
+> - "Translate to simplified Mandarin."
+>
+> One hotkey. `Ctrl+Alt+T`. Speak your source language. Get the target language at your cursor.
+>
+> The language detection is automatic — you don't set the source. Speak in whatever language you're thinking in.
+>
+> **[ES VERSION NEEDED]**
+
+**X / Twitter**
+
+> dIKta.me Translate isn't a dropdown.
+>
+> It's a system prompt. Set it to anything:
+> "Translate to formal Japanese."
+> "Translate to Brazilian Portuguese."
+> "Keep technical terms in English."
+>
+> One hotkey. Any language pair. Auto-detects your source.
+>
+> dikta.me
+
+**[ES VERSION NEEDED]** for X/Twitter
+
+---
+
+### NOTE → OBSIDIAN posts
+
+**LinkedIn**
+
+> **Voice notes going directly into your Obsidian vault.**
+>
+> dIKta.me's Note mode (`Ctrl+Alt+N`) appends timestamped notes to a markdown file. The file path is configurable — you can point it anywhere.
+>
+> I pointed mine at a file inside my Obsidian vault.
+>
+> Now when I'm mid-focus and a thought hits: `Ctrl+Alt+N`, speak it, release. It's in the vault. Timestamped. Formatted by the LLM (or raw transcription if I want speed).
+>
+> No tab switch. No context loss. No "I'll write that down later."
+>
+> The Obsidian connector (V2.1) will go deeper — tags, folders, backlinks. But for voice → vault, this works right now.
+>
+> **[ES VERSION NEEDED]**
+
+**X / Twitter**
+
+> dIKta.me Note mode: point the file path at your Obsidian vault.
+>
+> Ctrl+Alt+N → speak → timestamped entry in your vault.
+>
+> No tab switch. No plugin. No friction.
+>
+> V2.1 will go deeper. This works today.
+>
+> dikta.me
+
+**[ES VERSION NEEDED]** for X/Twitter
+
+**Reddit (r/ObsidianMD)**
+
+> **Title:** Voice notes into Obsidian from any app — no plugin, just a file path
+>
+> dIKta.me has a Note pipeline (`Ctrl+Alt+N`) that appends timestamped voice notes to a markdown file. The file path is a free-form setting — you can point it at any `.md` file, including one inside your Obsidian vault.
+>
+> I set mine to `C:\Users\...\ObsidianVault\Inbox\voice-notes.md`. Now I can capture a thought mid-focus without switching away from whatever I'm doing. Note lands in the vault, timestamped, formatted.
+>
+> Not a full integration — no tags, no folder routing, no graph links. But for capturing and reviewing later, it works well.
+>
+> The app is dikta.me. Free to try with a small cloud credit. Local mode available ($20 one-time) if you want it fully offline.
+
+---
+
+### VIDEO → DOCUMENT posts
+
+**LinkedIn**
+
+> **I recorded my workflow once. I got the documentation automatically.**
+>
+> dIKta.me has a screen recording mode with a post-capture "Document" action.
+>
+> You record up to 120 seconds of yourself doing a task. Stop. Click Document. Gemini watches the recording and writes step-by-step instructions for what it observed.
+>
+> Not perfect. But for creating first-draft SOPs, training guides, or onboarding documentation — it's a starting point that takes 2 minutes instead of 45.
+>
+> **[PERSONALIZE]** — mention the type of process documentation you create: onboarding flows, client handoffs, internal procedures, etc.
+>
+> I'm aware this is a feature that sells itself to ops people, team leads, and L&D professionals who have never heard of dIKta.me. That's exactly who I'm talking to with this post.
+>
+> dikta.me
+>
+> **[ES VERSION NEEDED]**
+
+**X / Twitter**
+
+> dIKta.me: record your screen for 90 seconds → click "Document" → Gemini writes step-by-step instructions for what it watched.
+>
+> First-draft SOP in 2 minutes.
+>
+> dikta.me
+
+**[ES VERSION NEEDED]** for X/Twitter
+
+---
+
+### CUSTOM DICTATION PRESETS posts
+
+**LinkedIn**
+
+> **16 AI behaviors. One hotkey each.**
+>
+> dIKta.me has a Dictation Modes system. You create presets — each one a named configuration with its own system prompt for cloud models and a separate optimized prompt for local models.
+>
+> Switch between them from the Control Panel dropdown while you work.
+>
+> Some presets I'd configure:
+> - "C# XML Doc Comments" — formats spoken descriptions as XML documentation
+> - "Casual Slack" — conversational, no punctuation formality
+> - "Client Email" — formal, full punctuation, professional register
+> - "Meeting Notes" — bullet-pointed, action items flagged
+> - "Spanish Email" — translates and writes in Spanish directly
+>
+> Each preset has a cloud prompt (complex, detailed instruction for GPT/Claude/Gemini) and a local prompt (concise, direct instruction for Ollama — smaller models perform better with shorter prompts).
+>
+> You configure it once. You use it forever.
+>
+> **[PERSONALIZE]** — list 2-3 real presets you actually use.
+>
+> **[ES VERSION NEEDED]**
+
+**X / Twitter**
+
+> dIKta.me presets:
+>
+> "C# XML Comments" — speaks function descriptions, gets XML docs
+> "Client Email" — formal register, full punctuation
+> "Meeting Notes" — auto-bullets, flags action items
+> "Spanish Email" — writes in Spanish directly
+>
+> One dropdown. Switch mid-session.
+>
+> dikta.me
+
+**[ES VERSION NEEDED]** for X/Twitter
+
+---
+
+### BUILD LOG posts (Eduardo's voice — personal, ongoing series)
+
+> These are written in first person as Eduardo. They build the audience that buys V2.1.
+> **[PERSONALIZE]** throughout — these are outlines, not finished posts. Eduardo fills in the real details.
+
+---
+
+**Build log #1 — "I'm not a software engineer. I built this anyway."**
+
+**LinkedIn**
+
+> **I have 20 years of experience in consulting, digital media, and project management. I have never worked as a software engineer.**
+>
+> dIKta.me V2.0 is my first desktop application. Written in C# and WinUI 3. 1,134 unit tests. A CI/CD pipeline. A payment system. A local AI stack that runs Whisper, Ollama, and Kokoro on consumer hardware.
+>
+> I built it in about 10 weeks, with AI coding assistance, because I was frustrated enough with the available tools to try.
+>
+> The product decisions come from two decades of building businesses and understanding what knowledge workers actually need. The code was written by someone learning while doing — with AI as a pair programmer.
+>
+> I'm not sure what that means for the product. I think it means the features are right even where the implementation could be better. I'm willing to live with that tradeoff.
+>
+> The app is free to try at dikta.me. I read every piece of feedback.
+>
+> **[PERSONALIZE]** — add one specific moment from the build that was difficult or surprising.
+
+---
+
+**Build log #2 — "Why I chose local-first when cloud would have been easier"**
+
+**LinkedIn**
+
+> **Cloud-only would have been simpler to build. I chose local-first anyway.**
+>
+> The cloud version of dIKta.me is straightforward: record audio, send to Deepgram, send transcript to Gemini, inject result. Three API calls. Done.
+>
+> The local version means bundling Whisper.net, managing ONNX runtimes, handling GPU acceleration across NVIDIA and AMD via Vulkan, managing Ollama's HTTP keep-alive, solving a provider caching problem that was adding 2500ms of latency every call.
+>
+> I chose it because of the users I was building for. Privacy-conscious professionals don't send voice recordings to third-party servers — period. That's not a preference, it's a requirement. If I built cloud-only, I was building for a different audience than the one I wanted to serve.
+>
+> Local-first also means $0/month running cost after setup. That changes the entire economic argument.
+>
+> **[PERSONALIZE]** — add one specific technical problem from the local implementation that was unexpectedly hard.
+
+---
+
+**Build log #3 — "The 2,500 millisecond problem"**
+
+**LinkedIn (technical, developer audience)**
+
+> **Every dictation call was adding 2,500ms of latency I couldn't explain.**
+>
+> The pipeline: Whisper transcribes audio (~800ms). LLM refines the text (~600ms). Text injects at cursor. Total should be ~1.5 seconds.
+>
+> I was seeing 3+ seconds consistently. Sometimes 4. The pipeline metrics showed the latency appearing before the LLM call even started.
+>
+> After a lot of digging: I was creating a new `HttpClient` for every dictation call. Every call was establishing a new TCP connection to Ollama. TCP handshake + connection setup = ~2,500ms on first call.
+>
+> Fix: `ConcurrentDictionary<string, ILLMProvider>` cache keyed by `"{type}:{model}"`. GetOrAdd pattern. The first call pays the connection cost. Every subsequent call reuses the connection.
+>
+> Latency dropped from ~3,000ms to ~550ms for the LLM step.
+>
+> The lesson isn't "cache your providers." The lesson is that performance problems in dictation software are felt in a way that performance problems in web apps aren't. 2,500ms in a UI is annoying. 2,500ms between speaking and seeing your words appear is unbearable.
+>
+> **[PERSONALIZE]** — add how you discovered the root cause (profiler? timing logs? intuition?).
+
+---
+
+**Build log #4 — "What shipping alone feels like"**
+
+**LinkedIn**
+
+> **There's no one to ask if the product is good enough to ship.**
+>
+> With a team, someone else has opinions. Product says yes or no. QA finds the last bug. Someone else decides when "done" is.
+>
+> Solo, you're the one who decides.
+>
+> **[PERSONALIZE]** — this is the most personal post. Write the real version. What did the last week before shipping feel like? What did you fix that you didn't need to? What did you leave that you wanted to fix? What did it feel like to push v2.0.0?
+>
+> The audience for this post is other indie builders. They will feel it. They will share it.
+
+---
+
+## 9. SEO Blog Outlines (4)
 
 > Outlines only. Full posts to be written separately.
 > All posts link to dikta.me and cross-link each other.
