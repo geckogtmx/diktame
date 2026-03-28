@@ -15,6 +15,7 @@ public sealed partial class WizardViewModel : ObservableObject
     private readonly SecureStorage _secureStorage;
     private readonly IAccountService _accountService;
     private readonly LocalizationService _loc;
+    private readonly LicenseManager _licenseManager;
 
     [ObservableProperty] private int _currentStep;
     [ObservableProperty] private bool _canGoBack;
@@ -52,12 +53,13 @@ public sealed partial class WizardViewModel : ObservableObject
     public event Action? StepChanged;
     public event Action? WizardCompleted;
 
-    public WizardViewModel(SettingsManager settings, SecureStorage secureStorage, IAccountService accountService, LocalizationService loc)
+    public WizardViewModel(SettingsManager settings, SecureStorage secureStorage, IAccountService accountService, LocalizationService loc, LicenseManager licenseManager)
     {
         _settings = settings;
         _secureStorage = secureStorage;
         _accountService = accountService;
         _loc = loc;
+        _licenseManager = licenseManager;
         _nextButtonText = _loc.GetString("Wizard_Next");
     }
 
@@ -94,6 +96,13 @@ public sealed partial class WizardViewModel : ObservableObject
         {
             await StartWalletAsync();
             return;
+        }
+
+        // License gate — BYOK and Local paths require Power License
+        if (CurrentStep == 1 && OnboardingChoice is "apikeys" or "local" && !_licenseManager.IsLicensed)
+        {
+            Log.Information("Wizard: {Choice} path blocked — Power License required", OnboardingChoice);
+            return; // UI shows upgrade prompt via LicenseGatePanel
         }
 
         // Local fork — skip wizard, configure Whisper + Ollama directly

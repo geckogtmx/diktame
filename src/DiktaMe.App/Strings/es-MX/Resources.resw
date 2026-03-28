@@ -390,6 +390,9 @@
   <data name="License_InvalidKey" xml:space="preserve"><value>Clave de licencia inv&#225;lida. Revisa tu correo para la clave correcta.</value></data>
   <data name="License_Activated" xml:space="preserve"><value>&#161;Licencia activada! La IA local est&#225; desbloqueada.</value></data>
   <data name="License_FallbackToast" xml:space="preserve"><value>El modo local requiere Licencia Power. Usando la nube.</value></data>
+  <data name="Wizard_LicenseRequired.Text" xml:space="preserve"><value>Requiere Licencia Power</value></data>
+  <data name="Wizard_LicenseBuyButton.Content" xml:space="preserve"><value>Obtener Licencia Power &#x2014; $20</value></data>
+  <data name="Wizard_LicenseOrBuild.Text" xml:space="preserve"><value>O compila desde el c&#243;digo fuente &#x2014; es MIT</value></data>
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Ollama
        ══════════════════════════════════════════════════════════════════════ -->

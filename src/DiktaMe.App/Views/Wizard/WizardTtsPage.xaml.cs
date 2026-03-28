@@ -1,6 +1,7 @@
 
 using DiktaMe.App.Services;
 using DiktaMe.App.ViewModels;
+using DiktaMe.Core.Security;
 using DiktaMe.Core.TTS;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
@@ -16,13 +17,20 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
     private readonly LocalizationService _loc;
     private readonly DispatcherQueue _dispatcher;
     private readonly KokoroModelManager _kokoro = new();
+    private readonly LicenseManager _licenseManager;
 
     public WizardTtsPage()
     {
         _loc = App.Current.Services.GetRequiredService<LocalizationService>();
+        _licenseManager = App.Current.Services.GetRequiredService<LicenseManager>();
         _dispatcher = DispatcherQueue.GetForCurrentThread();
         this.InitializeComponent();
         this.Unloaded += OnUnloaded;
+
+        TtsBuyLicenseLink.Click += (_, _) =>
+        {
+            _ = Windows.System.Launcher.LaunchUriAsync(new System.Uri("https://dikta.me/pricing"));
+        };
     }
 
     public void SetViewModel(WizardViewModel viewModel)
@@ -30,8 +38,10 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
         _viewModel = viewModel;
         viewModel.BeforeLeaveStep = OnBeforeLeaveStepAsync;
 
-        // Restore selection from VM
-        if (string.Equals(viewModel.TtsChoice, "local", StringComparison.Ordinal))
+        _licenseManager.LicenseStateChanged += OnLicenseStateChanged;
+
+        // Restore selection from VM (but redirect local→off if unlicensed)
+        if (string.Equals(viewModel.TtsChoice, "local", StringComparison.Ordinal) && _licenseManager.IsLicensed)
         {
             TtsLocal.IsChecked = true;
             ShowModelStatus();
@@ -43,7 +53,13 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
         else
         {
             TtsOff.IsChecked = true;
+            if (string.Equals(viewModel.TtsChoice, "local", StringComparison.Ordinal))
+            {
+                viewModel.TtsChoice = "off"; // Reset if was local but now unlicensed
+            }
         }
+
+        UpdateTtsLicenseGate();
     }
 
     private void TtsRadio_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -55,6 +71,15 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
 
         if (TtsLocal.IsChecked == true)
         {
+            if (!_licenseManager.IsLicensed)
+            {
+                // Bounce back to previous selection
+                TtsOff.IsChecked = true;
+                _viewModel.TtsChoice = "off";
+                UpdateTtsLicenseGate();
+                return;
+            }
+
             _viewModel.TtsChoice = "local";
             ShowModelStatus();
         }
@@ -70,6 +95,8 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
             CancelDownload();
             DownloadPanel.Visibility = Visibility.Collapsed;
         }
+
+        UpdateTtsLicenseGate();
     }
 
     private void ShowModelStatus()
@@ -174,8 +201,20 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
         _downloadCts = null;
     }
 
+    private void UpdateTtsLicenseGate()
+    {
+        bool show = !_licenseManager.IsLicensed;
+        TtsLicenseGatePanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnLicenseStateChanged(bool licensed)
+    {
+        _dispatcher.TryEnqueue(UpdateTtsLicenseGate);
+    }
+
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         CancelDownload();
+        _licenseManager.LicenseStateChanged -= OnLicenseStateChanged;
     }
 }

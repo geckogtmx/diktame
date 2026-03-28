@@ -1031,6 +1031,17 @@
     <value>Local mode requires Power License. Using cloud instead.</value>
   </data>
 
+  <!-- Wizard license gate (shown inline when BYOK/Local selected and unlicensed) -->
+  <data name="Wizard_LicenseRequired.Text" xml:space="preserve">
+    <value>Requires Power License</value>
+  </data>
+  <data name="Wizard_LicenseBuyButton.Content" xml:space="preserve">
+    <value>Get Power License — $20</value>
+  </data>
+  <data name="Wizard_LicenseOrBuild.Text" xml:space="preserve">
+    <value>Or build from source — it's MIT</value>
+  </data>
+
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Ollama
        ══════════════════════════════════════════════════════════════════════ -->
