@@ -959,10 +959,10 @@
     <value>Sign in to your dIKta.me account</value>
   </data>
   <data name="Settings_Account_SignInBar.Message" xml:space="preserve">
-    <value>Link your account to sync settings, access free trial credits, and more.</value>
+    <value>Link your account to sync settings, access your wallet balance, and more.</value>
   </data>
   <data name="Settings_Account_TrialCredits_Title.Text" xml:space="preserve">
-    <value>Trial Credits</value>
+    <value>Wallet</value>
   </data>
   <!-- C# keys -->
   <data name="Settings_Account_SignIn" xml:space="preserve">
@@ -981,7 +981,7 @@
     <value>Account active</value>
   </data>
   <data name="Settings_Account_Status_Expired" xml:space="preserve">
-    <value>Trial expired</value>
+    <value>Wallet empty</value>
   </data>
   <data name="Settings_Account_Status_DaysRemaining" xml:space="preserve">
     <value>{0} days remaining</value>

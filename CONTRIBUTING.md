@@ -1,58 +1,56 @@
-# Contributing to dIKta.me V2
+# Contributing to dIKta.me
 
-We welcome contributions to the C# / WinUI 3 codebase! This includes contributions from human developers as well as AI coding agents and assistants.
+Thanks for your interest.
 
-If you are an AI agent, welcome! Please see the [🤖 AI Agent Guidelines](#-ai-agent-guidelines) below.
+## The honest situation
 
-## 🛠️ Tech Stack
+I'm a solo developer. I built this in ~10 weeks and I'm maintaining it on my own time. I don't currently have the bandwidth to review pull requests.
+
+## What you can do
+
+- **Found a bug?** File an issue. I read every one.
+- **Have a feature idea?** Open a discussion. I want to hear it.
+- **Want to fork and build?** Go for it — it's MIT. No permission needed.
+
+## What I can't promise
+
+- PR reviews or merges on any timeline
+- Feature requests being implemented
+- Responses faster than "when I get to it"
+
+## If you're genuinely good
+
+If you're a developer who wants to contribute meaningfully and consistently — reach out directly. I'm open to finding the right person to help manage the community side of things. But I'd rather be honest about my bandwidth than make promises I can't keep.
+
+## Tech Stack
 
 - **Language**: C# 12 (.NET 8)
-- **UI Framework**: WinUI 3 (Windows App SDK 1.5)
-- **Testing**: xUnit + Moq
+- **UI Framework**: WinUI 3 (Windows App SDK 1.6)
+- **Testing**: xUnit + Moq + FluentAssertions
 - **Architecture**: MVVM (CommunityToolkit.Mvvm)
 
-## ⚡ Quick Start
+## Quick Start
 
-1.  **Prerequisites**:
-    - Visual Studio 2022 (Desktop Development workload).
-    - .NET 8 SDK.
+```bash
+git clone https://github.com/geckogtmx/diktame.git
+dotnet build DiktaMe.sln
+dotnet test DiktaMe.sln
+```
 
-2.  **Build**:
-    ```powershell
-    git clone https://github.com/geckogtmx/diktame.git
-    dotnet build DiktaMe.sln
-    ```
+## Project Structure
 
-3.  **Test**:
-    ```powershell
-    dotnet test
-    ```
+- `src/DiktaMe.App` — UI (Views, ViewModels, XAML)
+- `src/DiktaMe.Core` — Business logic (Pipelines, Providers, Services)
+- `tests/DiktaMe.Core.Tests` — xUnit tests (1,014 and counting)
 
-## 📐 Coding Standards
+## Code Standards
 
-- **Style**: We follow standard C# conventions (`.editorconfig` is included).
-- **Trunk-Based**: Small, frequent commits to `main`.
-- **Testing**: All new Business Logic (`DiktaMe.Core`) MUST have unit tests.
+- Follow existing patterns (`.editorconfig` is included)
+- Trunk-based: small, frequent commits to `main`
+- Conventional commits with `[TASK_ID]` suffix
+- All new business logic in `DiktaMe.Core` must have unit tests
+- No telemetry, no external data persistence — privacy is non-negotiable
 
-## 📂 Project Structure
+## License
 
-- `src/DiktaMe.App`: The UI (Views, ViewModels).
-- `src/DiktaMe.Core`: The Brain (Logic, Providers, Pipelines).
-- `tests/`: xUnit test projects.
-
-## 🤖 AI Agent Guidelines
-
-Greetings, digital colleague! We are thrilled to have your help building dIKta.me. To ensure smooth collaboration, please observe the following strictly:
-
-1. **Read the Rules**: Always start by reading the repository guidelines. The user's system instructions, `GEMINI.md`, and any files in `.agents/skills` are your primary source of truth for architecture, branding, and workflows.
-2. **Preserve Context**: We rely on you to keep `README.md` and `ARCHITECTURE.md` up to date as you make structural changes or complete major features.
-3. **Task Tracking**: Document your progress meticulously in `task.md` or similar artifacts to communicate your work with the human user.
-4. **Follow the Stack**: Familiarize yourself with C# 12, .NET 8, WinUI 3, and CommunityToolkit.Mvvm patterns before making UI or architecture changes. Stick to the designated libraries.
-5. **No Telemetry / Strict Privacy**: Remember that this application is built on absolute privacy. Never persist user data externally or introduce any form of telemetry.
-6. **Self-Correction & Testing**: Before concluding your task, verify your code builds (`dotnet build DiktaMe.sln -c Debug -p:Platform=x64`) and tests pass (`dotnet test`). Try to fix any regressions you introduce autonomously.
-
-By adhering to these rules, you will be a highly valued contributor to the dIKta.me project. Thank you!
-
-## 🤝 Code of Conduct
-
-Be kind. We are building tools to help people communicate.
+By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).

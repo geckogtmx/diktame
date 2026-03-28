@@ -366,14 +366,14 @@
        ══════════════════════════════════════════════════════════════════════ -->
   <data name="Settings_Account_Title.Text" xml:space="preserve"><value>Cuenta</value></data>
   <data name="Settings_Account_SignInBar.Title" xml:space="preserve"><value>Inicie sesi&#243;n en su cuenta dIKta.me</value></data>
-  <data name="Settings_Account_SignInBar.Message" xml:space="preserve"><value>Vincule su cuenta para sincronizar configuraci&#243;n, acceder a cr&#233;ditos de prueba gratuitos y m&#225;s.</value></data>
-  <data name="Settings_Account_TrialCredits_Title.Text" xml:space="preserve"><value>Cr&#233;ditos de Prueba</value></data>
+  <data name="Settings_Account_SignInBar.Message" xml:space="preserve"><value>Vincule su cuenta para sincronizar configuraci&#243;n, acceder a su saldo de billetera y m&#225;s.</value></data>
+  <data name="Settings_Account_TrialCredits_Title.Text" xml:space="preserve"><value>Monedero</value></data>
   <data name="Settings_Account_SignIn" xml:space="preserve"><value>Iniciar sesi&#243;n</value></data>
   <data name="Settings_Account_SignOut" xml:space="preserve"><value>Cerrar sesi&#243;n</value></data>
   <data name="Settings_Account_ManageAccount" xml:space="preserve"><value>Administrar cuenta</value></data>
   <data name="Settings_Account_Status_NotSignedIn" xml:space="preserve"><value>No ha iniciado sesi&#243;n</value></data>
   <data name="Settings_Account_Status_Active" xml:space="preserve"><value>Cuenta activa</value></data>
-  <data name="Settings_Account_Status_Expired" xml:space="preserve"><value>Prueba expirada</value></data>
+  <data name="Settings_Account_Status_Expired" xml:space="preserve"><value>Monedero vac&#237;a</value></data>
   <data name="Settings_Account_Status_DaysRemaining" xml:space="preserve"><value>{0} d&#237;as restantes</value></data>
   <data name="Settings_Account_UsageText" xml:space="preserve"><value>{0:N0} / {1:N0} palabras</value></data>
 
