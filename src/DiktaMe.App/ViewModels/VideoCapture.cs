@@ -28,7 +28,8 @@ public sealed class VideoCapture : IDisposable
         int left, int top, int width, int height,
         string outputPath,
         VideoRecordingOptions options,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? monitorDeviceName = null)
     {
         if (_recorder is not null)
         {
@@ -39,12 +40,21 @@ public sealed class VideoCapture : IDisposable
         if (width % 2 != 0) width++;
         if (height % 2 != 0) height++;
 
-        Log.Information("VideoCapture: starting {W}x{H} at ({L},{T}), fps={Fps}, bitrate={Kbps}kbps, mic={Mic}, sysAudio={Sys}, webcam={Webcam}",
-            width, height, left, top, options.FrameRateHz, options.BitrateKbps, options.EnableMicAudio, options.EnableSystemAudio, options.EnableWebcam);
+        Log.Information("VideoCapture: starting {W}x{H} at ({L},{T}), fps={Fps}, bitrate={Kbps}kbps, mic={Mic}, sysAudio={Sys}, webcam={Webcam}, monitor={Mon}",
+            width, height, left, top, options.FrameRateHz, options.BitrateKbps, options.EnableMicAudio, options.EnableSystemAudio, options.EnableWebcam, monitorDeviceName ?? "(main)");
 
-        var displaySource = DisplayRecordingSource.MainMonitor;
-        Log.Debug("VideoCapture: MainMonitor source = {Source} (null={IsNull})",
-            displaySource?.DeviceName, displaySource is null);
+        // Select the correct monitor for recording (critical for multi-monitor setups)
+        DisplayRecordingSource? displaySource;
+        if (!string.IsNullOrEmpty(monitorDeviceName))
+        {
+            displaySource = new DisplayRecordingSource { DeviceName = monitorDeviceName };
+            Log.Debug("VideoCapture: using specific monitor {Dev}", monitorDeviceName);
+        }
+        else
+        {
+            displaySource = DisplayRecordingSource.MainMonitor;
+            Log.Debug("VideoCapture: using MainMonitor {Dev}", displaySource?.DeviceName);
+        }
 
         if (displaySource is null)
         {
