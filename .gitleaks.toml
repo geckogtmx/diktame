@@ -15,6 +15,7 @@ paths = [
   '''src/DiktaMe\.App/Themes/SharedResources\.xaml''',
   '''src/DiktaMe\.App/Themes/Palettes/.*\.xaml''',
   '''src/DiktaMe\.App/App\.xaml''',
+  '''src/DiktaMe\.Core/Security/LicenseManager\.cs''',
 ]
 regexTarget = "secret"
 regexes = [
