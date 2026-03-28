@@ -1,16 +1,11 @@
 # Developer Handoff
 
-## Next Session — B7 Recording Border + Remaining Polish
+## Next Session — Remaining Vision Polish
 
-**Priority 1:** B7 — Video region recording border overlay:
-- **BLOCKED:** WinUI 3 cannot create transparent windows. 5 approaches tried and failed.
-- **Full analysis + untried approaches:** See [`plans/RECORD_AREA_LAYER.md`](plans/RECORD_AREA_LAYER.md)
-- **Recommended next:** Try DesktopAcrylicBackdrop with TintOpacity=0, then 4 thin opaque strips, then pure Win32 GDI
-- **DO NOT re-attempt:** XAML Background="Transparent", LWA_COLORKEY, keeping SnippingOverlay alive, hiding XAML children on opaque window, TransparentBackdrop custom SystemBackdrop
-
-**Completed this session:**
-- ✅ Default-to-Region: Hotkey enables region selection immediately (committed `be15f43`)
-- ✅ B6: CP shows "WORKING" + locks dictation hotkeys during video recording (committed `be15f43`)
+**Completed this session (2026-03-27):**
+- ✅ Default-to-Region: Hotkey enables region selection immediately (`be15f43`)
+- ✅ B6: CP shows "WORKING" + locks dictation hotkeys during video recording (`be15f43`)
+- ✅ B7: Video region recording border overlay with dim (`1316a31`) — Pure Win32 layered window, marching ants, dim outside region, excluded from capture. See [`plans/RECORD_AREA_LAYER.md`](plans/RECORD_AREA_LAYER.md) for the full 6-attempt journey.
 - ❌ V7 (filler word removal): CANNED — too complex, too low value
 
 **Also pending:**
