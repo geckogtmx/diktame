@@ -17,20 +17,20 @@ namespace DiktaMe.App.Views;
 public sealed class RecordingBorderOverlay : IDisposable
 {
     // ── Win32 constants ───────────────────────────────────────────────────────
-    private const int WS_EX_LAYERED     = 0x00080000;
+    private const int WS_EX_LAYERED = 0x00080000;
     private const int WS_EX_TRANSPARENT = 0x00000020;
-    private const int WS_EX_TOPMOST     = 0x00000008;
-    private const int WS_EX_TOOLWINDOW  = 0x00000080;
-    private const int WS_EX_NOACTIVATE  = 0x08000000;
-    private const int WS_POPUP          = unchecked((int)0x80000000);
-    private const int WS_VISIBLE        = 0x10000000;
+    private const int WS_EX_TOPMOST = 0x00000008;
+    private const int WS_EX_TOOLWINDOW = 0x00000080;
+    private const int WS_EX_NOACTIVATE = 0x08000000;
+    private const int WS_POPUP = unchecked((int)0x80000000);
+    private const int WS_VISIBLE = 0x10000000;
 
-    private const uint ULW_ALPHA        = 0x02;
+    private const uint ULW_ALPHA = 0x02;
     private const uint WDA_EXCLUDEFROMCAPTURE = 0x00000011;
 
-    private const int HWND_TOPMOST      = -1;
-    private const uint SWP_NOACTIVATE   = 0x0010;
-    private const uint SWP_SHOWWINDOW   = 0x0040;
+    private const int HWND_TOPMOST = -1;
+    private const uint SWP_NOACTIVATE = 0x0010;
+    private const uint SWP_SHOWWINDOW = 0x0040;
 
     // ── P/Invoke ──────────────────────────────────────────────────────────────
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -99,17 +99,17 @@ public sealed class RecordingBorderOverlay : IDisposable
     [StructLayout(LayoutKind.Sequential)]
     private struct BITMAPINFOHEADER
     {
-        public int    biSize;
-        public int    biWidth;
-        public int    biHeight;
-        public short  biPlanes;
-        public short  biBitCount;
-        public int    biCompression;
-        public int    biSizeImage;
-        public int    biXPelsPerMeter;
-        public int    biYPelsPerMeter;
-        public int    biClrUsed;
-        public int    biClrImportant;
+        public int biSize;
+        public int biWidth;
+        public int biHeight;
+        public short biPlanes;
+        public short biBitCount;
+        public int biCompression;
+        public int biSizeImage;
+        public int biXPelsPerMeter;
+        public int biYPelsPerMeter;
+        public int biClrUsed;
+        public int biClrImportant;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -132,7 +132,7 @@ public sealed class RecordingBorderOverlay : IDisposable
     // Border appearance
     private const int BorderThickness = 2;
     private const float DashLength = 8f;
-    private const float GapLength  = 6f;
+    private const float GapLength = 6f;
     private const int AnimIntervalMs = 80; // dash march interval
     private const int DimAlpha = 100; // 0-255, ~40% dim outside recording region
 
@@ -145,14 +145,14 @@ public sealed class RecordingBorderOverlay : IDisposable
     public RecordingBorderOverlay(int left, int top, int width, int height,
         int monitorX, int monitorY, int monitorWidth, int monitorHeight)
     {
-        _left   = left;
-        _top    = top;
-        _width  = width;
+        _left = left;
+        _top = top;
+        _width = width;
         _height = height;
-        _monX   = monitorX;
-        _monY   = monitorY;
-        _monW   = monitorWidth;
-        _monH   = monitorHeight;
+        _monX = monitorX;
+        _monY = monitorY;
+        _monW = monitorWidth;
+        _monH = monitorHeight;
     }
 
     /// <summary>
@@ -262,20 +262,20 @@ public sealed class RecordingBorderOverlay : IDisposable
 
         // Recording region relative to the monitor origin
         int relLeft = _left - _monX;
-        int relTop  = _top  - _monY;
+        int relTop = _top - _monY;
 
         IntPtr screenDc = GetDC(IntPtr.Zero);
-        IntPtr memDc    = CreateCompatibleDC(screenDc);
+        IntPtr memDc = CreateCompatibleDC(screenDc);
 
         var bmi = new BITMAPINFO
         {
             bmiHeader = new BITMAPINFOHEADER
             {
-                biSize        = Marshal.SizeOf<BITMAPINFOHEADER>(),
-                biWidth       = w,
-                biHeight      = -h,   // top-down
-                biPlanes      = 1,
-                biBitCount    = 32,
+                biSize = Marshal.SizeOf<BITMAPINFOHEADER>(),
+                biWidth = w,
+                biHeight = -h,   // top-down
+                biPlanes = 1,
+                biBitCount = 32,
                 biCompression = 0,    // BI_RGB
             },
             bmiColors = new uint[4],
@@ -302,15 +302,15 @@ public sealed class RecordingBorderOverlay : IDisposable
             // Dashed white border at the recording region boundary
             using var pen = new Pen(Color.White, BorderThickness)
             {
-                DashStyle   = DashStyle.Custom,
+                DashStyle = DashStyle.Custom,
                 DashPattern = [DashLength, GapLength],
-                DashOffset  = dashOffset,
+                DashOffset = dashOffset,
             };
 
             gfx.DrawRectangle(pen,
                 relLeft - BorderThickness / 2f,
-                relTop  - BorderThickness / 2f,
-                _width  + BorderThickness,
+                relTop - BorderThickness / 2f,
+                _width + BorderThickness,
                 _height + BorderThickness);
 
             // Inner dark shadow (offset by half cycle) for visibility on light backgrounds
@@ -318,20 +318,20 @@ public sealed class RecordingBorderOverlay : IDisposable
             pen.DashOffset = dashOffset + (DashLength + GapLength) / 2f;
             gfx.DrawRectangle(pen,
                 relLeft + BorderThickness / 2f,
-                relTop  + BorderThickness / 2f,
-                _width  - BorderThickness,
+                relTop + BorderThickness / 2f,
+                _width - BorderThickness,
                 _height - BorderThickness);
 
             var blend = new BLENDFUNCTION
             {
-                BlendOp              = 0,   // AC_SRC_OVER
-                BlendFlags           = 0,
-                SourceConstantAlpha  = 255,
-                AlphaFormat          = 1,   // AC_SRC_ALPHA
+                BlendOp = 0,   // AC_SRC_OVER
+                BlendFlags = 0,
+                SourceConstantAlpha = 255,
+                AlphaFormat = 1,   // AC_SRC_ALPHA
             };
 
             var ptDst = new POINT { x = _monX, y = _monY };
-            var sz    = new SIZE  { cx = w, cy = h };
+            var sz = new SIZE { cx = w, cy = h };
             var ptSrc = new POINT { x = 0, y = 0 };
 
             UpdateLayeredWindow(_hwnd, screenDc, ref ptDst, ref sz,
