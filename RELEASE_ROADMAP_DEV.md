@@ -10,13 +10,13 @@
 
 | Task | Status | Sessions Est. | Depends On |
 |------|--------|--------------|------------|
-| [T1: TTS Wizard Step](#t1-tts-wizard-step) | `TODO` | 1 | — |
-| [T2: License Gate System](#t2-license-gate-system) | `TODO` | 2 | — |
-| [T3: Inno Setup Installer](#t3-inno-setup-installer) | `TODO` | 1 | — |
-| [T4: CHANGELOG.md](#t4-changelogmd) | `TODO` | 0.5 | — |
-| [T5: Wizard License Integration](#t5-wizard-license-integration) | `TODO` | 1 | T1, T2 |
-| [T6: Website Updates](#t6-website-updates) | `TODO` | 1 | T2 |
-| [T7: CI Release Pipeline](#t7-ci-release-pipeline) | `TODO` | 0.5 | T3 |
+| [T1: TTS Wizard Step](#t1-tts-wizard-step) | `DONE` | 1 | — |
+| [T2: License Gate System](#t2-license-gate-system) | `DONE` | 2 | — |
+| [T3: Inno Setup Installer](#t3-inno-setup-installer) | `DONE` | 1 | — |
+| [T4: CHANGELOG.md](#t4-changelogmd) | `DONE` | 0.5 | — |
+| [T5: Wizard License Integration](#t5-wizard-license-integration) | `DONE` | 1 | T1, T2 |
+| [T6: Website Updates](#t6-website-updates) | `DONE` | 1 | T2 |
+| [T7: CI Release Pipeline](#t7-ci-release-pipeline) | `DONE` | 0.5 | T3 |
 | [T8: Manual Testing (P0)](#t8-manual-testing-p0) | `TODO` | 2-3 | T1-T5 |
 | [T9: Tag & Ship](#t9-tag--ship) | `TODO` | 0.5 | T8 |
 
@@ -24,16 +24,29 @@ All T1-T4 are parallelizable. T5 depends on T1+T2. T6-T7 can run in parallel aft
 
 ---
 
-## DONE (This Session)
+## DONE (Session 3 — 2026-03-28)
+
+- [x] T5: Wizard license integration — license gate UI on WizardGetStartedPage (BYOK/Local) + WizardTtsPage (Local Kokoro), GoNextAsync guard in WizardViewModel, 3 localization keys (EN+ES), LicenseStateChanged live updates
+- [x] T3: Inno Setup installer — `installer/diktame-setup.iss` (LZMA2, bilingual EN+ES, per-user, no admin), `installer/build-installer.cmd`, verified locally: 47 MB output
+- [x] T7: CI release pipeline — `ci-v2.yml` extended with Inno Setup build step + installer artifact (30-day), release job on `v*` tags via `softprops/action-gh-release@v2`
+- [x] T4: CHANGELOG.md — Keep a Changelog format, comprehensive V2.0.0 entry covering all shipped streams
+- [x] Inno Setup 6 installed locally via winget (`%LOCALAPPDATA%\Programs\Inno Setup 6\`)
+- [x] Build: 0 warnings, 0 errors | Tests: 1,134 passed, 0 failed
+- [x] RELEASE_ROADMAP_DEV.md status table updated (T1-T5, T7 → DONE)
+
+## DONE (Session 2 — 2026-03-28)
+
+- [x] T1: TTS Wizard Step — 8-step wizard, WizardTtsPage (off/cloud/local), Kokoro download with progress, EN+ES strings
+- [x] T2: License Gate System — LicenseManager with RSA-2048, PipelineFactory gate, Account Settings UI, 12 localization strings (EN+ES), key pair generated
+- [x] Build verified, pushed to origin/main: commit `90a2a16`, `51fe1fa`
+
+## DONE (Session 1 — 2026-03-27)
 
 - [x] MIT LICENSE file created at root
-- [x] FIX-1: Wallet terminology — EN: "Trial Credits" → "Wallet", "Trial expired" → "Wallet empty" | ES: "Creditos de Prueba" → "Monedero", "Prueba expirada" → "Monedero vacio"
-  - Files: `src/DiktaMe.App/Strings/en/Resources.resw` (lines 962, 965, 984), `src/DiktaMe.App/Strings/es-MX/Resources.resw` (lines 369, 370, 376)
+- [x] FIX-1: Wallet terminology — EN: "Trial Credits" → "Wallet" | ES: "Creditos de Prueba" → "Monedero"
 - [x] RELEASE_ROADMAP.md written (16 sections, competitor analysis, pitches, marketing playbook)
 - [x] CONTRIBUTING.md + CONTRIBUTING.es.md rewritten
-- [x] Brand Book tagline updated: "Stop typing at your AI models. Just talk to them."
-  - File: `plans/mkt/BRAND_BOOK.md` (lines 60, 226)
-- [x] Build verified: `dotnet build DiktaMe.sln -c Release` — 0 warnings, 0 errors
+- [x] Brand Book tagline updated
 - [x] Pushed to origin/main: commit `d748fda`
 
 ---
