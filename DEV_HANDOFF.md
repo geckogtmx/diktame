@@ -9,6 +9,9 @@
 - ✅ UI: Removed Table button, reordered PostCapture (Save/OCR/Edit → Clip/Chat/Note), query step redesigned with square LOC/CLD/NON/Go buttons (`44e00cc`)
 - ❌ V7 (filler word removal): CANNED — too complex, too low value
 
+**Known bug — next session:**
+- **Video recording black on secondary monitors** — `DisplayRecordingSource` with per-monitor `DeviceName` + relative `SourceRect` still produces black frames on monitors 2 and 3 (3-monitor setup: 1=primary, 3=vertical, 2=right). Image capture works fine on all monitors. Needs deeper ScreenRecorderLib multi-monitor research. Possibly need `WindowRecordingSource` approach or DXGI output enumeration.
+
 **Also pending:**
 - Audit #3: Cloud provider retry (Polly). 2-3 hrs.
 - VG-4: Scrolling capture research (effort TBD — complex Win32 scroll-and-stitch)
