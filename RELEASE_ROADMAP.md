@@ -770,13 +770,6 @@ We're not raising. But if someone wants to accelerate this with strategic value 
 | Manual Test Plan | MANUAL_TEST_PLAN.md |
 | Development Roadmap | DEVELOPMENT_ROADMAP.md |
 
-## Appendix C: Startup Skill Reference
-
-For deeper strategy work, use [ferdinandobons/startup-skill](https://github.com/ferdinandobons/startup-skill):
-- `/startup:startup-design` — Full 8-phase market research + strategy
-- `/startup:startup-competitors` — Battle cards for every competitor
-- `/startup:startup-positioning` — April Dunford positioning framework
-- `/startup:startup-pitch` — Investor-ready pitch in multiple formats
 
 ---
 

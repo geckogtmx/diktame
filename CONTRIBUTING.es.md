@@ -51,6 +51,14 @@ dotnet test DiktaMe.sln
 - Toda lógica de negocio nueva en `DiktaMe.Core` debe tener unit tests
 - Cero telemetría, cero persistencia externa de datos — la privacidad no es negociable
 
+## Sobre el Creador
+
+dIKta.me es desarrollado y mantenido por Eduardo Garcia-Torres — un ejecutivo de marketing y negocios de México con más de 20 años de experiencia en consultoría de TI, medios digitales, producción audiovisual y gestión de proyectos en empresas internacionales y startups. No es ingeniero de software de formación. dIKta.me es su primera aplicación de escritorio, construida desde cero con C#, WinUI 3 y herramientas de desarrollo con IA.
+
+Las decisiones de producto detrás de dIKta.me vienen de dos décadas construyendo negocios y lanzando productos — no de un título en ciencias de la computación.
+
+Bilingüe (inglés/español). [LinkedIn](https://www.linkedin.com/in/eduardogarciatorres/)
+
 ## Licencia
 
 Al contribuir, aceptas que tus contribuciones serán licenciadas bajo la [Licencia MIT](LICENSE).

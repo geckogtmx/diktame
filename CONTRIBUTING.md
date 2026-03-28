@@ -51,6 +51,14 @@ dotnet test DiktaMe.sln
 - All new business logic in `DiktaMe.Core` must have unit tests
 - No telemetry, no external data persistence — privacy is non-negotiable
 
+## About the Builder
+
+dIKta.me is built and maintained by Eduardo Garcia-Torres — a marketing and business executive from Mexico with 20+ years of experience in IT consulting, digital media, audiovisual production, and project management across international companies and startups. He is not a software engineer by training. dIKta.me is his first desktop application, built from scratch with C#, WinUI 3, and AI coding tools.
+
+The product decisions behind dIKta.me come from two decades of building businesses and shipping products — not a CS degree.
+
+Bilingual (English/Spanish). [LinkedIn](https://www.linkedin.com/in/eduardogarciatorres/)
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
