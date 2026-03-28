@@ -13,13 +13,14 @@ public sealed partial class WizardWindow : Window
 
     private readonly Type[] _stepPages =
     {
-        typeof(WizardLanguagePage),
-        typeof(WizardGetStartedPage),
-        typeof(WizardSttPage),
-        typeof(WizardLlmPage),
-        typeof(WizardApiKeysPage),
-        typeof(WizardTestPage),
-        typeof(WizardReadyPage),
+        typeof(WizardLanguagePage),      // 0
+        typeof(WizardGetStartedPage),    // 1
+        typeof(WizardSttPage),           // 2
+        typeof(WizardLlmPage),           // 3
+        typeof(WizardTtsPage),           // 4
+        typeof(WizardApiKeysPage),       // 5 (skipped if no cloud providers)
+        typeof(WizardTestPage),          // 6
+        typeof(WizardReadyPage),         // 7
     };
 
     public WizardWindow()

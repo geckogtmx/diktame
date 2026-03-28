@@ -48,6 +48,8 @@ public sealed class SecureStorage
         "inworld",
         // Internal (auth JWT + refresh token)
         "trial_token", "refresh_token",
+        // License key (Power License activation)
+        "license_key",
     };
 
     // ── Public API ────────────────────────────────────────────────────────────

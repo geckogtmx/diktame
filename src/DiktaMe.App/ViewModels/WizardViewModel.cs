@@ -33,11 +33,14 @@ public sealed partial class WizardViewModel : ObservableObject
     // Step 3: LLM choice
     [ObservableProperty] private string _llmChoice = "cloud";
 
-    // Step 4: API Keys (only shown if cloud providers selected)
+    // Step 4: TTS choice ("off", "cloud", or "local")
+    [ObservableProperty] private string _ttsChoice = "off";
+
+    // Step 5: API Keys (only shown if cloud providers selected)
     [ObservableProperty] private string _deepgramApiKey = "";
     [ObservableProperty] private string _geminiApiKey = "";
 
-    public const int TotalSteps = 7;
+    public const int TotalSteps = 8;
 
     /// <summary>
     /// Optional async callback set by the current page. Called before leaving the step.
@@ -67,7 +70,7 @@ public sealed partial class WizardViewModel : ObservableObject
             BeforeLeaveStep = null;
 
             // Skip API Keys step (4) when going back if no cloud providers need keys
-            if (CurrentStep == 4 && !NeedsApiKeys())
+            if (CurrentStep == 5 && !NeedsApiKeys())
             {
                 CurrentStep--;
             }
@@ -116,7 +119,7 @@ public sealed partial class WizardViewModel : ObservableObject
             BeforeLeaveStep = null; // Reset for next page
 
             // Skip API Keys step (4) when no cloud providers need keys
-            if (CurrentStep == 4 && !NeedsApiKeys())
+            if (CurrentStep == 5 && !NeedsApiKeys())
             {
                 CurrentStep++;
                 Log.Information("Wizard: skipped API Keys step (no cloud providers selected)");
@@ -207,10 +210,15 @@ public sealed partial class WizardViewModel : ObservableObject
                 WizardCompleted = true,
                 ActiveProfileName = "Local",
                 ModeProfiles = profiles,
+                Tts = _settings.Current.Tts with
+                {
+                    Enabled = true,
+                    Provider = "kokoro",
+                },
             };
             await _settings.UpdateAsync(updated);
 
-            Log.Information("Wizard: local path — configured Whisper + Ollama");
+            Log.Information("Wizard: local path — configured Whisper + Ollama + Kokoro TTS");
         }
         catch (Exception ex)
         {
@@ -237,10 +245,24 @@ public sealed partial class WizardViewModel : ObservableObject
             string profileName = string.Equals(LlmChoice, "local", StringComparison.Ordinal)
                 ? "Local" : "Cloud";
 
+            // Apply TTS choice
+            bool ttsEnabled = !string.Equals(TtsChoice, "off", StringComparison.Ordinal);
+            string ttsProvider = TtsChoice switch
+            {
+                "local" => "kokoro",
+                "cloud" => "deepgram",
+                _ => "kokoro", // default provider even if disabled
+            };
+
             var updated = _settings.Current with
             {
                 WizardCompleted = true,
                 ActiveProfileName = profileName,
+                Tts = _settings.Current.Tts with
+                {
+                    Enabled = ttsEnabled,
+                    Provider = ttsProvider,
+                },
             };
 
             // Update default mode profiles to use chosen providers
@@ -288,7 +310,8 @@ public sealed partial class WizardViewModel : ObservableObject
 
     private bool NeedsApiKeys()
         => string.Equals(SttChoice, "cloud", StringComparison.Ordinal)
-        || string.Equals(LlmChoice, "cloud", StringComparison.Ordinal);
+        || string.Equals(LlmChoice, "cloud", StringComparison.Ordinal)
+        || string.Equals(TtsChoice, "cloud", StringComparison.Ordinal);
 
     private void UpdateNavState()
     {

@@ -25,6 +25,7 @@ public sealed class PipelineFactory
     private readonly ISTTProvider? _walletStt;
     private readonly ILLMProvider? _walletLlm;
     private readonly PipelineEventBus? _eventBus;
+    private readonly Security.LicenseManager? _licenseManager;
 
     public PipelineFactory(
         ProfileManager profiles,
@@ -37,7 +38,8 @@ public sealed class PipelineFactory
         SnippetManager snippets,
         ISTTProvider? walletStt = null,
         ILLMProvider? walletLlm = null,
-        PipelineEventBus? eventBus = null)
+        PipelineEventBus? eventBus = null,
+        Security.LicenseManager? licenseManager = null)
     {
         _profiles = profiles;
         _sttFactory = sttFactory;
@@ -50,6 +52,7 @@ public sealed class PipelineFactory
         _walletStt = walletStt;
         _walletLlm = walletLlm;
         _eventBus = eventBus;
+        _licenseManager = licenseManager;
     }
 
     // ── Factory methods ───────────────────────────────────────────────────────
@@ -246,6 +249,25 @@ public sealed class PipelineFactory
 
         string effectiveMode = modeOverride ?? mode;
         ModeSettings ms = _profiles.GetModeSettings(effectiveMode);
+
+        // License gate — local/BYOK providers require Power License.
+        // If unlicensed, fall back to wallet cloud proxies (with toast from caller).
+        if (_licenseManager is not null && !_licenseManager.IsLicensed)
+        {
+            bool needsLicense = string.Equals(ms.SttProvider, "whisper", StringComparison.OrdinalIgnoreCase)
+                             || string.Equals(ms.LlmProvider, "ollama", StringComparison.OrdinalIgnoreCase);
+
+            if (needsLicense)
+            {
+                if (_walletStt is not null && _walletLlm is not null)
+                {
+                    Log.Information("PipelineFactory: local provider requires Power License — falling back to wallet cloud");
+                    return (_walletStt, _walletLlm);
+                }
+
+                throw new InvalidOperationException("Power License required for local providers. Purchase at dikta.me");
+            }
+        }
 
         ISTTProvider stt = _sttFactory.CreateProvider(ms.SttProvider);
 

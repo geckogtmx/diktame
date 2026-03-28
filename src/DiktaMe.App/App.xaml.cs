@@ -148,6 +148,9 @@ public partial class App : Application
         ConfigureServices(services);
         Services = services.BuildServiceProvider();
 
+        // ── Load license from DPAPI storage (before any UI is created) ───────
+        Services.GetRequiredService<LicenseManager>().LoadFromStorage();
+
         // ── Apply theme from settings (before any UI is created) ─────────────
         Services.GetRequiredService<Services.ThemeService>().ApplyFromSettings();
 
@@ -583,6 +586,7 @@ public partial class App : Application
 
         // ── Config & Security (E.1 / E.3 / J.2) ─────────────────────────────
         services.AddSingleton<SecureStorage>();
+        services.AddSingleton<LicenseManager>();
         services.AddSingleton<SettingsManager>();
         services.AddSingleton<ProfileManager>(); // DEPRECATED: Use DictationModeManager instead
         services.AddSingleton<PromptRepository>(); // DEPRECATED: Prompts now in DictationProfile.SystemPrompt
@@ -608,7 +612,8 @@ public partial class App : Application
             sp.GetRequiredService<SnippetManager>(),
             walletStt: sp.GetRequiredService<WalletDeepgramProxy>(),
             walletLlm: sp.GetRequiredService<WalletGeminiProxy>(),
-            eventBus: sp.GetRequiredService<DiktaMe.Core.Pipeline.PipelineEventBus>()));
+            eventBus: sp.GetRequiredService<DiktaMe.Core.Pipeline.PipelineEventBus>(),
+            licenseManager: sp.GetRequiredService<LicenseManager>()));
 
         // ── Account (K.2 / K.8) ──────────────────────────────────────────────
         services.AddSingleton<AccountService>();

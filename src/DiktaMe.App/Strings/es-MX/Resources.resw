@@ -689,6 +689,19 @@
   <data name="Wizard_Llm_InstallFailed" xml:space="preserve"><value>Instalaci&#243;n fallida: {0}</value></data>
   <data name="Wizard_Llm_ManualInstall" xml:space="preserve"><value>Instalar manualmente desde ollama.com</value></data>
   <data name="Wizard_Llm_RetryCheck" xml:space="preserve"><value>Reintentar</value></data>
+  <data name="Wizard_Tts_Title.Text" xml:space="preserve"><value>Texto a Voz</value></data>
+  <data name="Wizard_Tts_Description.Text" xml:space="preserve"><value>Elige c&#243;mo dIKta.me te lee el texto. Puedes cambiar esto despu&#233;s en Configuraci&#243;n.</value></data>
+  <data name="Wizard_Tts_Off_Title.Text" xml:space="preserve"><value>Desactivado</value></data>
+  <data name="Wizard_Tts_Off_Description.Text" xml:space="preserve"><value>Omitir por ahora. Puedes activar TTS despu&#233;s en Configuraci&#243;n.</value></data>
+  <data name="Wizard_Tts_Cloud_Title.Text" xml:space="preserve"><value>TTS en la Nube</value></data>
+  <data name="Wizard_Tts_Cloud_Description.Text" xml:space="preserve"><value>Usa cr&#233;ditos del monedero. Funciona de inmediato, sin descarga.</value></data>
+  <data name="Wizard_Tts_Local_Title.Text" xml:space="preserve"><value>Local (Kokoro)</value></data>
+  <data name="Wizard_Tts_Local_Description.Text" xml:space="preserve"><value>~88 MB de descarga. R&#225;pido, gratuito, privado. Se ejecuta en tu m&#225;quina.</value></data>
+  <data name="Wizard_Tts_Downloading" xml:space="preserve"><value>Descargando modelo Kokoro... {0}%</value></data>
+  <data name="Wizard_Tts_DownloadComplete" xml:space="preserve"><value>Modelo Kokoro listo</value></data>
+  <data name="Wizard_Tts_DownloadFailed" xml:space="preserve"><value>Descarga fallida: {0}. Puedes reintentar o elegir otra opci&#243;n.</value></data>
+  <data name="Wizard_Tts_ModelReady" xml:space="preserve"><value>Modelo Kokoro ya descargado</value></data>
+  <data name="Wizard_Tts_DownloadPending" xml:space="preserve"><value>El modelo Kokoro (~88 MB) se descargar&#225; al hacer clic en Siguiente.</value></data>
   <data name="Wizard_ApiKeys_Title.Text" xml:space="preserve"><value>Claves API</value></data>
   <data name="Wizard_ApiKeys_Description.Text" xml:space="preserve"><value>Ingrese sus claves API para los servicios en la nube seleccionados. Las claves se almacenan de forma segura y cifrada.</value></data>
   <data name="Wizard_ApiKeys_SttTitle.Text" xml:space="preserve"><value>Clave API de Voz a Texto</value></data>

@@ -1852,6 +1852,47 @@
     <value>Retry</value>
   </data>
 
+  <!-- TTS page -->
+  <data name="Wizard_Tts_Title.Text" xml:space="preserve">
+    <value>Text-to-Speech</value>
+  </data>
+  <data name="Wizard_Tts_Description.Text" xml:space="preserve">
+    <value>Choose how dIKta.me reads text back to you. You can change this later in Settings.</value>
+  </data>
+  <data name="Wizard_Tts_Off_Title.Text" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Wizard_Tts_Off_Description.Text" xml:space="preserve">
+    <value>Skip for now. You can enable TTS later in Settings.</value>
+  </data>
+  <data name="Wizard_Tts_Cloud_Title.Text" xml:space="preserve">
+    <value>Cloud TTS</value>
+  </data>
+  <data name="Wizard_Tts_Cloud_Description.Text" xml:space="preserve">
+    <value>Uses wallet credits. Works immediately, no download needed.</value>
+  </data>
+  <data name="Wizard_Tts_Local_Title.Text" xml:space="preserve">
+    <value>Local (Kokoro)</value>
+  </data>
+  <data name="Wizard_Tts_Local_Description.Text" xml:space="preserve">
+    <value>~88 MB download. Fast, free, private. Runs entirely on your machine.</value>
+  </data>
+  <data name="Wizard_Tts_Downloading" xml:space="preserve">
+    <value>Downloading Kokoro model... {0}%</value>
+  </data>
+  <data name="Wizard_Tts_DownloadComplete" xml:space="preserve">
+    <value>Kokoro model ready</value>
+  </data>
+  <data name="Wizard_Tts_DownloadFailed" xml:space="preserve">
+    <value>Download failed: {0}. You can retry or choose a different option.</value>
+  </data>
+  <data name="Wizard_Tts_ModelReady" xml:space="preserve">
+    <value>Kokoro model already downloaded</value>
+  </data>
+  <data name="Wizard_Tts_DownloadPending" xml:space="preserve">
+    <value>Kokoro model (~88 MB) will be downloaded when you click Next.</value>
+  </data>
+
   <!-- API Keys page -->
   <data name="Wizard_ApiKeys_Title.Text" xml:space="preserve">
     <value>API Keys</value>
