@@ -33,23 +33,23 @@
 
 ### What exists right now
 
-A fully functional, native Windows AI dictation app. Complete rewrite from Python/Electron (V1) to C#/WinUI 3. One developer. 18+ months of work. 1,014 passing tests. Zero external funding.
+A fully functional, native Windows AI dictation app. Complete rewrite from Python/Electron (V1) to C#/WinUI 3. One developer. 3+ months of work. 1,014 passing tests. Zero external funding. 
 
-| Dimension | Status |
-|-----------|--------|
-| Core dictation (6 modes) | Shipped, stable |
-| Cloud providers (Deepgram, Gemini, OpenAI, Anthropic) | Shipped |
-| Local providers (Whisper.net, Ollama, Kokoro TTS) | Shipped |
-| Auth + Wallet system (Supabase + LemonSqueezy) | Shipped |
-| Vision module (screenshot + video + OCR + AI) | Shipped |
-| Quick Chat overlay | Shipped |
-| UI Revamp (3 themes, glassmorphic, waveform) | Shipped |
-| Website (dikta.me, Next.js, bilingual) | Live |
-| CI/CD pipeline (GitHub Actions, 11-step) | Running |
-| Unit tests | 1,014 passing |
-| **Installer** | **Not started** |
-| **Manual E2E testing** | **Partial** |
-| **CHANGELOG** | **Missing** |
+| Dimension                                             | Status          |
+| ----------------------------------------------------- | --------------- |
+| Core dictation (6 modes)                              | Shipped, stable |
+| Cloud providers (Deepgram, Gemini, OpenAI, Anthropic) | Shipped         |
+| Local providers (Whisper, Ollama, Kokoro TTS)         | Shipped         |
+| Auth + Wallet system (Supabase + LemonSqueezy)        | Shipped         |
+| Vision module (screenshot + video + OCR + AI)         | Shipped         |
+| Quick Chat overlay                                    | Shipped         |
+| UI Revamp (3 themes, glassmorphic, waveform)          | Shipped         |
+| Website (dikta.me, Next.js, bilingual)                | Live            |
+| CI/CD pipeline (GitHub Actions, 11-step)              | Running         |
+| Unit tests                                            | 1,014 passing   |
+| **Installer**                                         | **Not started** |
+| **Manual E2E testing**                                | **Partial**     |
+| **CHANGELOG**                                         | **Missing**     |
 
 ### What's blocking release
 
@@ -114,17 +114,17 @@ Exactly one hard blocker: **no installer**. Everything else is polish.
 
 These are designed, specced, and ready — but ship after V2.0 stabilizes:
 
-| Feature | Spec | Why Wait |
-|---------|------|----------|
-| Plugin architecture | SPEC_015 Phase 0B | Foundation for everything below |
-| Connectors (Obsidian, webhooks, Discord) | SPEC_013 / SPEC_015 | Needs plugin infra first |
-| Meeting Intelligence (Scribe) | SPEC_001 / SPEC_015 | Needs plugin infra first |
-| Memory Layer (semantic recall) | SPEC_014 / SPEC_015 | Needs plugin infra first |
-| Refinemmarly (Grammarly-killer) | SPEC_016 | V2.1 feature, depends on Memory |
-| Chaviz Voice Agent (Orchestrator) | SPEC_017 | V2.1+ feature, depends on everything |
-| Stream Deck integration | SPEC_005 | Low priority, quality-of-life |
-| Code signing (EV certificate) | — | ~$300/year, defer to revenue |
-| Auto-update mechanism | — | V2.1 |
+| Feature                                  | Spec                | Why Wait                             |
+| ---------------------------------------- | ------------------- | ------------------------------------ |
+| Plugin architecture                      | SPEC_015 Phase 0B   | Foundation for everything below      |
+| Connectors (Obsidian, webhooks, Discord) | SPEC_013 / SPEC_015 | Needs plugin infra first             |
+| Meeting Intelligence (Scribe)            | SPEC_001 / SPEC_015 | Needs plugin infra first             |
+| Memory Layer (semantic recall)           | SPEC_014 / SPEC_015 | Needs plugin infra first             |
+| Refinemmarly (Grammarly-killer)          | SPEC_016            | V2.1 feature, depends on Memory      |
+| Chaviz Voice Agent (Orchestrator)        | SPEC_017            | V2.1+ feature, depends on everything |
+| Stream Deck integration                  | SPEC_005            | Low priority, quality-of-life        |
+| Code signing (EV certificate)            | —                   | ~$300/year, defer to revenue         |
+| Auto-update mechanism                    | —                   | V2.1                                 |
 
 This is intentional. Ship the core. Prove the value. Add modules as updates that re-engage users.
 
@@ -156,13 +156,13 @@ Three forces working in our favor right now:
 
 ### Who's Buying
 
-| Segment | Size | Willingness to Pay | Our Fit |
-|---------|------|--------------------|---------|
-| Knowledge workers (devs, writers, researchers) | Large | High ($10-30/mo for tools) | Primary target |
-| Privacy-conscious professionals (legal, medical, consulting) | Medium | Very high | Strong (local-first) |
-| Accessibility users (RSI, motor disabilities) | Medium | Moderate | Natural fit |
-| Content creators / streamers | Growing | Moderate | Niche (Stream Deck, Discord) |
-| Non-English speakers (bilingual professionals) | Large | Moderate | Unique (EN/ES translate mode) |
+| Segment                                                      | Size    | Willingness to Pay         | Our Fit                                   |
+| ------------------------------------------------------------ | ------- | -------------------------- | ----------------------------------------- |
+| Knowledge workers (devs, writers, researchers)               | Large   | High ($10-30/mo for tools) | Primary target                            |
+| Privacy-conscious professionals (legal, medical, consulting) | Medium  | Very high                  | Strong (local-first)                      |
+| Accessibility users (RSI, motor disabilities)                | Medium  | Moderate                   | Natural fit                               |
+| Content creators / streamers                                 | Growing | Moderate                   | Niche (Stream Deck, Discord, Streamerbot) |
+| Non-English speakers (bilingual professionals)               | Large   | Moderate                   | Unique (EN/ES translate mode)             |
 
 ---
 
@@ -181,7 +181,7 @@ Three forces working in our favor right now:
 | **Vision AI** | No | No | No | No | No | No | No | No |
 | **Choose Model** | No | No | No | No | No | No | No | No |
 
-**dIKta.me: $20 once. Local-first. Voice + Vision + LLM. Choose your model.**
+**dIKta.me: $20 once. Local-first. Voice + Vision + Text Selection . Choose your model, choose your workflow.**
 
 ### Threat Level: Who Actually Competes With Us
 
@@ -287,14 +287,16 @@ Plugin architecture means the community can build what we haven't. Connectors, m
 
 | Stream | Price | What You Get | Type |
 |--------|-------|-------------|------|
-| **Free (MIT)** | $0 | Full source on GitHub. Build it yourself. Forever. | Open source |
-| **Power License** | $20 once | Installer + wallet credits + cloud routing + day-one updates. No subscription. Done. | One-time purchase |
+| **Free (Wallet)** | $0 + $1 promo credit | Full app, all modes, all UI — via cloud (Deepgram + Gemini). Slow but functional. The demo that hooks you. Top up anytime if cloud is all you need. | Free trial / pay-as-you-go |
+| **Power License** | $20 once | Everything above, plus: local STT (Whisper, 4x faster), local LLM (Ollama), local TTS (Kokoro), BYOK (bring your own API keys), full offline mode. One-time purchase. Yours forever. | One-time purchase |
 | **Ko-fi Supporter** | $2/mo | Early access (1 month ahead), vote on features, direct line to the builder. It's a donation, not a service contract — no SLA, no obligation. | Donation |
-| **Wallet credits** | $5-50 top-ups | Cloud STT + LLM without managing API keys (Deepgram + Gemini) | Pay-as-you-go |
+| **Wallet credits** | $5-50 top-ups | Cloud STT + LLM without managing API keys (Deepgram + Gemini). For free-tier users or Power users who want cloud as backup. | Pay-as-you-go |
 
-**Why MIT?** The code isn't the moat — the builder is. This app was built in 5-10 weeks by one person with no prior app dev experience. Anyone could rewrite it. MIT maximizes visibility (GitHub stars = free marketing), trust (privacy crowd can audit everything), and exit flexibility (go commercial on new code anytime, the MIT snapshot stays public as goodwill). A license you can't afford to enforce is worse than no license at all.
+**The conversion funnel:** Wallet (slow cloud demo, 60 sec setup) → "This is cool but slow" → Power License ($20) → Download Whisper (4x faster, free forever) → Maybe add Ollama (smarter) → Maybe add Kokoro (reads back). Each local layer is optional. Each makes it better. The latency IS the sales pitch.
 
-**Why Ko-fi, not a subscription?** It's a donation. Simpler tax treatment. No service obligation. $2 is impulse-level — people subscribe and forget. 150 supporters = $300/month = infrastructure costs + beer money. It builds the small loyal base that keeps the product alive. If maintenance stops, cancel the Ko-fi, nobody sues.
+**Why MIT?** The code isn't the moat — the builder is. MIT maximizes visibility (GitHub stars = free marketing), trust (privacy crowd can audit everything), and exit flexibility (go commercial on new code anytime). Building from source requires .NET 8 SDK + Visual Studio — maybe 5% of users. The other 95% need the installer, which is where the Power License lives.
+
+**Why Ko-fi, not a subscription?** It's a donation. Simpler tax treatment. No service obligation. $2 is impulse-level — people subscribe and forget. 150 supporters = $300/month = infrastructure costs + beer money. It builds the small loyal base that keeps the product alive.
 
 ### Scenario Projections
 
@@ -329,9 +331,9 @@ At current burn (~$1/month), we're effectively already profitable. The question 
 
 A knowledge worker paying for: Grammarly Pro ($12/mo) + Otter Pro ($10/mo) + ChatGPT Plus ($20/mo) + Granola ($14/mo) + Dragon ($15/mo) = **$71/month = $852/year**.
 
-dIKta.me: **$20 once + $0/month (local mode)**. Or $20 + ~$5/quarter for wallet credits.
+dIKta.me: **Free to try (cloud wallet). $20 once to go local (4x faster, offline, private forever)**. Or stay on wallet and top up — your call.
 
-This is the single most powerful sales argument. Use it everywhere.
+This is the single most powerful sales argument. Use it everywhere. The free trial hooks them. The latency sells the upgrade.
 
 ---
 
@@ -583,7 +585,7 @@ Offer free Power license + early access. No ask. If they like it, they'll cover 
 - **Support:** GitHub Issues for bugs, Discussions for feature requests
 - **Email list:** Add signup to dikta.me (use free tier of Buttondown, Resend, or similar)
 
-### Month 2-3: Momentum
+### Month 2: Momentum
 
 - **Ship V2.0.1-V2.0.x:** Bug fixes, UX improvements from user feedback
 - **Start plugin infra (SPEC_015 Phase 0B):** Tease "connectors coming soon"
@@ -591,14 +593,14 @@ Offer free Power license + early access. No ask. If they like it, they'll cover 
 - **Community building:** Discord or GitHub Discussions as community hub
 - **Referral program:** Give existing users 2 free Power license codes to share
 
-### Month 4-6: Modules
+### Month 3: Modules
 
 - **Ship Connectors plugin (V2.1):** Obsidian + webhooks + Discord
 - **Ship Refinemmarly (V2.1):** The Grammarly-killer angle
 - **Each module launch = mini-launch:** New Product Hunt update, new Reddit posts, new blog content
 - **Press:** Reach out to tech blogs with "one-person indie app replaces $71/month in AI subscriptions" angle
 
-### Month 6-12: Scale
+### Month 4-12: Scale
 
 - **Ship Memory + Scribe:** Platform becomes genuinely unique
 - **Microsoft Store listing:** Broader distribution
@@ -610,7 +612,7 @@ Offer free Power license + early access. No ask. If they like it, they'll cover 
 
 ## 13. V2.1 / V3 Vision
 
-### V2.1: The Module Drop (Q3-Q4 2026)
+### V2.1: The Module Drop (Q3 2026)
 
 | Module | What It Does | Competitive Kill Shot |
 |--------|-------------|----------------------|
@@ -619,7 +621,7 @@ Offer free Power license + early access. No ask. If they like it, they'll cover 
 | **Meeting Intelligence (Scribe)** | Record meeting, type rough notes, AI synthesizes minutes/action items by merging transcript + intent | Granola ($14/mo) and Fellow ($7-25/mo) but local-first, no bot, single app |
 | **Memory Layer** | Semantic recall that improves over time. Every dictation → embedding → context injection | The product gets smarter the more you use it. No competitor has this. |
 
-### V3: Chaviz (2027)
+### V3: Chaviz (Q3 2026)
 
 **The Orchestrator.** Codename: Chaviz. A conversational voice agent that:
 - Holds multi-turn voice conversations (push-to-talk, not always-listening)
@@ -690,16 +692,16 @@ These are conservative. The $3,000/month mark = full-time indie sustainability.
 
 ## 15. Risk Register
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| **SmartScreen blocks unsigned installer** | Users can't install | High (100% for new apps) | Document workaround in install guide + release notes. EV cert when revenue allows ($300/year). |
-| **Windows-only limits market** | Miss Mac/Linux users | Medium | Position as strength (native, fast, OS-integrated). Mac/Linux research in V3. |
-| **One developer = bus factor 1** | Everything stops | Medium | Comprehensive tests (1014), clean architecture, detailed specs. Source-available means community can fork. |
-| **Cloud API pricing changes** | Wallet economics break | Low | Multi-provider architecture. If Deepgram raises prices, switch to Gemini STT or add AssemblyAI. |
-| **Competitor ships similar feature** | Reduced differentiation | Low | Our moat is convergence (all-in-one), not any single feature. Hard to replicate the full pipeline. |
-| **Low initial traction** | Motivation risk | Medium | Set realistic expectations (100 users in 90 days is success). Focus on learning, not vanity metrics. |
-| **Wallet/payment issues** | Revenue blocked | Low | LemonSqueezy handles payments. Ko-fi as backup. Manual adapter for edge cases. |
-| **Local model quality varies** | User blame on dIKta.me | Medium | Clear guidance in wizard. "Cloud recommended for best results, local for privacy." |
+| Risk                                      | Impact                  | Probability              | Mitigation                                                                                                 |
+| ----------------------------------------- | ----------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| **SmartScreen blocks unsigned installer** | Users can't install     | High (100% for new apps) | Document workaround in install guide + release notes. EV cert when revenue allows ($300/year).             |
+| **Windows-only limits market**            | Miss Mac/Linux users    | Medium                   | Position as strength (native, fast, OS-integrated). Mac/Linux research in V3.                              |
+| **One developer = bus factor 1**          | Everything stops        | Medium                   | Comprehensive tests (1014), clean architecture, detailed specs. Source-available means community can fork. |
+| **Cloud API pricing changes**             | Wallet economics break  | Low                      | Multi-provider architecture. If Deepgram raises prices, switch to Gemini STT or add AssemblyAI.            |
+| **Competitor ships similar feature**      | Reduced differentiation | Low                      | Our moat is convergence (all-in-one), not any single feature. Hard to replicate the full pipeline.         |
+| **Low initial traction**                  | Motivation risk         | Medium                   | Set realistic expectations (100 users in 90 days is success). Focus on learning, not vanity metrics.       |
+| **Wallet/payment issues**                 | Revenue blocked         | Low                      | LemonSqueezy handles payments. Ko-fi as backup. Manual adapter for edge cases.                             |
+| **Local model quality varies**            | User blame on dIKta.me  | Medium                   | Clear guidance in wizard. "Cloud recommended for best results, local for privacy."                         |
 
 ---
 
@@ -707,7 +709,7 @@ These are conservative. The $3,000/month mark = full-time indie sustainability.
 
 ### Elevator Pitch (30 seconds)
 
-"dIKta.me is a native Windows app that turns your voice into finished text — in any app, at your cursor. It's not just dictation. You speak, AI refines, translates, answers questions, or takes notes. Runs fully locally or with cloud AI. One-time purchase, no subscription. Replaces $70/month in AI tools for $20."
+"dIKta.me is a native Windows app that turns your voice into finished text — in any app, at your cursor. It's not just dictation. You speak, AI refines, translates, answers questions, or takes notes, helps on Meetings, connects with other Apps. Runs fully locally or with cloud AI. One-time purchase, no subscription. Replaces $70/month in AI tools for $20."
 
 ### Short Pitch (2 minutes)
 
@@ -719,14 +721,14 @@ Eight workflow modes. Dictate. Refine your writing with your voice. Ask question
 
 The key difference: it runs locally. Whisper for speech-to-text, Ollama for the language model, Kokoro for text-to-speech. No cloud required. No data leaves your machine. Or use cloud providers if you prefer — Deepgram, Gemini, OpenAI, Anthropic. Your choice.
 
-One-time purchase. $20. No subscription. A typical knowledge worker pays $70/month across Grammarly, Otter, ChatGPT, Dragon, and meeting tools. dIKta.me does what all of them do, for $20 once.
+One-time purchase. $20. No subscription. A typical knowledge worker pays $70/month across Whispr Flow, Grammarly, Otter, Granola, and other tools. dIKta.me does what all of them do, for $20 once.
 
-We're launching V2.0 with the core dictation engine. Modules for meeting intelligence, app connectors, and semantic memory are shipping later this year. The platform gets smarter the more you use it."
+We're launching V2.0 with the core Dictation engine, full Vision module for screenshots and screen recording. Modules for meeting intelligence, app connectors, Personal Assistant and semantic Memory are shipping next quarter. The platform gets smarter the more you use it."
 
 ### One-Liner (for bios, taglines, social)
 
 - "Local-first AI dictation for Windows. Voice + Vision + LLM. $20, no subscription."
-- "Stop typing at AI. Just talk to it. dIKta.me."
+- "Stop typing at your AI Models. Just talk to them"
 - "8 voice AI modes. Any app. Any model. One price. dikta.me"
 
 ### For Investors / Advisors (if ever relevant)

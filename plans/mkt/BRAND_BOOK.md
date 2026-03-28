@@ -57,7 +57,7 @@ Not just a dictation app. Not just a grammar checker. Not a meeting recorder. No
 
 **Taglines (pick by context):**
 
-- *Stop typing at AI. Just use it.* — punchy, broad
+- *Stop typing at your AI models. Just talk to them.* — punchy, broad
 - *Work as fast as your mind, not your fingers.* — aspirational, warm
 - *Your voice. Your screen. Your AI.* — ownership, privacy angle
 - *One app. Every input. Any model.* — power user, anti-subscription
@@ -223,7 +223,7 @@ In running text, always write `dIKta.me`. In URLs, `dIKta.me`. In code or filena
 
 The tagline that pairs with the wordmark:
 
-> *Stop typing at AI. Just use it.*
+> *Stop typing at your AI models. Just talk to them.*
 
 ---
 
