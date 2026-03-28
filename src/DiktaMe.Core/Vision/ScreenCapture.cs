@@ -41,14 +41,18 @@ public static class ScreenCapture
         var pt = new NativeMethods.POINT { X = x, Y = y };
         IntPtr hMonitor = NativeMethods.MonitorFromPoint(pt, NativeMethods.MONITOR_DEFAULTTONEAREST);
         if (hMonitor == IntPtr.Zero)
+        {
             return null;
+        }
 
         var miEx = new NativeMethods.MONITORINFOEX
         {
             cbSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf<NativeMethods.MONITORINFOEX>(),
         };
         if (!NativeMethods.GetMonitorInfo(hMonitor, ref miEx))
+        {
             return null;
+        }
 
         return miEx.szDevice;
     }
