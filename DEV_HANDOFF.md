@@ -1,11 +1,12 @@
 # Developer Handoff
 
-## Next Session — Remaining Vision Polish
+## SPEC_002 Vision — COMPLETE ✅
 
-**Completed this session (2026-03-27):**
+**Completed this session (2026-03-27 evening):**
 - ✅ Default-to-Region: Hotkey enables region selection immediately (`be15f43`)
 - ✅ B6: CP shows "WORKING" + locks dictation hotkeys during video recording (`be15f43`)
-- ✅ B7: Video region recording border overlay with dim (`1316a31`) — Pure Win32 layered window, marching ants, dim outside region, excluded from capture. See [`plans/RECORD_AREA_LAYER.md`](plans/RECORD_AREA_LAYER.md) for the full 6-attempt journey.
+- ✅ B7: Video region recording border overlay with dim + marching ants (`1316a31`) — Pure Win32 layered window, excluded from capture. See [`plans/RECORD_AREA_LAYER.md`](plans/RECORD_AREA_LAYER.md)
+- ✅ UI: Removed Table button, reordered PostCapture (Save/OCR/Edit → Clip/Chat/Note), query step redesigned with square LOC/CLD/NON/Go buttons (`44e00cc`)
 - ❌ V7 (filler word removal): CANNED — too complex, too low value
 
 **Also pending:**
@@ -41,7 +42,12 @@
 | **Thinking state** | ✅ Shipped | ProgressRing + "Thinking..." during AI, buttons disabled |
 | **Edit action wired** | ✅ Shipped | Opens annotation editor from wizard, returns to PostCapture |
 | **ESC during full-screen recording** | ✅ Shipped | Polls VK_ESCAPE, stops recording, restores CP |
-| V7 Filler word removal | Pending | Post-STT cleanup. MEDIUM priority. |
+| **Default-to-Region** | ✅ Shipped | Hotkey enables selection immediately, CP buttons override |
+| **B6: WORKING status** | ✅ Shipped | StatusText + dictation lock during video recording |
+| **B7: Recording border** | ✅ Shipped | Win32 layered window, marching ants, dim, WDA_EXCLUDEFROMCAPTURE |
+| **PostCapture button reorder** | ✅ Shipped | Save/OCR/Edit (immediate) → Clip/Chat/Note (AI query). Table removed. |
+| **Query step redesign** | ✅ Shipped | Square LOC/CLD/NON/Go buttons, NON default, orange Go icon |
+| ~~V7 Filler word removal~~ | ❌ Canned | Too complex, too low value |
 
 ### Session Log (2026-03-27, evening session)
 
