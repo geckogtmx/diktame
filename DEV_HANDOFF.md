@@ -9,6 +9,12 @@
 - ✅ UI: Removed Table button, reordered PostCapture (Save/OCR/Edit → Clip/Chat/Note), query step redesigned with square LOC/CLD/NON/Go buttons (`44e00cc`)
 - ❌ V7 (filler word removal): CANNED — too complex, too low value
 
+**Next session — Vision Settings polish:**
+- Expose AI system prompts in Workflows > Vision settings (Cloud/Local tabs). Currently hardcoded in LoadingViewModel for OCR, Describe, Table, BugReport, Document actions. Users should be able to customize what the AI does with each action. See `HandleVisionOcrAsync` (line ~3478), `HandleVideoActionFromWizardAsync` (line ~2488), `HandleVisionClipboardAsync` (line ~2882) for the hardcoded prompts.
+- Audio device pickers (mic input + system output) — show available devices when toggle is on
+- Save folder configuration (currently hardcoded `%APPDATA%\DiktaMe\vision\`)
+- CP position memory (save/restore last position)
+
 **Also pending:**
 - Audit #3: Cloud provider retry (Polly). 2-3 hrs.
 - VG-4: Scrolling capture research (effort TBD — complex Win32 scroll-and-stitch)
