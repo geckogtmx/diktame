@@ -55,7 +55,7 @@ export function PricingSection() {
               </Link>
               <p className="text-xs text-muted mt-4 text-center">{t('freeTrialNote')}</p>
             </div>
-            {/* Power Version ($25) */}
+            {/* Full Version ($20) */}
             <div className="card !overflow-visible p-5 md:p-8 border-2 border-primary relative text-left flex flex-col  delay-300 shadow-glow">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-cta text-white border border-cta px-4 py-1 rounded-full text-xs font-medium uppercase tracking-widest animate-pulse">
                 {t('earlyBirdBadge')}

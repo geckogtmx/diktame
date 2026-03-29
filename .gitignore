@@ -55,6 +55,7 @@ TASKS.md
 CLAUDE.md
 GEMINI.md
 .agent/
+.agents/
 .claude/
 .auto-claude/
 

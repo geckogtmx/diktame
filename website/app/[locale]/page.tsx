@@ -14,8 +14,13 @@ import { VoiceMacrosSection } from '@/app/components/VoiceMacrosSection';
 import { TTSSection } from '@/app/components/TTSSection';
 import { LogoScroll } from '@/app/components/LogoScroll';
 import { PricingSection } from '@/app/components/PricingSection';
+import { CtaSeparator } from '@/app/components/CtaSeparator';
+import { FaqCard } from '@/app/components/FaqCard';
+import { useTranslations } from 'next-intl';
 
 export default function Home() {
+  const t = useTranslations('CtaSeparators');
+
   return (
     <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
@@ -29,8 +34,14 @@ export default function Home() {
       {/* Comparison */}
       <VersusSection />
 
+      {/* CTA: After comparison */}
+      <CtaSeparator text={t('afterVersus')} ctaLabel={t('afterVersusBtn')} ctaHref="/waitlist" variant="primary" />
+
       {/* Specs */}
       <SpecsSection />
+
+      {/* CTA: After specs */}
+      <CtaSeparator text={t('afterSpecs')} ctaLabel={t('afterSpecsBtn')} ctaHref="/waitlist" />
 
       {/* Bilingual Demo */}
       <BilingualSection />
@@ -50,8 +61,14 @@ export default function Home() {
       {/* TTS Demo */}
       <TTSSection />
 
+      {/* CTA: After demos */}
+      <CtaSeparator text={t('afterDemos')} ctaLabel={t('afterDemosBtn')} ctaHref="#pricing" variant="primary" />
+
       {/* Logo Scroll */}
       <LogoScroll />
+
+      {/* FAQ */}
+      <FaqCard />
 
       {/* Pricing */}
       <PricingSection />

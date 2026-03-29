@@ -90,6 +90,15 @@ export function VersusSection() {
                   <td className="py-2 px-2 md:py-4 md:px-6 text-muted">{t('row7Others')}</td>
                   <td className="py-2 px-2 md:py-4 md:px-6 text-primary font-bold">{t('row7DiktaMe')}</td>
                 </tr>
+                <tr
+                  id="vs-row-8"
+                  className={`transition-all duration-500 ${visibleRows >= 8 ? 'opacity-100 bg-white/5' : 'opacity-20'
+                    }`}
+                >
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-white font-medium">{t('row8Feature')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-muted">{t('row8Others')}</td>
+                  <td className="py-2 px-2 md:py-4 md:px-6 text-primary font-bold">{t('row8DiktaMe')}</td>
+                </tr>
               </tbody>
               <tfoot>
                 <tr>

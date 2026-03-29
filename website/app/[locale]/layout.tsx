@@ -135,7 +135,7 @@ export default async function LocaleLayout({
                   {
                     '@type': 'Question',
                     name: '¿Cuánto cuesta dIKta.me?',
-                    acceptedAnswer: { '@type': 'Answer', text: 'Prueba gratuita con créditos de cortesía. Licencia Power: $25 (pago único) para dictado local ilimitado, todas las funciones y actualizaciones de por vida. Sin suscripción.' },
+                    acceptedAnswer: { '@type': 'Answer', text: 'Prueba gratuita con créditos cloud incluidos. Versión Completa: $20 (pago único) para dictado local ilimitado, todas las funciones y actualizaciones de por vida. Sin suscripción.' },
                   },
                   {
                     '@type': 'Question',
@@ -161,7 +161,7 @@ export default async function LocaleLayout({
                   {
                     '@type': 'Question',
                     name: 'How much does dIKta.me cost?',
-                    acceptedAnswer: { '@type': 'Answer', text: 'Free trial with complimentary cloud credits included. Power License: $25 one-time purchase for unlimited local dictation, all voice modes, and lifetime updates. No subscription required.' },
+                    acceptedAnswer: { '@type': 'Answer', text: 'Free trial with cloud credits included. Full Version: $20 one-time purchase for unlimited local dictation, all voice modes, and lifetime updates. No subscription required.' },
                   },
                   {
                     '@type': 'Question',

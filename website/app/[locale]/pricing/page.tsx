@@ -54,8 +54,8 @@ export default async function PricingPage({
               },
               {
                 '@type': 'Offer',
-                name: locale === 'es' ? 'Licencia Power' : 'Power License',
-                price: '25',
+                name: locale === 'es' ? 'Versión Completa' : 'Full Version',
+                price: '20',
                 priceCurrency: 'USD',
                 availability: 'https://schema.org/InStock',
               },

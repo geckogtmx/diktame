@@ -27,14 +27,14 @@ export function useVersusScroll() {
       }
 
       if (scrollTop > scrollableHeight) {
-        setVisibleRows(7); // All 7 rows visible
+        setVisibleRows(8); // All 8 rows visible
         return;
       }
 
       const progress = scrollTop / scrollableHeight;
 
-      // Calculate visible rows: 0-7 based on progress
-      const rows = Math.min(Math.floor(progress * 7) + 1, 7);
+      // Calculate visible rows: 0-8 based on progress
+      const rows = Math.min(Math.floor(progress * 8) + 1, 8);
       setVisibleRows(rows);
     };
 

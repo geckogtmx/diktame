@@ -52,7 +52,7 @@ Single native Windows process, self-contained ~47 MB installer, local-first arch
 - Top-up via Ko-fi / LemonSqueezy payment webhooks
 - Supabase Edge Functions for managed STT/LLM proxying
 
-**Power License ($20, one-time)**
+**Full Version ($20, one-time)**
 - Unlocks local STT, LLM, TTS, and bring-your-own API keys
 - RSA-2048 signed keys, offline validation, no phone-home
 - DPAPI-encrypted storage, survives app restarts

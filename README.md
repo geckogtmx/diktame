@@ -24,7 +24,7 @@ dotnet build DiktaMe.sln -c Release
 dotnet run --project src/DiktaMe.App/DiktaMe.App.csproj
 ```
 
-**First run:** The wizard walks you through choosing cloud (free wallet) or local (Power License) providers.
+**First run:** The wizard walks you through choosing cloud (free trial) or local (Full Version) providers.
 
 ## Tech Stack
 
@@ -62,8 +62,8 @@ Plus: Vision/OCR (`Ctrl+Alt+S`), 16 custom prompt slots, voice snippets, audio d
 
 | Tier | Price | What You Get |
 |------|-------|-------------|
-| **Free (Wallet)** | $0 | Cloud STT + LLM via managed wallet. $1 credit on signup. |
-| **Power License** | $20 (one-time) | Unlocks local Whisper + Ollama + Kokoro TTS + BYOK API keys. |
+| **Free Trial** | $0 | Cloud STT + LLM with cloud credits included. |
+| **Full Version** | $20 (one-time) | Unlocks local Whisper + Ollama + Kokoro TTS + BYOK API keys. |
 | **Build from Source** | $0 | MIT licensed. Clone, build, run. No license needed. |
 
 ## Solution Structure

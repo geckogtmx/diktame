@@ -50,7 +50,7 @@ Nobody fixed the input.
 
 You type at roughly 60 words per minute. You speak at roughly 150. That gap — 2.5x — is time you spend transcribing thoughts instead of having them. And that's before you account for the backspacing, the corrections, the re-reads.
 
-But it's not just speed. It's context switching. Every time you move from your work tool to a chat window to ask the AI something, and then back, you pay a context tax. Research puts this at 15-20 minutes to fully recover focus after an interruption. You're interrupting yourself dozens of times per day just to use the tools that are supposed to make you faster.
+But it's not just speed. It's context switching. Every time you move from your work tool to a chat window to ask the AI something, and then back, you pay a context tax. It takes 15-20 minutes to fully recover focus after an interruption. You're interrupting yourself dozens of times per day just to use the tools that are supposed to make you faster.
 
 And the economics are absurd. A knowledge worker in 2026 might pay:
 
@@ -98,9 +98,9 @@ Plus vision: point at anything on your screen, ask a question, get an answer. Sc
 
 **The part that matters most: it runs locally.**
 
-Whisper V3 for speech-to-text. Ollama for the language model. Kokoro for text-to-speech. Three local AI models, all running on your GPU, none of them requiring internet access after the first download.
+Whisper V3 for speech-to-text. Ollama for the language model. Kokoro for text-to-speech. All on your GPU. Sub-second pipeline. No internet after the first download.
 
-Your voice never leaves your machine unless you choose cloud. Your documents don't get uploaded. Your API keys are encrypted with Windows DPAPI and never transmitted. The privacy controls go to four levels of granularity.
+Your voice never leaves your machine unless you choose cloud. Your documents don't get uploaded. Your API keys are encrypted with Windows DPAPI and never transmitted.
 
 This is not a privacy checkbox. It is the architecture.
 
@@ -112,13 +112,11 @@ If you want cloud speed, you can use Deepgram, Gemini, OpenAI, or Anthropic — 
 
 Because I don't believe you should pay rent on software that runs on your hardware.
 
-The code is MIT-licensed and on GitHub. You can read it, fork it, build it yourself. The $20 Power License is for people who want the installer and don't want to set up a .NET 8 build environment. That's a fair exchange.
+The code is MIT-licensed and on GitHub. You can read it, fork it, build it yourself. The Full Version is $20 for people who want the installer and don't want to set up a .NET 8 build environment. That's a fair exchange.
 
-There's also a free tier — the Wallet — that lets you try the full app with cloud credits before you decide anything. No credit card to start.
+There's a free trial that lets you try all 8 modes with cloud credits before you decide anything. No credit card to start.
 
 If you want to support the project beyond that, there's a Ko-fi for $2/month. It's a donation, not a service contract. No SLA. No obligation.
-
-The math against alternatives: five subscriptions at $73/month is $876/year. dIKta.me is $20 once, and the local AI stack runs at $0/month after that.
 
 ---
 
@@ -130,13 +128,13 @@ V2.1 adds connectors — route dictation output to Obsidian, webhooks, Discord, 
 
 After that: a memory layer. The product gets smarter the more you use it, because everything you say and select starts building context.
 
-The thesis is simple. AI is not a destination you travel to. It should be the environment you work inside. The input layer should feel invisible. Natural. Fast.
+AI is not a destination you travel to. It should be the environment you work inside.
 
-dIKta.me is the first piece of that.
+dIKta.me makes the input layer disappear.
 
 ---
 
-*dIKta.me V2.0 is available now at [dikta.me](https://dikta.me). Free to try. $20 to own.*
+*dIKta.me V2.0 is live at [dikta.me](https://dikta.me). Free to try. $20 to own.*
 
 *Built by Eduardo Garcia-Torres. One developer. Three months. 1,134 tests. MIT license.*
 
@@ -164,7 +162,7 @@ Nadie arregló la entrada.
 
 Escribes a unas 60 palabras por minuto. Hablas a unas 150. Esa brecha — 2.5x — es tiempo que pasas transcribiendo pensamientos en lugar de teniéndolos. Y eso es antes de contar los retrocesos, las correcciones, las releeruras.
 
-Pero no es solo velocidad. Es el cambio de contexto. Cada vez que pasas de tu herramienta de trabajo a una ventana de chat para preguntarle algo a la IA, y luego regresas, pagas un impuesto de contexto. La investigación estima que se tardan 15-20 minutos en recuperar el enfoque tras una interrupción. Te estás interrumpiendo docenas de veces al día solo para usar las herramientas que se supone que deben hacerte más rápido.
+Pero no es solo velocidad. Es el cambio de contexto. Cada vez que pasas de tu herramienta de trabajo a una ventana de chat para preguntarle algo a la IA, y luego regresas, pagas un impuesto de contexto. Toma entre 15 y 20 minutos recuperar el enfoque tras una interrupción. Te estás interrumpiendo docenas de veces al día solo para usar las herramientas que se supone deben hacerte más rápido.
 
 Y la economía es absurda. Un trabajador del conocimiento en 2026 podría pagar:
 
@@ -212,9 +210,9 @@ Más visión: apunta a cualquier cosa en tu pantalla, haz una pregunta, obtén u
 
 **La parte más importante: corre localmente.**
 
-Whisper V3 para voz a texto. Ollama para el modelo de lenguaje. Kokoro para texto a voz. Tres modelos de IA locales, todos corriendo en tu GPU, ninguno requiriendo acceso a internet después de la primera descarga.
+Whisper V3 para voz a texto. Ollama para el modelo de lenguaje. Kokoro para texto a voz. Todo en tu GPU. Pipeline sub-segundo. Sin internet después de la primera descarga.
 
-Tu voz nunca sale de tu máquina a menos que elijas la nube. Tus documentos no se suben. Tus claves API están cifradas con Windows DPAPI y nunca se transmiten. Los controles de privacidad llegan a cuatro niveles de granularidad.
+Tu voz nunca sale de tu máquina a menos que elijas la nube. Tus documentos no se suben. Tus claves API están cifradas con Windows DPAPI y nunca se transmiten.
 
 Esto no es una casilla de privacidad. Es la arquitectura.
 
@@ -226,13 +224,11 @@ Si quieres velocidad en la nube, puedes usar Deepgram, Gemini, OpenAI o Anthropi
 
 Porque no creo que debas pagar renta por software que corre en tu propio hardware.
 
-El código tiene licencia MIT y está en GitHub. Puedes leerlo, hacer un fork, compilarlo tú mismo. La Licencia Power de $20 es para personas que quieren el instalador y no quieren configurar un entorno de compilación de .NET 8. Eso es un intercambio justo.
+El código tiene licencia MIT y está en GitHub. Puedes leerlo, hacer un fork, compilarlo tú mismo. La Versión Completa cuesta $20 para quienes quieren el instalador y no quieren configurar un entorno de compilación de .NET 8. Eso es un intercambio justo.
 
-También hay un nivel gratuito — la Billetera — que te permite probar la app completa con créditos en la nube antes de decidir nada. Sin tarjeta de crédito para empezar.
+Hay una prueba gratis que te permite probar los 8 modos con créditos en la nube antes de decidir nada. Sin tarjeta de crédito para empezar.
 
 Si quieres apoyar el proyecto más allá de eso, hay un Ko-fi por $2/mes. Es una donación, no un contrato de servicio. Sin SLA. Sin obligaciones.
-
-La matemática frente a las alternativas: cinco suscripciones a $73/mes son $876/año. dIKta.me es $20 una vez, y el stack de IA local corre a $0/mes después de eso.
 
 ---
 
@@ -244,9 +240,9 @@ V2.1 añade conectores — enruta la salida del dictado a Obsidian, webhooks, Di
 
 Después de eso: una capa de memoria. El producto se vuelve más inteligente cuanto más lo usas, porque todo lo que dices y seleccionas empieza a construir contexto.
 
-La tesis es simple. La IA no es un destino al que viajas. Debe ser el entorno dentro del que trabajas. La capa de entrada debería sentirse invisible. Natural. Rápida.
+La IA no es un destino al que viajas. Debe ser el entorno dentro del que trabajas.
 
-dIKta.me es la primera pieza de eso.
+dIKta.me hace que la capa de entrada desaparezca.
 
 ---
 
@@ -326,8 +322,8 @@ Knowledge workers who live in productivity tools. Privacy-conscious professional
 
 **Pricing:**
 
-- Free Wallet tier — full app with $1 promo cloud credit, no credit card needed
-- Power License — $20 once. Local mode, BYOK, offline. Yours forever.
+- Free Trial — all 8 modes with cloud credits, no credit card needed
+- Full Version — $20 once. Local mode, BYOK, offline. Yours forever.
 - Ko-fi Supporter — $2/month, direct line to the builder, early access
 
 **What's next:** App connectors (Obsidian, Discord, webhooks), grammar checking pipeline (Grammarly-style, works in every app), meeting intelligence, semantic memory layer.
@@ -354,7 +350,7 @@ I've been in consulting and project management for 20 years. I'm bilingual (Engl
 
 So I rewrote my Python prototype from scratch in C#/WinUI 3. It took three months and 1,134 tests to get here.
 
-dIKta.me is free to try — sign in, get $1 in cloud credits, run the full app, see if it fits your workflow. If you want local AI (4x faster, offline, private), the Power License is $20 once.
+dIKta.me is free to try — sign in, try all 8 modes with cloud credits, see if it fits your workflow. If you want local AI (faster, offline, private), the Full Version is $20 once.
 
 I read every piece of feedback. Ask me anything.
 
@@ -427,8 +423,8 @@ I think that context is worth being transparent about.
 **Links:**
 
 - App: dikta.me
-- Free trial: sign in, get $1 cloud credits, run the full app
-- Power License: $20 one-time, local mode + BYOK + offline
+- Free trial: sign in, try all 8 modes with cloud credits
+- Full Version: $20 one-time, local mode + BYOK + offline
 
 Happy to answer questions about the architecture, the local AI integration, or anything else.
 
@@ -458,7 +454,7 @@ Privacy controls: 4 levels. Zero telemetry. API keys encrypted with Windows DPAP
 
 Eight hotkey-activated modes: Dictate, Refine (voice instructions on selected text), Ask (Q&A injected at cursor), Translate (EN↔ES), Note (→ markdown file), Read Selection (TTS), Vision (screenshot AI), Quick Chat overlay.
 
-Pricing: Free Wallet tier with cloud credits for trying it, $20 one-time for Power License (local mode, BYOK, full offline). MIT license, source on GitHub at launch.
+Pricing: Free Trial with cloud credits, $20 one-time for Full Version (local mode, BYOK, offline). MIT license, source on GitHub at launch.
 
 **Caveat:** Windows only right now. Mac would need different OS-level text injection.
 
@@ -490,7 +486,7 @@ No copy-paste. No context switching. No sidebar. Text appears where you're worki
 
 **The pricing:**
 
-- Free to try (Wallet tier, $1 cloud credit, full app)
+- Free to try (all modes, cloud credits included)
 - $20 one-time for local mode (Whisper + Ollama — 4x faster, offline, private)
 
 dikta.me if you want to check it out. Happy to answer questions about specific workflows.
@@ -503,7 +499,7 @@ dikta.me if you want to check it out. Happy to answer questions about specific w
 
 **Body:**
 
-Built dIKta.me — a native Windows app (C#/WinUI 3) that uses Ollama as the LLM backend for AI-enhanced dictation.
+Built dIKta.me — a native Windows app (C#/WinUI 3) that uses Ollama as the LLM backend for voice dictation.
 
 **The local pipeline:**
 
@@ -529,7 +525,7 @@ Full local mode runs at $0/month after the model downloads. Tested on RTX 3060 1
 
 Architecture is provider-agnostic — same interface for Ollama as for OpenAI/Anthropic/Gemini if you want cloud fallback.
 
-MIT license, source on GitHub at launch. Power License ($20 one-time) for the installer and pre-built binaries.
+MIT license, source on GitHub at launch. Full Version ($20 one-time) for the installer and pre-built binaries.
 
 ---
 
@@ -681,7 +677,7 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 >
 > I use this to fix emails I drafted too fast, condense meeting notes, and adapt the same paragraph for different audiences without switching apps.
 >
-> Local mode: Whisper + Ollama. Sub-2 second combined latency on a mid-range GPU.
+> Local mode: Whisper + Ollama. Sub-second combined latency on a mid-range GPU.
 >
 > dikta.me
 
@@ -697,7 +693,7 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 >
 > Lo uso para corregir correos que redacté demasiado rápido, condensar notas de reunión y adaptar el mismo párrafo para diferentes audiencias sin cambiar de app.
 >
-> Modo local: Whisper + Ollama. Latencia combinada menor a 2 segundos en una GPU de gama media.
+> Modo local: Whisper + Ollama. Latencia combinada sub-segundo en una GPU de gama media.
 >
 > dikta.me
 
@@ -709,7 +705,7 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 >
 > Refine Voice: select text, say "cut it in half" or "make this formal" → text rewrites in-place.
 >
-> Both run locally. Sub-2s latency. Any app.
+> Both run locally. Sub-second. Any app.
 >
 > dikta.me
 
@@ -721,7 +717,7 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 >
 > Refinar Voz: selecciona texto, di "córtalo a la mitad" o "hazlo más formal" → el texto se reescribe en su lugar.
 >
-> Ambos corren localmente. Latencia menor a 2s. Cualquier app.
+> Ambos corren localmente. Sub-segundo. Cualquier app.
 >
 > dikta.me
 
@@ -744,7 +740,7 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 > **TTS — Kokoro ONNX**
 > ~88MB download. Runs fully locally. 20+ voice styles. No cloud required for readback.
 >
-> Combined latency on a mid-range GPU: ~800ms for dictate+refine. That's fast enough to be invisible.
+> Combined latency on a mid-range GPU: sub-second for dictate+refine. Fast enough to be invisible.
 >
 > The architecture is provider-agnostic throughout — same interface for Ollama as for OpenAI or Gemini if you want cloud. Swap one setting.
 >
@@ -765,7 +761,7 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 > **TTS — Kokoro ONNX**
 > ~88MB de descarga. Corre completamente local. Más de 20 estilos de voz. Sin nube para la lectura de retorno.
 >
-> Latencia combinada en una GPU de gama media: ~800ms para dictar+refinar. Eso es suficientemente rápido para ser invisible.
+> Latencia combinada en una GPU de gama media: sub-segundo para dictar+refinar. Suficientemente rápido para ser invisible.
 >
 > La arquitectura es agnóstica al proveedor — misma interfaz para Ollama que para OpenAI o Gemini si quieres nube. Cambia una configuración.
 >
@@ -797,73 +793,57 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 
 ---
 
-### Day 4 — The $1,440/year problem (SaaS fatigue)
+### Day 4 — One app, one price
 
 **LinkedIn 🇺🇸**
 
-> **A typical knowledge worker's AI subscription stack in 2026:**
+> **How many AI subscriptions are you paying for right now?**
 >
-> - Grammarly Pro: $12/month
-> - Otter.ai: $10/month
-> - Dragon / other dictation: $15/month
-> - ChatGPT Plus: $20/month
-> - Granola / meeting AI: $14/month
+> Dictation. Grammar checking. Meeting notes. Chat assistant. Screenshot tools. Each one does one thing. Each one charges monthly. And you're still copy-pasting between all of them.
 >
-> That's $71/month. $852/year. To rent software that still requires you to copy-paste between all of it.
+> I built dIKta.me because I wanted one app that handled the whole input layer — voice, text selection, and vision — in whatever app I was already working in.
 >
-> dIKta.me does everything those five products do, in any app, from one hotkey. One-time price: $20.
+> Speak and get clean text at your cursor. Select text and have AI rewrite it in place. Ask a question without leaving your editor. Translate on the fly. Take voice notes to a file. Hear anything read aloud. Point at your screen and get answers.
 >
-> Or use local AI (Whisper + Ollama) and the running cost is $0/month after that.
+> All of that runs on your hardware. No cloud required. Free to try. $20 once for the Full Version.
 >
-> I'm not against SaaS. I use SaaS tools. But the model doesn't make sense when the AI inference can run on your own hardware for free. You're paying monthly for a wrapper around models you could run yourself.
->
-> The free trial is the free trial. No credit card to start. Try the full app with $1 in cloud credits. If local mode is 4x faster (it is), the Power License pays for itself in about 4 minutes of not waiting for cloud API calls.
+> Add up what you're paying monthly. Then try dIKta.me and see how many tools you still need.
 >
 > dikta.me
 
 **LinkedIn 🇪🇸**
 
-> **El stack de suscripciones de IA típico de un trabajador del conocimiento en 2026:**
+> **¿Cuántas suscripciones de IA estás pagando ahora mismo?**
 >
-> - Grammarly Pro: $12/mes
-> - Otter.ai: $10/mes
-> - Dragon / otro dictado: $15/mes
-> - ChatGPT Plus: $20/mes
-> - Granola / IA de reuniones: $14/mes
+> Dictado. Corrección gramatical. Notas de reunión. Asistente de chat. Herramientas de capturas. Cada una hace una cosa. Cada una cobra mensualmente. Y sigues copiando y pegando entre todas.
 >
-> Son $71/mes. $852/año. Por rentar software que todavía te obliga a copiar y pegar entre todos ellos.
+> Construí dIKta.me porque quería una sola app que manejara toda la capa de entrada — voz, selección de texto y visión — en cualquier app donde ya estuviera trabajando.
 >
-> dIKta.me hace todo lo que esos cinco productos hacen, en cualquier app, desde un solo atajo. Precio único: $20.
+> Habla y obtén texto limpio en tu cursor. Selecciona texto y la IA lo reescribe en su lugar. Haz una pregunta sin salir de tu editor. Traduce al vuelo. Toma notas de voz a un archivo. Escucha cualquier cosa leída en voz alta. Apunta a tu pantalla y obtén respuestas.
 >
-> O usa IA local (Whisper + Ollama) y el costo de operación es $0/mes después de eso.
+> Todo eso corre en tu hardware. Sin nube necesaria. Gratis para probar. $20 una vez por la Versión Completa.
 >
-> No estoy en contra del SaaS. Yo uso herramientas SaaS. Pero el modelo no tiene sentido cuando la inferencia de IA puede correr en tu propio hardware de forma gratuita. Estás pagando mensualmente por un envoltorio alrededor de modelos que podrías correr tú mismo.
->
-> La prueba gratuita es la prueba gratuita. Sin tarjeta de crédito para empezar. Prueba la app completa con $1 en créditos de nube. Si el modo local es 4x más rápido (lo es), la Licencia Power se paga sola en aproximadamente 4 minutos de no esperar llamadas a APIs en la nube.
+> Suma lo que pagas mensualmente. Luego prueba dIKta.me y ve cuántas herramientas sigues necesitando.
 >
 > dikta.me
 
 **X / Twitter 🇺🇸**
 
-> Grammarly + Otter + dictation app + ChatGPT + meeting AI = $71/month = $852/year.
+> How many AI subscriptions are you paying for right now?
 >
-> dIKta.me does all of it. One hotkey. Any app.
+> dIKta.me does dictation, grammar, translation, Q&A, vision, and TTS. One app. One hotkey. Any Windows app.
 >
-> One-time: $20. Local AI running cost: $0/month.
->
-> Stop renting.
+> Free to try. $20 once.
 >
 > dikta.me
 
 **X / Twitter 🇪🇸**
 
-> Grammarly + Otter + dictado + ChatGPT + IA de reuniones = $71/mes = $852/año.
+> ¿Cuántas suscripciones de IA estás pagando ahora mismo?
 >
-> dIKta.me hace todo eso. Un atajo. Cualquier app.
+> dIKta.me hace dictado, gramática, traducción, Q&A, visión y TTS. Una app. Un atajo. Cualquier app de Windows.
 >
-> Pago único: $20. Costo de IA local: $0/mes.
->
-> Deja de rentar.
+> Gratis para probar. $20 una vez.
 >
 > dikta.me
 
@@ -948,7 +928,7 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 > [Replace with actual metrics]
 >
 > Downloads: [X]
-> Power Licenses sold: [X]
+> Licenses sold: [X]
 > Product Hunt rank: [X]
 > GitHub stars: [X]
 > Most common feedback theme: [theme]
@@ -1014,6 +994,76 @@ MIT license, source on GitHub at launch. Power License ($20 one-time) for the in
 > Construyendo en público. Empieza la Semana 2.
 >
 > dikta.me
+
+---
+
+### Day 7 — What's next (forward-looking)
+
+**LinkedIn 🇺🇸**
+
+> **One week in. Here's what comes next.**
+>
+> dIKta.me V2.0 shipped with 8 voice modes, local AI, and vision. That's the foundation. Here's what I'm building on top of it.
+>
+> **Connectors** — route your dictation output to Obsidian, Notion, Discord, webhooks. Your voice goes where your tools are.
+>
+> **Grammar pipeline** — AI text refinement that works in every app, not just the ones with browser extensions.
+>
+> **Meeting intelligence** — merge voice notes with meeting transcripts. Get action items without a separate tool.
+>
+> **Memory layer** — the app learns your patterns. Context from previous sessions makes every dictation smarter.
+>
+> All of this builds on the same local-first architecture. Your data. Your hardware. No new subscriptions.
+>
+> If you haven't tried it yet: dikta.me — free trial, no card needed.
+>
+> If you have ideas for what should come first: I'm listening. Comments, DMs, GitHub issues — all of it.
+
+**LinkedIn 🇪🇸**
+
+> **Una semana después. Esto es lo que viene.**
+>
+> dIKta.me V2.0 salió con 8 modos de voz, IA local y visión. Esa es la base. Esto es lo que estoy construyendo encima.
+>
+> **Conectores** — enruta la salida del dictado a Obsidian, Notion, Discord, webhooks. Tu voz va donde están tus herramientas.
+>
+> **Pipeline de gramática** — refinamiento de texto con IA que funciona en cada app, no solo las que tienen extensiones de navegador.
+>
+> **Inteligencia de reuniones** — fusiona notas de voz con transcripciones de reuniones. Obtén elementos de acción sin una herramienta separada.
+>
+> **Capa de memoria** — la app aprende tus patrones. El contexto de sesiones anteriores hace cada dictado más inteligente.
+>
+> Todo esto se construye sobre la misma arquitectura local-first. Tus datos. Tu hardware. Sin nuevas suscripciones.
+>
+> Si aún no lo has probado: dikta.me — prueba gratis, sin tarjeta.
+>
+> Si tienes ideas sobre qué debería venir primero: estoy escuchando. Comentarios, DMs, issues en GitHub — todo cuenta.
+
+**X / Twitter 🇺🇸**
+
+> Week 1 done. What's next for dIKta.me:
+>
+> - Connectors (Obsidian, Notion, Discord)
+> - Grammar pipeline (works in every app)
+> - Meeting intelligence
+> - Memory layer
+>
+> Same local-first architecture. No new subscriptions.
+>
+> What should ship first? dikta.me
+
+**X / Twitter 🇪🇸**
+
+> Semana 1 completa. Lo que viene para dIKta.me:
+>
+> - Conectores (Obsidian, Notion, Discord)
+> - Pipeline de gramática (funciona en toda app)
+> - Inteligencia de reuniones
+> - Capa de memoria
+>
+> Misma arquitectura local-first. Sin nuevas suscripciones.
+>
+> ¿Qué debería salir primero? dikta.me
 
 ---
 
@@ -1107,7 +1157,7 @@ Spoken or title card: *"Most AI dictation tools send your voice to a server. Her
 - Same dictate + refine sequence as Video 1
 - This time, call it out explicitly: *"Watch the network — nothing is going out. This is running on my machine."*
 - Show Task Manager network graph briefly, or use a network monitor overlay — flat line during dictation is the proof
-- State your GPU: *"I'm on an RTX 3060 — about 800ms total for Whisper plus Ollama."*
+- State your GPU: *"I'm on an RTX 3060 — sub-second for Whisper plus Ollama."*
 
 **Part 6 — Wrap (30 sec)**
 - *"Free to try with cloud credits. $20 one-time for local mode. MIT license if you want to build from source."*
@@ -1116,7 +1166,7 @@ Spoken or title card: *"Most AI dictation tools send your voice to a server. Her
 **On-screen text to add in DaVinci Resolve:**
 - Part 3: `Whisper V3 Turbo · ~800MB · runs offline after download`
 - Part 4: `Ollama · gemma3:4b · ~2.5GB · $0/month`
-- Part 5: `~800ms total · Whisper + Ollama · no internet · RTX 3060`
+- Part 5: `Sub-second · Whisper + Ollama · no internet · RTX 3060`
 
 **Audacity notes:**
 - Record narration separately from screen capture if your streaming setup allows it — easier to re-record a line without re-recording the screen
@@ -2093,7 +2143,7 @@ These posts build the audience that buys V2.1. Each one earns trust independentl
 7. **Comparison: local vs cloud** — latency, accuracy, cost, privacy
 8. **Setup guide** (step-by-step for dIKta.me local mode)
 9. **FAQ** — "Can I run this without a GPU?", "Which Whisper model?", "Does Ollama need internet?"
-10. **Conclusion + CTA** → dikta.me Power License (local mode)
+10. **Conclusion + CTA** → dikta.me Full Version (local mode)
 
 ---
 
@@ -2120,7 +2170,7 @@ These posts build the audience that buys V2.1. Each one earns trust independentl
 8. **Security audit checklist** — how to verify an app is truly offline (network monitor, firewall rules)
 9. **Use case: legal / medical / consulting** — what compliance requires and how local AI satisfies it
 10. **FAQ** — "Does dIKta.me work on a plane?", "What happens if I lose internet mid-dictation?", "Can I block it from the internet in my firewall?"
-11. **Conclusion + CTA** → dikta.me Power License
+11. **Conclusion + CTA** → dikta.me Full Version
 
 ---
 
