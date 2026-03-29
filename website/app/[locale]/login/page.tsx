@@ -61,6 +61,15 @@ function LoginContent() {
                     <p className="text-gray-400">{t('subtitle')}</p>
                 </div>
 
+                <div className="mb-6 text-center text-sm text-gray-400">
+                    <p className="font-medium text-gray-300 mb-2">{t('benefitsIntro')}</p>
+                    <ul className="space-y-1">
+                        <li>&#10003; {t('benefit1')}</li>
+                        <li>&#10003; {t('benefit2')}</li>
+                        <li>&#10003; {t('benefit3')}</li>
+                    </ul>
+                </div>
+
                 <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700">
                     <Auth
                         supabaseClient={supabase}
@@ -96,14 +105,6 @@ function LoginContent() {
                     />
                 </div>
 
-                <div className="mt-6 text-center text-sm text-gray-500">
-                    <p>{t('benefitsIntro')}</p>
-                    <ul className="mt-2 space-y-1">
-                        <li>&#10003; {t('benefit1')}</li>
-                        <li>&#10003; {t('benefit2')}</li>
-                        <li>&#10003; {t('benefit3')}</li>
-                    </ul>
-                </div>
             </div>
         </div>
     )

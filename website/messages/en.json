@@ -856,11 +856,11 @@
   },
   "LoginPage": {
     "title": "dIKta.me",
-    "subtitle": "Sign in to your dIKta.me account",
-    "benefit1": "Your personal dIKta.me dashboard",
-    "benefit2": "Sync settings across devices",
-    "benefit3": "Free wallet credits included",
-    "benefitsIntro": "By signing up, you get:"
+    "subtitle": "Sign in or create your free account",
+    "benefit1": "Cloud credits to try all 8 modes",
+    "benefit2": "Your personal dashboard and history",
+    "benefit3": "No credit card required",
+    "benefitsIntro": "Your free account includes:"
   },
   "DashboardPage": {
     "welcomePrefix": "Welcome, ",

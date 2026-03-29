@@ -856,11 +856,11 @@
   },
   "LoginPage": {
     "title": "dIKta.me",
-    "subtitle": "Inicia sesión en tu cuenta dIKta.me",
-    "benefit1": "Tu panel personal de dIKta.me",
-    "benefit2": "Sincroniza configuración entre dispositivos",
-    "benefit3": "Cr\u00e9ditos de monedero gratuitos incluidos",
-    "benefitsIntro": "Al registrarte, obtienes:"
+    "subtitle": "Inicia sesi\u00f3n o crea tu cuenta gratis",
+    "benefit1": "Cr\u00e9ditos cloud para probar los 8 modos",
+    "benefit2": "Tu panel personal e historial",
+    "benefit3": "Sin tarjeta de cr\u00e9dito",
+    "benefitsIntro": "Tu cuenta gratis incluye:"
   },
   "DashboardPage": {
     "welcomePrefix": "Bienvenido, ",
