@@ -14,6 +14,8 @@
 | dIKta.me vs Aqua Voice | You vs Competitor | "aqua voice alternative", "aqua voice vs diktame" | P1 |
 | Dragon Alternatives | Plural alternatives | "dragon alternative", "dragon naturally speaking alternative 2026" | P1 |
 | dIKta.me vs Grammarly | You vs Competitor (adjacent) | "grammarly alternative for dictation" | P2 |
+| dIKta.me vs Loom | You vs Competitor (vision/capture) | "loom alternative for screenshots", "loom vs diktame" | P2 |
+| Screenshot AI Alternatives | Plural alternatives (vision) | "screenshot AI tool", "screen capture with AI" | P2 |
 
 ---
 
@@ -29,20 +31,20 @@ Wispr Flow is polished, cross-platform, and backed by $700M in valuation. dIKta.
 
 ### Comparison Table
 
-| | Wispr Flow | dIKta.me |
-|---|---|---|
-| **Price** | $12/mo ($144/year) | $20 once (early bird) |
-| **Platform** | Mac, Windows, iOS, Android | Windows (Mac planned V3) |
-| **Privacy** | Cloud-only, SOC 2 compliant | Local-first, air-gapped option |
-| **Offline mode** | No | Yes (Whisper + Ollama + Kokoro) |
-| **Choose your AI model** | No (proprietary) | Yes (4 STT, 5 LLM, 5 TTS providers) |
-| **Vision/Screenshot AI** | No | Yes (OCR, table extraction, describe) |
-| **Voice editing (Command Mode)** | Yes | Not yet (planned V2.1) |
-| **Enterprise compliance** | SOC 2, ISO 27001, HIPAA | MIT open source (self-audit) |
-| **Text injection** | At cursor, any app | At cursor, any app |
-| **AI post-processing** | Fixed pipeline | Configurable (16 custom prompt slots) |
-| **TTS read-back** | No | Yes (5 providers) |
-| **Open source** | No | Yes (MIT) |
+|                                  | Wispr Flow                  | dIKta.me                              |
+| -------------------------------- | --------------------------- | ------------------------------------- |
+| **Price**                        | $12/mo ($144/year)          | $20 once (early bird)                 |
+| **Platform**                     | Mac, Windows, iOS, Android  | Windows (Mac planned V3)              |
+| **Privacy**                      | Cloud-only, SOC 2 compliant | Local-first, air-gapped option        |
+| **Offline mode**                 | No                          | Yes (Whisper + Ollama + Kokoro)       |
+| **Choose your AI model**         | No (proprietary)            | Yes (4 STT, 5 LLM, 5 TTS providers)   |
+| **Vision/Screenshot AI**         | No                          | Yes (OCR, table extraction, describe) |
+| **Voice editing (Command Mode)** | Yes                         | Not yet (planned V2.1)                |
+| **Enterprise compliance**        | SOC 2, ISO 27001, HIPAA     | MIT open source (self-audit)          |
+| **Text injection**               | At cursor, any app          | At cursor, any app                    |
+| **AI post-processing**           | Fixed pipeline              | Configurable (16 custom prompt slots) |
+| **TTS read-back**                | No                          | Yes (5 providers)                     |
+| **Open source**                  | No                          | Yes (MIT)                             |
 
 ### Where Wispr Flow wins
 
@@ -249,6 +251,132 @@ Dragon was the gold standard for 20 years. But in 2026:
 
 ---
 
+## Page 5: dIKta.me vs Loom (Vision/Capture angle)
+
+**URL (future):** `/vs/loom`
+**Meta title:** dIKta.me vs Loom — Screen Capture That Understands What It Sees
+**Meta description:** Loom records your screen. dIKta.me reads it. Compare AI-powered screenshot analysis vs video recording for knowledge workers.
+
+### TL;DR
+
+Loom and dIKta.me both capture your screen, but for completely different reasons. Loom records video to share with teammates. dIKta.me screenshots to extract information — OCR, table data, visual Q&A — and puts the answer at your cursor. If you need to show someone what you're looking at, use Loom. If you need to understand what you're looking at, use dIKta.me.
+
+### Comparison Table
+
+| | Loom | dIKta.me |
+|---|---|---|
+| **Primary purpose** | Record and share screen videos | Capture screen and extract information with AI |
+| **Price** | Free (limited) / $15-24/user/mo | $20 once |
+| **Screen capture** | Video recording + screenshots | Region screenshot + AI analysis |
+| **AI features** | Transcription, summaries, filler removal | OCR, table extraction, visual Q&A, describe |
+| **Output** | Shareable video link | Text/data at your cursor |
+| **Local processing** | No (cloud-only) | Yes (minicpm-v via Ollama or Gemini cloud) |
+| **Voice input** | Narration over video | 8 dictation modes + voice commands |
+| **Works in any app** | Browser extension + desktop app | OS-level hotkey, any app |
+| **Platform** | Mac, Windows, iOS, Android, Chrome | Windows |
+
+### Where Loom wins
+
+- **Video communication.** Loom is built for sending screen recordings to people. Async video messaging, comments, reactions, viewer analytics. dIKta.me doesn't do video sharing.
+- **Cross-platform.** Works everywhere including mobile and browser.
+- **Team features.** Workspaces, shared libraries, viewer permissions, custom branding.
+- **Polish.** Atlassian-backed ($975M acquisition), mature product with years of refinement.
+
+### Where dIKta.me wins
+
+- **AI understanding.** Loom records what's on screen. dIKta.me reads it. Point at a chart and ask "what's the trend?" Point at a PDF and extract the text. Point at a table and get spreadsheet-ready data.
+- **Price.** $20 once vs $15-24/user/month.
+- **Local processing.** Vision AI runs on your GPU. No screenshots sent to the cloud unless you choose it.
+- **Not just capture.** Vision is one of 8 modes. You also get dictation, text refinement, translation, Q&A, notes, TTS, and chat — all from the same app.
+- **Instant output.** Results go to your cursor, not a video link. No waiting for someone to watch.
+
+### Who should use each
+
+**Loom:** Teams that communicate asynchronously via video. Product demos, bug reports with narration, team updates. The output is a shareable link.
+
+**dIKta.me:** Individuals who need to extract information from their screen quickly. Pull text from images, analyze charts, build tables from screenshots. The output is data at your cursor.
+
+### They're not really competitors
+
+Loom is a communication tool. dIKta.me is an input tool. You'd use Loom to show your manager a bug. You'd use dIKta.me to read the error message in the screenshot and ask your local LLM what it means. They solve different problems and could easily coexist on the same machine.
+
+The overlap is just "both involve your screen." The purpose is completely different.
+
+---
+
+## Page 6: Screenshot AI Alternatives (Vision angle)
+
+**URL (future):** `/alternatives/screenshot-ai`
+**Meta title:** Best Screenshot AI Tools in 2026 — Capture, Analyze, Extract
+**Meta description:** Compare AI screenshot tools that do more than just capture. dIKta.me, Loom, Descript, Guidde, and CleanShot X compared by AI features, pricing, and privacy.
+
+### Why people look for screenshot AI tools
+
+Screenshots are the most common way to grab information from your screen. But the workflow usually stops there: capture, paste into a chat, ask a question, copy the answer back. That's three app switches for one piece of information.
+
+People want tools that close the loop — capture something, understand it, and give you the answer where you need it.
+
+### The alternatives
+
+#### 1. dIKta.me — Best for extracting information from screenshots
+
+- **Price:** $20 one-time / Free trial
+- **Platform:** Windows
+- **What it does:** `Ctrl+Alt+S`, draw a region, choose: OCR (extract text), Table (extract structured data), Describe (AI explains what it sees), Chat (ask questions about the image), Note (voice note with image context). Results go to your cursor or chat overlay.
+- **AI processing:** Local (minicpm-v via Ollama) or cloud (Gemini). Your choice.
+- **Also does:** 8 voice modes (dictation, refinement, translation, Q&A, notes, TTS, chat) — vision is one piece of a larger AI input tool.
+- **Best for:** People who need to pull information from their screen into their workflow, privately.
+
+#### 2. Loom — Best for sharing screen recordings
+
+- **Price:** Free (limited) / $15-24/user/mo
+- **Platform:** All platforms
+- **What it does:** Records your screen with optional webcam, generates shareable links with transcription, comments, and analytics.
+- **AI features:** Auto-transcription, summaries, filler word removal, chapters.
+- **Best for:** Async team communication, bug reports, demos, walkthroughs.
+
+#### 3. Descript — Best for editing screen recordings
+
+- **Price:** Free (limited) / $24-50/user/mo
+- **Platform:** Mac, Windows
+- **What it does:** Record screen, edit video by editing the transcript. AI removes filler words, adds studio-quality audio, generates clips.
+- **AI features:** Text-based video editing, Studio Sound, eye contact correction, green screen, AI avatars.
+- **Best for:** Content creators, podcasters, and teams producing polished video from screen recordings.
+
+#### 4. Guidde — Best for auto-generating documentation
+
+- **Price:** Free (limited) / $18-39/creator/mo
+- **Platform:** Chrome extension, desktop
+- **What it does:** Records your workflow and automatically generates step-by-step documentation with AI narration and annotations.
+- **AI features:** Auto-generated how-to guides, 200+ AI voices, step detection.
+- **Best for:** Teams that need to document processes, create training materials, or build knowledge bases.
+
+#### 5. CleanShot X — Best screenshot tool (no AI)
+
+- **Price:** $29 one-time (Mac only)
+- **Platform:** Mac
+- **What it does:** 50+ capture features: scrolling screenshots, annotations, blur, screen recording, GIF export, cloud sharing.
+- **AI features:** None — pure capture and annotation.
+- **Best for:** Mac users who want the best screenshot/annotation tool without AI analysis.
+
+### Summary comparison
+
+| | Price | AI Analysis | Local/Private | Platform | Primary Use |
+|---|---|---|---|---|---|
+| **dIKta.me** | $20 once | OCR, tables, Q&A, describe | Yes | Windows | Extract info from screen |
+| **Loom** | $15-24/mo | Transcription, summaries | No | All | Share screen recordings |
+| **Descript** | $24-50/mo | Video editing, audio cleanup | No | Mac, Win | Edit screen recordings |
+| **Guidde** | $18-39/mo | Auto-documentation | No | Chrome, desktop | Generate how-to guides |
+| **CleanShot X** | $29 once | None | Yes (no cloud) | Mac | Capture and annotate |
+
+### The gap dIKta.me fills
+
+Most screenshot tools stop at capture. They give you an image file or a video link. You still have to do the thinking — read the text, interpret the chart, manually type the data into a spreadsheet.
+
+dIKta.me's vision pipeline closes that loop. Capture, understand, output — all in one hotkey. And because it runs locally, your screenshots never leave your machine.
+
+---
+
 ## Competitor Data (Centralized Reference)
 
 ### Wispr Flow
@@ -300,6 +428,45 @@ Dragon was the gold standard for 20 years. But in 2026:
 - **Key weakness:** Meetings only, cloud-only, subscription
 - **Best for:** Professionals who need meeting intelligence
 - **Not ideal for:** General dictation, non-meeting workflows
+
+### Loom
+- **Category:** Async video communication (vision-adjacent competitor)
+- **Pricing:** Free (25 videos, 5 min limit) / $15-24/user/mo
+- **Owner:** Atlassian ($975M acquisition)
+- **Platform:** Mac, Windows, iOS, Android, Chrome extension
+- **Key strength:** Polished async video sharing, team workspaces, viewer analytics
+- **Key weakness:** Records screens but doesn't understand them. No AI analysis of content. Cloud-only. Subscription.
+- **Best for:** Teams communicating asynchronously with screen recordings
+- **Not ideal for:** Anyone who needs to extract information from screenshots, solo users, privacy-conscious users
+
+### Descript
+- **Category:** AI video/audio editing (vision-adjacent competitor)
+- **Pricing:** Free (limited) / $24-50/user/mo
+- **Owner:** Independent (~$550M valuation)
+- **Platform:** Mac, Windows
+- **Key strength:** Edit video by editing text transcript. Studio Sound, AI avatars, eye contact correction.
+- **Key weakness:** Content creation tool, not information extraction. Cloud-dependent. Expensive for individuals.
+- **Best for:** Content creators, podcasters producing polished video
+- **Not ideal for:** People who need quick screen analysis, privacy-conscious users, budget-conscious individuals
+
+### Guidde
+- **Category:** AI video documentation (vision-adjacent competitor)
+- **Pricing:** Free (limited) / $18-39/creator/mo
+- **Funding:** ~$30M raised
+- **Platform:** Chrome extension, desktop
+- **Key strength:** Auto-generates step-by-step documentation from screen recordings. 200+ AI voices.
+- **Key weakness:** Documentation-specific. Cloud-only. Chrome-first.
+- **Best for:** Teams creating training materials and process documentation
+- **Not ideal for:** General screenshot analysis, privacy-conscious users, non-documentation use cases
+
+### CleanShot X
+- **Category:** Screenshot tool (vision-adjacent, Mac only)
+- **Pricing:** $29 one-time + $19/yr optional updates
+- **Platform:** Mac only
+- **Key strength:** 50+ capture features, scrolling screenshots, best-in-class annotations, GIF export
+- **Key weakness:** No AI analysis whatsoever. Mac-only. Capture and annotate, not understand.
+- **Best for:** Mac users wanting the best pure screenshot/annotation tool
+- **Not ideal for:** Anyone wanting AI analysis of screenshots, Windows users
 
 ---
 
