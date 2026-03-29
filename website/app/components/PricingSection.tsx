@@ -5,15 +5,16 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { FeaturesModal } from './FeaturesModal';
 
-export function PricingSection() {
+export function PricingSection({ asH1 = false }: { asH1?: boolean }) {
   const t = useTranslations('PricingSection');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const Heading = asH1 ? 'h1' : 'h2';
 
   return (
     <>
       <section id="pricing" className="py-32 px-4 relative bg-background">
         <div className="section-container text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">{t('title')}</h2>
+          <Heading className="text-4xl md:text-5xl font-bold mb-6 text-white">{t('title')}</Heading>
           <p className="text-xl text-muted mb-20  delay-100">
             {t('subtitle')}
           </p>

@@ -68,7 +68,7 @@ export default async function PricingPage({
 
       {/* Pricing Section starts at top */}
       <div className="pt-20">
-        <PricingSection />
+        <PricingSection asH1 />
       </div>
 
       <Footer />
