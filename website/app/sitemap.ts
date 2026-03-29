@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/waitlist',
     '/privacy',
     '/terms',
+    '/roadmap',
     '/docs',
   ];
 

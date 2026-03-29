@@ -85,6 +85,32 @@ export default async function FeaturesPage({
 
   return (
     <main id="main-content" className="min-h-screen bg-black text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: 'dIKta.me',
+            applicationCategory: 'ProductivityApplication',
+            operatingSystem: 'Windows 10, Windows 11',
+            description: locale === 'es'
+              ? 'Motor de dictado por voz con IA local para Windows. 8 modos de flujo de trabajo, local-first, agnóstico de modelo.'
+              : 'Local AI voice dictation engine for Windows. 8 workflow modes, local-first, model-agnostic.',
+            url: 'https://dikta.me',
+            offers: {
+              '@type': 'Offer',
+              price: '20',
+              priceCurrency: 'USD',
+              priceValidUntil: '2026-12-31',
+            },
+            featureList: locale === 'es'
+              ? 'Dictado por voz, Refinamiento de texto con IA, Preguntas y respuestas, Traducción EN/ES, Notas de voz, Texto a voz, Chat con IA, Visión/OCR'
+              : 'Voice dictation, AI text refinement, Q&A at cursor, EN/ES translation, Voice notes, Text-to-speech, AI chat, Vision/OCR',
+          }),
+        }}
+      />
+
       <Navbar />
 
       {/* Hero */}

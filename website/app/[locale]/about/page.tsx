@@ -35,6 +35,31 @@ export default async function AboutPage({
   const t = await getTranslations('AboutPage');
   return (
     <main className="min-h-screen bg-black text-white selection:bg-primary/30">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'dIKta.me',
+            url: 'https://dikta.me',
+            logo: 'https://dikta.me/icon.png',
+            description: locale === 'es'
+              ? 'Motor de dictado por voz con IA local para Windows. Construido por un desarrollador indie.'
+              : 'Local AI voice dictation engine for Windows. Built by a solo indie developer.',
+            founder: {
+              '@type': 'Person',
+              name: 'Eduardo Garcia-Torres',
+              url: 'https://www.linkedin.com/in/eduardogarciatorres/',
+            },
+            sameAs: [
+              'https://github.com/geckogtmx/diktame',
+              'https://ko-fi.com/geckogtmx',
+            ],
+          }),
+        }}
+      />
+
       <Navbar />
 
       <div className="relative pt-32 pb-20">
