@@ -7,18 +7,13 @@ import { type CreditRequest, resolveUserByEmail } from "../core.ts";
 /** Product ID → credit amount mapping (microdollars). */
 const PRODUCT_CREDIT_MAP: Record<string, number> = {
   // These IDs are configured in the LemonSqueezy dashboard.
-  // Update the keys when products are created.
   // Format: "product_id": amount_in_microdollars
-  // Starter: $5.00 credit ($6.50 checkout)
-  // Standard: $10.00 credit ($12.00 checkout)
-  // Pro: $20.00 credit ($24.00 checkout)
-  // Power: $50.00 credit ($60.00 checkout)
+  "910127": 0, // dIKtame App Full — Power License (no wallet credit, license only)
 };
 
 /** Product ID → license tier mapping. */
 const PRODUCT_TIER_MAP: Record<string, string> = {
-  // Populate when LemonSqueezy products are created:
-  // "product_id": "starter" | "power"
+  "910127": "power", // dIKtame App Full — Power License
 };
 
 /** Returns the license tier for a product, or null if not a license product. */

@@ -118,51 +118,43 @@ export async function resolveUserByEmail(
 }
 
 /**
- * Generate a formatted license key: DKTM-XXXX-XXXX-XXXX
- * Uses an unambiguous character set (no I/O/0/1).
- */
-function generateLicenseKey(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let key = "DKTM";
-  for (let i = 0; i < 3; i++) {
-    key += "-";
-    for (let j = 0; j < 4; j++) {
-      key += chars[Math.floor(Math.random() * chars.length)];
-    }
-  }
-  return key;
-}
-
-/**
- * Provision a license for a user after a purchase.
- * Inserts into the `licenses` table. Idempotent via order_ref.
+ * Provision a license for a user after a LemonSqueezy purchase.
+ * Updates the user's profile with the license tier. The actual license key
+ * lives in LemonSqueezy — the C# app validates it directly via their API.
+ * Idempotent via order_ref check.
  */
 export async function provisionLicense(
   userId: string,
   tier: string,
   orderRef: string,
-): Promise<{ key: string; duplicate: boolean }> {
+): Promise<{ success: boolean; duplicate: boolean }> {
   const db = createServiceClient();
 
-  // Dedup: check if license already exists for this order
+  // Dedup: check if this order was already processed
   const { data: existing } = await db
     .from("licenses")
-    .select("key")
+    .select("id")
     .eq("order_ref", orderRef)
     .maybeSingle();
 
   if (existing) {
-    return { key: existing.key, duplicate: true };
+    return { success: true, duplicate: true };
   }
 
-  const key = generateLicenseKey();
+  // Record the license in our table (for dashboard display + audit)
   await db.from("licenses").insert({
     user_id: userId,
-    key,
+    key: `ls_${orderRef}`, // Reference only — the real key is in LemonSqueezy
     status: "active",
     tier,
     order_ref: orderRef,
   });
 
-  return { key, duplicate: false };
+  // Update the user's profile tier (for dashboard display)
+  await db
+    .from("profiles")
+    .update({ license_tier: tier, license_status: "active" })
+    .eq("id", userId);
+
+  return { success: true, duplicate: false };
 }

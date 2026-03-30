@@ -88,24 +88,29 @@ Deno.serve(async (req: Request) => {
           return jsonResponse({ ok: true, skipped: true }, 200);
         }
 
-        const result = await processCredit(credit);
-
         // Provision license if product maps to a tier
         const tier = getProductTier(
           String(credit.metadata.product_id ?? ""),
         );
-        let licenseKey: string | undefined;
-        if (tier && result.success) {
-          const license = await provisionLicense(
+
+        // Process wallet credit (skip if amount is 0 — license-only product)
+        let result: Awaited<ReturnType<typeof processCredit>> = {
+          success: true,
+        };
+        if (credit.amount_micro > 0) {
+          result = await processCredit(credit);
+        }
+
+        if (tier) {
+          await provisionLicense(
             credit.user_id,
             tier,
             credit.order_ref,
           );
-          licenseKey = license.key;
         }
 
         return jsonResponse(
-          { ...result, license_key: licenseKey },
+          { ...result, license_provisioned: !!tier },
           result.success ? 200 : 422,
         );
       }

@@ -1,22 +1,32 @@
 
-using System.Security.Cryptography;
-using System.Text;
+using System.Globalization;
 using System.Text.Json;
 using Serilog;
 
 namespace DiktaMe.Core.Security;
 
 /// <summary>
-/// Manages Power License activation and validation.
+/// Manages Power License activation and validation via the LemonSqueezy License API.
 /// Free tier = Wallet (cloud only). Power License = local STT/LLM/TTS + BYOK.
-/// License keys are RSA-signed payloads validated offline with an embedded public key.
+/// License keys are LemonSqueezy GUIDs validated online against their public API.
 /// </summary>
 public sealed class LicenseManager
 {
-    private const string StorageKey = "license_key";
+    private const string LicenseKeyStorageKey = "license_key";
+    private const string InstanceIdStorageKey = "license_instance_id";
+
+    // LemonSqueezy License API (public — no API key needed)
+    private const string ActivateUrl = "https://api.lemonsqueezy.com/v1/licenses/activate";
+    private const string ValidateUrl = "https://api.lemonsqueezy.com/v1/licenses/validate";
+    private const string DeactivateUrl = "https://api.lemonsqueezy.com/v1/licenses/deactivate";
+
+    // Hard-coded store/product IDs for anti-piracy verification.
+    // Keys from other LemonSqueezy stores/products will be rejected.
+    private const int ExpectedStoreId = 277708;
+    private const int ExpectedProductId = 910127;
 
     private readonly SecureStorage _secureStorage;
-    private LicensePayload? _cachedPayload;
+    private readonly HttpClient _httpClient;
 
     /// <summary>Whether a valid Power License is active.</summary>
     public bool IsLicensed { get; private set; }
@@ -27,182 +37,269 @@ public sealed class LicenseManager
     /// <summary>Email associated with the license. Null if not licensed.</summary>
     public string? LicenseEmail { get; private set; }
 
+    /// <summary>Last error message from LemonSqueezy API. Null on success.</summary>
+    public string? LastError { get; private set; }
+
     /// <summary>Fired when license state changes (true = activated, false = deactivated).</summary>
     public event Action<bool>? LicenseStateChanged;
 
     public LicenseManager(SecureStorage secureStorage)
     {
         _secureStorage = secureStorage;
+        _httpClient = new HttpClient();
+        _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
     }
 
     /// <summary>
-    /// Loads license from DPAPI secure storage on startup. Call once during app init.
+    /// Loads license from DPAPI secure storage on startup.
+    /// If a stored key exists, trusts it (offline grace). Call <see cref="ValidateAsync"/> separately for online re-check.
     /// </summary>
     public void LoadFromStorage()
     {
-        string? storedKey = _secureStorage.RetrieveKey(StorageKey);
-        if (string.IsNullOrWhiteSpace(storedKey))
+        string? storedKey = _secureStorage.RetrieveKey(LicenseKeyStorageKey);
+        string? instanceId = _secureStorage.RetrieveKey(InstanceIdStorageKey);
+
+        if (string.IsNullOrWhiteSpace(storedKey) || string.IsNullOrWhiteSpace(instanceId))
         {
             IsLicensed = false;
             LicenseTier = null;
             LicenseEmail = null;
-            _cachedPayload = null;
             return;
         }
 
-        if (ValidateOffline(storedKey, out var payload))
-        {
-            IsLicensed = true;
-            LicenseTier = payload.Tier;
-            LicenseEmail = payload.Email;
-            _cachedPayload = payload;
-            Log.Information("LicenseManager: loaded valid license (tier={Tier}, email={Email})", payload.Tier, payload.Email);
-        }
-        else
-        {
-            // Stored key is invalid (corrupted or tampered) — clear it
-            IsLicensed = false;
-            LicenseTier = null;
-            LicenseEmail = null;
-            _cachedPayload = null;
-            _secureStorage.DeleteKey(StorageKey);
-            Log.Warning("LicenseManager: stored license key is invalid, cleared");
-        }
+        // Trust cached license on startup (offline grace).
+        // ValidateAsync() will re-verify online when called.
+        IsLicensed = true;
+        LicenseTier = "power";
+        Log.Information("LicenseManager: loaded cached license from storage");
     }
 
     /// <summary>
-    /// Activates a license key. Validates offline, stores in DPAPI if valid.
+    /// Activates a LemonSqueezy license key. Calls the LemonSqueezy License API,
+    /// verifies store/product ownership, and stores the key + instance ID in DPAPI.
     /// </summary>
-    /// <returns>True if the key is valid and was activated.</returns>
-    public bool Activate(string licenseKey)
+    /// <returns>True if the key was activated successfully.</returns>
+    public async Task<bool> ActivateAsync(string licenseKey)
     {
+        LastError = null;
+
         if (string.IsNullOrWhiteSpace(licenseKey))
         {
+            LastError = "Please enter a license key.";
             return false;
         }
 
         string trimmed = licenseKey.Trim();
 
-        if (!ValidateOffline(trimmed, out var payload))
+        try
         {
-            Log.Warning("LicenseManager: activation failed — invalid key");
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["license_key"] = trimmed,
+                ["instance_name"] = Environment.MachineName.Length >= 3
+                    ? Environment.MachineName
+                    : Environment.MachineName + "-PC",
+            });
+
+            using var response = await _httpClient.PostAsync(ActivateUrl, content).ConfigureAwait(false);
+            string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            Log.Information("LicenseManager: activate response ({StatusCode}): {Json}", (int)response.StatusCode, json);
+
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            bool valid = root.TryGetProperty("activated", out var activatedProp) && activatedProp.GetBoolean();
+
+            // Also accept "valid" field (validate endpoint uses this)
+            if (!valid)
+            {
+                valid = root.TryGetProperty("valid", out var validProp) && validProp.GetBoolean();
+            }
+
+            if (!valid)
+            {
+                string? error = root.TryGetProperty("error", out var errProp) ? errProp.GetString() : null;
+                LastError = error ?? "License key could not be activated.";
+                Log.Warning("LicenseManager: activation failed — {Error}", LastError);
+                return false;
+            }
+
+            // Verify this key belongs to our store and product
+            if (!VerifyOwnership(root))
+            {
+                LastError = "This license key is not valid for dIKta.me.";
+                Log.Warning("LicenseManager: activation failed — store/product mismatch");
+                return false;
+            }
+
+            // Extract instance ID
+            string? instanceId = null;
+            if (root.TryGetProperty("instance", out var instanceProp) && instanceProp.ValueKind == JsonValueKind.Object)
+            {
+                instanceId = instanceProp.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
+            }
+
+            // Extract email from meta
+            string? email = null;
+            if (root.TryGetProperty("meta", out var metaProp) && metaProp.ValueKind == JsonValueKind.Object)
+            {
+                email = metaProp.TryGetProperty("customer_email", out var emailProp) ? emailProp.GetString() : null;
+            }
+
+            // Store in DPAPI
+            _secureStorage.StoreKey(LicenseKeyStorageKey, trimmed);
+            if (!string.IsNullOrEmpty(instanceId))
+            {
+                _secureStorage.StoreKey(InstanceIdStorageKey, instanceId);
+            }
+
+            IsLicensed = true;
+            LicenseTier = "power";
+            LicenseEmail = email;
+
+            Log.Information("LicenseManager: license activated (email={Email}, instanceId={InstanceId})", email, instanceId);
+            LicenseStateChanged?.Invoke(true);
+            return true;
+        }
+        catch (HttpRequestException ex)
+        {
+            LastError = "Could not reach license server. Check your internet connection.";
+            Log.Warning(ex, "LicenseManager: activation failed — network error");
             return false;
         }
-
-        _secureStorage.StoreKey(StorageKey, trimmed);
-        IsLicensed = true;
-        LicenseTier = payload.Tier;
-        LicenseEmail = payload.Email;
-        _cachedPayload = payload;
-
-        Log.Information("LicenseManager: license activated (tier={Tier}, email={Email})", payload.Tier, payload.Email);
-        LicenseStateChanged?.Invoke(true);
-        return true;
+        catch (Exception ex)
+        {
+            LastError = "License activation failed. Please try again.";
+            Log.Warning(ex, "LicenseManager: activation failed — unexpected error");
+            return false;
+        }
     }
 
     /// <summary>
-    /// Deactivates the current license and removes it from storage.
+    /// Re-validates the stored license key online.
+    /// Call during startup (after LoadFromStorage). On network failure, keeps cached state.
     /// </summary>
-    public void Deactivate()
+    public async Task ValidateAsync()
     {
-        _secureStorage.DeleteKey(StorageKey);
-        IsLicensed = false;
-        LicenseTier = null;
-        LicenseEmail = null;
-        _cachedPayload = null;
+        string? storedKey = _secureStorage.RetrieveKey(LicenseKeyStorageKey);
+        string? instanceId = _secureStorage.RetrieveKey(InstanceIdStorageKey);
 
+        if (string.IsNullOrWhiteSpace(storedKey))
+        {
+            return; // No stored license — nothing to validate
+        }
+
+        try
+        {
+            var fields = new Dictionary<string, string> { ["license_key"] = storedKey };
+            if (!string.IsNullOrEmpty(instanceId))
+            {
+                fields["instance_id"] = instanceId;
+            }
+
+            var content = new FormUrlEncodedContent(fields);
+            using var response = await _httpClient.PostAsync(ValidateUrl, content).ConfigureAwait(false);
+            string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            bool valid = root.TryGetProperty("valid", out var validProp) && validProp.GetBoolean();
+
+            if (valid && VerifyOwnership(root))
+            {
+                IsLicensed = true;
+                LicenseTier = "power";
+
+                if (root.TryGetProperty("meta", out var metaProp) && metaProp.ValueKind == JsonValueKind.Object)
+                {
+                    LicenseEmail = metaProp.TryGetProperty("customer_email", out var emailProp) ? emailProp.GetString() : null;
+                }
+
+                Log.Debug("LicenseManager: online validation passed");
+            }
+            else
+            {
+                // License is no longer valid — deactivate locally
+                string? error = root.TryGetProperty("error", out var errProp) ? errProp.GetString() : null;
+                Log.Warning("LicenseManager: online validation failed ({Error}) — deactivating", error);
+                ClearLocal();
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            // Network error — trust cached state (offline grace)
+            Log.Debug(ex, "LicenseManager: validation skipped — offline, keeping cached state");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "LicenseManager: validation error — keeping cached state");
+        }
+    }
+
+    /// <summary>
+    /// Deactivates the current license locally and releases the instance on LemonSqueezy.
+    /// </summary>
+    public async Task DeactivateAsync()
+    {
+        string? storedKey = _secureStorage.RetrieveKey(LicenseKeyStorageKey);
+        string? instanceId = _secureStorage.RetrieveKey(InstanceIdStorageKey);
+
+        // Try to release the instance on LemonSqueezy (best-effort)
+        if (!string.IsNullOrEmpty(storedKey) && !string.IsNullOrEmpty(instanceId))
+        {
+            try
+            {
+                var content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["license_key"] = storedKey,
+                    ["instance_id"] = instanceId,
+                });
+                await _httpClient.PostAsync(DeactivateUrl, content).ConfigureAwait(false);
+                Log.Information("LicenseManager: instance deactivated on LemonSqueezy");
+            }
+            catch (Exception ex)
+            {
+                Log.Debug(ex, "LicenseManager: failed to deactivate on LemonSqueezy (best-effort)");
+            }
+        }
+
+        ClearLocal();
         Log.Information("LicenseManager: license deactivated");
         LicenseStateChanged?.Invoke(false);
     }
 
     /// <summary>
-    /// Validates a license key offline using the embedded RSA public key.
-    /// Key format: {base64_payload}.{base64_signature}
+    /// Synchronous deactivate for backward compat (fire-and-forget the API call).
     /// </summary>
-    public static bool ValidateOffline(string licenseKey, out LicensePayload payload)
+    public void Deactivate()
     {
-        payload = default;
-
-        try
-        {
-            int dotIndex = licenseKey.IndexOf('.', StringComparison.Ordinal);
-            if (dotIndex < 1 || dotIndex >= licenseKey.Length - 1)
-            {
-                return false;
-            }
-
-            string payloadB64 = licenseKey[..dotIndex];
-            string signatureB64 = licenseKey[(dotIndex + 1)..];
-
-            byte[] payloadBytes = Convert.FromBase64String(payloadB64);
-            byte[] signatureBytes = Convert.FromBase64String(signatureB64);
-
-            // Verify signature with embedded public key
-            using var rsa = RSA.Create();
-            rsa.ImportFromPem(EmbeddedPublicKey);
-
-            bool valid = rsa.VerifyData(
-                payloadBytes,
-                signatureBytes,
-                HashAlgorithmName.SHA256,
-                RSASignaturePadding.Pkcs1);
-
-            if (!valid)
-            {
-                return false;
-            }
-
-            // Deserialize payload (manual parse to avoid IL2026 trim warning)
-            string json = Encoding.UTF8.GetString(payloadBytes);
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-
-            string? tier = root.TryGetProperty("tier", out var t) ? t.GetString() : null;
-            if (tier is null)
-            {
-                return false;
-            }
-
-            payload = new LicensePayload
-            {
-                Email = root.TryGetProperty("email", out var e) ? e.GetString() : null,
-                Tier = tier,
-                IssuedAt = root.TryGetProperty("issued_at", out var i) ? i.GetString() : null,
-                OrderRef = root.TryGetProperty("order_ref", out var o) ? o.GetString() : null,
-            };
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Log.Debug(ex, "LicenseManager: key validation failed");
-            return false;
-        }
+        _ = DeactivateAsync();
     }
 
-    // ── Embedded RSA Public Key ──────────────────────────────────────────────
-    // The private key lives in the Supabase edge function (generate-license).
-    // This public key is safe to embed — it can only VERIFY, not SIGN.
-    // Replace this placeholder with the actual public key before release.
-    private const string EmbeddedPublicKey = """
-        -----BEGIN PUBLIC KEY-----
-        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxznC0hiqYR1ynS/bWzpd
-        bUEnCyEbtKWHzPq6QzbXT3LwkaJa9jaJZETvH61aJ7jz1cl+Jlbf67LgLmEjDbK+
-        +swWGkvhsKElEyeFE7QH9rU5/gA4PhcyiJvedvhkWYl5ODGArE4uwm4IovCfAJuM
-        u7UrfIoeAVw9CYGTeX+Wispwzwl6Y93EaVoeQldsXBMFFvvXW1HMN7VHBp53qu5A
-        8shnjzCMeA/+H5poHLreFc4x8HGjPFXdZsoXE04BHRpnQyekpYZsHPLylCi2PwqK
-        p2VPiuPE6HQV8h4oTNM6zaRoauGRfDdCLQRubIbawWk5UxCJdTXdJ+9+kLkcRULq
-        2wIDAQAB
-        -----END PUBLIC KEY-----
-        """;
-}
+    /// <summary>
+    /// Verifies the license key belongs to our store and product.
+    /// </summary>
+    private static bool VerifyOwnership(JsonElement root)
+    {
+        // store_id and product_id are in the "meta" object
+        if (!root.TryGetProperty("meta", out var metaProp) || metaProp.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
 
-/// <summary>
-/// Payload embedded in the license key (JSON, base64-encoded, RSA-signed).
-/// </summary>
-public record struct LicensePayload
-{
-    public string? Email { get; init; }
-    public string? Tier { get; init; }
-    public string? IssuedAt { get; init; }
-    public string? OrderRef { get; init; }
+        int storeId = metaProp.TryGetProperty("store_id", out var storeProp) ? storeProp.GetInt32() : 0;
+        int productId = metaProp.TryGetProperty("product_id", out var productProp) ? productProp.GetInt32() : 0;
+
+        return storeId == ExpectedStoreId && productId == ExpectedProductId;
+    }
+
+    private void ClearLocal()
+    {
+        _secureStorage.DeleteKey(LicenseKeyStorageKey);
+        _secureStorage.DeleteKey(InstanceIdStorageKey);
+        IsLicensed = false;
+        LicenseTier = null;
+        LicenseEmail = null;
+    }
 }

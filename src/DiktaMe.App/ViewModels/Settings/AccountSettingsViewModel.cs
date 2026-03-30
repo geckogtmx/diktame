@@ -50,7 +50,7 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ActivateLicense()
+    private async Task ActivateLicenseAsync()
     {
         if (string.IsNullOrWhiteSpace(LicenseKeyInput))
         {
@@ -58,7 +58,10 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
             return;
         }
 
-        if (_licenseManager.Activate(LicenseKeyInput.Trim()))
+        LicenseStatusText = "Activating...";
+
+        bool success = await _licenseManager.ActivateAsync(LicenseKeyInput.Trim());
+        if (success)
         {
             IsLicensed = true;
             LicenseStatusText = _loc.GetString("License_Activated");
@@ -67,7 +70,7 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
         }
         else
         {
-            LicenseStatusText = _loc.GetString("License_InvalidKey");
+            LicenseStatusText = _licenseManager.LastError ?? _loc.GetString("License_InvalidKey");
         }
     }
 
@@ -88,9 +91,9 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void DeactivateLicense()
+    private async Task DeactivateLicenseAsync()
     {
-        _licenseManager.Deactivate();
+        await _licenseManager.DeactivateAsync();
         IsLicensed = false;
         LicenseStatusText = "";
         Log.Information("AccountSettings: Power License deactivated");
