@@ -1,10 +1,13 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { Plus_Jakarta_Sans } from 'next/font/google';
+import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { locales } from '@/i18n/config';
 import '../globals.css';
+
+const GA_ID = 'G-VYLRMHENMK';
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ['latin'] });
 
@@ -78,6 +81,13 @@ export default async function LocaleLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta name="theme-color" content="#020617" />
         <link rel="canonical" href={locale === 'en' ? 'https://dikta.me' : 'https://dikta.me/es'} />
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');`}
+        </Script>
       </head>
       <body className={plusJakarta.className}>
         <script
