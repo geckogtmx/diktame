@@ -49,7 +49,7 @@ public sealed class SecureStorage
         // Internal (auth JWT + refresh token)
         "trial_token", "refresh_token",
         // License key (Power License activation via LemonSqueezy)
-        "license_key", "license_instance_id",
+        "license_key", "license_instance_id", "license_last_validated",
     };
 
     // ── Public API ────────────────────────────────────────────────────────────

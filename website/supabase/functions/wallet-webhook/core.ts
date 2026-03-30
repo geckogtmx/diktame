@@ -144,7 +144,7 @@ export async function provisionLicense(
   // Record the license in our table (for dashboard display + audit)
   await db.from("licenses").insert({
     user_id: userId,
-    key: `ls_${orderRef}`, // Reference only — the real key is in LemonSqueezy
+    key: orderRef, // Reference only — the real key is in LemonSqueezy
     status: "active",
     tier,
     order_ref: orderRef,

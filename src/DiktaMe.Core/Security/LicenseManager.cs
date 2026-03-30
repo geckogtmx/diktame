@@ -14,6 +14,8 @@ public sealed class LicenseManager
 {
     private const string LicenseKeyStorageKey = "license_key";
     private const string InstanceIdStorageKey = "license_instance_id";
+    private const string LastValidatedStorageKey = "license_last_validated";
+    private const int OfflineGraceDays = 30;
 
     // LemonSqueezy License API (public — no API key needed)
     private const string ActivateUrl = "https://api.lemonsqueezy.com/v1/licenses/activate";
@@ -46,7 +48,7 @@ public sealed class LicenseManager
     public LicenseManager(SecureStorage secureStorage)
     {
         _secureStorage = secureStorage;
-        _httpClient = new HttpClient();
+        _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
     }
 
@@ -67,11 +69,23 @@ public sealed class LicenseManager
             return;
         }
 
-        // Trust cached license on startup (offline grace).
+        // Check offline grace period — if last validation was >30 days ago, don't trust cache
+        string? lastValidated = _secureStorage.RetrieveKey(LastValidatedStorageKey);
+        if (!string.IsNullOrEmpty(lastValidated)
+            && DateTime.TryParse(lastValidated, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.RoundtripKind, out var lastDate)
+            && (DateTime.UtcNow - lastDate).TotalDays > OfflineGraceDays)
+        {
+            Log.Warning("LicenseManager: offline grace period expired ({Days} days since last validation)", (int)(DateTime.UtcNow - lastDate).TotalDays);
+            ClearLocal();
+            return;
+        }
+
+        // Trust cached license on startup (within grace period).
         // ValidateAsync() will re-verify online when called.
         IsLicensed = true;
         LicenseTier = "power";
-        Log.Information("LicenseManager: loaded cached license from storage");
+        Log.Information("LicenseManager: loaded cached license from storage (grace period OK)");
     }
 
     /// <summary>
@@ -153,6 +167,8 @@ public sealed class LicenseManager
                 _secureStorage.StoreKey(InstanceIdStorageKey, instanceId);
             }
 
+            _secureStorage.StoreKey(LastValidatedStorageKey, DateTime.UtcNow.ToString("O", System.Globalization.CultureInfo.InvariantCulture));
+
             IsLicensed = true;
             LicenseTier = "power";
             LicenseEmail = email;
@@ -210,6 +226,7 @@ public sealed class LicenseManager
             {
                 IsLicensed = true;
                 LicenseTier = "power";
+                _secureStorage.StoreKey(LastValidatedStorageKey, DateTime.UtcNow.ToString("O", System.Globalization.CultureInfo.InvariantCulture));
 
                 if (root.TryGetProperty("meta", out var metaProp) && metaProp.ValueKind == JsonValueKind.Object)
                 {
