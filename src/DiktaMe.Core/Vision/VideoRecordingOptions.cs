@@ -20,6 +20,12 @@ public sealed record VideoRecordingOptions
     /// <summary>Capture system/desktop audio via WASAPI loopback. Default true (V4). Mixes with mic if both enabled.</summary>
     public bool EnableSystemAudio { get; init; } = true;
 
+    /// <summary>Microphone device name for ScreenRecorderLib. Null/empty = system default.</summary>
+    public string? MicDeviceName { get; init; }
+
+    /// <summary>System audio output device name for ScreenRecorderLib loopback. Null/empty = system default.</summary>
+    public string? SystemAudioDeviceName { get; init; }
+
     /// <summary>Enable webcam overlay (picture-in-picture bubble) in the recording. Default false.</summary>
     public bool EnableWebcam { get; init; }
 

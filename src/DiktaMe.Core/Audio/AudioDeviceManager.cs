@@ -1,10 +1,11 @@
 
+using NAudio.CoreAudioApi;
 using NAudio.Wave;
 
 namespace DiktaMe.Core.Audio;
 /// <summary>
-/// Enumerates available audio input (microphone) devices and resolves
-/// a device index from an optional label or ID, with fallback to default.
+/// Enumerates available audio input (microphone) and output (speaker/loopback) devices
+/// and resolves a device index from an optional label or ID, with fallback to default.
 /// </summary>
 public static class AudioDeviceManager
 {
@@ -24,6 +25,30 @@ public static class AudioDeviceManager
                 Index = i,
                 Name = caps.ProductName,
                 Channels = caps.Channels,
+            });
+        }
+
+        return devices;
+    }
+
+    /// <summary>
+    /// Returns all available audio output (render) devices via WASAPI.
+    /// Used for selecting system audio / loopback capture device.
+    /// </summary>
+    public static IReadOnlyList<AudioDevice> GetOutputDevices()
+    {
+        var devices = new List<AudioDevice>();
+        using var enumerator = new MMDeviceEnumerator();
+        var endpoints = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+
+        for (int i = 0; i < endpoints.Count; i++)
+        {
+            using var device = endpoints[i];
+            devices.Add(new AudioDevice
+            {
+                Index = i,
+                Name = device.FriendlyName,
+                Channels = device.AudioClient.MixFormat.Channels,
             });
         }
 

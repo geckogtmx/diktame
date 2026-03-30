@@ -3,8 +3,10 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiktaMe.App.Services;
+using DiktaMe.Core.Audio;
 using DiktaMe.Core.Config;
 using Serilog;
+using Windows.Storage.Pickers;
 
 namespace DiktaMe.App.ViewModels.Settings;
 
@@ -76,6 +78,29 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _visionLocalSystemPrompt = "";
 
+    // Action prompts
+    [ObservableProperty]
+    private string _ocrPrompt = "";
+
+    [ObservableProperty]
+    private string _tablePrompt = "";
+
+    [ObservableProperty]
+    private string _videoDescribePrompt = "";
+
+    [ObservableProperty]
+    private string _videoDocumentPrompt = "";
+
+    [ObservableProperty]
+    private string _videoBugReportPrompt = "";
+
+    [ObservableProperty]
+    private string _videoSystemPrompt = "";
+
+    // Save folder
+    [ObservableProperty]
+    private string _visionSaveFolder = "";
+
     // ── Screen recording settings ────────────────────────────────────────
 
     [ObservableProperty]
@@ -95,6 +120,16 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private int _webcamPositionIndex; // 0=BottomRight, 1=BottomLeft, 2=TopRight, 3=TopLeft
+
+    // Audio device pickers
+    [ObservableProperty]
+    private string _selectedMicDevice = "";
+
+    [ObservableProperty]
+    private string _selectedOutputDevice = "";
+
+    public ObservableCollection<string> MicDevices { get; } = [];
+    public ObservableCollection<string> OutputDevices { get; } = [];
 
     public string[] VideoQualityOptions => ["Low (1.5 Mbps, 24 fps)", "Medium (5 Mbps, 30 fps)", "High (8 Mbps, 60 fps)"];
     private static readonly string[] VideoQualityCodes = ["low", "medium", "high"];
@@ -197,6 +232,21 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
         ColorPickerInjectAtCursor = v.ColorPickerInjectAtCursor;
         VideoAiInjectAtCursor = v.VideoAiInjectAtCursor;
 
+        // System prompts
+        VisionCloudSystemPrompt = v.CloudSystemPrompt;
+        VisionLocalSystemPrompt = v.LocalSystemPrompt;
+
+        // Action prompts
+        OcrPrompt = v.OcrPrompt;
+        TablePrompt = v.TablePrompt;
+        VideoDescribePrompt = v.VideoDescribePrompt;
+        VideoDocumentPrompt = v.VideoDocumentPrompt;
+        VideoBugReportPrompt = v.VideoBugReportPrompt;
+        VideoSystemPrompt = v.VideoSystemPrompt;
+
+        // Save folder
+        VisionSaveFolder = v.SaveFolder;
+
         // Screen recording settings
         VideoQualityIndex = Array.IndexOf(VideoQualityCodes, v.VideoQuality) is var qi and >= 0 ? qi : 1;
         EnableMicAudio = v.EnableMicAudio;
@@ -204,6 +254,42 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
         EnableWebcam = v.EnableWebcam;
         WebcamSizeIndex = Array.IndexOf(WebcamSizeValues, v.WebcamSize) is var si and >= 0 ? si : 1;
         WebcamPositionIndex = Array.IndexOf(WebcamPositionCodes, v.WebcamPosition) is var pi and >= 0 ? pi : 0;
+
+        // Audio devices
+        LoadAudioDevices();
+        SelectedMicDevice = string.IsNullOrEmpty(v.MicDeviceName) ? "Default" : v.MicDeviceName;
+        SelectedOutputDevice = string.IsNullOrEmpty(v.SystemAudioDeviceName) ? "Default" : v.SystemAudioDeviceName;
+    }
+
+    private void LoadAudioDevices()
+    {
+        MicDevices.Clear();
+        MicDevices.Add("Default");
+        try
+        {
+            foreach (var device in AudioDeviceManager.GetInputDevices())
+            {
+                MicDevices.Add(device.Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to enumerate mic devices");
+        }
+
+        OutputDevices.Clear();
+        OutputDevices.Add("Default");
+        try
+        {
+            foreach (var device in AudioDeviceManager.GetOutputDevices())
+            {
+                OutputDevices.Add(device.Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to enumerate output devices");
+        }
     }
 
     [RelayCommand]
@@ -215,6 +301,9 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
             ? WebcamSizeValues[WebcamSizeIndex] : 200;
         string webcamPosition = WebcamPositionIndex >= 0 && WebcamPositionIndex < WebcamPositionCodes.Length
             ? WebcamPositionCodes[WebcamPositionIndex] : "bottom-right";
+
+        string micDevice = string.Equals(SelectedMicDevice, "Default", StringComparison.Ordinal) ? "" : SelectedMicDevice;
+        string outputDevice = string.Equals(SelectedOutputDevice, "Default", StringComparison.Ordinal) ? "" : SelectedOutputDevice;
 
         var updated = _settings.Current with
         {
@@ -234,6 +323,17 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
                 WebcamPosition = webcamPosition,
                 EnableMicAudio = EnableMicAudio,
                 EnableSystemAudio = EnableSystemAudio,
+                MicDeviceName = micDevice,
+                SystemAudioDeviceName = outputDevice,
+                SaveFolder = VisionSaveFolder,
+                CloudSystemPrompt = VisionCloudSystemPrompt,
+                LocalSystemPrompt = VisionLocalSystemPrompt,
+                OcrPrompt = OcrPrompt,
+                TablePrompt = TablePrompt,
+                VideoDescribePrompt = VideoDescribePrompt,
+                VideoDocumentPrompt = VideoDocumentPrompt,
+                VideoBugReportPrompt = VideoBugReportPrompt,
+                VideoSystemPrompt = VideoSystemPrompt,
             },
         };
 
@@ -244,5 +344,30 @@ public sealed partial class WorkflowsSettingsViewModel : ObservableObject
                 Log.Error(t.Exception, "Failed to save Vision pipeline settings");
             }
         }, TaskScheduler.Default);
+    }
+
+    [RelayCommand]
+    private async Task BrowseVisionFolderAsync()
+    {
+        try
+        {
+            var picker = new FolderPicker();
+            picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            picker.FileTypeFilter.Add("*");
+
+            // WinUI 3 requires HWND initialization
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var folder = await picker.PickSingleFolderAsync();
+            if (folder is not null)
+            {
+                VisionSaveFolder = folder.Path;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to browse for vision save folder");
+        }
     }
 }

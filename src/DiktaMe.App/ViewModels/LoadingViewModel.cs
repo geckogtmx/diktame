@@ -254,6 +254,10 @@ public sealed partial class LoadingViewModel : ObservableObject
                 await _accountService.SyncProfileFromServerAsync();
             }
 
+            // Re-validate Power License online (non-blocking — offline grace on failure)
+            var licenseManager = App.Current.Services.GetRequiredService<DiktaMe.Core.Security.LicenseManager>();
+            await licenseManager.ValidateAsync();
+
             // Wire post-pipeline balance updates from wallet proxy events
             WireWalletBalanceEvents();
             Progress = 90;
@@ -2090,8 +2094,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             }
 
             // Prepare output path
-            string visionDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DiktaMe", "vision");
+            string visionDir = ResolveVisionFolder();
             Directory.CreateDirectory(visionDir);
             string outputPath = Path.Combine(visionDir,
                 $"video_{DateTime.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture)}.mp4");
@@ -2168,6 +2171,8 @@ public sealed partial class LoadingViewModel : ObservableObject
                 FrameRateHz = fps,
                 EnableMicAudio = vs.EnableMicAudio,
                 EnableSystemAudio = vs.EnableSystemAudio,
+                MicDeviceName = string.IsNullOrEmpty(vs.MicDeviceName) ? null : vs.MicDeviceName,
+                SystemAudioDeviceName = string.IsNullOrEmpty(vs.SystemAudioDeviceName) ? null : vs.SystemAudioDeviceName,
             };
             using var capture = new VideoCapture();
 
@@ -2249,9 +2254,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     private async Task ShowPostCaptureInCpAsync(byte[] imageData)
     {
         // Save the raw capture
-        var visionDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "DiktaMe", "vision");
+        var visionDir = ResolveVisionFolder();
         Directory.CreateDirectory(visionDir);
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture);
         _visionCapturedImagePath = Path.Combine(visionDir, $"vision_{timestamp}.png");
@@ -2484,13 +2487,14 @@ public sealed partial class LoadingViewModel : ObservableObject
                 return;
             }
 
-            // Map vision actions to video prompts
+            // Map vision actions to video prompts (from settings)
+            var vs = _settings.Current.Vision;
             string defaultQuery = args.UserQuery ?? args.Action switch
             {
-                DiktaMe.Core.Vision.VisionAction.Clipboard => "Describe what happens in this screen recording. Be concise. Focus on the key actions and UI elements shown.",
-                DiktaMe.Core.Vision.VisionAction.Chat => "Write step-by-step instructions for the workflow shown in this screen recording. Use numbered steps.",
-                DiktaMe.Core.Vision.VisionAction.Note => "This is a screen recording of a software bug. Generate a structured bug report with: (1) Summary, (2) Expected behavior, (3) Actual behavior, (4) Steps to reproduce, (5) Environment details.",
-                _ => "Describe what happens in this screen recording.",
+                DiktaMe.Core.Vision.VisionAction.Clipboard => vs.VideoDescribePrompt,
+                DiktaMe.Core.Vision.VisionAction.Chat => vs.VideoDocumentPrompt,
+                DiktaMe.Core.Vision.VisionAction.Note => vs.VideoBugReportPrompt,
+                _ => vs.VideoDescribePrompt,
             };
 
             _uiDispatcher?.TryEnqueue(() => _controlPanel.IsVisionProcessing = true);
@@ -2505,7 +2509,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             var visionOptions = new DiktaMe.Core.Vision.VisionOptions
             {
                 DefaultQuery = defaultQuery,
-                SystemPrompt = "You are analyzing a screen recording video. Provide accurate, useful analysis based on what you observe.",
+                SystemPrompt = vs.VideoSystemPrompt,
             };
 
             var result = await pipeline.RunAsync(videoData, "video/mp4", audioFilePath: null, visionOptions, CancellationToken.None).ConfigureAwait(false);
@@ -2665,9 +2669,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             }
 
             // Save screenshot for debugging / note image links
-            string visionDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "DiktaMe", "vision");
+            string visionDir = ResolveVisionFolder();
             Directory.CreateDirectory(visionDir);
             string ext = string.Equals(mimeType, "image/jpeg", StringComparison.Ordinal) ? "jpg" : "png";
             string savedPath = Path.Combine(visionDir,
@@ -3225,12 +3227,13 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
 
         // Run Gemini video understanding via VisionPipeline (reuses cloud vision provider)
+        var vSettings = _settings.Current.Vision;
         string defaultQuery = actionResult.CustomPrompt ?? actionResult.Action switch
         {
-            Views.VideoAiAction.Describe => "Describe what happens in this screen recording. Be concise. Focus on the key actions and UI elements shown.",
-            Views.VideoAiAction.Document => "Write step-by-step instructions for the workflow shown in this screen recording. Use numbered steps. Reference UI elements by name where visible.",
-            Views.VideoAiAction.BugReport => "This is a screen recording of a software bug. Generate a structured bug report with: (1) Summary, (2) Expected behavior, (3) Actual behavior, (4) Steps to reproduce based on what you see, (5) Any environment details visible on screen.",
-            _ => "Describe what happens in this screen recording.",
+            Views.VideoAiAction.Describe => vSettings.VideoDescribePrompt,
+            Views.VideoAiAction.Document => vSettings.VideoDocumentPrompt,
+            Views.VideoAiAction.BugReport => vSettings.VideoBugReportPrompt,
+            _ => vSettings.VideoDescribePrompt,
         };
 
         _notifications.ShowToast("Video AI", "Analyzing video with Gemini...", NotificationType.Info, suppressTts: true);
@@ -3252,7 +3255,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             var visionOptions = new DiktaMe.Core.Vision.VisionOptions
             {
                 DefaultQuery = defaultQuery,
-                SystemPrompt = "You are analyzing a screen recording video. Provide accurate, useful analysis based on what you observe.",
+                SystemPrompt = vSettings.VideoSystemPrompt,
             };
 
             var result = await pipeline.RunAsync(
@@ -3502,7 +3505,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _notifications.ShowToast("Vision", "Extracting text (OCR)...", NotificationType.Info, suppressTts: true);
 
         var options = BuildVisionOptions(visionSettings, visionModelId,
-            "Extract ALL text from this image exactly as written. Preserve formatting, line breaks, and structure. Output only the extracted text, nothing else.",
+            visionSettings.OcrPrompt,
             DiktaMe.Core.Vision.VisionOutputMode.Clipboard);
 
         var result = await RunVisionPipelineCoreAsync(imageData, mimeType, options, visionProvider, visionModelId).ConfigureAwait(false);
@@ -3545,7 +3548,7 @@ public sealed partial class LoadingViewModel : ObservableObject
         _notifications.ShowToast("Vision", "Extracting table data...", NotificationType.Info, suppressTts: true);
 
         var options = BuildVisionOptions(visionSettings, visionModelId,
-            "Extract all tabular data from this image. Format as TSV (tab-separated values) with headers. If multiple tables exist, separate with a blank line. Output only the data, no explanation.",
+            visionSettings.TablePrompt,
             DiktaMe.Core.Vision.VisionOutputMode.Clipboard);
 
         var result = await RunVisionPipelineCoreAsync(imageData, mimeType, options, visionProvider, visionModelId).ConfigureAwait(false);
@@ -3649,13 +3652,28 @@ public sealed partial class LoadingViewModel : ObservableObject
         return sb.ToString().TrimEnd();
     }
 
+    private string ResolveVisionFolder()
+    {
+        string folder = _settings.Current.Vision.SaveFolder;
+        if (!string.IsNullOrWhiteSpace(folder))
+        {
+            return folder;
+        }
+
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "DiktaMe", "vision");
+    }
+
     private DiktaMe.Core.Vision.VisionOptions BuildVisionOptions(
         DiktaMe.Core.Config.VisionSettings visionSettings,
         string visionModelId,
         string? userQuery,
         DiktaMe.Core.Vision.VisionOutputMode outputMode)
     {
-        string systemPrompt = "You are a concise vision assistant. Respond briefly and directly. Do not describe the UI chrome, window decorations, or layout — focus only on the meaningful content. Keep responses under 200 words unless the user asks for more detail.";
+        // Use provider-specific system prompt from settings
+        bool isCloud = !string.Equals(visionSettings.VisionProvider, "ollama", StringComparison.OrdinalIgnoreCase);
+        string systemPrompt = isCloud ? visionSettings.CloudSystemPrompt : visionSettings.LocalSystemPrompt;
 
         // Inject annotation context if the user marked up the screenshot
         if (!string.IsNullOrEmpty(_annotationContext))

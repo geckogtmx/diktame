@@ -136,6 +136,8 @@ public sealed class VideoCapture : IDisposable
                 IsAudioEnabled = options.EnableMicAudio || options.EnableSystemAudio,
                 IsInputDeviceEnabled = options.EnableMicAudio,
                 IsOutputDeviceEnabled = options.EnableSystemAudio,
+                AudioInputDevice = options.MicDeviceName,
+                AudioOutputDevice = options.SystemAudioDeviceName,
             },
             SourceOptions = new SourceOptions
             {

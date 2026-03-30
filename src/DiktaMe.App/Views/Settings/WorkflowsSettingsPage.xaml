@@ -226,6 +226,24 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Save Folder -->
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Save Folder" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock Text="Where screenshots and recordings are saved (leave empty for default)" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{x:Bind ViewModel.VisionSaveFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="%APPDATA%\DiktaMe\vision\"
+                                         VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Content="Browse" Command="{x:Bind ViewModel.BrowseVisionFolderCommand}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Screen Recording settings -->
                     <TextBlock Text="Screen Recording" FontSize="20" FontWeight="SemiBold"
                                Foreground="{StaticResource AppTextBrush}"
@@ -255,6 +273,14 @@
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.EnableMicAudio, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
 
+                            <!-- Mic Device Picker (visible when mic is on) -->
+                            <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.EnableMicAudio, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Microphone Device" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.MicDevices}"
+                                          SelectedItem="{x:Bind ViewModel.SelectedMicDevice, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+
                             <!-- System Audio -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -267,6 +293,14 @@
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.EnableSystemAudio, Mode=TwoWay}" VerticalAlignment="Center"/>
                             </Grid>
+
+                            <!-- Output Device Picker (visible when system audio is on) -->
+                            <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.EnableSystemAudio, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Output Device" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <ComboBox ItemsSource="{x:Bind ViewModel.OutputDevices}"
+                                          SelectedItem="{x:Bind ViewModel.SelectedOutputDevice, Mode=TwoWay}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
 
                             <!-- Webcam Overlay -->
                             <Grid>
@@ -330,6 +364,16 @@
                                          ScrollViewer.VerticalScrollBarVisibility="Auto"/>
                             </StackPanel>
                         </Border>
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="System Prompt (Cloud)" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="Instructions sent to the cloud vision model with every request" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                <TextBox Text="{x:Bind ViewModel.VisionCloudSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         MinHeight="80" MaxHeight="200"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                        </Border>
                         <muxc:InfoBar Title="Cloud Vision" Message="Model and provider are configured in AI Engine → Vision" IsOpen="True" IsClosable="False" Severity="Informational"/>
                     </StackPanel>
 
@@ -346,8 +390,62 @@
                                          ScrollViewer.VerticalScrollBarVisibility="Auto"/>
                             </StackPanel>
                         </Border>
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="System Prompt (Local)" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="Instructions sent to the local vision model with every request" FontSize="12" Foreground="{StaticResource AppTextDimBrush}" TextWrapping="Wrap"/>
+                                <TextBox Text="{x:Bind ViewModel.VisionLocalSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         MinHeight="80" MaxHeight="200"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                        </Border>
                         <muxc:InfoBar Title="Local Vision" Message="Model is configured in AI Engine → Vision → Local" IsOpen="True" IsClosable="False" Severity="Informational"/>
                     </StackPanel>
+
+                    <!-- Action Prompts (collapsed by default) -->
+                    <muxc:Expander Header="Action Prompts" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                   IsExpanded="False" Margin="0,4,0,0">
+                        <StackPanel Spacing="16" Padding="0,8,0,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="OCR" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBox Text="{x:Bind ViewModel.OcrPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="160"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Table Extraction" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBox Text="{x:Bind ViewModel.TablePrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="160"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Video: Describe" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBox Text="{x:Bind ViewModel.VideoDescribePrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="160"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Video: Document" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBox Text="{x:Bind ViewModel.VideoDocumentPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="160"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Video: Bug Report" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBox Text="{x:Bind ViewModel.VideoBugReportPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="160"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Video: System Prompt" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                                <TextBlock Text="Base instructions for all video analysis actions" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                <TextBox Text="{x:Bind ViewModel.VideoSystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="160"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </muxc:Expander>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
                         <Button Content="Save" Style="{StaticResource AccentButtonStyle}" Command="{x:Bind ViewModel.SaveVisionCommand}"/>

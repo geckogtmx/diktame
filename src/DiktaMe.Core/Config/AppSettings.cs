@@ -272,6 +272,23 @@ public sealed record VisionSettings
     public string WebcamPosition { get; init; } = "bottom-right"; // "bottom-right", "bottom-left", "top-right", "top-left"
     public bool EnableMicAudio { get; init; } = true;
     public bool EnableSystemAudio { get; init; } = true;
+    public string MicDeviceName { get; init; } = "";             // empty = system default
+    public string SystemAudioDeviceName { get; init; } = "";     // empty = system default
+
+    // Save folder (empty = default %APPDATA%\DiktaMe\vision\)
+    public string SaveFolder { get; init; } = "";
+
+    // System prompts (per-provider)
+    public string CloudSystemPrompt { get; init; } = "You are a concise vision assistant. Respond briefly and directly. Do not describe the UI chrome, window decorations, or layout — focus only on the meaningful content. Keep responses under 200 words unless the user asks for more detail.";
+    public string LocalSystemPrompt { get; init; } = "You are a concise vision assistant. Respond briefly and directly. Do not describe the UI chrome, window decorations, or layout — focus only on the meaningful content. Keep responses under 200 words unless the user asks for more detail.";
+
+    // Action prompts (shared across providers)
+    public string OcrPrompt { get; init; } = "Extract ALL text from this image exactly as written. Preserve formatting, line breaks, and structure. Output only the extracted text, nothing else.";
+    public string TablePrompt { get; init; } = "Extract all tabular data from this image. Format as TSV (tab-separated values) with headers. If multiple tables exist, separate with a blank line. Output only the data, no explanation.";
+    public string VideoDescribePrompt { get; init; } = "Describe what happens in this screen recording. Be concise. Focus on the key actions and UI elements shown.";
+    public string VideoDocumentPrompt { get; init; } = "Write step-by-step instructions for the workflow shown in this screen recording. Use numbered steps. Reference UI elements by name where visible.";
+    public string VideoBugReportPrompt { get; init; } = "This is a screen recording of a software bug. Generate a structured bug report with: (1) Summary, (2) Expected behavior, (3) Actual behavior, (4) Steps to reproduce based on what you see, (5) Any environment details visible on screen.";
+    public string VideoSystemPrompt { get; init; } = "You are analyzing a screen recording video. Provide accurate, useful analysis based on what you observe.";
 }
 
 /// <summary>
