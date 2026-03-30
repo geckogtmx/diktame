@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { sendWaitlistInvite, getWaitlistInvites } from '../actions/waitlist';
+import { trackWaitlistInvite } from '@/lib/analytics';
 
 interface ViralSuccessCardProps {
   senderId: string;
@@ -48,6 +49,7 @@ export function ViralSuccessCard({ senderId, senderName }: ViralSuccessCardProps
       // Log details for debugging (visible in browser console)
       console.error('Invitation error details:', result);
     } else {
+      trackWaitlistInvite('email');
       setInvites([...invites, currentEmail]);
       setCurrentEmail('');
 
@@ -141,6 +143,7 @@ export function ViralSuccessCard({ senderId, senderName }: ViralSuccessCardProps
                 href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackWaitlistInvite('twitter')}
                 className="py-3 rounded-xl bg-[#1DA1F2]/10 border border-[#1DA1F2]/20 text-[#1DA1F2] text-sm font-bold hover:bg-[#1DA1F2]/20 transition-all flex items-center justify-center gap-2"
               >
                 {t('shareOnX')}
@@ -149,6 +152,7 @@ export function ViralSuccessCard({ senderId, senderName }: ViralSuccessCardProps
                 href={`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackWaitlistInvite('whatsapp')}
                 className="py-3 rounded-xl bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] text-sm font-bold hover:bg-[#25D366]/20 transition-all flex items-center justify-center gap-2"
               >
                 {t('whatsapp')}

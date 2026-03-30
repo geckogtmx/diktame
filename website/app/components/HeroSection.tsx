@@ -3,6 +3,7 @@
 import { useHeroScroll } from '@/lib/animations/useHeroScroll';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { trackCtaClick } from '@/lib/analytics';
 
 export function HeroSection() {
   const t = useTranslations('HeroSection');
@@ -64,8 +65,9 @@ export function HeroSection() {
           {/* CTAs */}
           <div className="flex flex-col items-center gap-8">
             {/* Primary Action: Windows */}
-            <Link 
+            <Link
               href="/waitlist"
+              onClick={() => trackCtaClick('download', 'hero')}
               className="btn-primary justify-center w-full sm:w-auto text-lg px-12 py-5 shadow-glow hover:scale-105 transition-all"
             >
               {t('ctaDownload')}

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { trackFaqExpand } from '@/lib/analytics';
 
 export function FaqCard() {
   const t = useTranslations('FaqCard');
@@ -28,7 +29,7 @@ export function FaqCard() {
           {faqs.map((faq, i) => (
             <button
               key={i}
-              onClick={() => setOpenIndex(openIndex === i ? null : i)}
+              onClick={() => { const opening = openIndex !== i; setOpenIndex(opening ? i : null); if (opening) trackFaqExpand(faq.q); }}
               className="w-full text-left"
             >
               <div className="rounded-lg border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">

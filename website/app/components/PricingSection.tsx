@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { FeaturesModal } from './FeaturesModal';
+import { trackCtaClick, trackFeaturesModalOpen, trackExternalLink } from '@/lib/analytics';
 
 export function PricingSection({ asH1 = false }: { asH1?: boolean }) {
   const t = useTranslations('PricingSection');
@@ -50,6 +51,7 @@ export function PricingSection({ asH1 = false }: { asH1?: boolean }) {
               </ul>
               <Link
                 href="/waitlist"
+                onClick={() => trackCtaClick('free_trial', 'pricing')}
                 className="w-full py-3 rounded-lg bg-white/10 text-white font-bold hover:scale-105 transition-transform mt-auto hover:bg-white/20 border border-white/20 text-center"
               >
                 {t('freeTrialCta')}
@@ -88,13 +90,14 @@ export function PricingSection({ asH1 = false }: { asH1?: boolean }) {
                 </li>
               </ul>
               <button
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => { setIsModalOpen(true); trackFeaturesModalOpen(); }}
                 className="text-xs text-primary/60 hover:text-primary transition-colors mb-6 text-center block w-full cursor-pointer"
               >
                 {t('powerFeaturesLink')}
               </button>
               <Link
                 href="/waitlist"
+                onClick={() => trackCtaClick('power_license', 'pricing')}
                 className="w-full py-3 rounded-lg bg-orange-400 text-black font-bold hover:scale-105 transition-transform mt-auto hover:bg-orange-300 text-center"
               >
                 {t('powerCta')}
@@ -124,6 +127,7 @@ export function PricingSection({ asH1 = false }: { asH1?: boolean }) {
 
               <Link
                 href="/waitlist"
+                onClick={() => trackCtaClick('build_it_yourself', 'pricing')}
                 className="w-full md:w-auto px-8 py-3 rounded-xl border border-white/20 hover:bg-white hover:text-black transition-all whitespace-nowrap text-white text-center"
               >
                 {t('buildCta')}
@@ -137,6 +141,7 @@ export function PricingSection({ asH1 = false }: { asH1?: boolean }) {
               href="https://ko-fi.com/geckogtmx"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackExternalLink('https://ko-fi.com/geckogtmx', 'kofi')}
               className="inline-block bg-white/5 border border-white/20 text-white px-6 py-3 rounded-full font-bold text-sm hover:scale-105 hover:bg-white hover:text-black transition-all"
             >
               {t('supportCta')}

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { trackExternalLink } from '@/lib/analytics';
 
 export function Footer() {
   const t = useTranslations('Footer');
@@ -31,6 +32,7 @@ export function Footer() {
             href="https://github.com/geckogtmx/diktame"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackExternalLink('https://github.com/geckogtmx/diktame', 'github')}
             className="text-muted hover:text-white transition-colors"
           >
             {t('github')}

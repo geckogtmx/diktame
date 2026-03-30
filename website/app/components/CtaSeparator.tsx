@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { trackCtaClick } from '@/lib/analytics';
 
 interface CtaSeparatorProps {
   text: string;
@@ -18,6 +21,7 @@ export function CtaSeparator({ text, ctaLabel, ctaHref, variant = 'subtle' }: Ct
         </p>
         <Link
           href={ctaHref}
+          onClick={() => trackCtaClick(ctaLabel, 'cta_separator')}
           className={`whitespace-nowrap text-sm font-semibold px-6 py-2.5 rounded-full transition-all hover:scale-105 ${
             isPrimary
               ? 'bg-cta text-white shadow-glow'

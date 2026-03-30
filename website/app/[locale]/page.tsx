@@ -16,6 +16,7 @@ import { LogoScroll } from '@/app/components/LogoScroll';
 import { PricingSection } from '@/app/components/PricingSection';
 import { CtaSeparator } from '@/app/components/CtaSeparator';
 import { FaqCard } from '@/app/components/FaqCard';
+import SectionTracker from '@/app/components/SectionTracker';
 import { useTranslations } from 'next-intl';
 
 export default function Home() {
@@ -26,19 +27,27 @@ export default function Home() {
       <Navbar />
 
       {/* Hero */}
-      <HeroSection />
+      <SectionTracker sectionId="hero">
+        <HeroSection />
+      </SectionTracker>
 
       {/* Features */}
-      <CoreArsenalSection />
+      <SectionTracker sectionId="features">
+        <CoreArsenalSection />
+      </SectionTracker>
 
       {/* Comparison */}
-      <VersusSection />
+      <SectionTracker sectionId="versus">
+        <VersusSection />
+      </SectionTracker>
 
       {/* CTA: After comparison */}
       <CtaSeparator text={t('afterVersus')} ctaLabel={t('afterVersusBtn')} ctaHref="/waitlist" variant="primary" />
 
       {/* Specs */}
-      <SpecsSection />
+      <SectionTracker sectionId="specs">
+        <SpecsSection />
+      </SectionTracker>
 
       {/* CTA: After specs */}
       <CtaSeparator text={t('afterSpecs')} ctaLabel={t('afterSpecsBtn')} ctaHref="/waitlist" />
@@ -71,7 +80,9 @@ export default function Home() {
       <FaqCard />
 
       {/* Pricing */}
-      <PricingSection />
+      <SectionTracker sectionId="pricing">
+        <PricingSection />
+      </SectionTracker>
 
       {/* Footer */}
       <Footer />

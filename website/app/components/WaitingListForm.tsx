@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { submitWaitlist } from '../actions/waitlist';
 import { ViralSuccessCard } from './ViralSuccessCard';
+import { trackWaitlistSignup } from '@/lib/analytics';
 
 export function WaitingListForm() {
   const t = useTranslations('WaitingListForm');
@@ -24,6 +25,7 @@ export function WaitingListForm() {
     if (result.error) {
       setMessage({ type: 'error', text: result.error });
     } else if (result.success) {
+      trackWaitlistSignup('waitlist_form');
       if (result.id && result.name) {
         setUserData({ id: result.id, name: result.name });
       }

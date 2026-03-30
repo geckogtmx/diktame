@@ -5,9 +5,8 @@ import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { locales } from '@/i18n/config';
+import { GA_ID } from '@/lib/analytics';
 import '../globals.css';
-
-const GA_ID = 'G-VYLRMHENMK';
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ['latin'] });
 

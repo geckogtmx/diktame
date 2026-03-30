@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useTranslations } from 'next-intl';
 import { AvatarCropModal } from '@/app/components/AvatarCropModal';
+import { trackProfileUpdate, trackAvatarUpload, trackAccountDelete } from '@/lib/analytics';
 
 interface Profile {
   id: string;
@@ -88,6 +89,7 @@ export default function ProfilePage() {
       const updatedProfile = await response.json();
       setProfile(updatedProfile);
       setSuccess(t('profileUpdated'));
+      trackProfileUpdate();
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
@@ -110,6 +112,7 @@ export default function ProfilePage() {
       }
 
       // Sign out and redirect to home
+      trackAccountDelete();
       await createClient().auth.signOut();
       router.push('/');
     } catch (err) {
@@ -159,6 +162,7 @@ export default function ProfilePage() {
     if (selectedImageSrc) URL.revokeObjectURL(selectedImageSrc);
     setSelectedImageSrc(null);
     setSuccess(t('avatarUpdated'));
+    trackAvatarUpload();
   }
 
   function handleCropCancel() {
