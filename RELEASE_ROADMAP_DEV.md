@@ -142,61 +142,19 @@ Wizard_Tts_Failed             = "Download failed. You can try again or skip for 
 
 ---
 
-## T2: License Gate System
+## T2: License Gate System — DONE ✅ (rewritten 2026-03-30)
 
 **Goal:** Free = Wallet cloud only. Power License ($20) = unlocks local STT/LLM/TTS + BYOK.
 
-### T2.1: LicenseManager Service
-
-**Create:** `src/DiktaMe.Core/Security/LicenseManager.cs`
-
-```csharp
-public sealed class LicenseManager
-{
-    private readonly SecureStorage _secureStorage;
-    private readonly SettingsManager _settings;
-    private const string LicenseKeyName = "license_key";
-
-    // Core API
-    public bool IsLicensed { get; private set; }
-    public string? LicenseTier { get; private set; }  // "power"
-    public event Action<bool>? LicenseStateChanged;
-
-    public async Task ActivateLicenseAsync(string licenseKey, CancellationToken ct = default);
-    public void LoadFromStorage();  // Called at startup
-    public bool ValidateOffline(string licenseKey);  // RSA signature check
-    public void Deactivate();
-}
-```
-
-**SecureStorage integration:**
-- Add `"license_key"` to `ValidProviders` array in `SecureStorage.cs` (line 43-51)
-- Store: `_secureStorage.StoreKey("license_key", key)`
-- Retrieve: `_secureStorage.RetrieveKey("license_key")`
-
-**Offline validation approach (simplest):**
-- License key format: `DIKTAME-{base64_payload}.{base64_signature}`
-- Payload: `{ "email": "...", "tier": "power", "issued": "2026-04-01T..." }`
-- Signature: RSA-SHA256 with embedded public key
-- Public key: embedded as `const string` in `LicenseManager.cs`
-- Private key: stays in Supabase edge function only
-- No phone-home required. Ever.
-
-**Register in DI:** `services.AddSingleton<LicenseManager>();` in `App.xaml.cs`
-
-### T2.2: License Key Generation (Server-Side)
-
-**Create:** `website/supabase/functions/generate-license/index.ts`
-
-- Input: `{ email: string, tier: "power", order_ref: string }`
-- Output: `{ license_key: "DIKTAME-{payload}.{signature}" }`
-- RSA-SHA256 signing with private key from Supabase secrets
-- Idempotent: same email+order_ref → same key
-
-**Extend:** `website/supabase/functions/wallet-webhook/adapters/lemonsqueezy.ts`
-- In `parseLemonSqueezyEvent()` (lines 67-129): after successful order
-- Map Power License product ID → call `generate-license` → email key to buyer
-- Use existing `PRODUCT_TIER_MAP` (lines 18-22) — add Power License product ID
+**Implementation (CHANGED from original RSA plan):**
+- Uses **LemonSqueezy License API** directly (NOT RSA offline signing)
+- User pastes LemonSqueezy GUID key in app → app calls `POST /v1/licenses/activate` → done
+- Machine-bound via `instance_name` (3 activations per key)
+- Anti-piracy: hard-coded `store_id=277708` + `product_id=910127` verified in response
+- 30-day offline grace period with `license_last_validated` timestamp
+- SecureStorage keys: `license_key`, `license_instance_id`, `license_last_validated`
+- Webhook (`wallet-webhook`): updates `profiles.license_tier` on purchase for dashboard display
+- **No RSA, no private keys, no `generate-license` edge function needed**
 
 ### T2.3: Gate Checks in Core
 

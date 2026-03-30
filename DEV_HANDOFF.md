@@ -9,11 +9,11 @@
 - ✅ UI: Removed Table button, reordered PostCapture (Save/OCR/Edit → Clip/Chat/Note), query step redesigned with square LOC/CLD/NON/Go buttons (`44e00cc`)
 - ❌ V7 (filler word removal): CANNED — too complex, too low value
 
-**Next session — Vision Settings polish:**
-- Expose AI system prompts in Workflows > Vision settings (Cloud/Local tabs). Currently hardcoded in LoadingViewModel for OCR, Describe, Table, BugReport, Document actions. Users should be able to customize what the AI does with each action. See `HandleVisionOcrAsync` (line ~3478), `HandleVideoActionFromWizardAsync` (line ~2488), `HandleVisionClipboardAsync` (line ~2882) for the hardcoded prompts.
-- Audio device pickers (mic input + system output) — show available devices when toggle is on
-- Save folder configuration (currently hardcoded `%APPDATA%\DiktaMe\vision\`)
+**Next session priorities:**
 - CP position memory (save/restore last position)
+- Gemini 3.1 Flash Live research — potential single-model wallet (STT+LLM in one API call, WebSocket streaming). See Gemini research notes below.
+- `shop.dikta.me` — link store once LemonSqueezy identity verification completes
+- UX: signed-out + no license = pipelines silently fail. Need a clear toast/dialog explaining why.
 
 **Also pending:**
 - Audit #3: Cloud provider retry (Polly). 2-3 hrs.
@@ -97,15 +97,61 @@ Replaced the old 3-sub-row vision layout + VisionActionWindow modal with a singl
 
 ---
 
+## Session: 2026-03-30 — Vision Settings Polish + LemonSqueezy License System
+
+### Vision Settings Polish (`c99e3b0`)
+- ✅ AI system prompts exposed in Workflows > Vision settings (Cloud/Local system prompts in tabs + "Action Prompts" Expander with OCR, Table, Video Describe/Document/BugReport, Video System Prompt)
+- ✅ Audio device pickers — mic and output device ComboBoxes appear when corresponding toggle is on. NAudio `MMDeviceEnumerator` for output devices. Device names passed to ScreenRecorderLib `AudioOptions`.
+- ✅ Configurable save folder with Browse button (FolderPicker). Default `%APPDATA%\DiktaMe\vision\` when empty.
+- All 8 hardcoded prompt strings in LoadingViewModel replaced with `_settings.Current.Vision.*` reads.
+
+### LemonSqueezy License System (`fe1646e`)
+- ✅ **REPLACED** RSA offline license validation with LemonSqueezy License API
+- Flow: buy on LemonSqueezy → receive GUID key → paste in app → app calls `POST /v1/licenses/activate` → done
+- No sign-in required. Machine-bound via `instance_name` (3 activations per key).
+- Anti-piracy: hard-coded `store_id=277708` + `product_id=910127` verified in API response `meta`
+- 30-day offline grace: cached license expires if not re-validated online
+- Startup: `ValidateAsync()` re-checks with LemonSqueezy (offline grace on network failure)
+- `DeactivateAsync()` releases instance on LemonSqueezy (frees activation slot)
+- Webhook simplified: `provisionLicense()` just updates `profiles.license_tier` for dashboard display
+- **LemonSqueezy product ID**: `910127` ("dIKtame App Full")
+- **LemonSqueezy store ID**: `277708`
+- **Test mode**: active. Webhook URL: `https://volwljbiyzvvcqqdojyf.supabase.co/functions/v1/wallet-webhook`
+
+### Security Hardening (`39d32ea`)
+- ✅ Profiles RLS: `WITH CHECK` prevents users from self-updating `license_tier`, `license_status`, `is_admin`
+- ✅ HttpClient 10-second timeout
+- ✅ 30-day offline grace period on cached licenses
+- ✅ Fixed double-prefix `ls_ls_` in licenses table key
+
+### Bug Found: `Environment.MachineName` < 3 chars
+- LemonSqueezy requires `instance_name` ≥ 3 characters
+- Fix: pad short machine names with `-PC` suffix
+
+### Gotcha: SecureStorage ValidProviders Whitelist
+- Adding new DPAPI storage keys requires adding them to the `ValidProviders` HashSet in `SecureStorage.cs` (line 43)
+- Missed `license_instance_id` and `license_last_validated` initially — caused activation to fail silently
+
+### Gemini 3.1 Flash Live Research (for future wallet optimization)
+- Model: `gemini-3.1-flash-live-preview` — collapses STT+LLM into single native audio model
+- Audio in → text out in one hop (replaces Deepgram + Gemini separately)
+- **WebSocket streaming ONLY** (no REST/batch) — requires architectural change
+- Pricing: $0.005/min audio input, $0.018/min audio output
+- Not a drop-in replacement — would need streaming wallet proxy rewrite
+- Current wallet (Deepgram + Gemini Flash) works fine — this is a future optimization
+
+---
+
 ## Current State
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1134+ passing locally (479+ on CI) |
+| **Tests** | 1134 passing locally |
 | **Build** | **PASSES** (0 warnings, 0 errors) |
-| **CI** | Green (last push) |
-| **Branch** | main — needs commit + push |
+| **CI** | Pending (just pushed `39d32ea`) |
+| **Branch** | main — pushed |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
+| **License** | LemonSqueezy License API (test mode active, E2E verified) |
 
 ## Completed Streams
 
@@ -131,3 +177,5 @@ Replaced the old 3-sub-row vision layout + VisionActionWindow modal with a singl
 | **AVATAR** | Profile pic upload, Supabase Storage, branded deeplinks |
 | **UI_REVAMP_SCROLL_CP** | 3-layer cylinder roll idle animation, WeatherService |
 | **Chat Theming** | QuickChatWindow themed, MarkdownTextBlock themed |
+| **Vision Settings Polish** | AI prompts, audio device pickers, save folder config |
+| **LemonSqueezy License** | RSA replaced with LemonSqueezy License API, E2E verified, security hardened |
