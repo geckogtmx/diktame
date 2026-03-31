@@ -210,6 +210,12 @@ public sealed record ControlPanelSettings
     /// <summary>Screen snap position: TopLeft, TopCenter, TopRight, BottomLeft, BottomCenter, BottomRight.</summary>
     public string BarPosition { get; init; } = "TopRight";
 
+    /// <summary>Saved window X coordinate (pixels). int.MinValue = use snap position.</summary>
+    public int WindowX { get; init; } = int.MinValue;
+
+    /// <summary>Saved window Y coordinate (pixels). int.MinValue = use snap position.</summary>
+    public int WindowY { get; init; } = int.MinValue;
+
     /// <summary>Auto-hide: fade the control panel after idle.</summary>
     public bool AutoHideEnabled { get; init; } = false;
 

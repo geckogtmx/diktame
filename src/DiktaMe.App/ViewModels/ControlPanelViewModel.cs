@@ -89,6 +89,7 @@ public enum VisionCaptureType
 public sealed partial class ControlPanelViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
+    internal SettingsManager Settings => _settings;
     private readonly DictationModeManager _dictationModes;
     private readonly AudioRecorder _recorder;
     private readonly MetricsCollector _metrics;
@@ -1098,7 +1099,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             {
                 ControlPanel = _settings.Current.ControlPanel with
                 {
-                    BarPosition = value
+                    BarPosition = value,
+                    WindowX = int.MinValue,
+                    WindowY = int.MinValue
                 }
             };
             _ = _settings.UpdateAsync(updated);
@@ -1112,6 +1115,25 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         }
 
         Log.Information("ControlPanel: BarPosition set to {BarPosition}", value);
+    }
+
+    /// <summary>
+    /// Force re-snap to current BarPosition even if the value hasn't changed.
+    /// Called by settings page when user clicks the same snap button to reset after dragging.
+    /// </summary>
+    internal void ForceResnap()
+    {
+        // Clear saved pixel coords so snap takes effect
+        var updated = _settings.Current with
+        {
+            ControlPanel = _settings.Current.ControlPanel with
+            {
+                WindowX = int.MinValue,
+                WindowY = int.MinValue
+            }
+        };
+        _ = _settings.UpdateAsync(updated);
+        OnPropertyChanged(nameof(BarPosition));
     }
 
     partial void OnAlwaysOnTopChanged(bool value)
@@ -1365,9 +1387,6 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         VisualEffectsIntensity = settings.ControlPanel.VisualEffectsIntensity;
         string newBarPos = settings.ControlPanel.BarPosition ?? "TopRight";
         BarPosition = newBarPos;
-        // Force re-snap even if the position string hasn't changed (e.g., user clicked
-        // the same position button to reset after dragging the bar manually).
-        OnPropertyChanged(nameof(BarPosition));
         AutoCollapseEnabled = settings.ControlPanel.AutoCollapseEnabled;
         AutoCollapseDelaySeconds = settings.ControlPanel.AutoCollapseDelaySeconds;
         WaveformStyle = settings.ControlPanel.WaveformStyle;

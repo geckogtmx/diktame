@@ -79,6 +79,10 @@ public sealed partial class ControlPanelPage : Page
     private Rectangle[]? _barElements;
     private bool _barsGradientDirty = true;
 
+    // ── Position memory ────────────────────────────────────────────────
+    private bool _isSnapping; // true during programmatic snap — suppresses position save
+    private DispatcherQueueTimer? _positionSaveTimer; // debounce position saves during drag
+
     // ── Cylinder roll idle animation ─────────────────────────────────────
     private enum CylinderRollPhase { Idle, RollingAtoB, HoldB, RollingBtoC, HoldC, RollingCtoA, HoldA, RollingAtoC }
     private CylinderRollPhase _rollPhase = CylinderRollPhase.Idle;
@@ -214,8 +218,89 @@ public sealed partial class ControlPanelPage : Page
         // in MainWindow.cs — SetTitleBar routes pointer events to the OS,
         // so XAML DoubleTapped never fires on the title bar element.
 
-        // Apply initial bar position from saved settings
+        // Apply initial position — use saved pixel coords if available, else snap
+        ApplyInitialPosition();
+    }
+
+    private void ApplyInitialPosition()
+    {
+        var cpSettings = ViewModel.Settings.Current.ControlPanel;
+        Log.Information("ControlPanel: ApplyInitialPosition — WindowX={X}, WindowY={Y}, BarPosition={Pos}",
+            cpSettings.WindowX, cpSettings.WindowY, cpSettings.BarPosition);
+
+        if (cpSettings.WindowX != int.MinValue && cpSettings.WindowY != int.MinValue)
+        {
+            // App.Current.MainWindow may be null during Loaded (constructor not finished).
+            // Defer restore to next tick when the window reference is available.
+            int savedX = cpSettings.WindowX;
+            int savedY = cpSettings.WindowY;
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                var window = App.Current.MainWindow;
+                if (window is not null)
+                {
+                    _isSnapping = true;
+                    window.AppWindow.Move(new PointInt32(savedX, savedY));
+                    _isSnapping = false;
+                    Log.Information("ControlPanel: Restored saved position ({X},{Y})", savedX, savedY);
+                }
+                else
+                {
+                    Log.Warning("ControlPanel: MainWindow still null after defer — cannot restore position");
+                }
+            });
+            return;
+        }
+
+        Log.Information("ControlPanel: No saved position, falling back to snap '{Pos}'", cpSettings.BarPosition);
         SnapToPosition(ViewModel.BarPosition);
+    }
+
+    /// <summary>
+    /// Called by MainWindow WndProc on WM_WINDOWPOSCHANGED.
+    /// AppWindow.Changed doesn't fire when Win32 WndProc subclassing is active (WinUI 3 bug).
+    /// </summary>
+    internal void OnWindowMoved()
+    {
+        if (_isSnapping)
+        {
+            return;
+        }
+
+        // Debounce: restart timer on each move (fires 500ms after drag stops)
+        _positionSaveTimer?.Stop();
+        if (_positionSaveTimer is null)
+        {
+            _positionSaveTimer = DispatcherQueue.CreateTimer();
+            _positionSaveTimer.Interval = TimeSpan.FromMilliseconds(500);
+            _positionSaveTimer.IsRepeating = false;
+            _positionSaveTimer.Tick += (_, _) => SaveWindowPosition();
+        }
+
+        _positionSaveTimer.Start();
+    }
+
+    private void SaveWindowPosition()
+    {
+        var window = App.Current.MainWindow;
+        if (window is null)
+        {
+            Log.Warning("ControlPanel: SaveWindowPosition — MainWindow is null");
+            return;
+        }
+
+        var pos = window.AppWindow.Position;
+        var settings = ViewModel.Settings;
+        Log.Information("ControlPanel: SaveWindowPosition — saving ({X},{Y}) to settings", pos.X, pos.Y);
+        var updated = settings.Current with
+        {
+            ControlPanel = settings.Current.ControlPanel with
+            {
+                WindowX = pos.X,
+                WindowY = pos.Y
+            }
+        };
+        _ = settings.UpdateAsync(updated);
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -1371,6 +1456,19 @@ public sealed partial class ControlPanelPage : Page
             return;
         }
 
+        // If saved pixel coordinates exist, restore those instead of snapping.
+        // This handles the case where LoadFromSettings triggers BarPosition change
+        // after startup — we want to keep the user's saved position.
+        var cpSettings = ViewModel.Settings.Current.ControlPanel;
+        if (cpSettings.WindowX != int.MinValue && cpSettings.WindowY != int.MinValue)
+        {
+            _isSnapping = true;
+            window.AppWindow.Move(new PointInt32(cpSettings.WindowX, cpSettings.WindowY));
+            _isSnapping = false;
+            Log.Information("ControlPanel: SnapToPosition overridden by saved coords ({X},{Y})", cpSettings.WindowX, cpSettings.WindowY);
+            return;
+        }
+
         var appWindow = window.AppWindow;
         var windowId = appWindow.Id;
 
@@ -1426,7 +1524,25 @@ public sealed partial class ControlPanelPage : Page
                 return;
         }
 
+        _isSnapping = true;
         appWindow.Move(new PointInt32(x, y));
+        _isSnapping = false;
+
+        // Clear saved pixel coords so next startup uses snap position
+        var settings = ViewModel.Settings;
+        if (settings.Current.ControlPanel.WindowX != int.MinValue)
+        {
+            var updated = settings.Current with
+            {
+                ControlPanel = settings.Current.ControlPanel with
+                {
+                    WindowX = int.MinValue,
+                    WindowY = int.MinValue
+                }
+            };
+            _ = settings.UpdateAsync(updated);
+        }
+
         Log.Information("ControlPanel: Snapped to {Position} ({X},{Y})", position, x, y);
     }
 }

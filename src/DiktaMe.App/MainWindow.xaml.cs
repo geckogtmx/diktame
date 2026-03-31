@@ -15,6 +15,7 @@ public sealed partial class MainWindow : Window
 {
     // Win32 subclassing to intercept title bar double-click
     private const int WM_NCLBUTTONDBLCLK = 0x00A3;
+    private const int WM_WINDOWPOSCHANGED = 0x0047;
     private const int GWLP_WNDPROC = -4;
     private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
     private WndProcDelegate? _newWndProc; // prevent GC collection
@@ -145,9 +146,16 @@ public sealed partial class MainWindow : Window
         {
             if (msg == WM_NCLBUTTONDBLCLK)
             {
-                // Swallow the OS double-click and toggle expand/collapse instead
+                // Swallow the OS double-click: expand/collapse + snap to saved position
                 page?.ViewModel?.ToggleExpandedCommand.Execute(null);
+                page?.ViewModel?.ForceResnap();
                 return IntPtr.Zero;
+            }
+            if (msg == WM_WINDOWPOSCHANGED)
+            {
+                // Track window position for position memory.
+                // AppWindow.Changed doesn't fire with WndProc subclassing (WinUI 3 bug).
+                page?.OnWindowMoved();
             }
             return CallWindowProc(_oldWndProc, hwnd, msg, wParam, lParam);
         };

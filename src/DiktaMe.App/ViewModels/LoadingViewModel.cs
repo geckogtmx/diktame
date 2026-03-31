@@ -1022,6 +1022,21 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
     }
 
+    private bool HandleLicenseError(Exception ex)
+    {
+        if (ex is InvalidOperationException && ex.Message.Contains("Power License", StringComparison.Ordinal))
+        {
+            Log.Warning("Pipeline blocked: no Power License");
+            _notifications.ShowToast(
+                "License Required",
+                "Local AI providers need a Power License. Purchase at dikta.me",
+                NotificationType.Warning);
+            return true;
+        }
+
+        return false;
+    }
+
     private async Task RunStreamingDictationAsync()
     {
         StreamingDictationPipeline? streamingPipeline = null;
@@ -1125,8 +1140,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Streaming Dictate pipeline failed");
-            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            if (!HandleLicenseError(ex))
+            {
+                Log.Error(ex, "Streaming Dictate pipeline failed");
+                _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            }
         }
         finally
         {
@@ -1226,8 +1244,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Dictate pipeline failed");
-            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            if (!HandleLicenseError(ex))
+            {
+                Log.Error(ex, "Dictate pipeline failed");
+                _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            }
         }
         finally
         {
@@ -1305,8 +1326,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Refine Auto pipeline failed");
-            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            if (!HandleLicenseError(ex))
+            {
+                Log.Error(ex, "Refine Auto pipeline failed");
+                _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            }
         }
         finally
         {
@@ -1377,8 +1401,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Refine Voice pipeline failed");
-            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            if (!HandleLicenseError(ex))
+            {
+                Log.Error(ex, "Refine Voice pipeline failed");
+                _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            }
         }
         finally
         {
@@ -1487,8 +1514,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Ask pipeline failed");
-            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            if (!HandleLicenseError(ex))
+            {
+                Log.Error(ex, "Ask pipeline failed");
+                _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            }
         }
         finally
         {
@@ -1571,8 +1601,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Translate pipeline failed");
-            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            if (!HandleLicenseError(ex))
+            {
+                Log.Error(ex, "Translate pipeline failed");
+                _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            }
         }
         finally
         {
@@ -1644,8 +1677,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Note pipeline failed");
-            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            if (!HandleLicenseError(ex))
+            {
+                Log.Error(ex, "Note pipeline failed");
+                _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            }
         }
         finally
         {
@@ -1736,8 +1772,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "ReadSelection pipeline failed");
-            _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            if (!HandleLicenseError(ex))
+            {
+                Log.Error(ex, "ReadSelection pipeline failed");
+                _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            }
         }
         finally
         {
@@ -2837,8 +2876,11 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Vision pipeline failed");
-            _notifications.ShowToast("Vision Error", ex.Message, NotificationType.Error, suppressTts: true);
+            if (!HandleLicenseError(ex))
+            {
+                Log.Error(ex, "Vision pipeline failed");
+                _notifications.ShowToast("Vision Error", ex.Message, NotificationType.Error, suppressTts: true);
+            }
         }
         finally
         {

@@ -346,6 +346,8 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
                 // Enforce constraint: hide delay ≥ collapse delay when both enabled
                 AutoHideDelaySeconds = EnforceHideDelay(),
                 BarPosition = BarPosition,
+                WindowX = _settings.Current.ControlPanel.WindowX,
+                WindowY = _settings.Current.ControlPanel.WindowY,
                 IdleRollEnabled = IdleRollEnabled,
                 IdleRollShowClock = IdleRollShowClock,
                 IdleRollShowWeather = IdleRollShowWeather,
@@ -385,7 +387,29 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     [RelayCommand]
     private void SetBarPosition(string position)
     {
+        // Clear saved pixel coordinates so the snap takes effect
+        var current = _settings.Current;
+        if (current.ControlPanel.WindowX != int.MinValue)
+        {
+            var cleared = current with
+            {
+                ControlPanel = current.ControlPanel with
+                {
+                    WindowX = int.MinValue,
+                    WindowY = int.MinValue
+                }
+            };
+            _ = _settings.UpdateAsync(cleared);
+        }
+
+        bool samePosition = string.Equals(BarPosition, position, StringComparison.Ordinal);
         BarPosition = position;
+
+        // If same position clicked, ObservableProperty won't fire → force re-snap
+        if (samePosition)
+        {
+            Save();
+        }
 
         // Auto-sync expand direction: Top* → Down (0), Bottom* → Up (1)
         int expectedIndex = position.StartsWith("Bottom", StringComparison.Ordinal) ? 1 : 0;
