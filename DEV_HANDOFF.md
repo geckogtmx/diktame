@@ -10,10 +10,8 @@
 - ❌ V7 (filler word removal): CANNED — too complex, too low value
 
 **Next session priorities:**
-- CP position memory (save/restore last position)
 - Gemini 3.1 Flash Live research — potential single-model wallet (STT+LLM in one API call, WebSocket streaming). See Gemini research notes below.
 - `shop.dikta.me` — link store once LemonSqueezy identity verification completes
-- UX: signed-out + no license = pipelines silently fail. Need a clear toast/dialog explaining why.
 
 **Also pending:**
 - Audit #3: Cloud provider retry (Polly). 2-3 hrs.
@@ -94,6 +92,33 @@ Replaced the old 3-sub-row vision layout + VisionActionWindow modal with a singl
 - **Monitor bounds snapshot**: `_dimOverlayMonitorBounds` stored at Step 1, used for all capture paths (prevents wrong-monitor bug)
 - **ESC via polling**: `GetAsyncKeyState(VK_ESCAPE)` on background thread during full-screen recording (no WndProc/RegisterHotKey needed)
 - **Video actions in wizard**: `IsVideoPostCapture` flag switches PostCapture panel between image buttons and video buttons (Describe/Document/BugReport/Save)
+
+---
+
+## Session: 2026-03-30 (evening) — CP Position Memory + No-License UX
+
+### CP Position Memory (`a624af7`)
+- ✅ Save/restore CP window position across restarts (freeform drag + snap presets)
+- `WindowX`/`WindowY` added to `ControlPanelSettings` (`int.MinValue` = use snap)
+- **WinUI 3 bug**: `AppWindow.Changed` doesn't fire when WndProc is subclassed (our double-click hook). Fix: intercept `WM_WINDOWPOSCHANGED` in the existing WndProc instead.
+- **Timing bug**: `App.Current.MainWindow` is null during `Page.Loaded` (constructor not finished). Fix: defer restore via `DispatcherQueue.TryEnqueue`.
+- **Override bug**: `LoadFromSettings` re-triggers `BarPosition` change on every settings save, overriding restored position. Fix: `SnapToPosition` checks for saved coords first.
+- Debounced 500ms save prevents thrashing during drag
+- Snap buttons + double-click clear saved coords and snap to preset
+- `GeneralSettingsViewModel.Save()` preserves `WindowX`/`WindowY`
+
+### No-License UX Toast (`a624af7`)
+- ✅ All 9 pipeline catch blocks show "License Required" toast instead of raw exception
+- `HandleLicenseError()` helper in LoadingViewModel
+
+### Bug Fix: CP snap on every toggle click (`a624af7`)
+- ✅ Removed unconditional `OnPropertyChanged(nameof(BarPosition))` from `LoadFromSettings`
+- Was causing CP to snap back to preset on any settings change (STT toggle, LLM toggle, etc.)
+- Double-click snap restored via explicit `ForceResnap()` call in WndProc hook
+
+### WinUI 3 Gotcha: AppWindow.Changed + WndProc Subclassing
+- `AppWindow.Changed` (including `DidPositionChange`, `DidSizeChange`) stops firing entirely when the window is subclassed via `SetWindowLongPtr(GWLP_WNDPROC, ...)`. Known issue: github.com/microsoft/microsoft-ui-xaml/issues/6466
+- Workaround: intercept Win32 messages (`WM_WINDOWPOSCHANGED`, `WM_SIZE`, etc.) directly in the WndProc
 
 ---
 
