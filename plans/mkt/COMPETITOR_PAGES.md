@@ -322,7 +322,7 @@ People want tools that close the loop — capture something, understand it, and 
 
 - **Price:** $20 one-time / Free trial
 - **Platform:** Windows
-- **What it does:** `Ctrl+Alt+S`, draw a region, choose: OCR (extract text), Table (extract structured data), Describe (AI explains what it sees), Chat (ask questions about the image), Note (voice note with image context). Results go to your cursor or chat overlay.
+- **What it does:** `Ctrl+Alt+S`, draw a region, choose: OCR (extract text), Describe (AI explains what it sees), Chat (ask questions about the image), Note (voice note with image context). Edit 8draw lines and shapes with text on the clipped image) Results go to your cursor or chat overlay along with the screenshot. Great for IDE Workflow and Prompting with annotated screenshots.  Great Color Picking Tool as a complement.
 - **AI processing:** Local (minicpm-v via Ollama) or cloud (Gemini). Your choice.
 - **Also does:** 8 voice modes (dictation, refinement, translation, Q&A, notes, TTS, chat) — vision is one piece of a larger AI input tool.
 - **Best for:** People who need to pull information from their screen into their workflow, privately.

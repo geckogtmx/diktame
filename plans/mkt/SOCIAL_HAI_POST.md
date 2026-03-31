@@ -87,7 +87,13 @@
 
 ---
 
-🎨 **Image:** Split screen — left side: person typing laboriously into a chat box (2003 energy). Right side: same person speaking, screen captured, result injected instantly. Overlay: *"The models are ready. The interface wasn't."*
+🎨 **Image:** 
+
+Split screen — left side: person typing laboriously into a chat box, stressed, scruffy beard, old looking PC, desk is a mess.
+
+Right side: same person leaning back relaxed, speaking into a mic. on a cool arm, Cool modern Dual screen setup on a clean desk
+
+ screen captured, result injected instantly. Overlay: *"The models are ready. The interface wasn't."*
 
 ---
 
