@@ -72,3 +72,6 @@ nul
 
 # Remotion video project (entire directory — never committed)
 video/
+
+# News run content (auto-generated, never commit)
+plans/mkt/content/
