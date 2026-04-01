@@ -810,6 +810,9 @@
   <data name="Recording_MicMuted_Title" xml:space="preserve"><value>Micr&#243;fono silenciado</value></data>
   <data name="Recording_MicMuted_Message" xml:space="preserve"><value>Tu micr&#243;fono est&#225; silenciado. Act&#237;valo para grabar.</value></data>
   <data name="Recording_MicMuted_Spoken" xml:space="preserve"><value>Tu micr&#243;fono est&#225; silenciado.</value></data>
+  <data name="Vision_ImageSaved_Spoken" xml:space="preserve"><value>Imagen guardada.</value></data>
+  <data name="License_Required_Spoken" xml:space="preserve"><value>Se requiere una licencia para IA local.</value></data>
+  <data name="ReadSelection_Disabled_Spoken" xml:space="preserve"><value>La lectura de texto est&#225; desactivada. Act&#237;vala en los ajustes.</value></data>
 
   <data name="QuickChat_Tooltip_History" xml:space="preserve"><value>Historial de conversaci&#243;n</value></data>
   <data name="QuickChat_Tooltip_DeleteChat" xml:space="preserve"><value>Eliminar</value></data>

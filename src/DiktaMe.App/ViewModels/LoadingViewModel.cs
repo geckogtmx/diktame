@@ -1030,7 +1030,8 @@ public sealed partial class LoadingViewModel : ObservableObject
             _notifications.ShowToast(
                 "License Required",
                 "Local AI providers need a Power License. Purchase at dikta.me",
-                NotificationType.Warning);
+                NotificationType.Warning,
+                spokenKey: "License_Required");
             return true;
         }
 
@@ -1707,7 +1708,8 @@ public sealed partial class LoadingViewModel : ObservableObject
                 _notifications.ShowToast(
                     _loc.GetString("ReadSelection_Disabled_Title"),
                     _loc.GetString("ReadSelection_Disabled_Message"),
-                    NotificationType.Warning);
+                    NotificationType.Warning,
+                    spokenKey: "ReadSelection_Disabled");
                 return;
             }
 
@@ -2500,13 +2502,13 @@ public sealed partial class LoadingViewModel : ObservableObject
         if (!string.IsNullOrEmpty(chosenPath))
         {
             await File.WriteAllBytesAsync(chosenPath, imageData).ConfigureAwait(false);
-            _notifications.ShowToast("Vision", $"Saved to {Path.GetFileName(chosenPath)}");
+            _notifications.ShowToast("Vision", $"Saved to {Path.GetFileName(chosenPath)}", spokenKey: "Vision_ImageSaved");
             Log.Information("Vision: Saved to user-chosen path {Path}", chosenPath);
         }
         else if (savedPath != null)
         {
             // User cancelled picker — file is still in vision folder
-            _notifications.ShowToast("Vision", $"Auto-saved to {Path.GetFileName(savedPath)}");
+            _notifications.ShowToast("Vision", $"Auto-saved to {Path.GetFileName(savedPath)}", spokenKey: "Vision_ImageSaved");
         }
     }
 

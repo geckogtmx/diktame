@@ -2201,6 +2201,15 @@
   <data name="Recording_MicMuted_Spoken" xml:space="preserve">
     <value>Your microphone is muted.</value>
   </data>
+  <data name="Vision_ImageSaved_Spoken" xml:space="preserve">
+    <value>Image saved.</value>
+  </data>
+  <data name="License_Required_Spoken" xml:space="preserve">
+    <value>A license is required for local AI.</value>
+  </data>
+  <data name="ReadSelection_Disabled_Spoken" xml:space="preserve">
+    <value>Text to speech is turned off. Enable it in settings.</value>
+  </data>
 
   <data name="QuickChat_Tooltip_History" xml:space="preserve">
     <value>Conversation history</value>
