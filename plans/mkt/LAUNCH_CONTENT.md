@@ -342,19 +342,117 @@ Knowledge workers who live in productivity tools. Privacy-conscious professional
 
 ---
 
-### About / Maker Comment (posted Day 0 on PH)
+### First Post / Maker Comment (posted IMMEDIATELY at 12:01 AM PST on Day 0)
 
-Hi — I'm Eduardo. I built dIKta.me because I was spending too much time managing tools that were supposed to save me time.
+> **Structure**: Origin story first (builds trust) → HAI manifesto (reframes the problem) → concrete product → price anchor → invitation for questions (drives threaded engagement, worth 40-50x more than votes in PH algorithm).
 
-I've been in consulting and project management for 20 years. I'm bilingual (English/Spanish), work across multiple apps simultaneously, and generate a lot of written output. I started dictating years ago, then started layering in AI. At some point I had five subscriptions and was still doing manual copy-paste between all of them.
+**How was it born?**
 
-So I rewrote my Python prototype from scratch in C#/WinUI 3. It took three months and 1,134 tests to get here.
+I was paying for 4-5 monthly subscriptions for basic productivity tools. Dictation, grammar, meeting AI, chat, vision — all separate apps, separate bills, separate windows. And I was STILL copy-pasting between all of them.
 
-dIKta.me is free to try — sign in, try all 8 modes with cloud credits, see if it fits your workflow. If you want local AI (faster, offline, private), the Full Version is $20 once.
+So I gathered $100 for Claude Code compute and built the tool I wanted. A native Windows app. C#, WinUI 3, 1,134 automated tests. Three months from prototype to launch.
 
-I read every piece of feedback. Ask me anything.
+I'm a marketing and business executive with 20+ years in IT consulting, digital media, and project management. Not a software engineer by training. dIKta.me is my first desktop application, built from scratch with AI coding tools. The product decisions come from two decades of building businesses and shipping products — not a CS degree.
+
+**The problem nobody's fixing**
+
+Everyone's racing to make AI smarter. Nobody's fixing how you talk to it.
+
+We've gone from GPT-3 to high reasoning models in 3 years. Context windows went from 2K to 2M tokens. Multimodal, real-time, on-device — the intelligence side is moving fast.
+
+But you still type at it like it's a search engine from 2003. You open a browser tab. You paste text. You upload a screenshot manually. You switch apps to copy context.
+
+The bottleneck was never the AI. The bottleneck is the input layer.
+
+**What dIKta.me does about it**
+
+Press a hotkey in any Windows app — Word, VS Code, Slack, your browser — and your voice becomes AI-processed text at your cursor.
+
+🎙️ **Dictate** — voice to clean text, injected where you work. 3-4x faster than typing.
+
+👁️ **Vision** — point at anything on your screen, ask a question, get an answer. No copy-paste.
+
+✂️ **Refine** — highlight text, speak "make this shorter" or "translate to Spanish." One hotkey.
+
+🏠 **Local-first** — Whisper + Ollama + Kokoro TTS on your GPU. Sub-1.2s latency. Nothing leaves your machine unless you choose cloud.
+
+**$20 once. No subscription. Your models, your hardware, your data.**
+
+MIT open source — read every line on GitHub.
+
+I read every comment here. Ask me anything about the architecture, the local AI setup, or the decisions behind it.
+
+> **First Post 🇪🇸** (post as reply if PH audience warrants it)
+
+**Cómo nació**
+
+Pagaba 4-5 suscripciones mensuales por herramientas básicas de productividad. Dictado, gramática, reuniones con IA, chat, visión — apps separadas, facturas separadas, ventanas separadas. Y SEGUÍA copiando y pegando entre todas.
+
+Así que junté $100 para cómputo de Claude Code y construí la herramienta que quería. Una app nativa de Windows. C#, WinUI 3, 1,134 tests automatizados. Tres meses de prototipo a lanzamiento.
+
+Soy ejecutivo de marketing y negocios con más de 20 años en consultoría IT, medios digitales y gestión de proyectos. No soy ingeniero de software. dIKta.me es mi primera aplicación de escritorio, construida desde cero con herramientas de IA.
+
+**El problema que nadie está resolviendo**
+
+Todos compiten por hacer la IA más inteligente. Nadie está arreglando cómo le hablas.
+
+Pasamos de GPT-3 a modelos de razonamiento avanzado en 3 años. Pero sigues escribiéndole como si fuera un buscador de 2003. Abres una pestaña. Pegas texto. Subes capturas manualmente. Cambias de app para copiar contexto.
+
+El cuello de botella nunca fue la IA. El cuello de botella es la capa de entrada.
+
+**Qué hace dIKta.me**
+
+Presiona un atajo en cualquier app de Windows y tu voz se convierte en texto procesado por IA en tu cursor.
+
+🎙️ **Dictar** — voz a texto limpio, inyectado donde trabajas. 3-4x más rápido que escribir.
+
+👁️ **Visión** — apunta a cualquier cosa en tu pantalla, haz una pregunta, obtén respuesta.
+
+✂️ **Refinar** — selecciona texto, di "hazlo más corto" o "traduce al inglés." Un atajo.
+
+🏠 **Local-first** — Whisper + Ollama + Kokoro TTS en tu GPU. Latencia sub-1.2s. Nada sale de tu máquina a menos que elijas la nube.
+
+**$20 una vez. Sin suscripción. Tus modelos, tu hardware, tus datos.**
+
+MIT open source — lee cada línea en GitHub.
+
+Leo cada comentario aquí. Pregúntame lo que quieras.
 
 ---
+
+### PH Comment Reply Templates (Pre-Written for Speed)
+
+> **Context**: 1 quality comment ≈ 40-50 upvotes in PH algorithm. Respond to every comment within 10 minutes. Always ask a follow-up question to drive threaded engagement.
+
+**Q: "How does local mode actually work?"**
+> Great question. The local stack is: Whisper.net for STT (Vulkan GPU acceleration), Ollama for the LLM (any model — gemma3, llama3, etc.), and KokoroSharp for TTS. Everything runs on your GPU, nothing leaves your machine. Sub-1.2s latency end-to-end once models are warm. What kind of hardware are you running? Happy to suggest models that would work well.
+
+**Q: "Why Windows only?"**
+> Deliberate choice. Every competitor in this space is Mac-first — Wispr Flow, superwhisper, MacWhisper. Windows users have nothing native. WinUI 3 gives us OS-level text injection (SendInput) that works in any app, which isn't possible with Electron or web wrappers. Mac is on the roadmap for V3. What's your primary OS?
+
+**Q: "Is $20 sustainable? What's the catch?"**
+> No catch — the economics just work differently. dIKta.me runs on YOUR hardware for local mode. I don't pay for GPU inference. Cloud mode uses your own API keys (Deepgram, Gemini, OpenAI) — no proxy, no markup. The only cloud cost I carry is the wallet system for users who don't want to manage API keys, and that's pay-as-you-go. Plus it's MIT open source — even if I disappeared tomorrow, the code is yours.
+
+**Q: "How does this compare to Wispr Flow?"**
+> Wispr Flow is excellent — polished, cross-platform, great Command Mode. Where dIKta.me differs: (1) runs fully local on your GPU for zero cloud dependency, (2) $20 once vs $180/yr, (3) model-agnostic — swap any STT/LLM/TTS provider, (4) Vision mode for screen analysis, (5) MIT open source. Where Wispr wins: Mac support, enterprise compliance, more polish. If you need cross-platform right now, Wispr is great. If you want local-first on Windows with model freedom, that's us.
+
+**Q: "I already use ChatGPT/Copilot for everything"**
+> Those live in a browser tab. dIKta.me works at the OS level — press a hotkey in Word, VS Code, Slack, email, literally any app, and the output appears at your cursor. No tab-switching, no copy-paste. The Refine mode is the killer: select text anywhere, speak "make this more concise" or "translate to Spanish," and it updates in-place. It's the difference between a tool you visit vs a tool that's always there. What apps do you use most?
+
+**Q: "What about privacy?"**
+> Four privacy levels: (1) Full local — everything on your GPU, nothing leaves your machine, (2) BYOK cloud — your API keys, direct connection to providers, I never see your data, (3) Wallet mode — I route through edge functions but don't store content, (4) You choose per-session with a toggle. Credentials stored with Windows DPAPI encryption. And it's MIT open source — audit every line.
+
+**Q: "What's the free trial like?"**
+> Sign in at dikta.me, get cloud credits to try all 8 modes immediately. No credit card, no time limit on the trial. The credits cover enough dictation to know if it fits your workflow. If you want local AI (faster, offline, private), Full Version is $20 once. What kind of work do you do? I can suggest which modes to try first.
+
+**Q: "Built by one person? Can I trust it?"**
+> Fair concern. Three things: (1) 1,134 automated tests with CI on GitHub Actions — every commit is verified, (2) MIT license — you can read, fork, and modify every line, (3) it's a native Windows app, not a cloud service — if I get hit by a bus, the app still runs on your machine. Also I've been shipping products for 20 years in consulting — this is my first desktop app, but not my first product.
+
+**Q: "What's on the roadmap?"**
+> V2.1 is where it gets interesting: (1) Connectors — plug into Obsidian, Notion, calendar, email, (2) Grammar pipeline — real-time correction without a Grammarly subscription, (3) Memory layer — the app remembers context across sessions, (4) "Chaviz" conversational orchestrator — speak a command, get things done across your system. The architecture is modular specifically so these extensions don't require rewriting the core. What feature would be most useful for your workflow?
+
+**Q: "Does it work with [specific app]?"**
+> It works in any Windows app that accepts text input — Word, VS Code, Slack, Discord, Chrome, Firefox, Outlook, Notion (desktop), Obsidian, terminal emulators, literally any text field. It injects at the OS level using SendInput with a clipboard fallback for apps that don't accept keystroke injection. What app are you thinking of? I can test it right now.
 
 ---
 

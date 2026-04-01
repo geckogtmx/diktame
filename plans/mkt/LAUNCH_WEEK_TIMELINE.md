@@ -1,10 +1,21 @@
 # Launch Week Timeline — dIKta.me V2.0
 
-*Complements RELEASE_ROADMAP.md Phase 4-5 and LAUNCH_CONTENT.md social batch.*
+**Launch Date: Wednesday, April 15, 2026**
+
+*Complements PH_LAUNCH_PLAN.md and LAUNCH_CONTENT.md social batch.*
 
 ---
 
-## Pre-Launch (Week Before)
+## Pre-Launch Week 1: Assets (March 31 — April 6)
+
+- [ ] **Mon Mar 31**: PH Coming Soon page live. Email capture on dikta.me.
+- [ ] **Mon-Wed**: 60-second demo video (captioned, YouTube)
+- [ ] **Wed-Fri**: 6 gallery images (1270x760) + animated GIF thumbnail (240x240)
+- [ ] **Daily**: LinkedIn/X build-in-public posts
+
+---
+
+## Pre-Launch Week 2: Upload + Polish (April 7 — April 14)
 
 ### T-7 days
 - [ ] Installer tested on 2+ clean machines (Windows 10, Windows 11)
@@ -34,37 +45,47 @@
 
 ## Launch Day (Day 0)
 
-### Morning (6:00-8:00 AM CT)
+> **CRITICAL**: PH resets at 12:01 AM PST. The first 4 hours (12:01-4:00 AM PST) carry the heaviest algorithmic weight. 1 quality comment ≈ 40-50 upvotes in algorithm weight.
+
+### Night before — 11:30 PM PST / 1:30 AM CT
+- [ ] Confirm PH listing is live (if scheduled) or publish manually
+- [ ] Verify all links: product page, demo video, gallery, download
 - [ ] Publish GitHub Release with installer + release notes + CHANGELOG
 - [ ] Update dikta.me download links to point to the live release
-- [ ] Product Hunt listing goes live (if scheduled for today)
-- [ ] Verify installer download works from dikta.me
 
-### Mid-morning (8:00-10:00 AM CT)
-- [ ] Post LinkedIn announcement (EN) — Day 0 from LAUNCH_CONTENT.md
+### Midnight — 12:01 AM PST / 2:01 AM CT
+- [ ] Post maker first comment IMMEDIATELY (revised version from LAUNCH_CONTENT.md)
+- [ ] Send email to list: product link (NOT PH link) + "try it and share your experience"
 - [ ] Post X/Twitter announcement (EN)
-- [ ] Post Show HN
-- [ ] DM your 5-10 supporters: "It's live! Would love your thoughts"
+- [ ] DM 10-15 closest supporters personally
 
-### Late morning (10:00 AM-12:00 PM CT)
+### Critical Window — 1:00-4:00 AM PST / 3:00-6:00 AM CT
+- [ ] Monitor PH — respond to every comment within 10 minutes
+- [ ] Verify installer download works from dikta.me
+- [ ] Do NOT panic-post or ask people to vote if volume is low
+
+### Morning — 4:00-8:00 AM PST / 6:00-10:00 AM CT
+- [ ] Post LinkedIn announcement (EN) — US professional audience wakes up
+- [ ] Post Show HN
+- [ ] Continue responding to every PH comment
+
+### Late morning — 8:00 AM-12:00 PM PST / 10:00 AM-2:00 PM CT
 - [ ] Post LinkedIn announcement (ES)
 - [ ] Post X/Twitter announcement (ES)
-- [ ] Monitor Product Hunt — respond to every comment immediately
-- [ ] Monitor HN — respond to every question, be technical and honest
-
-### Afternoon (12:00-6:00 PM CT)
 - [ ] Post to r/selfhosted (use template from LAUNCH_CONTENT.md)
 - [ ] Post to r/LocalLLaMA
-- [ ] Continue responding to all PH + HN comments
-- [ ] Engage with anyone who mentions dIKta.me on social
-- [ ] Post Product Hunt maker comment (from LAUNCH_CONTENT.md)
 
-### Evening (6:00-10:00 PM CT)
+### Afternoon — 12:00-6:00 PM PST / 2:00-8:00 PM CT
 - [ ] Post to r/productivity
+- [ ] Continue responding to ALL PH + HN comments
+- [ ] Engage with anyone who mentions dIKta.me on social
+
+### Evening — 6:00 PM-midnight PST / 8:00 PM-2:00 AM CT
+- [ ] Post to r/artificial (technical architecture angle)
 - [ ] Check for any critical bug reports from first users
-- [ ] If critical bug found: fix, rebuild, update release, post update
+- [ ] If critical bug found: fix, rebuild, update release, post "just shipped a fix" on PH
 - [ ] Screenshot any noteworthy comments/feedback for Day 1 content
-- [ ] Note down Day 1 numbers for tomorrow's post
+- [ ] Compile Day 0 numbers
 
 ### Rules for Day 0
 - Respond to EVERY comment on PH and HN. Speed matters.
