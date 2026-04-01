@@ -43,6 +43,11 @@ export async function POST(
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
+    // Validate slug format to prevent path traversal
+    if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(post.slug)) {
+      return NextResponse.json({ error: 'Post has invalid slug format' }, { status: 400 });
+    }
+
     const fileName = `${post.slug}-${lang}.webp`;
     const buffer = Buffer.from(await file.arrayBuffer());
 

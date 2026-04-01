@@ -36,10 +36,28 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
 
-    const updates: Record<string, unknown> = {
-      ...body,
-      updated_at: new Date().toISOString(),
-    };
+    // Whitelist allowed fields to prevent mass assignment
+    const allowedFields = [
+      'title_en', 'title_es', 'hook_en', 'hook_es',
+      'body_en', 'body_es', 'closing_en', 'closing_es',
+      'status', 'voice_id', 'voice_label_en', 'voice_label_es',
+      'image_prompt', 'image_anchor', 'thematic_arc',
+      'headlines_used', 'newsletter_sources', 'run_date',
+    ];
+
+    const updates: Record<string, unknown> = {};
+    for (const field of allowedFields) {
+      if (field in body) updates[field] = body[field];
+    }
+    updates.updated_at = new Date().toISOString();
+
+    // Validate status if provided
+    if (body.status) {
+      const validStatuses = ['draft', 'published', 'archived'];
+      if (!validStatuses.includes(body.status)) {
+        return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
+      }
+    }
 
     // Handle published_at based on status changes
     if (body.status === 'published') {

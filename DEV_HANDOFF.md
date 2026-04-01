@@ -167,13 +167,71 @@ Replaced the old 3-sub-row vision layout + VisionActionWindow modal with a singl
 
 ---
 
+---
+
+## Session: 2026-04-01 (evening) — Blog System Phase 1
+
+### Blog Database + Storage (`f899f16`)
+- ✅ `blog_posts` table created via Supabase MCP `apply_migration` — 25 columns, bilingual content (EN/ES), voice system, dual image URLs (`image_url_en`/`image_url_es`), JSONB metadata
+- ✅ `CHECK` constraint on `status` field (`draft`/`published`/`archived`)
+- ✅ RLS: public reads published only, admin full access via `is_admin` check
+- ✅ Indexes on `status`, `published_at DESC`, `slug`
+- ✅ Migration saved locally: `website/supabase/migrations/010_blog_posts_table.sql`
+- ✅ `blog-images` Supabase Storage bucket (public read, admin write)
+
+### Admin Panel — `/hqbackstage/blog`
+- ✅ Blog list page: table with title, voice, status badge, run date, image status (EN/ES checkmarks or "Missing"), created date
+- ✅ Post edit page: side-by-side EN/ES markdown preview (via `react-markdown`), collapsible metadata section
+- ✅ Drag-and-drop image upload zones (EN + ES separately), calls `/api/hqbackstage/blog/[id]/image`
+- ✅ Publish/Unpublish toggle with confirmation dialog
+- ✅ Blog nav item added to AdminSidebar (pencil icon, after Overview)
+- ✅ Verified live on dikta.me — admin panel renders correctly, empty state shown
+
+### API Routes
+- ✅ `GET /api/hqbackstage/blog/[id]` — fetch full post data
+- ✅ `PATCH /api/hqbackstage/blog/[id]` — partial update with field whitelist + status validation
+- ✅ `POST /api/hqbackstage/blog/[id]/image` — upload to `blog-images/{slug}-{lang}.webp`, updates `image_url_en`/`image_url_es`
+
+### `/news-publish` Skill
+- ✅ New skill at `.claude/skills/news-publish/SKILL.md` (gitignored, local only)
+- Parses structured `NewsRun_MM-DD-YY.md` files from `/news-writer` output
+- Extracts: EN/ES title/hook/body/closing, voice_id, image_prompt, image_anchor, thematic_arc, headlines, sources
+- Generates URL-safe slug from EN title (max 60 chars, uniqueness check)
+- Dollar-quoting per field for SQL safety
+- Inserts as `status='draft'` via Supabase MCP `execute_sql`
+
+### Security Audit Fixes
+- ✅ **Mass assignment fix**: PATCH endpoint now uses explicit field whitelist (was spreading `...body` directly)
+- ✅ **Status validation**: rejects values outside `draft`/`published`/`archived`
+- ✅ **Slug validation in image upload**: regex check prevents path traversal in storage filenames
+- ℹ️ Service role overprivilege in `requireAdmin()` — existing pattern across all admin routes, not blog-specific
+- ℹ️ MIME-only file validation — acceptable for admin-only endpoint (no public upload)
+
+### Schema Change vs BLOG_ROADMAP.md
+- `image_url` split into `image_url_en` + `image_url_es` (two images per post, one per language)
+- `image_id` dropped (redundant with URL-based storage flow)
+- Added `CHECK` constraint on `status` (not in original spec)
+
+### Architecture Notes
+- **Auth flow**: Supabase auth callback targets production URL → cannot test admin pages on localhost without reconfiguring
+- **Image naming**: `{slug}-{en|es}.webp` with `upsert: true` — re-uploading replaces the file
+- **NewsRun multi-run**: Same-day runs append letter suffix (`NewsRun_04-01-26b.md`)
+- **Publish flow**: `/news-publish` → draft in DB → admin panel → upload images → click Publish
+
+### Next Session Priorities
+- Run the full pipeline: `/news-run` → `/news-writer` → `/news-publish` → verify draft in admin panel
+- Upload test images via admin panel, verify storage + display
+- Phase 2 candidates: public blog pages (`/en/blog`, `/es/blog`), SEO (hreflang, OG tags, article schema)
+
+---
+
 ## Current State
 
 | Metric | Value |
 |--------|-------|
 | **Tests** | 1134 passing locally |
 | **Build** | **PASSES** (0 warnings, 0 errors) |
-| **CI** | Pending (just pushed `39d32ea`) |
+| **CI** | Deployed on Vercel (`f899f16`) |
 | **Branch** | main — pushed |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
 | **License** | LemonSqueezy License API (test mode active, E2E verified) |
@@ -204,3 +262,4 @@ Replaced the old 3-sub-row vision layout + VisionActionWindow modal with a singl
 | **Chat Theming** | QuickChatWindow themed, MarkdownTextBlock themed |
 | **Vision Settings Polish** | AI prompts, audio device pickers, save folder config |
 | **LemonSqueezy License** | RSA replaced with LemonSqueezy License API, E2E verified, security hardened |
+| **Blog Phase 1** | DB table, storage bucket, admin panel, image upload, `/news-publish` skill |
