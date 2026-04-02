@@ -218,10 +218,60 @@ Replaced the old 3-sub-row vision layout + VisionActionWindow modal with a singl
 - **NewsRun multi-run**: Same-day runs append letter suffix (`NewsRun_04-01-26b.md`)
 - **Publish flow**: `/news-publish` → draft in DB → admin panel → upload images → click Publish
 
+### Full Pipeline Run (E2E verified)
+- ✅ `/news-run` → fetched 6 newsletters, deduped to 10 headlines, filtered 5 already-used emails
+- ✅ `/news-writer` → wrote 2 posts: Aldous Huxley (EN voice) + José Emilio Pacheco (ES voice, new voice file created)
+- ✅ Created `VOICE_JOSE_EMILIO_PACHECO.md` — elegiac, precise, understated, Mexico City as palimpsest
+- ✅ Both posts translated to the other language (Huxley→ES adaptation, Pacheco→EN adaptation) with "Originally written in" note
+- ✅ `/news-publish` → parsed `NewsRun_04-01-26b.md`, inserted 2 drafts into Supabase
+- ✅ Images generated on Nanobanana (2 per post = 4 total), uploaded via admin panel
+- ✅ Both posts published via admin panel — live on `dikta.me/blog`
+- ✅ Same-day headline recycle: `allHeadlines` field added to ledger, Phase 0 checks before Gmail fetch
+
+### Client-Side Image Compression (`648f110`)
+- ✅ Images resized to max 1920px width, compressed to WebP (0.82 quality) in browser before upload
+- Fixes Vercel `FUNCTION_PAYLOAD_TOO_LARGE` error on 8MB+ images from Nanobanana
+
+### Public Blog Pages (`770c80f`)
+- ✅ `/[locale]/blog` — index page with published posts as full-width cards, locale-aware images/content
+- ✅ `/[locale]/blog/[slug]` — post detail with hero image, markdown body, closing pull-quote, BlogPosting JSON-LD
+- ✅ "Originally written in [English/Spanish]" note based on voice_id language mapping
+- ✅ Language toggle + social links at bottom
+- ✅ Navbar: added "Blog" link (desktop + mobile)
+- ✅ Sitemap: `/blog` static route + dynamic published post URLs with hreflang
+- ✅ `BlogPage` translation namespace in `messages/{en,es}.json`
+- ✅ Supabase Storage domain added to `next.config.ts` `remotePatterns`
+- ✅ Verified live — both posts rendering with images on `dikta.me/blog`
+
+### Admin Panel Enhancements
+- ✅ **View button** (`28b4551`) — opens public post in new tab, only shows when published
+- ✅ **Inline editing** (`33543ef`) — pencil icon on Title/Hook/Body/Closing, per-section save via PATCH API, monospace textarea for markdown body
+- ✅ **LinkedIn URL field** (`6629e59`) — per-post field in metadata section, "Also on LinkedIn" link on public blog (migration 011)
+- ✅ **X/Twitter URL field** (`2753a6f`) — same pattern, refactored `LinkedInField` → generic `SocialUrlField` (migration 012)
+- ✅ **Hook for X card** (`87bfa3a` → `5089ae3`) — smart auto-generation from first sentence (not dumb truncate), editable `twitter_hook_en`/`twitter_hook_es` columns (migration 013), EN/ES toggle, copy button, char counter, save/reset
+- ✅ **Social links row** (`275585a`) — public blog post footer shows language toggle + LinkedIn + X as horizontal pill buttons with icons
+
+### Migrations This Session
+| # | Name | Purpose |
+|---|------|---------|
+| 010 | `blog_posts_table` | Main table + RLS + indexes |
+| 011 | `blog_posts_linkedin_url` | LinkedIn URL column |
+| 012 | `blog_posts_twitter_url` | X/Twitter URL column |
+| 013 | `blog_posts_twitter_hooks` | `twitter_hook_en` + `twitter_hook_es` columns |
+
+### Skills Updated
+- `/news-run` — Phase 0 same-day headline recycle, `allHeadlines` in ledger
+- `/news-writer` — Phase 6b X hooks (purpose-built social teasers, not truncated blog hooks)
+- `/news-publish` — parses X hooks from NewsRun files, inserts `twitter_hook_en`/`twitter_hook_es`
+
+### Voice Files
+- `VOICE_ALDOUS_HUXLEY.md` — already existed, used for Post 1
+- `VOICE_JOSE_EMILIO_PACHECO.md` — **created this session**, elegiac/precise/understated, Mexico City flaneur
+
 ### Next Session Priorities
-- Run the full pipeline: `/news-run` → `/news-writer` → `/news-publish` → verify draft in admin panel
-- Upload test images via admin panel, verify storage + display
-- Phase 2 candidates: public blog pages (`/en/blog`, `/es/blog`), SEO (hreflang, OG tags, article schema)
+- Run the pipeline again with new newsletters to test the full updated flow (X hooks in output)
+- Phase 4 candidates: RSS feed, related posts, voice rotation, analytics
+- Consider: Supabase image hostname in `next.config.ts` may need updating if bucket URL changes
 
 ---
 
@@ -231,7 +281,7 @@ Replaced the old 3-sub-row vision layout + VisionActionWindow modal with a singl
 |--------|-------|
 | **Tests** | 1134 passing locally |
 | **Build** | **PASSES** (0 warnings, 0 errors) |
-| **CI** | Deployed on Vercel (`f899f16`) |
+| **CI** | Deployed on Vercel (`275585a`) |
 | **Branch** | main — pushed |
 | **Website** | Deployed on Vercel (dikta.me), Root Directory = `website` |
 | **License** | LemonSqueezy License API (test mode active, E2E verified) |
@@ -262,4 +312,4 @@ Replaced the old 3-sub-row vision layout + VisionActionWindow modal with a singl
 | **Chat Theming** | QuickChatWindow themed, MarkdownTextBlock themed |
 | **Vision Settings Polish** | AI prompts, audio device pickers, save folder config |
 | **LemonSqueezy License** | RSA replaced with LemonSqueezy License API, E2E verified, security hardened |
-| **Blog Phase 1** | DB table, storage bucket, admin panel, image upload, `/news-publish` skill |
+| **Blog System** | Full pipeline: DB + admin panel + skills + public pages + SEO + social cross-posting. 13 commits, 4 migrations, 3 skills updated, 2 posts live |
