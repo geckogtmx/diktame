@@ -52,21 +52,12 @@ export default async function RoadmapPage({
     { icon: '🎙️', label: t('f3Label'), title: t('f3Title'), desc: t('f3Desc') },
     { icon: '🔇', label: t('f4Label'), title: t('f4Title'), desc: t('f4Desc') },
     { icon: '🧙', label: t('f5Label'), title: t('f5Title'), desc: t('f5Desc') },
-    { icon: '⚡', label: t('f6Label'), title: t('f6Title'), desc: t('f6Desc') },
+    { icon: '👁️', label: t('f6Label'), title: t('f6Title'), desc: t('f6Desc') },
     { icon: '🔑', label: t('f7Label'), title: t('f7Title'), desc: t('f7Desc') },
     { icon: '🧪', label: t('f8Label'), title: t('f8Title'), desc: t('f8Desc') },
   ];
 
   const timeline = [
-    {
-      phase: t('tl1Phase'),
-      icon: '👁️',
-      title: t('tl1Title'),
-      subtitle: t('tl1Subtitle'),
-      items: [t('tl1Item1'), t('tl1Item2'), t('tl1Item3')],
-      status: t('tl1Status'),
-      statusColor: 'bg-green-500/20 text-green-300 border-green-500/30',
-    },
     {
       phase: t('tl2Phase'),
       icon: '🔌',
