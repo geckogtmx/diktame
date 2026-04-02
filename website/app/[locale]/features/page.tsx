@@ -42,6 +42,7 @@ export default async function FeaturesPage({
         { name: t('featDictate'), description: t('featDictateDesc') },
         { name: t('featAsk'), description: t('featAskDesc') },
         { name: t('featRefine'), description: t('featRefineDesc') },
+        { name: t('featVision'), description: t('featVisionDesc') },
         { name: t('featQuickChat'), description: t('featQuickChatDesc') },
       ],
     },
@@ -77,7 +78,6 @@ export default async function FeaturesPage({
       features: [
         { name: t('featConnectors'), description: t('featConnectorsDesc') },
         { name: t('featMeetings'), description: t('featMeetingsDesc') },
-        { name: t('featVision'), description: t('featVisionDesc') },
         { name: t('featMemory'), description: t('featMemoryDesc') },
       ],
     },

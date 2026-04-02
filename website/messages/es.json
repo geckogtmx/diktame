@@ -108,7 +108,7 @@
     "tl1Item1": "Ctrl+Alt+S captura el contexto de pantalla y lo envía al LLM activo.",
     "tl1Item2": "Soporte multimodal: Gemini Vision, GPT-4o y modelos locales con capacidades de visión.",
     "tl1Item3": "Se combina con los modos Dictar, Preguntar y Refinar para respuestas de IA conscientes de la pantalla.",
-    "tl1Status": "En Progreso",
+    "tl1Status": "Lanzado",
     "tl2Phase": "Fase 2 · Spec 15",
     "tl2Title": "Conectores",
     "tl2Subtitle": "Envía tu voz directamente a las herramientas que ya usas. Sin copiar y pegar, sin cambiar de contexto.",
@@ -186,8 +186,8 @@
     "platformSoon": "Pronto\u2122"
   },
   "CoreArsenalSection": {
-    "title": "Dos Entradas. Salida Infinita.",
-    "subtitle": "La Voz y la Selección de Texto son los pilares. Visión es lo siguiente.",
+    "title": "Tres Entradas. Salida Infinita.",
+    "subtitle": "La Voz, la Selección de Texto y la Visión son los pilares.",
     "pillar01Label": "Entrada: Voz",
     "pillar01Hotkey": "Ctrl+Alt+D",
     "pillar01Title": "Dictar",
@@ -196,14 +196,18 @@
     "pillar02Hotkey": "Ctrl+Alt+R",
     "pillar02Title": "Refinar",
     "pillar02Description": "Selecciona cualquier texto, di tu intención. Reescribe correos, corrige gramática, traduce, reestructura. El texto se actualiza en su lugar.",
+    "pillar03Label": "Entrada: Pantalla",
+    "pillar03Hotkey": "Ctrl+Alt+S",
+    "pillar03Title": "Visión",
+    "pillar03Description": "Captura cualquier región de tu pantalla — descríbela, extrae texto, lee tablas o haz preguntas sobre lo que ves.",
     "flavor01Title": "Preguntar",
     "flavor01Hotkey": "Ctrl+Alt+A",
     "flavor01Desc": "Consulta tu LLM local para definiciones, matemáticas o datos rápidos sin salir de tu ventana.",
     "flavor02Title": "Notas",
     "flavor02Hotkey": "Ctrl+Alt+N",
     "flavor02Desc": "Captura ideas con marcas de tiempo y metatags automáticos. Formato secuencial listo para procesamiento por lotes.",
-    "comingSoonTeaser": "Visión y Conectores",
-    "comingSoonDesc": "Contexto de pantalla como entrada. Envía resultados a Notion, Slack, webhooks y más."
+    "comingSoonTeaser": "Conectores",
+    "comingSoonDesc": "Envía resultados a Notion, Slack, webhooks y más."
   },
   "VersusSection": {
     "title": "dIKta.me Versus La Nube.",

@@ -197,9 +197,6 @@ export function FeaturesModal({ isOpen, onClose }: FeaturesModalProps) {
                     <strong className="text-white">{t('roadMeetings')}</strong> — {t('roadMeetingsDesc')}
                   </li>
                   <li>
-                    <strong className="text-white">{t('roadVision')}</strong> — {t('roadVisionDesc')}
-                  </li>
-                  <li>
                     <strong className="text-white">{t('roadMemory')}</strong> — {t('roadMemoryDesc')}
                   </li>
                   <li>

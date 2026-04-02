@@ -65,7 +65,7 @@ export default async function RoadmapPage({
       subtitle: t('tl1Subtitle'),
       items: [t('tl1Item1'), t('tl1Item2'), t('tl1Item3')],
       status: t('tl1Status'),
-      statusColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      statusColor: 'bg-green-500/20 text-green-300 border-green-500/30',
     },
     {
       phase: t('tl2Phase'),

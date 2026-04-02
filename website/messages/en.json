@@ -108,7 +108,7 @@
     "tl1Item1": "Ctrl+Alt+S captures screen context and sends it to the active LLM.",
     "tl1Item2": "Multimodal support: Gemini Vision, GPT-4o, and local models with vision capabilities.",
     "tl1Item3": "Combines with Dictate, Ask, and Refine modes for screen-aware AI responses.",
-    "tl1Status": "In Progress",
+    "tl1Status": "Shipped",
     "tl2Phase": "Phase 2 · Spec 15",
     "tl2Title": "Connectors",
     "tl2Subtitle": "Route your voice directly into the tools you already use. No copy-paste, no context switching.",
@@ -186,8 +186,8 @@
     "platformSoon": "Soon\u2122"
   },
   "CoreArsenalSection": {
-    "title": "Two Inputs. Infinite Output.",
-    "subtitle": "Voice and Text Selection are the pillars. Vision is next.",
+    "title": "Three Inputs. Infinite Output.",
+    "subtitle": "Voice, Text Selection, and Vision are the pillars.",
     "pillar01Label": "Input: Voice",
     "pillar01Hotkey": "Ctrl+Alt+D",
     "pillar01Title": "Dictate",
@@ -196,14 +196,18 @@
     "pillar02Hotkey": "Ctrl+Alt+R",
     "pillar02Title": "Refine",
     "pillar02Description": "Select any text, speak your intent. Rewrite emails, fix grammar, translate, restructure. The text updates in place.",
+    "pillar03Label": "Input: Screen",
+    "pillar03Hotkey": "Ctrl+Alt+S",
+    "pillar03Title": "Vision",
+    "pillar03Description": "Capture any region of your screen — describe it, extract text, read tables, or ask questions about what you see.",
     "flavor01Title": "Ask",
     "flavor01Hotkey": "Ctrl+Alt+A",
     "flavor01Desc": "Query your local LLM for definitions, math, or quick facts without leaving your window.",
     "flavor02Title": "Notes",
     "flavor02Hotkey": "Ctrl+Alt+N",
     "flavor02Desc": "Capture thoughts with automatic timestamps and metatags. Sequential formatting ready for batch processing.",
-    "comingSoonTeaser": "Vision & Connectors",
-    "comingSoonDesc": "Screen context as input. Route output to Notion, Slack, webhooks, and more."
+    "comingSoonTeaser": "Connectors",
+    "comingSoonDesc": "Route output to Notion, Slack, webhooks, and more."
   },
   "VersusSection": {
     "title": "dIKta.me Versus The Cloud.",
