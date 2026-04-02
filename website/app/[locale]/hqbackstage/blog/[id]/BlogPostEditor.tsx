@@ -55,6 +55,7 @@ interface BlogPost {
   image_prompt: string | null;
   image_anchor: string | null;
   thematic_arc: string | null;
+  linkedin_url: string | null;
   headlines_used: string[] | null;
   newsletter_sources: string[] | null;
   run_date: string | null;
@@ -269,6 +270,14 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
               }
             />
             <MetadataRow label="Image Anchor" value={post.image_anchor} />
+            <div className="flex gap-3 items-start">
+              <span className="text-gray-500 shrink-0">LinkedIn:</span>
+              <LinkedInField
+                value={post.linkedin_url}
+                postId={post.id}
+                onSave={(url) => setPost((prev) => ({ ...prev, linkedin_url: url }))}
+              />
+            </div>
             {post.headlines_used && post.headlines_used.length > 0 && (
               <div>
                 <span className="text-gray-500">Headlines Used:</span>
@@ -536,6 +545,75 @@ function ImageDropZone({
         <div className="flex items-center justify-center py-8 text-gray-500 text-sm">
           Drop {lang.toUpperCase()} image here
         </div>
+      )}
+    </div>
+  );
+}
+
+function LinkedInField({
+  value,
+  postId,
+  onSave,
+}: {
+  value: string | null;
+  postId: string;
+  onSave: (url: string) => void;
+}) {
+  const [editing, setEditing] = useState(!value);
+  const [draft, setDraft] = useState(value ?? '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/hqbackstage/blog/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ linkedin_url: draft || null }),
+      });
+      if (res.ok) {
+        onSave(draft);
+        if (draft) setEditing(false);
+      } else {
+        alert('Save failed');
+      }
+    } catch {
+      alert('Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!editing && value) {
+    return (
+      <div className="flex items-center gap-2">
+        <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-sm break-all">
+          {value.length > 60 ? value.slice(0, 60) + '...' : value}
+        </a>
+        <button onClick={() => { setDraft(value); setEditing(true); }} className="text-gray-600 hover:text-gray-300">
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 flex-1">
+      <input
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        placeholder="https://www.linkedin.com/pulse/..."
+        className="flex-1 bg-white/5 border border-white/20 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-400"
+      />
+      <button onClick={handleSave} disabled={saving} className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 disabled:opacity-50">
+        {saving ? '...' : 'Save'}
+      </button>
+      {value && (
+        <button onClick={() => setEditing(false)} className="px-2 py-1 rounded text-xs bg-white/5 text-gray-400 hover:bg-white/10">
+          Cancel
+        </button>
       )}
     </div>
   );
