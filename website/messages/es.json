@@ -152,6 +152,7 @@
     "specs": "Especificaciones",
     "pricing": "Precios",
     "docs": "Docs",
+    "blog": "Blog",
     "docsMobile": "Documentación",
     "dashboard": "Panel",
     "signUp": "Registrarse",
@@ -937,5 +938,20 @@
     "afterSpecsBtn": "Únete a la Lista",
     "afterDemos": "Eso fue solo un adelanto.",
     "afterDemosBtn": "Ver Precios"
+  },
+  "BlogPage": {
+    "title": "Blog",
+    "metaTitle": "Blog — dIKta.me",
+    "metaDescription": "Perspectivas literarias sobre la semana en tecnología. Ensayos bilingües en inglés y español.",
+    "readMore": "Leer más",
+    "publishedOn": "Publicado el",
+    "originallyIn": "Escrito originalmente en",
+    "english": "inglés",
+    "spanish": "español",
+    "readInEs": "Leer en español",
+    "readInEn": "Read in English",
+    "noPosts": "Aún no hay publicaciones. Vuelve pronto.",
+    "backToBlog": "Volver al Blog",
+    "minRead": "min de lectura"
   }
 }

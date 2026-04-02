@@ -80,6 +80,9 @@ export function Navbar() {
           <Link href="/docs" className="text-primary hover:text-white transition-colors">
             {t('docs')}
           </Link>
+          <Link href="/blog" className="text-muted hover:text-white transition-colors">
+            {t('blog')}
+          </Link>
           <LanguageSwitcher />
           {isSignedIn ? (
             <Link href="/dashboard" className="btn-primary py-2.5 px-8 text-xs shadow-none hover:shadow-glow">
@@ -126,6 +129,9 @@ export function Navbar() {
         </Link>
         <Link href="/docs" className="text-primary hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>
           {t('docsMobile')}
+        </Link>
+        <Link href="/blog" className="text-white hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+          {t('blog')}
         </Link>
         <LanguageSwitcher />
         {isSignedIn ? (

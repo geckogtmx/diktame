@@ -1,8 +1,9 @@
 import type { MetadataRoute } from 'next';
 import fs from 'fs';
 import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://dikta.me';
 
   // Static pages
@@ -16,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/terms',
     '/roadmap',
     '/docs',
+    '/blog',
   ];
 
   const staticEntries: MetadataRoute.Sitemap = staticPages.flatMap((page) => [
@@ -92,5 +94,50 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   scanDocs(docsDir, '');
 
-  return [...staticEntries, ...docEntries];
+  // Dynamic blog posts
+  const blogEntries: MetadataRoute.Sitemap = [];
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    const { data: posts } = await supabase
+      .from('blog_posts')
+      .select('slug, published_at')
+      .eq('status', 'published');
+
+    for (const post of posts ?? []) {
+      const slug = `/blog/${post.slug}`;
+      blogEntries.push(
+        {
+          url: `${baseUrl}${slug}`,
+          lastModified: post.published_at ? new Date(post.published_at) : new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
+          alternates: {
+            languages: {
+              en: `${baseUrl}${slug}`,
+              es: `${baseUrl}/es${slug}`,
+            },
+          },
+        },
+        {
+          url: `${baseUrl}/es${slug}`,
+          lastModified: post.published_at ? new Date(post.published_at) : new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
+          alternates: {
+            languages: {
+              en: `${baseUrl}${slug}`,
+              es: `${baseUrl}/es${slug}`,
+            },
+          },
+        },
+      );
+    }
+  } catch {
+    // Supabase unavailable — skip blog entries
+  }
+
+  return [...staticEntries, ...docEntries, ...blogEntries];
 }
