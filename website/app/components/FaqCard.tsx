@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { trackFaqExpand } from '@/lib/analytics';
 
@@ -47,11 +46,6 @@ export function FaqCard() {
           ))}
         </div>
 
-        <div className="text-center mt-8">
-          <Link href="/faq" className="text-sm text-primary hover:underline">
-            {t('moreLink')}
-          </Link>
-        </div>
       </div>
     </div>
   );
