@@ -6,6 +6,35 @@ import { Link } from '@/i18n/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+const MAX_IMAGE_WIDTH = 1920;
+const COMPRESSION_QUALITY = 0.82;
+
+async function compressImage(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+      if (width > MAX_IMAGE_WIDTH) {
+        height = Math.round((height * MAX_IMAGE_WIDTH) / width);
+        width = MAX_IMAGE_WIDTH;
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Canvas not supported'));
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error('Compression failed'))),
+        'image/webp',
+        COMPRESSION_QUALITY,
+      );
+    };
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 interface BlogPost {
   id: string;
   slug: string;
@@ -90,8 +119,9 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
       setter(true);
 
       try {
+        const compressed = await compressImage(file);
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('image', compressed, `${lang}.webp`);
         formData.append('lang', lang);
 
         const res = await fetch(`/api/hqbackstage/blog/${post.id}/image`, {
