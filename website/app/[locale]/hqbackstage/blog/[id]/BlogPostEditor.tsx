@@ -167,21 +167,33 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
             {post.status}
           </span>
         </div>
-        <button
-          onClick={handlePublishToggle}
-          disabled={publishing}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
-            post.status === 'published'
-              ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
-              : 'bg-green-500/20 text-green-300 hover:bg-green-500/30'
-          }`}
-        >
-          {publishing
-            ? 'Updating...'
-            : post.status === 'published'
-              ? 'Unpublish'
-              : 'Publish'}
-        </button>
+        <div className="flex items-center gap-3">
+          {post.status === 'published' && (
+            <a
+              href={`/blog/${post.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-colors"
+            >
+              View
+            </a>
+          )}
+          <button
+            onClick={handlePublishToggle}
+            disabled={publishing}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
+              post.status === 'published'
+                ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
+                : 'bg-green-500/20 text-green-300 hover:bg-green-500/30'
+            }`}
+          >
+            {publishing
+              ? 'Updating...'
+              : post.status === 'published'
+                ? 'Unpublish'
+                : 'Publish'}
+          </button>
+        </div>
       </div>
 
       {/* Image Upload Zones */}
