@@ -213,13 +213,16 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
         />
       </div>
 
-      {/* Image Prompt */}
-      {post.image_prompt && (
-        <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-          <h3 className="text-sm font-medium text-gray-400 mb-2">Image Prompt</h3>
-          <p className="text-sm text-gray-300 whitespace-pre-wrap">{post.image_prompt}</p>
-        </div>
-      )}
+      {/* Hook for X + Image Prompt */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <XHookCard hookEn={post.hook_en} hookEs={post.hook_es} slug={post.slug} />
+        {post.image_prompt && (
+          <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+            <h3 className="text-sm font-medium text-gray-400 mb-2">Image Prompt</h3>
+            <p className="text-sm text-gray-300 whitespace-pre-wrap">{post.image_prompt}</p>
+          </div>
+        )}
+      </div>
 
       {/* Two-Column Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -546,6 +549,59 @@ function ImageDropZone({
           Drop {lang.toUpperCase()} image here
         </div>
       )}
+    </div>
+  );
+}
+
+function makeXHook(hook: string | null, slug: string, maxLen = 280): string {
+  if (!hook) return '';
+  const url = `https://dikta.me/blog/${slug}`;
+  const linkLen = url.length + 1; // +1 for newline
+  const available = maxLen - linkLen;
+  let text = hook;
+  if (text.length > available) {
+    text = text.slice(0, available - 1).replace(/\s+\S*$/, '') + '\u2026';
+  }
+  return `${text}\n${url}`;
+}
+
+function XHookCard({ hookEn, hookEs, slug }: { hookEn: string | null; hookEs: string | null; slug: string }) {
+  const [lang, setLang] = useState<'en' | 'es'>('en');
+  const [copied, setCopied] = useState(false);
+
+  const hook = lang === 'en' ? hookEn : hookEs;
+  const xText = makeXHook(hook, slug);
+  const charCount = xText.length;
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(xText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-medium text-gray-400">Hook for X</h3>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setLang(lang === 'en' ? 'es' : 'en')}
+            className="text-xs px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white hover:border-white/30 transition-colors"
+          >
+            {lang === 'en' ? 'ES' : 'EN'}
+          </button>
+          <button
+            onClick={handleCopy}
+            className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-colors"
+          >
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+      </div>
+      <p className="text-sm text-gray-300 whitespace-pre-wrap mb-2">{xText}</p>
+      <p className={`text-xs ${charCount > 280 ? 'text-red-400' : 'text-gray-500'}`}>
+        {charCount}/280
+      </p>
     </div>
   );
 }
