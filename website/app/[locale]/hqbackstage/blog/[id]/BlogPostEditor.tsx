@@ -228,6 +228,8 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
           hook={post.hook_en}
           body={post.body_en}
           closing={post.closing_en}
+          postId={post.id}
+          onUpdate={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
         />
         <ContentColumn
           lang="ES"
@@ -235,6 +237,8 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
           hook={post.hook_es}
           body={post.body_es}
           closing={post.closing_es}
+          postId={post.id}
+          onUpdate={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
         />
       </div>
 
@@ -302,49 +306,182 @@ function ContentColumn({
   hook,
   body,
   closing,
+  postId,
+  onUpdate,
 }: {
   lang: string;
   title: string | null;
   hook: string | null;
   body: string | null;
   closing: string | null;
+  postId: string;
+  onUpdate: (fields: Record<string, string>) => void;
 }) {
+  const suffix = lang === 'EN' ? 'en' : 'es';
+
   return (
     <div className="rounded-lg border border-white/10 bg-white/5 p-5 space-y-4">
       <h2 className="text-lg font-semibold text-gray-300">{lang}</h2>
 
-      <div>
-        <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Title</h3>
-        <p className="text-white font-medium">{title || '—'}</p>
-      </div>
+      <EditableField
+        label="Title"
+        value={title}
+        fieldKey={`title_${suffix}`}
+        postId={postId}
+        onSave={onUpdate}
+        inputType="input"
+        displayClass="text-white font-medium"
+      />
 
-      {hook && (
-        <div>
-          <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Hook</h3>
-          <p className="text-gray-300 italic">{hook}</p>
-        </div>
-      )}
+      <EditableField
+        label="Hook"
+        value={hook}
+        fieldKey={`hook_${suffix}`}
+        postId={postId}
+        onSave={onUpdate}
+        inputType="textarea"
+        rows={3}
+        displayClass="text-gray-300 italic"
+      />
 
       {body && (
-        <div>
-          <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Body</h3>
-          <div className="prose prose-invert prose-sm max-w-none text-gray-300 [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_strong]:text-white [&_a]:text-blue-400">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
-          </div>
-        </div>
+        <EditableField
+          label="Body"
+          value={body}
+          fieldKey={`body_${suffix}`}
+          postId={postId}
+          onSave={onUpdate}
+          inputType="textarea"
+          rows={20}
+          renderMarkdown
+        />
       )}
 
-      {closing && (
-        <div>
-          <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-            Closing
-          </h3>
-          <p className="text-gray-300">{closing}</p>
-        </div>
-      )}
+      <EditableField
+        label="Closing"
+        value={closing}
+        fieldKey={`closing_${suffix}`}
+        postId={postId}
+        onSave={onUpdate}
+        inputType="textarea"
+        rows={6}
+        displayClass="text-gray-300"
+      />
 
       {!title && !hook && !body && !closing && (
         <p className="text-gray-500 italic">No content yet</p>
+      )}
+    </div>
+  );
+}
+
+function EditableField({
+  label,
+  value,
+  fieldKey,
+  postId,
+  onSave,
+  inputType = 'input',
+  rows = 3,
+  displayClass = 'text-gray-300',
+  renderMarkdown = false,
+}: {
+  label: string;
+  value: string | null;
+  fieldKey: string;
+  postId: string;
+  onSave: (fields: Record<string, string>) => void;
+  inputType?: 'input' | 'textarea';
+  rows?: number;
+  displayClass?: string;
+  renderMarkdown?: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value ?? '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/hqbackstage/blog/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [fieldKey]: draft }),
+      });
+      if (res.ok) {
+        onSave({ [fieldKey]: draft });
+        setEditing(false);
+      } else {
+        alert('Save failed');
+      }
+    } catch {
+      alert('Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setDraft(value ?? '');
+    setEditing(false);
+  };
+
+  if (!value && !editing) return null;
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-1">
+        <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</h3>
+        {!editing && (
+          <button
+            onClick={() => { setDraft(value ?? ''); setEditing(true); }}
+            className="text-gray-600 hover:text-gray-300 transition-colors"
+            title={`Edit ${label}`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+            </svg>
+          </button>
+        )}
+      </div>
+      {editing ? (
+        <div className="space-y-2">
+          {inputType === 'input' ? (
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-400"
+            />
+          ) : (
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              rows={rows}
+              className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white text-sm font-mono focus:outline-none focus:border-blue-400 resize-y"
+            />
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-3 py-1 rounded text-xs font-medium bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+            <button
+              onClick={handleCancel}
+              className="px-3 py-1 rounded text-xs font-medium bg-white/5 text-gray-400 hover:bg-white/10"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : renderMarkdown ? (
+        <div className="prose prose-invert prose-sm max-w-none text-gray-300 [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_strong]:text-white [&_a]:text-blue-400">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{value ?? ''}</ReactMarkdown>
+        </div>
+      ) : (
+        <p className={displayClass}>{value}</p>
       )}
     </div>
   );
