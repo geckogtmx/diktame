@@ -42,7 +42,7 @@ export async function PATCH(
       'body_en', 'body_es', 'closing_en', 'closing_es',
       'status', 'voice_id', 'voice_label_en', 'voice_label_es',
       'image_prompt', 'image_anchor', 'thematic_arc',
-      'headlines_used', 'newsletter_sources', 'run_date', 'linkedin_url',
+      'headlines_used', 'newsletter_sources', 'run_date', 'linkedin_url', 'twitter_url',
     ];
 
     const updates: Record<string, unknown> = {};

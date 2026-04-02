@@ -56,6 +56,7 @@ interface BlogPost {
   image_anchor: string | null;
   thematic_arc: string | null;
   linkedin_url: string | null;
+  twitter_url: string | null;
   headlines_used: string[] | null;
   newsletter_sources: string[] | null;
   run_date: string | null;
@@ -275,10 +276,22 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
             <MetadataRow label="Image Anchor" value={post.image_anchor} />
             <div className="flex gap-3 items-start">
               <span className="text-gray-500 shrink-0">LinkedIn:</span>
-              <LinkedInField
+              <SocialUrlField
                 value={post.linkedin_url}
+                fieldKey="linkedin_url"
+                placeholder="https://www.linkedin.com/pulse/..."
                 postId={post.id}
                 onSave={(url) => setPost((prev) => ({ ...prev, linkedin_url: url }))}
+              />
+            </div>
+            <div className="flex gap-3 items-start">
+              <span className="text-gray-500 shrink-0">X / Twitter:</span>
+              <SocialUrlField
+                value={post.twitter_url}
+                fieldKey="twitter_url"
+                placeholder="https://x.com/yourhandle/status/..."
+                postId={post.id}
+                onSave={(url) => setPost((prev) => ({ ...prev, twitter_url: url }))}
               />
             </div>
             {post.headlines_used && post.headlines_used.length > 0 && (
@@ -606,12 +619,16 @@ function XHookCard({ hookEn, hookEs, slug }: { hookEn: string | null; hookEs: st
   );
 }
 
-function LinkedInField({
+function SocialUrlField({
   value,
+  fieldKey,
+  placeholder,
   postId,
   onSave,
 }: {
   value: string | null;
+  fieldKey: string;
+  placeholder: string;
   postId: string;
   onSave: (url: string) => void;
 }) {
@@ -625,7 +642,7 @@ function LinkedInField({
       const res = await fetch(`/api/hqbackstage/blog/${postId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ linkedin_url: draft || null }),
+        body: JSON.stringify({ [fieldKey]: draft || null }),
       });
       if (res.ok) {
         onSave(draft);
@@ -660,7 +677,7 @@ function LinkedInField({
       <input
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        placeholder="https://www.linkedin.com/pulse/..."
+        placeholder={placeholder}
         className="flex-1 bg-white/5 border border-white/20 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-400"
       />
       <button onClick={handleSave} disabled={saving} className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 disabled:opacity-50">
