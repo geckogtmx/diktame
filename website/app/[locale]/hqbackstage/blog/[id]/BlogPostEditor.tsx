@@ -57,6 +57,8 @@ interface BlogPost {
   thematic_arc: string | null;
   linkedin_url: string | null;
   twitter_url: string | null;
+  twitter_hook_en: string | null;
+  twitter_hook_es: string | null;
   headlines_used: string[] | null;
   newsletter_sources: string[] | null;
   run_date: string | null;
@@ -216,7 +218,15 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
 
       {/* Hook for X + Image Prompt */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <XHookCard hookEn={post.hook_en} hookEs={post.hook_es} slug={post.slug} />
+        <XHookCard
+          hookEn={post.hook_en}
+          hookEs={post.hook_es}
+          twitterHookEn={post.twitter_hook_en}
+          twitterHookEs={post.twitter_hook_es}
+          slug={post.slug}
+          postId={post.id}
+          onUpdate={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
+        />
         {post.image_prompt && (
           <div className="rounded-lg border border-white/10 bg-white/5 p-4">
             <h3 className="text-sm font-medium text-gray-400 mb-2">Image Prompt</h3>
@@ -566,43 +576,131 @@ function ImageDropZone({
   );
 }
 
-function makeXHook(hook: string | null, slug: string, maxLen = 280): string {
+function autoXHook(hook: string | null, slug: string, maxLen = 280): string {
   if (!hook) return '';
   const url = `https://dikta.me/blog/${slug}`;
-  const linkLen = url.length + 1; // +1 for newline
-  const available = maxLen - linkLen;
+  const available = maxLen - url.length - 2; // 2 for \n\n
+  // Try first complete sentence
+  const sentenceMatch = hook.match(/^[^.!?]+[.!?]/);
+  if (sentenceMatch && sentenceMatch[0].length <= available) {
+    return `${sentenceMatch[0]}\n\n${url}`;
+  }
+  // Try up to first semicolon or em-dash
+  const clauseMatch = hook.match(/^[^;—]+[;—]/);
+  if (clauseMatch && clauseMatch[0].length <= available) {
+    return `${clauseMatch[0].replace(/[;—]\s*$/, '.')}\n\n${url}`;
+  }
+  // Fallback: trim to available space at word boundary
   let text = hook;
   if (text.length > available) {
     text = text.slice(0, available - 1).replace(/\s+\S*$/, '') + '\u2026';
   }
-  return `${text}\n${url}`;
+  return `${text}\n\n${url}`;
 }
 
-function XHookCard({ hookEn, hookEs, slug }: { hookEn: string | null; hookEs: string | null; slug: string }) {
+function XHookCard({
+  hookEn,
+  hookEs,
+  twitterHookEn,
+  twitterHookEs,
+  slug,
+  postId,
+  onUpdate,
+}: {
+  hookEn: string | null;
+  hookEs: string | null;
+  twitterHookEn: string | null;
+  twitterHookEs: string | null;
+  slug: string;
+  postId: string;
+  onUpdate: (fields: Record<string, string | null>) => void;
+}) {
   const [lang, setLang] = useState<'en' | 'es'>('en');
   const [copied, setCopied] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const hook = lang === 'en' ? hookEn : hookEs;
-  const xText = makeXHook(hook, slug);
-  const charCount = xText.length;
+  const fieldKey = lang === 'en' ? 'twitter_hook_en' : 'twitter_hook_es';
+  const savedHook = lang === 'en' ? twitterHookEn : twitterHookEs;
+  const blogHook = lang === 'en' ? hookEn : hookEs;
+  const url = `https://dikta.me/blog/${slug}`;
+
+  // Use saved hook if available, otherwise auto-generate
+  const displayText = savedHook ?? autoXHook(blogHook, slug);
+  const [draft, setDraft] = useState(displayText);
+
+  // Update draft when language changes
+  const handleLangSwitch = () => {
+    const nextLang = lang === 'en' ? 'es' : 'en';
+    setLang(nextLang);
+    const nextSaved = nextLang === 'en' ? twitterHookEn : twitterHookEs;
+    const nextBlog = nextLang === 'en' ? hookEn : hookEs;
+    setDraft(nextSaved ?? autoXHook(nextBlog, slug));
+    setEditing(false);
+  };
+
+  // Full text for copy = draft text (which may or may not include URL)
+  const copyText = draft.includes('dikta.me') ? draft : `${draft}\n\n${url}`;
+  const charCount = copyText.length;
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(xText);
+    await navigator.clipboard.writeText(copyText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/hqbackstage/blog/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [fieldKey]: draft || null }),
+      });
+      if (res.ok) {
+        onUpdate({ [fieldKey]: draft || null });
+        setEditing(false);
+      } else {
+        alert('Save failed');
+      }
+    } catch {
+      alert('Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleReset = () => {
+    setDraft(autoXHook(blogHook, slug));
+    setEditing(true);
   };
 
   return (
     <div className="rounded-lg border border-white/10 bg-white/5 p-4">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-medium text-gray-400">Hook for X</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-medium text-gray-400">Hook for X</h3>
+          {savedHook && <span className="text-[10px] text-green-400/60">saved</span>}
+          {!savedHook && <span className="text-[10px] text-gray-600">auto</span>}
+        </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setLang(lang === 'en' ? 'es' : 'en')}
+            onClick={handleLangSwitch}
             className="text-xs px-2 py-0.5 rounded border border-white/10 text-gray-400 hover:text-white hover:border-white/30 transition-colors"
           >
             {lang === 'en' ? 'ES' : 'EN'}
           </button>
+          {!editing && (
+            <button
+              onClick={() => { setDraft(savedHook ?? autoXHook(blogHook, slug)); setEditing(true); }}
+              className="text-gray-600 hover:text-gray-300 transition-colors"
+              title="Edit"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={handleCopy}
             className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-colors"
@@ -611,8 +709,30 @@ function XHookCard({ hookEn, hookEs, slug }: { hookEn: string | null; hookEs: st
           </button>
         </div>
       </div>
-      <p className="text-sm text-gray-300 whitespace-pre-wrap mb-2">{xText}</p>
-      <p className={`text-xs ${charCount > 280 ? 'text-red-400' : 'text-gray-500'}`}>
+      {editing ? (
+        <div className="space-y-2">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={4}
+            className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-400 resize-y"
+          />
+          <div className="flex items-center gap-2">
+            <button onClick={handleSave} disabled={saving} className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 disabled:opacity-50">
+              {saving ? '...' : 'Save'}
+            </button>
+            <button onClick={() => setEditing(false)} className="px-2 py-1 rounded text-xs bg-white/5 text-gray-400 hover:bg-white/10">
+              Cancel
+            </button>
+            <button onClick={handleReset} className="px-2 py-1 rounded text-xs bg-white/5 text-gray-500 hover:bg-white/10" title="Reset to auto-generated">
+              Reset
+            </button>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-gray-300 whitespace-pre-wrap mb-2">{displayText}</p>
+      )}
+      <p className={`text-xs mt-1 ${charCount > 280 ? 'text-red-400' : 'text-gray-500'}`}>
         {charCount}/280
       </p>
     </div>
