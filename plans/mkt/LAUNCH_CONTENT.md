@@ -48,19 +48,18 @@ Nobody fixed the input.
 
 **Here is what a broken input layer costs you every day.**
 
-You type at roughly 60 words per minute. You speak at roughly 150. That gap — 2.5x — is time you spend transcribing thoughts instead of having them. And that's before you account for the backspacing, the corrections, the re-reads.
+You type at roughly 40 words per minute. You speak at roughly 150. That gap — 3x — is time you spend transcribing thoughts instead of having them. And that's before you account for the backspacing, the corrections, the re-reads.
 
-But it's not just speed. It's context switching. Every time you move from your work tool to a chat window to ask the AI something, and then back, you pay a context tax. It takes 15-20 minutes to fully recover focus after an interruption. You're interrupting yourself dozens of times per day just to use the tools that are supposed to make you faster.
+But it's not just speed. It's context switching. Every time you move from your work tool to a chat window to ask the AI something, and then back, you pay a context tax. It takes 3-5 minutes to fully recover focus after an interruption. You're interrupting yourself dozens of times per day just to use the tools that are supposed to make you faster.
 
 And the economics are absurd. A knowledge worker in 2026 might pay:
 
-- $12/month for AI-powered dictation
-- $12/month for grammar checking
-- $14/month for meeting AI
-- $20/month for a chat assistant
-- $15/month for legacy dictation software
+- $15/month for AI-powered dictation
+- $30/month for grammar checking
+- $25/month for meeting AI
 
-That's $73/month — $876/year — to rent software that still requires you to manually bridge the gaps between them.
+
+That's $70/month — $840/year — to rent software that still requires you to manually bridge the gaps between them.
 
 ---
 
@@ -70,7 +69,7 @@ I spent 20 years in consulting, digital media, and project management. I'm not a
 
 What I wanted was simple: press a key in any app, speak naturally, and have the result appear at my cursor. Not in a sidebar. Not in a separate window. At the cursor, in whatever I was already working in.
 
-And not just transcription. I wanted the AI to do the work — clean up the grammar, translate on the fly, answer questions in context, take notes to a file, read text back to me. All of it. Without switching apps.
+And not just transcription. I wanted the AI to do the work — clean up the grammar, translate on the fly, answer questions in context, use screenshots and screen recordings, take notes to a file, read text back to me. All of it. Without switching apps.
 
 That's dIKta.me.
 

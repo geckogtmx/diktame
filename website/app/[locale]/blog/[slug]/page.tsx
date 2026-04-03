@@ -16,6 +16,7 @@ const SPANISH_VOICES = [
   'galeano',
   'bolano',
   'pacheco',
+  'villoro',
 ];
 
 function isSpanishVoice(voiceId: string | null): boolean {
