@@ -1,5 +1,22 @@
 # Developer Handoff
 
+## Audio Feeder V2 Port — ABANDONED (2026-04-03)
+
+**Status:** 12 attempts across 2 sessions. Zero successful end-to-end runs. All code reverted. No code committed.
+
+**Problem:** Python cannot do bidirectional Named Pipe IPC on Windows. Every approach failed — pywin32 synchronous (deadlock), pywin32 overlapped (corrupt data), PowerShell subprocess bridge (FlushFileBuffers deadlock). See [`test-helpers/POTATO_COUCH.md`](test-helpers/POTATO_COUCH.md) for full failure log.
+
+**What exists (uncommitted, in working tree):** `audio_feeder.py`, `fetch_test_data.py`, `Invoke-AudioFeeder.ps1`, `pipe_bridge.ps1`, `fixtures/`. All broken. Do not commit as-is.
+
+**C# server (`LocalApiServer`) is unchanged** — `Start()` remains commented out in `App.xaml.cs`. No server-side changes were committed.
+
+**To unblock (future session options):**
+1. **C# console bridge** — tiny .exe using async `NamedPipeClientStream`. Guaranteed to work.
+2. **TCP socket** — add `TcpListener` to `LocalApiServer`. Python TCP is trivial (V1 used this).
+3. **HTTP/SSE** — embed `HttpListener`. REST for commands, SSE for events.
+
+---
+
 ## SPEC_002 Vision — COMPLETE ✅
 
 **Completed this session (2026-03-27 evening):**
