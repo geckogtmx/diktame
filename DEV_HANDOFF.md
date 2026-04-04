@@ -10,11 +10,6 @@
 
 **C# server (`LocalApiServer`) is unchanged** — `Start()` remains commented out in `App.xaml.cs`. No server-side changes were committed.
 
-**To unblock (future session options):**
-1. **C# console bridge** — tiny .exe using async `NamedPipeClientStream`. Guaranteed to work.
-2. **TCP socket** — add `TcpListener` to `LocalApiServer`. Python TCP is trivial (V1 used this).
-3. **HTTP/SSE** — embed `HttpListener`. REST for commands, SSE for events.
-
 ---
 
 ## SPEC_002 Vision — COMPLETE ✅
