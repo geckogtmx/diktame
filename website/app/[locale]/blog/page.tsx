@@ -41,7 +41,7 @@ export default async function BlogPage({
   const { data: posts } = await supabase
     .from('blog_posts')
     .select(
-      'id, slug, title_en, title_es, hook_en, hook_es, image_url_en, image_url_es, published_at, voice_id',
+      'id, slug, slug_es, title_en, title_es, hook_en, hook_es, image_url_en, image_url_es, published_at, voice_id',
     )
     .eq('status', 'published')
     .order('published_at', { ascending: false });
@@ -98,7 +98,7 @@ export default async function BlogPage({
                 const f = resolvePost(featured);
                 return (
                   <article className="group mb-16">
-                    <Link href={`/blog/${featured.slug}`} className="block">
+                    <Link href={`/blog/${locale === 'es' && featured.slug_es ? featured.slug_es : featured.slug}`} className="block">
                       {f.imageUrl && (
                         <div className="relative aspect-[2/1] w-full overflow-hidden rounded-xl mb-6">
                           <Image
@@ -174,7 +174,7 @@ export default async function BlogPage({
                         const p = resolvePost(post);
                         return (
                           <article key={post.id} className="group">
-                            <Link href={`/blog/${post.slug}`} className="block">
+                            <Link href={`/blog/${locale === 'es' && post.slug_es ? post.slug_es : post.slug}`} className="block">
                               {p.imageUrl && (
                                 <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg mb-4">
                                   <Image

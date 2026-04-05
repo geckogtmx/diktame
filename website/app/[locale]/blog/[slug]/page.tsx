@@ -32,10 +32,11 @@ function estimateReadingTime(text: string | null): number {
 
 async function getPost(slug: string) {
   const supabase = await createClient();
+  // Match either EN slug or ES slug (backward compat: old ES links using EN slug still work)
   const { data: post } = await supabase
     .from('blog_posts')
     .select('*')
-    .eq('slug', slug)
+    .or(`slug.eq.${slug},slug_es.eq.${slug}`)
     .eq('status', 'published')
     .single();
   return post;
@@ -91,10 +92,13 @@ export async function generateMetadata({
       ...(imageUrl ? { images: [imageUrl] } : {}),
     },
     alternates: {
-      canonical: `https://dikta.me${locale === 'en' ? '' : '/es'}/blog/${slug}`,
+      canonical:
+        locale === 'es'
+          ? `https://dikta.me/es/blog/${post.slug_es || post.slug}`
+          : `https://dikta.me/blog/${post.slug}`,
       languages: {
-        en: `https://dikta.me/blog/${slug}`,
-        es: `https://dikta.me/es/blog/${slug}`,
+        en: `https://dikta.me/blog/${post.slug}`,
+        es: `https://dikta.me/es/blog/${post.slug_es || post.slug}`,
       },
     },
   };
@@ -236,7 +240,7 @@ export default async function BlogPostPage({
               <div className="flex flex-wrap gap-4">
                 {/* Language toggle */}
                 <Link
-                  href={`/blog/${slug}`}
+                  href={`/blog/${locale === 'en' ? (post.slug_es || post.slug) : post.slug}`}
                   locale={locale === 'en' ? 'es' : 'en'}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-orange-400 hover:text-orange-300 hover:border-orange-400/30 transition-colors text-sm font-medium"
                 >

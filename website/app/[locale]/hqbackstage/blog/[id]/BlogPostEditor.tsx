@@ -38,6 +38,7 @@ async function compressImage(file: File): Promise<Blob> {
 interface BlogPost {
   id: string;
   slug: string;
+  slug_es: string | null;
   status: string;
   title_en: string | null;
   hook_en: string | null;
@@ -269,6 +270,16 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
         {metadataOpen && (
           <div className="border-t border-white/10 px-4 py-4 space-y-3 text-sm">
             <MetadataRow label="Slug" value={post.slug} />
+            <div className="flex gap-3 items-start">
+              <span className="text-gray-500 shrink-0">Slug (ES):</span>
+              <SocialUrlField
+                value={post.slug_es}
+                fieldKey="slug_es"
+                placeholder="la-semana-que-el-umbral-se-movio"
+                postId={post.id}
+                onSave={(val) => setPost((prev) => ({ ...prev, slug_es: val }))}
+              />
+            </div>
             <MetadataRow label="Voice ID" value={post.voice_id} />
             <MetadataRow label="Thematic Arc" value={post.thematic_arc} />
             <MetadataRow

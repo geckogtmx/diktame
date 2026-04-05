@@ -103,33 +103,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
     const { data: posts } = await supabase
       .from('blog_posts')
-      .select('slug, published_at')
+      .select('slug, slug_es, published_at')
       .eq('status', 'published');
 
     for (const post of posts ?? []) {
-      const slug = `/blog/${post.slug}`;
+      const enSlug = `/blog/${post.slug}`;
+      const esSlug = `/blog/${post.slug_es || post.slug}`;
+      const lastMod = post.published_at ? new Date(post.published_at) : new Date();
       blogEntries.push(
         {
-          url: `${baseUrl}${slug}`,
-          lastModified: post.published_at ? new Date(post.published_at) : new Date(),
+          url: `${baseUrl}${enSlug}`,
+          lastModified: lastMod,
           changeFrequency: 'weekly' as const,
           priority: 0.7,
           alternates: {
             languages: {
-              en: `${baseUrl}${slug}`,
-              es: `${baseUrl}/es${slug}`,
+              en: `${baseUrl}${enSlug}`,
+              es: `${baseUrl}/es${esSlug}`,
             },
           },
         },
         {
-          url: `${baseUrl}/es${slug}`,
-          lastModified: post.published_at ? new Date(post.published_at) : new Date(),
+          url: `${baseUrl}/es${esSlug}`,
+          lastModified: lastMod,
           changeFrequency: 'weekly' as const,
           priority: 0.7,
           alternates: {
             languages: {
-              en: `${baseUrl}${slug}`,
-              es: `${baseUrl}/es${slug}`,
+              en: `${baseUrl}${enSlug}`,
+              es: `${baseUrl}/es${esSlug}`,
             },
           },
         },
