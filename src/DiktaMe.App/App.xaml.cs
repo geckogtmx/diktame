@@ -490,6 +490,7 @@ public partial class App : Application
         _quickChatWindow.Activate();
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Meziantou.Analyzer", "MA0051:Method is too long", Justification = "DI registration — intentionally long single method")]
     private static void ConfigureServices(IServiceCollection services)
     {
         // ── Core engine ──────────────────────────────────────────────────────
@@ -515,6 +516,10 @@ public partial class App : Application
         // against ISTTProvider here — the router below uses WhisperProvider as
         // the default until settings/keys are configured.
         services.AddSingleton<WalletDeepgramProxy>(sp => new WalletDeepgramProxy(
+            sp.GetRequiredService<SecureStorage>(),
+            sp.GetRequiredService<SettingsManager>(),
+            sp.GetRequiredService<WalletManager>()));
+        services.AddSingleton<WalletStreamingSTTProxy>(sp => new WalletStreamingSTTProxy(
             sp.GetRequiredService<SecureStorage>(),
             sp.GetRequiredService<SettingsManager>(),
             sp.GetRequiredService<WalletManager>()));
@@ -612,6 +617,7 @@ public partial class App : Application
             sp.GetRequiredService<SnippetManager>(),
             walletStt: sp.GetRequiredService<WalletDeepgramProxy>(),
             walletLlm: sp.GetRequiredService<WalletGeminiProxy>(),
+            walletStreamingStt: sp.GetRequiredService<WalletStreamingSTTProxy>(),
             eventBus: sp.GetRequiredService<DiktaMe.Core.Pipeline.PipelineEventBus>(),
             licenseManager: sp.GetRequiredService<LicenseManager>()));
 

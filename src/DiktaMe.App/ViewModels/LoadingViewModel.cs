@@ -1009,16 +1009,150 @@ public sealed partial class LoadingViewModel : ObservableObject
 
     private async Task RunDictationPipelineAsync()
     {
-        // Wallet mode forces batch path — STTRouter/LLMRouter handle proxy routing.
+        // Wallet mode: try streaming via Gemini Live API first.
+        // Falls back to batch automatically on WalletStreamingFallbackException
+        // (connection failure, killswitch active, insufficient balance, etc.).
+        if (_settings.Current.AuthMode == AuthMode.Wallet)
+        {
+            await RunWalletStreamingDictationAsync();
+            return;
+        }
+
+        // Non-wallet: standard streaming or batch based on provider capability
         if (_settings.Current.General.StreamingEnabled
-            && _pipelineFactory.CanStreamDictation()
-            && _settings.Current.AuthMode != AuthMode.Wallet)
+            && _pipelineFactory.CanStreamDictation())
         {
             await RunStreamingDictationAsync();
         }
         else
         {
             await RunBatchDictationAsync();
+        }
+    }
+
+    /// <summary>
+    /// Runs the Wallet streaming dictation pipeline (Gemini Live API via Edge Function).
+    /// On WalletStreamingFallbackException, silently falls back to the batch pipeline.
+    /// The buffer-and-flush architecture in WalletStreamingSTTProxy ensures the beep
+    /// and microphone start instantly, decoupled from the network handshake.
+    /// </summary>
+    private async Task RunWalletStreamingDictationAsync()
+    {
+        StreamingDictationPipeline? streamingPipeline = null;
+        try
+        {
+            streamingPipeline = _pipelineFactory.CreateWalletStreamingDictationPipeline();
+            if (streamingPipeline is null)
+            {
+                // Factory returned null — no streaming proxy registered or not Wallet mode
+                Log.Information("WalletStreaming: pipeline unavailable, using batch");
+                await RunBatchDictationAsync();
+                return;
+            }
+
+            Log.Information("Starting Wallet Streaming Dictate pipeline (Gemini Live)...");
+
+            streamingPipeline.StateChanged += _controlPanel.OnPipelineStateChanged;
+            streamingPipeline.Completed += _controlPanel.OnPipelineCompleted;
+            streamingPipeline.Completed += (_, result) => _pipelineEventBus.PublishCompleted(result);
+
+            _currentRecorder?.Dispose();
+            _currentRecorder = App.Current.Services.GetRequiredService<AudioRecorder>();
+
+            _levelMonitor.Start();
+            _currentRecorder.AudioDataAvailable += (_, e) =>
+                _levelMonitor.UpdateLevel(e.PcmData, e.BytesRecorded);
+
+            string? activeModeId = _modeIdOverride ?? _controlPanel.ActiveDictationModeId;
+            DictationProfile? profile = activeModeId is not null
+                ? _dictationModes.GetActiveProfile(activeModeId)
+                : null;
+
+            var options = new DictationOptions
+            {
+                RawMode = true,
+                Language = _settings.Current.General.Language,
+                Injection = new PipelineInjectionOptions
+                {
+                    TrailingSpace = profile?.TrailingSpace ?? true,
+                },
+            };
+
+            if (_settings.Current.AudioDucking.Enabled)
+            {
+                _audioDucker.IsEnabled = true;
+                _audioDucker.DuckLevel = _settings.Current.AudioDucking.DuckLevelPercent / 100f;
+                _audioDucker.RampDownMs = _settings.Current.AudioDucking.RampDownMs;
+                await _audioDucker.DuckAsync().ConfigureAwait(false);
+            }
+
+            var audio = _settings.Current.Audio;
+            string? deviceLabel = string.IsNullOrEmpty(audio.DeviceName) ? null : audio.DeviceName;
+            _isRecording = true;
+            _currentRecorder.StartRecording(
+                deviceLabel: deviceLabel,
+                deviceId: null,
+                maxDurationSeconds: audio.MaxDurationSeconds);
+
+            _muteDetector.UpdateDeviceLabel(deviceLabel);
+            if (_muteDetector.CheckMuteState() == true)
+            {
+                _notifications.ShowToast(
+                    _loc.GetString("Recording_MicMuted_Title"),
+                    _loc.GetString("Recording_MicMuted_Message"),
+                    NotificationType.Warning,
+                    spokenKey: "Recording_MicMuted");
+            }
+            _muteDetector.MuteStateChanged += OnMuteStateChanged;
+            _muteDetector.Start();
+
+            var soundSettings = _settings.Current.Sound ?? new();
+            _notifications.PlayCustomSound(soundSettings.StartSound);
+
+            _recordingCts = new CancellationTokenSource();
+            var result = await streamingPipeline.RunAsync(
+                _currentRecorder, options, _recordingCts.Token);
+
+            _isRecording = false;
+            _levelMonitor.Stop();
+            _muteDetector.Stop();
+            _muteDetector.MuteStateChanged -= OnMuteStateChanged;
+            _notifications.PlayCustomSound(soundSettings.StopSound);
+
+            if (result.IsSuccess)
+            {
+                Log.Information("WalletStreamingDictate: Success, {Chars} chars", result.Text.Length);
+            }
+            else
+            {
+                Log.Warning("WalletStreamingDictate: Failed — {Error}", result.ErrorMessage);
+                _notifications.ShowToast("Error", result.ErrorMessage ?? "Unknown error", NotificationType.Error);
+            }
+        }
+        catch (DiktaMe.Core.Account.WalletStreamingFallbackException ex)
+        {
+            // Non-critical: streaming unavailable, fall back to batch transparently
+            Log.Information("WalletStreaming: fallback to batch — {Reason}", ex.Message);
+            await RunBatchDictationAsync();
+        }
+        catch (Exception ex)
+        {
+            if (!HandleLicenseError(ex))
+            {
+                Log.Error(ex, "Wallet Streaming Dictate pipeline failed");
+                _notifications.ShowToast("Error", ex.Message, NotificationType.Error);
+            }
+        }
+        finally
+        {
+            _isRecording = false;
+            _audioDucker.Restore();
+            _recordingCts?.Dispose();
+            _recordingCts = null;
+            if (streamingPipeline is not null)
+            {
+                await streamingPipeline.DisposeAsync();
+            }
         }
     }
 

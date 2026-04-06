@@ -24,6 +24,7 @@ public sealed class PipelineFactory
     private readonly SnippetManager _snippets;
     private readonly ISTTProvider? _walletStt;
     private readonly ILLMProvider? _walletLlm;
+    private readonly IStreamingSTTProvider? _walletStreamingStt;
     private readonly PipelineEventBus? _eventBus;
     private readonly Security.LicenseManager? _licenseManager;
 
@@ -38,6 +39,7 @@ public sealed class PipelineFactory
         SnippetManager snippets,
         ISTTProvider? walletStt = null,
         ILLMProvider? walletLlm = null,
+        IStreamingSTTProvider? walletStreamingStt = null,
         PipelineEventBus? eventBus = null,
         Security.LicenseManager? licenseManager = null)
     {
@@ -51,6 +53,7 @@ public sealed class PipelineFactory
         _snippets = snippets;
         _walletStt = walletStt;
         _walletLlm = walletLlm;
+        _walletStreamingStt = walletStreamingStt;
         _eventBus = eventBus;
         _licenseManager = licenseManager;
     }
@@ -203,6 +206,22 @@ public sealed class PipelineFactory
         }
 
         return new StreamingDictationPipeline(streaming, _injector, _snippets);
+    }
+
+    /// <summary>
+    /// Creates a streaming dictation pipeline for Wallet users via the Gemini Live API.
+    /// Returns null if AuthMode is not Wallet or no streaming proxy is registered.
+    /// The pipeline uses a buffer-and-flush approach: ConnectAsync() returns immediately
+    /// so the UI beep and microphone start without waiting for the network handshake.
+    /// </summary>
+    public StreamingDictationPipeline? CreateWalletStreamingDictationPipeline()
+    {
+        if (_settings.Current.AuthMode != AuthMode.Wallet || _walletStreamingStt is null)
+        {
+            return null;
+        }
+
+        return new StreamingDictationPipeline(_walletStreamingStt, _injector, _snippets);
     }
 
     // ── Warmup ─────────────────────────────────────────────────────────────────
