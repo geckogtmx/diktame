@@ -1,5 +1,47 @@
 # Developer Handoff
 
+## SINGLE_PROVIDER_WALLET — IN PROGRESS (2026-04-05)
+
+**Status:** Implementation complete, tested, **uncommitted**. Decision pending on whether to ship.
+
+**What was done:** Replaced Deepgram + Gemini 2.0 Flash (2 vendors, 2 API calls) with a single Gemini 2.5 Flash call for the wallet pipeline. C#: new `WalletPipelineContext`, `WalletSTTProxy` (replaces `WalletDeepgramProxy`), modified `WalletGeminiProxy` (passthrough), `LoadingViewModel`, `App.xaml.cs`. Edge function: `handleGeminiAudio` handler deployed (v16), `handleDeepgram` kept for rollback. Tests: 1139 passed.
+
+**Finding: ~10x cheaper but ~2x slower.** Old pipeline ~1.6s / ~$0.0006/call. New pipeline ~3.5s / ~$0.00006/call. The Gemini `generateContent` audio endpoint is inherently slower than Deepgram's purpose-built STT. Competitors (Wispr, Aqua) achieve sub-500ms via streaming — our wallet uses batch.
+
+**Phase 2 (Session 2, 2026-04-05): Streaming wallet — NOT DONE. 11 edge function deploys, zero successful Gemini Live API connections.** All C# code **uncommitted** — `git checkout .` reverts everything cleanly. Owner may choose to revert and start fresh.
+
+**Two unresolved problems:**
+
+1. **Gemini Live API won't connect.** 11 edge function deploys tested. The root cause of the `code=1011 Internal error` was identified late in the session (via Gemini): `responseModalities: ["TEXT"]` crashes the Live API — it requires `["AUDIO"]`. v11 has this fix deployed but was **never tested with a rebuilt C# app**. `gemini_setup_complete` has never appeared in any log.
+
+2. **Start/stop UX broken (C# problem, independent of model).** The streaming attempt blocks the hotkey for ~1.5-10s. When streaming fails, batch fallback auto-starts a second recording. User experiences: press hotkey → recording starts → stops on its own → starts again on its own. First words lost. Root cause: recording starts before streaming connection is confirmed, and streaming failure triggers a visible second recording start.
+
+**11 edge function deploys:**
+
+| v | Model | responseModalities | Error |
+|---|-------|--------------------|-------|
+| 1-3 | `gemini-2.5-flash-live-preview` | TEXT | 1008: model not found |
+| 5 | `gemini-2.5-flash` | TEXT | 1008: not supported for bidiGenerateContent |
+| 6 | `gemini-2.5-flash-native-audio-latest` | TEXT | 1007: Cannot extract voices from non-audio request |
+| 7-10 | `gemini-3.1-flash-live-preview` | TEXT | 1011: Internal error (various setup variations) |
+| 11 | `gemini-3.1-flash-live-preview` | **AUDIO** | **Not tested — app not rebuilt** |
+
+**Critical finding:** `responseModalities: ["TEXT"]` causes 1011 on ALL Live API models. Must use `["AUDIO"]` and extract text from `serverContent.modelTurn.parts[].text`, ignoring audio bytes.
+
+**What was built (all uncommitted):**
+- C#: `WalletStreamingSTTProxy`, `WalletStreamingDictationPipeline`, 10 tests (1149 total), fail-fast fallback, diagnostics logging, `WalletStreamUrl` in AccountSettings
+- Edge function: `wallet-stream` v11 with diagnostics, cost killswitch via `wallet_pipeline_mode` config
+- Modified: `LoadingViewModel` (streaming routing), `App.xaml.cs` (DI), `wallet-proxy` (killswitch)
+- Migration: `015_wallet_streaming_config.sql`
+
+**Next session — two options:**
+- **Option A: Revert and start fresh** — `git checkout .` to clean slate. Rebuild streaming with the `["AUDIO"]` knowledge from the start. Fix the start/stop UX architecture before testing.
+- **Option B: Continue from current state** — Rebuild app, test v11, fix start/stop UX. Risk: accumulated complexity from 11 iterations.
+
+**Full spec + data:** [`plans/SINGLE_PROVIDER_WALLET.md`](plans/SINGLE_PROVIDER_WALLET.md)
+
+---
+
 ## Audio Feeder V2 Port — ABANDONED (2026-04-03)
 
 **Status:** 12 attempts across 2 sessions. Zero successful end-to-end runs. All code reverted. No code committed.
@@ -22,7 +64,7 @@
 - ❌ V7 (filler word removal): CANNED — too complex, too low value
 
 **Next session priorities:**
-- Gemini 3.1 Flash Live research — potential single-model wallet (STT+LLM in one API call, WebSocket streaming). See Gemini research notes below.
+- Gemini Live API streaming wallet — see [SINGLE_PROVIDER_WALLET.md](plans/SINGLE_PROVIDER_WALLET.md) Phase 2, section 3.
 - `shop.dikta.me` — link store once LemonSqueezy identity verification completes
 
 **Also pending:**
