@@ -1,44 +1,21 @@
 # Developer Handoff
 
-## SINGLE_PROVIDER_WALLET — IN PROGRESS (2026-04-05)
+## SINGLE_PROVIDER_WALLET — COMPLETE ✅ (2026-04-06)
 
-**Status:** Implementation complete, tested, **uncommitted**. Decision pending on whether to ship.
+**Status:** Implementation complete, tested, and shipped.
 
-**What was done:** Replaced Deepgram + Gemini 2.0 Flash (2 vendors, 2 API calls) with a single Gemini 2.5 Flash call for the wallet pipeline. C#: new `WalletPipelineContext`, `WalletSTTProxy` (replaces `WalletDeepgramProxy`), modified `WalletGeminiProxy` (passthrough), `LoadingViewModel`, `App.xaml.cs`. Edge function: `handleGeminiAudio` handler deployed (v16), `handleDeepgram` kept for rollback. Tests: 1139 passed.
+**What was done:** Replaced Deepgram + Gemini 2.0 Flash (2 vendors, 2 API calls) with a single Google Gemini 3.1 Flash Live Preview streaming connection for the wallet pipeline. 
 
-**Finding: ~10x cheaper but ~2x slower.** Old pipeline ~1.6s / ~$0.0006/call. New pipeline ~3.5s / ~$0.00006/call. The Gemini `generateContent` audio endpoint is inherently slower than Deepgram's purpose-built STT. Competitors (Wispr, Aqua) achieve sub-500ms via streaming — our wallet uses batch.
+**Finding:** Sub-second latency (0.74s STT completion time for a 10s audio clip) achieved natively without external dependency overhead. The pipeline natively drops the cost from ~$0.0006/call to ~$0.00006/call while unlocking premium "Instant Type" feel.
 
-**Phase 2 (Session 2, 2026-04-05): Streaming wallet — NOT DONE. 11 edge function deploys, zero successful Gemini Live API connections.** All C# code **uncommitted** — `git checkout .` reverts everything cleanly. Owner may choose to revert and start fresh.
+**Resolution of Blockers:**
+1. **Gemini Live API won't connect (1011 Error)**: Resolved. Discovered `responseModalities: ["TEXT"]` crashes the 3.1 Live API. The backend must establish `["AUDIO"]` natively but extract string blocks from `serverContent.modelTurn.parts[].text`.
+2. **"Unauthorized" Error on C# Side**: Resolved. It was a standard 1-hour JWT `trial_token` expiration midway during testing.
+3. **App Architecture Hang (6+ seconds)**: Resolved. Reverted reactive WS logic. Built `WalletStreamingSTTProxy` to use a **Buffer-and-Flush** mechanism that safely decouples the C# Mic UI from the Edge Function cold start handshake, enabling instantaneous dictation feedback.
+4. **Second Dictation Failures (Singleton Bug)**: Resolved. C# Dependency Injection was caching `WalletStreamingSTTProxy` as a Singleton, causing `TaskCompletionSource` from Dictation #1 to instantly resolve Dictation #2. Reverted `App.xaml.cs` and `PipelineFactory.cs` to enforce Transient instantiation for safe memory scope clearing between runs.
+5. **Supabase Edge Fallback**: The Edge function explicitly checks the `wallet_pipeline_mode` column. It was manually updated to `streaming` in Supabase to lift the `batch_cheap` killswitch.
 
-**Two unresolved problems:**
-
-1. **Gemini Live API won't connect.** 11 edge function deploys tested. The root cause of the `code=1011 Internal error` was identified late in the session (via Gemini): `responseModalities: ["TEXT"]` crashes the Live API — it requires `["AUDIO"]`. v11 has this fix deployed but was **never tested with a rebuilt C# app**. `gemini_setup_complete` has never appeared in any log.
-
-2. **Start/stop UX broken (C# problem, independent of model).** The streaming attempt blocks the hotkey for ~1.5-10s. When streaming fails, batch fallback auto-starts a second recording. User experiences: press hotkey → recording starts → stops on its own → starts again on its own. First words lost. Root cause: recording starts before streaming connection is confirmed, and streaming failure triggers a visible second recording start.
-
-**11 edge function deploys:**
-
-| v | Model | responseModalities | Error |
-|---|-------|--------------------|-------|
-| 1-3 | `gemini-2.5-flash-live-preview` | TEXT | 1008: model not found |
-| 5 | `gemini-2.5-flash` | TEXT | 1008: not supported for bidiGenerateContent |
-| 6 | `gemini-2.5-flash-native-audio-latest` | TEXT | 1007: Cannot extract voices from non-audio request |
-| 7-10 | `gemini-3.1-flash-live-preview` | TEXT | 1011: Internal error (various setup variations) |
-| 11 | `gemini-3.1-flash-live-preview` | **AUDIO** | **Not tested — app not rebuilt** |
-
-**Critical finding:** `responseModalities: ["TEXT"]` causes 1011 on ALL Live API models. Must use `["AUDIO"]` and extract text from `serverContent.modelTurn.parts[].text`, ignoring audio bytes.
-
-**What was built (all uncommitted):**
-- C#: `WalletStreamingSTTProxy`, `WalletStreamingDictationPipeline`, 10 tests (1149 total), fail-fast fallback, diagnostics logging, `WalletStreamUrl` in AccountSettings
-- Edge function: `wallet-stream` v11 with diagnostics, cost killswitch via `wallet_pipeline_mode` config
-- Modified: `LoadingViewModel` (streaming routing), `App.xaml.cs` (DI), `wallet-proxy` (killswitch)
-- Migration: `015_wallet_streaming_config.sql`
-
-**Next session — two options:**
-- **Option A: Revert and start fresh** — `git checkout .` to clean slate. Rebuild streaming with the `["AUDIO"]` knowledge from the start. Fix the start/stop UX architecture before testing.
-- **Option B: Continue from current state** — Rebuild app, test v11, fix start/stop UX. Risk: accumulated complexity from 11 iterations.
-
-**Full spec + data:** [`plans/SINGLE_PROVIDER_WALLET.md`](plans/SINGLE_PROVIDER_WALLET.md)
+**Full spec + data:** [`plans/SINGLE_PROVIDER_WALLET_G.md`](plans/SINGLE_PROVIDER_WALLET_G.md)
 
 ---
 

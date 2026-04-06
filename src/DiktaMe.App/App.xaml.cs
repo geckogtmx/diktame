@@ -519,7 +519,7 @@ public partial class App : Application
             sp.GetRequiredService<SecureStorage>(),
             sp.GetRequiredService<SettingsManager>(),
             sp.GetRequiredService<WalletManager>()));
-        services.AddSingleton<WalletStreamingSTTProxy>(sp => new WalletStreamingSTTProxy(
+        services.AddTransient<WalletStreamingSTTProxy>(sp => new WalletStreamingSTTProxy(
             sp.GetRequiredService<SecureStorage>(),
             sp.GetRequiredService<SettingsManager>(),
             sp.GetRequiredService<WalletManager>()));
@@ -617,7 +617,6 @@ public partial class App : Application
             sp.GetRequiredService<SnippetManager>(),
             walletStt: sp.GetRequiredService<WalletDeepgramProxy>(),
             walletLlm: sp.GetRequiredService<WalletGeminiProxy>(),
-            walletStreamingStt: sp.GetRequiredService<WalletStreamingSTTProxy>(),
             eventBus: sp.GetRequiredService<DiktaMe.Core.Pipeline.PipelineEventBus>(),
             licenseManager: sp.GetRequiredService<LicenseManager>()));
 

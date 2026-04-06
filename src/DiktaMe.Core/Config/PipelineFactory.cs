@@ -24,7 +24,7 @@ public sealed class PipelineFactory
     private readonly SnippetManager _snippets;
     private readonly ISTTProvider? _walletStt;
     private readonly ILLMProvider? _walletLlm;
-    private readonly IStreamingSTTProvider? _walletStreamingStt;
+    private readonly System.IServiceProvider? _sp;
     private readonly PipelineEventBus? _eventBus;
     private readonly Security.LicenseManager? _licenseManager;
 
@@ -37,9 +37,9 @@ public sealed class PipelineFactory
         TextInjector injector,
         SettingsManager settings,
         SnippetManager snippets,
+        System.IServiceProvider? sp = null,
         ISTTProvider? walletStt = null,
         ILLMProvider? walletLlm = null,
-        IStreamingSTTProvider? walletStreamingStt = null,
         PipelineEventBus? eventBus = null,
         Security.LicenseManager? licenseManager = null)
     {
@@ -51,9 +51,9 @@ public sealed class PipelineFactory
         _injector = injector;
         _settings = settings;
         _snippets = snippets;
+        _sp = sp;
         _walletStt = walletStt;
         _walletLlm = walletLlm;
-        _walletStreamingStt = walletStreamingStt;
         _eventBus = eventBus;
         _licenseManager = licenseManager;
     }
@@ -216,12 +216,15 @@ public sealed class PipelineFactory
     /// </summary>
     public StreamingDictationPipeline? CreateWalletStreamingDictationPipeline()
     {
-        if (_settings.Current.AuthMode != AuthMode.Wallet || _walletStreamingStt is null)
+        if (_settings.Current.AuthMode != AuthMode.Wallet || _sp is null)
         {
             return null;
         }
 
-        return new StreamingDictationPipeline(_walletStreamingStt, _injector, _snippets);
+        var streamingStt = _sp.GetService(typeof(DiktaMe.Core.Account.WalletStreamingSTTProxy)) as DiktaMe.Core.Account.WalletStreamingSTTProxy;
+        if (streamingStt is null) return null;
+
+        return new StreamingDictationPipeline(streamingStt, _injector, _snippets);
     }
 
     // ── Warmup ─────────────────────────────────────────────────────────────────
