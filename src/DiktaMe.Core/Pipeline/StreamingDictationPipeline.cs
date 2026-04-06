@@ -125,6 +125,13 @@ public sealed class StreamingDictationPipeline : IAsyncDisposable
             Completed?.Invoke(this, r);
             return r;
         }
+        catch (DiktaMe.Core.Account.WalletStreamingFallbackException)
+        {
+            // Rethrow so the UI orchestration (LoadingViewModel) can intercept it
+            // and perform its transparent fallback routine.
+            SetState(PipelineState.Error);
+            throw;
+        }
         catch (Exception ex)
         {
             Log.Error(ex, "StreamingDictation: unhandled error");

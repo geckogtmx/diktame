@@ -1131,9 +1131,10 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
         catch (DiktaMe.Core.Account.WalletStreamingFallbackException ex)
         {
-            // Non-critical: streaming unavailable, fall back to batch transparently
-            Log.Information("WalletStreaming: fallback to batch — {Reason}", ex.Message);
-            await RunBatchDictationAsync();
+            // The streaming pipeline failed. We are removing the silent fallback 
+            // so we can isolate and fix the actual streaming errors.
+            Log.Error("WalletStreaming: CRITICAL FAILURE — {Reason}", ex.Message);
+            _notifications.ShowToast("Streaming Error", ex.Message, NotificationType.Error);
         }
         catch (Exception ex)
         {
