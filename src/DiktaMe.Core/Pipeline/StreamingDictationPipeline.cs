@@ -101,7 +101,7 @@ public sealed class StreamingDictationPipeline : IAsyncDisposable
                 // TranscriptionMs = time from "Stop" signal to final transcript arriving.
                 // This is the true end-to-end network + model latency for the streaming pipeline.
                 var transcriptionSw = Stopwatch.StartNew();
-                SetState(PipelineState.Injecting);
+                SetState(PipelineState.Transcribing);
                 await _streamingStt.CloseAsync(cancellationToken).ConfigureAwait(false);
                 transcriptionSw.Stop();
                 transcriptionMs = transcriptionSw.ElapsedMilliseconds;

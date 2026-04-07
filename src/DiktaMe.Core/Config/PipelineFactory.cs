@@ -1,4 +1,5 @@
 
+using DiktaMe.Core.Account;
 using DiktaMe.Core.Input;
 using DiktaMe.Core.LLM;
 using DiktaMe.Core.Pipeline;
@@ -221,7 +222,7 @@ public sealed class PipelineFactory
             return null;
         }
 
-        var streamingStt = _sp.GetService(typeof(DiktaMe.Core.Account.WalletStreamingSTTProxy)) as DiktaMe.Core.Account.WalletStreamingSTTProxy;
+        var streamingStt = _sp.GetService(typeof(WalletStreamingSTTProxy)) as WalletStreamingSTTProxy;
         if (streamingStt is null) return null;
 
         return new StreamingDictationPipeline(streamingStt, _injector, _snippets);

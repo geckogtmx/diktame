@@ -1114,15 +1114,26 @@ public sealed partial class LoadingViewModel : ObservableObject
             var soundSettings = _settings.Current.Sound ?? new();
             _notifications.PlayCustomSound(soundSettings.StartSound);
 
+            // Wire stop handler here — mirrors RecordAudioAsync's stopHandler pattern.
+            // Plays the stop sound and updates visual state IMMEDIATELY when recording stops,
+            // decoupled from the network round-trip for the final transcript.
+            EventHandler<DiktaMe.Core.Audio.RecordingStoppedEventArgs>? stopHandler = null;
+            stopHandler = (_, _) =>
+            {
+                _currentRecorder!.AutoStopped -= stopHandler;
+                _currentRecorder!.RecordingStopped -= stopHandler;
+                _isRecording = false;
+                _levelMonitor.Stop();
+                _muteDetector.Stop();
+                _muteDetector.MuteStateChanged -= OnMuteStateChanged;
+                _notifications.PlayCustomSound(soundSettings.StopSound);
+            };
+            _currentRecorder.AutoStopped += stopHandler;
+            _currentRecorder.RecordingStopped += stopHandler;
+
             _recordingCts = new CancellationTokenSource();
             var result = await streamingPipeline.RunAsync(
                 _currentRecorder, options, _recordingCts.Token);
-
-            _isRecording = false;
-            _levelMonitor.Stop();
-            _muteDetector.Stop();
-            _muteDetector.MuteStateChanged -= OnMuteStateChanged;
-            _notifications.PlayCustomSound(soundSettings.StopSound);
 
             if (result.IsSuccess)
             {
