@@ -1,5 +1,24 @@
 # Developer Handoff
 
+## WALLET_STREAMING_TELEMETRY (2026-04-07)
+
+**Status:** Completed and CI Pass 🟩.
+
+**What was done:** Optimized the UX perceived latency and wired missing performance telemetry for the Wallet (Gemini Live) streaming pipeline.
+
+### ✅ Completed
+- **Instant Stop Feedback**: Moved stop sound and visual cleanup (`isRecording = false`, level monitor stop) to an instant `RecordingStopped` event handler in `LoadingViewModel.cs` [883a8aa].
+- **Accurate Telemetry**: Implemented `Stopwatch` in `StreamingDictationPipeline.cs` to capture `TranscriptionMs` (the delta between mic-stop and final text arrival). Surfaced this to the Control Panel Stats [cc178b0].
+- **State Machine Fix**: Updated the post-recording state to `PipelineState.Transcribing` (was flickering "Injecting" too early), correctly reflecting the network wait phase.
+- **CI Build Fix**: Resolved `IDE0019` (pattern matching) and namespace `using` lint errors in `PipelineFactory.cs` [564c4ee].
+- **Model Confirmed**: Verified `gemini-3.1-flash-live-preview` usage in the Edge Function.
+
+### 📋 Next Steps
+1. **Cost/Balance Telemetry**: Wire the `cost` and `balance` fields from the WebSocket JSON response into the `PipelineResult` so the wallet deduction is visible in real-time in the CP.
+2. **Fixed Latency Investigation**: Investigating why `TranscriptionMs` is consistently ~1.4s. Suspect fixed overhead in the Gemini Live Turn completion or client-side buffering.
+
+---
+
 ## WALLET_STREAMING_OPTIMIZED (2026-04-07)
 
 **Status:** Implementation complete and pushed.
