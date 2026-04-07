@@ -127,6 +127,7 @@ async function handleSession(clientWs: WebSocket, token: string, lang: string) {
   let geminiReady = false;
   let sessionComplete = false;
   let audioEnded = false;
+  let lastTranscriptTime = 0;
   const pendingAudio: Uint8Array[] = []; // buffer before geminiReady
 
   // ── Gemini Live WS ────────────────────────────────────────────────────────
@@ -191,6 +192,7 @@ async function handleSession(clientWs: WebSocket, token: string, lang: string) {
 
       if (transcriptText && transcriptText.trim()) {
         fullTranscript = (fullTranscript + " " + transcriptText).trim();
+        lastTranscriptTime = Date.now();
         send(clientWs, { type: "transcript", text: transcriptText });
       }
 
@@ -291,11 +293,18 @@ async function handleSession(clientWs: WebSocket, token: string, lang: string) {
     return;
   }
 
-  // ── Wait for turn complete (up to 60s) ───────────────────────────────────
+  // ── Wait for turn complete (up to 60s) or early termination ──────────────
   const deadline = Date.now() + 60_000;
   while (!sessionComplete && Date.now() < deadline) {
     if (clientWs.readyState !== WebSocket.OPEN) break;
-    await sleep(100);
+    
+    // Early escape: if audio flow has ended and we haven't received transcript text for 800ms
+    if (audioEnded && fullTranscript.length > 0 && lastTranscriptTime > 0 && (Date.now() - lastTranscriptTime > 800)) {
+      console.log("[wallet-stream] Early closing session based on audioEnded and transcript debounce");
+      break;
+    }
+    
+    await sleep(50);
   }
 
   // ── Cost accounting and final response ────────────────────────────────────
