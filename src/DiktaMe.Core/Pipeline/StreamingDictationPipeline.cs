@@ -54,6 +54,7 @@ public sealed class StreamingDictationPipeline : IAsyncDisposable
         var total = Stopwatch.StartNew();
         var accumulated = new StringBuilder();
         long injectionMs = 0;
+        long transcriptionMs = 0;
         var recordingStoppedTcs = new TaskCompletionSource<long>(
             TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -96,9 +97,17 @@ public sealed class StreamingDictationPipeline : IAsyncDisposable
                 Log.Information("StreamingDictation: recording stopped ({Ms}ms), closing stream",
                     recordingMs);
 
-                // ── Close streaming provider (drains remaining finals) ─────
+                // ── Close streaming provider and measure network latency ───
+                // TranscriptionMs = time from "Stop" signal to final transcript arriving.
+                // This is the true end-to-end network + model latency for the streaming pipeline.
+                var transcriptionSw = Stopwatch.StartNew();
                 SetState(PipelineState.Injecting);
                 await _streamingStt.CloseAsync(cancellationToken).ConfigureAwait(false);
+                transcriptionSw.Stop();
+                transcriptionMs = transcriptionSw.ElapsedMilliseconds;
+
+                Log.Information("StreamingDictation: final transcript received ({Ms}ms after stop)",
+                    transcriptionMs);
             }
             finally
             {
@@ -112,7 +121,7 @@ public sealed class StreamingDictationPipeline : IAsyncDisposable
 
             // ── Build result ───────────────────────────────────────────────
             total.Stop();
-            var result = BuildSuccessResult(accumulated, recordingMs, injectionMs, total.ElapsedMilliseconds);
+            var result = BuildSuccessResult(accumulated, recordingMs, transcriptionMs, injectionMs, total.ElapsedMilliseconds);
             SetState(PipelineState.Idle);
             Completed?.Invoke(this, result);
             return result;
@@ -204,13 +213,13 @@ public sealed class StreamingDictationPipeline : IAsyncDisposable
     }
 
     private PipelineResult BuildSuccessResult(
-        StringBuilder accumulated, long recordingMs, long injectionMs, long totalMs)
+        StringBuilder accumulated, long recordingMs, long transcriptionMs, long injectionMs, long totalMs)
     {
         string finalText = accumulated.ToString().TrimEnd();
 
         Log.Information(
-            "StreamingDictation: complete — total={Total}ms rec={Rec}ms inj={Inj}ms words={Words}",
-            totalMs, recordingMs, injectionMs,
+            "StreamingDictation: complete — total={Total}ms rec={Rec}ms trns={Trns}ms inj={Inj}ms words={Words}",
+            totalMs, recordingMs, transcriptionMs, injectionMs,
             string.IsNullOrWhiteSpace(finalText)
                 ? 0
                 : finalText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length);
@@ -222,8 +231,8 @@ public sealed class StreamingDictationPipeline : IAsyncDisposable
             Mode = Mode,
             IsSuccess = true,
             RecordingMs = recordingMs,
-            TranscriptionMs = 0,
-            ProcessingMs = 0,
+            TranscriptionMs = transcriptionMs,
+            ProcessingMs = 0,  // No LLM stage in streaming raw mode
             InjectionMs = injectionMs,
             TotalMs = totalMs,
             SttProvider = _streamingStt.ProviderName,
