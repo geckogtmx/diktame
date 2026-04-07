@@ -222,8 +222,10 @@ public sealed class PipelineFactory
             return null;
         }
 
-        var streamingStt = _sp.GetService(typeof(WalletStreamingSTTProxy)) as WalletStreamingSTTProxy;
-        if (streamingStt is null) return null;
+        if (_sp.GetService(typeof(WalletStreamingSTTProxy)) is not WalletStreamingSTTProxy streamingStt)
+        {
+            return null;
+        }
 
         return new StreamingDictationPipeline(streamingStt, _injector, _snippets);
     }
