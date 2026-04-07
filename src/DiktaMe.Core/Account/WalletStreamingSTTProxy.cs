@@ -70,6 +70,9 @@ public sealed class WalletStreamingSTTProxy : IStreamingSTTProvider
     /// <summary>Raised when the proxy returns an updated wallet balance.</summary>
     public event Action<long>? BalanceUpdated;
 
+    /// <summary>Raised when the edge function returns a 401, indicating the JWT has expired.</summary>
+    public event Action? SessionExpired;
+
     public WalletStreamingSTTProxy(
         SecureStorage secureStorage,
         SettingsManager settings,
@@ -412,6 +415,16 @@ public sealed class WalletStreamingSTTProxy : IStreamingSTTProvider
         int code = root.TryGetProperty("code", out var c) ? c.GetInt32() : 0;
 
         Log.Error("WalletStreaming: error from edge function: {Message} (code={Code})", message, code);
+
+        if (code == 401)
+        {
+            Log.Warning("WalletStreaming: 401 — session expired");
+            SessionExpired?.Invoke();
+            string msg = "Session expired. Please try again.";
+            _finalTcs.TrySetException(new WalletStreamingFallbackException(msg));
+            ErrorOccurred?.Invoke(this, new StreamingErrorEventArgs(msg));
+            return;
+        }
 
         // 402 = insufficient balance — surface specifically
         string userMessage = code == 402

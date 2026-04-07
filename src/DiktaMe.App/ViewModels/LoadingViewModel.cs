@@ -866,6 +866,7 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         // Subscribe to session expiry — attempt refresh before showing error
         var walletStt = App.Current.Services.GetRequiredService<WalletDeepgramProxy>();
+        var walletStreamStt = App.Current.Services.GetService<WalletStreamingSTTProxy>();
         var tokenRefresh = App.Current.Services.GetRequiredService<TokenRefreshService>();
 
         void HandleSessionExpired()
@@ -884,6 +885,10 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
 
         walletStt.SessionExpired += HandleSessionExpired;
+        if (walletStreamStt != null)
+        {
+            walletStreamStt.SessionExpired += HandleSessionExpired;
+        }
         _walletProxy.SessionExpired += HandleSessionExpired;
         tokenRefresh.SessionExpired += HandleSessionExpired;
     }

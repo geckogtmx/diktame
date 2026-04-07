@@ -298,8 +298,8 @@ async function handleSession(clientWs: WebSocket, token: string, lang: string) {
   while (!sessionComplete && Date.now() < deadline) {
     if (clientWs.readyState !== WebSocket.OPEN) break;
     
-    // Early escape: if audio flow has ended and we haven't received transcript text for 800ms
-    if (audioEnded && fullTranscript.length > 0 && lastTranscriptTime > 0 && (Date.now() - lastTranscriptTime > 800)) {
+    // Early escape: if audio flow has ended and we haven't received transcript text for 50ms
+    if (audioEnded && fullTranscript.length > 0 && lastTranscriptTime > 0 && (Date.now() - lastTranscriptTime > 50)) {
       console.log("[wallet-stream] Early closing session based on audioEnded and transcript debounce");
       break;
     }
@@ -315,13 +315,20 @@ async function handleSession(clientWs: WebSocket, token: string, lang: string) {
     costMicro = 500;
   }
 
+  // Send final result IMMEDIAELY to save latency (before DB ops block)
+  send(clientWs, {
+    type: "final",
+    text: fullTranscript,
+    cost: costMicro,
+    balance: currentBalance - costMicro,
+  });
+
   const { data: deductResult } = await db.rpc("deduct_wallet_balance", {
     p_user_id: userId,
     p_amount_micro: costMicro,
     p_type: "USAGE",
     p_metadata: { service: "gemini-live" },
   });
-  const newBalance = deductResult?.balance_micro ?? (currentBalance - costMicro);
 
   await db.from("proxy_audit_log").insert({
     user_id: userId,
@@ -330,14 +337,6 @@ async function handleSession(clientWs: WebSocket, token: string, lang: string) {
     input_tokens: usageInput || null,
     output_tokens: usageOutput || null,
     status_code: 200,
-  });
-
-  // Send final result
-  send(clientWs, {
-    type: "final",
-    text: fullTranscript,
-    cost: costMicro,
-    balance: newBalance,
   });
 
   // Clean close
