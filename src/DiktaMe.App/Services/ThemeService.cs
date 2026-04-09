@@ -238,8 +238,10 @@ public sealed class ThemeService
     }
 
     /// <summary>
-    /// Applies the named theme by mutating all App*Brush Colors in-place
-    /// and setting RequestedTheme on all open windows.
+    /// Applies the named theme in three phases:
+    /// 1. Replace brush objects in ThemeDictionaries (avoids WinUI "unauthorized operation" on rendered brushes)
+    /// 2. Set RequestedTheme on all windows (WinUI re-resolves {ThemeResource} → picks up new brush objects)
+    /// 3. Mutate flat App*Brush resources in-place (direct references, no ThemeDictionary involvement)
     /// </summary>
     public void ApplyTheme(string? themeName)
     {
@@ -254,10 +256,14 @@ public sealed class ThemeService
         Log.Debug("████ THEME APPLYING: {Theme} (IsDark={IsDark}) MergedDicts={Count}",
             themeName, palette.IsDark, resources.MergedDictionaries.Count);
 
-        // Set RequestedTheme FIRST so WinUI re-resolves {ThemeResource} bindings to the
-        // correct ThemeDictionary (Default or Light) brush instances BEFORE we mutate them.
-        // If we mutate first then switch theme, WinUI replaces our mutated brushes with
-        // fresh un-mutated instances from the newly-active dictionary.
+        // Phase 1: Replace brush objects in ThemeDictionaries with new instances.
+        // Must happen BEFORE RequestedTheme so WinUI picks up new brushes during re-resolve.
+        // This avoids the "unauthorized operation" crash when mutating .Color on rendered brushes.
+        var replaced = ReplaceBrushesInThemeDictionaries(resources, palette);
+        Log.Debug("████ THEME REPLACED: {Count} brush objects in ThemeDictionaries", replaced);
+
+        // Phase 2: Set RequestedTheme — WinUI re-resolves {ThemeResource} bindings and
+        // picks up the fresh brush objects we just placed in ThemeDictionaries.
         var elementTheme = palette.IsDark ? ElementTheme.Dark : ElementTheme.Light;
         foreach (var window in App.Current.ActiveWindows)
         {
@@ -267,11 +273,12 @@ public sealed class ThemeService
             }
         }
 
-        var (foundFlat, foundTheme, foundMergedTheme, foundMergedFlat, notFound, crashed) =
-            MutateBrushes(resources, palette);
-
-        Log.Debug("████ THEME BRUSH SUMMARY: flat={Flat} themeDicts={Theme} mergedTheme={MT} mergedFlat={MF} notFound={NF} crashed={Crashed} total={Total}",
-            foundFlat, foundTheme, foundMergedTheme, foundMergedFlat, notFound, crashed, BrushKeys.Length);
+        // Phase 3: Mutate flat App*Brush resources in-place.
+        // These are at root Application.Current.Resources level (not in ThemeDictionaries),
+        // so in-place .Color mutation works and is required (XAML holds direct brush references).
+        var (foundFlat, notFoundFlat, crashedFlat) = MutateFlatBrushes(resources, palette);
+        Log.Debug("████ THEME FLAT SUMMARY: flat={Flat} notFound={NF} crashed={Crashed}",
+            foundFlat, notFoundFlat, crashedFlat);
 
         // Override SystemAccentColor and variants in ThemeDictionaries so WinUI controls
         // use our accent, not the Windows system accent (which may be yellow/gold).
@@ -334,120 +341,98 @@ public sealed class ThemeService
     }
 
     /// <summary>
-    /// Mutates each brush's Color in-place across all 4 resource scopes.
-    /// Each key is wrapped in try-catch because mutating .Color on a brush from a
-    /// ThemeDictionary that became inactive after RequestedTheme change can cause
-    /// a silent native WinUI crash (observed: Frost crashes at TextControlForeground).
+    /// Replaces brush objects in the ROOT ThemeDictionaries (App.xaml Default/Light) with
+    /// new SolidColorBrush instances. Only processes control keys (not App*Brush flat resources).
+    /// This avoids the WinUI "unauthorized operation" error that occurs when mutating .Color
+    /// on a SolidColorBrush that the rendering pipeline has claimed after first use.
+    /// New brush objects are safe because WinUI hasn't rendered them yet.
+    ///
+    /// IMPORTANT: Only operates on resources.ThemeDictionaries (our custom keys in App.xaml).
+    /// Does NOT touch MergedDictionaries' ThemeDictionaries (XamlControlsResources, style files)
+    /// because replacing entries there invalidates WinUI's internal resource resolution cache,
+    /// breaking lookup of built-in system resources like AccentFillColorDefaultBrush.
     /// </summary>
-    private static (int Flat, int Theme, int MergedTheme, int MergedFlat, int NotFound, int Crashed)
-        MutateBrushes(ResourceDictionary resources, ThemePalette palette)
+    private static int ReplaceBrushesInThemeDictionaries(ResourceDictionary resources, ThemePalette palette)
     {
-        int foundFlat = 0, foundTheme = 0, foundMergedTheme = 0, foundMergedFlat = 0, notFound = 0, crashed = 0;
+        int replaced = 0;
+
+        if (resources.ThemeDictionaries is not { } themeDicts)
+        {
+            return replaced;
+        }
 
         foreach (var (key, accessor) in BrushKeys)
         {
+            // Skip flat App*Brush keys — those are mutated in-place by MutateFlatBrushes
+            if (key.StartsWith("App", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var color = accessor(palette);
+
+            foreach (var entry in themeDicts)
+            {
+                try
+                {
+                    if (entry.Value is ResourceDictionary themeDict && themeDict.ContainsKey(key))
+                    {
+                        themeDict[key] = new SolidColorBrush(color);
+                        replaced++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug("ReplaceBrush ThemeDicts[{Dict}].{Key} failed: {Type}: {Msg}",
+                        entry.Key, key, ex.GetType().Name, ex.Message);
+                }
+            }
+        }
+
+        return replaced;
+    }
+
+    /// <summary>
+    /// Mutates only the flat App*Brush resources in-place via .Color assignment.
+    /// These are at the root Application.Current.Resources level (not in ThemeDictionaries)
+    /// and never trigger the WinUI "unauthorized operation" protection.
+    /// XAML elements hold direct references to these brush objects, so in-place mutation
+    /// is required for immediate visual updates without re-parsing XAML.
+    /// </summary>
+    private static (int Found, int NotFound, int Crashed) MutateFlatBrushes(
+        ResourceDictionary resources, ThemePalette palette)
+    {
+        int found = 0, notFound = 0, crashed = 0;
+
+        foreach (var (key, accessor) in BrushKeys)
+        {
+            // Only process flat App*Brush keys
+            if (!key.StartsWith("App", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
             try
             {
-                var found = false;
-                bool inFlat = false, inTheme = false, inMergedTheme = false, inMergedFlat = false;
-
-                // 1. Flat resources (App*Brush keys)
                 if (resources.TryGetValue(key, out var obj) && obj is SolidColorBrush brush)
                 {
                     brush.Color = accessor(palette);
-                    found = true;
-                    inFlat = true;
-                }
-
-                // 2. ThemeDictionaries (WinUI control overrides in App.xaml)
-                // Each entry gets its own try-catch: WinUI throws when mutating certain
-                // Foreground brushes (the exception type varies — COMException, UnauthorizedAccessException,
-                // or InvalidOperationException depending on brush state). Without per-entry
-                // protection, the crash skips the active dictionary too (e.g. Foreground brushes
-                // stay white on Frost because the active Light dict is never reached).
-                if (resources.ThemeDictionaries is { } themeDicts)
-                {
-                    foreach (var entry in themeDicts)
-                    {
-                        try
-                        {
-                            if (entry.Value is ResourceDictionary themeDict
-                                && themeDict.TryGetValue(key, out var tObj) && tObj is SolidColorBrush tBrush)
-                            {
-                                tBrush.Color = accessor(palette);
-                                found = true;
-                                inTheme = true;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Debug("ThemeDicts[{Dict}].{Key} skipped: {Type}: {Msg}",
-                                entry.Key, key, ex.GetType().Name, ex.Message);
-                        }
-                    }
-                }
-
-                // 3. MergedDictionaries' ThemeDictionaries (same per-entry protection)
-                foreach (var merged in resources.MergedDictionaries)
-                {
-                    if (merged.ThemeDictionaries is { } mergedThemeDicts)
-                    {
-                        foreach (var entry in mergedThemeDicts)
-                        {
-                            try
-                            {
-                                if (entry.Value is ResourceDictionary themeDict
-                                    && themeDict.TryGetValue(key, out var mObj) && mObj is SolidColorBrush mBrush)
-                                {
-                                    mBrush.Color = accessor(palette);
-                                    found = true;
-                                    inMergedTheme = true;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Debug("MergedThemeDicts[{Dict}].{Key} skipped: {Type}: {Msg}",
-                                    entry.Key, key, ex.GetType().Name, ex.Message);
-                            }
-                        }
-                    }
-                }
-
-                // 4. MergedDictionaries' flat resources
-                foreach (var merged in resources.MergedDictionaries)
-                {
-                    if (merged.TryGetValue(key, out var mFlatObj) && mFlatObj is SolidColorBrush mFlatBrush)
-                    {
-                        mFlatBrush.Color = accessor(palette);
-                        found = true;
-                        inMergedFlat = true;
-                    }
-                }
-
-                if (inFlat) { foundFlat++; }
-                if (inTheme) { foundTheme++; }
-                if (inMergedTheme) { foundMergedTheme++; }
-                if (inMergedFlat) { foundMergedFlat++; }
-                if (!found)
-                {
-                    notFound++;
-                    Log.Warning("Theme brush '{Key}' NOT FOUND anywhere", key);
+                    found++;
                 }
                 else
                 {
-                    var c = accessor(palette);
-                    Log.Debug("  {Key} → #{A:X2}{R:X2}{G:X2}{B:X2} [flat={F} theme={T} mTheme={MT} mFlat={MF}]",
-                        key, c.A, c.R, c.G, c.B, inFlat, inTheme, inMergedTheme, inMergedFlat);
+                    notFound++;
+                    Log.Warning("Flat brush '{Key}' NOT FOUND in resources", key);
                 }
             }
             catch (Exception ex)
             {
                 crashed++;
-                Log.Warning("Theme brush '{Key}' CRASHED during mutation: {Error}", key, ex.Message);
+                Log.Warning("Flat brush '{Key}' CRASHED during mutation: {Error}", key, ex.Message);
             }
         }
 
-        return (foundFlat, foundTheme, foundMergedTheme, foundMergedFlat, notFound, crashed);
+        return (found, notFound, crashed);
     }
 
     /// <summary>

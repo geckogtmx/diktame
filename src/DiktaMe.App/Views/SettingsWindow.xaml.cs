@@ -112,11 +112,18 @@ public sealed partial class SettingsWindow : Window
                     InjectControlBrushes(palette);
                     Log.Debug("SettingsWindow: ThemeChanged step 1/5 InjectControlBrushes OK");
 
-                    if (ContentFrame.Content is FrameworkElement page)
+                    // Force page re-navigation so a fresh page instance picks up the
+                    // new ThemeDictionary brushes. Without this, the existing page's
+                    // ComboBox dropdown popups hold stale brush references (e.g. white
+                    // text on light Frost dropdown) because popups are separate visual
+                    // trees that don't re-resolve {ThemeResource} on RequestedTheme change.
+                    // The Navigated handler calls InjectPageBrushes on the fresh page.
+                    if (ContentFrame.Content is FrameworkElement currentPage)
                     {
-                        InjectPageBrushes(page, palette);
+                        var pageType = currentPage.GetType();
+                        ContentFrame.Navigate(pageType);
                     }
-                    Log.Debug("SettingsWindow: ThemeChanged step 2/5 InjectPageBrushes OK");
+                    Log.Debug("SettingsWindow: ThemeChanged step 2/5 page re-navigation OK");
 
                     ApplyGlassmorphicGradient(palette);
                     Log.Debug("SettingsWindow: ThemeChanged step 3/5 ApplyGlassmorphicGradient OK");
