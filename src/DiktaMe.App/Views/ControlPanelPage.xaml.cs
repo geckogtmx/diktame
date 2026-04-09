@@ -382,7 +382,7 @@ public sealed partial class ControlPanelPage : Page
             SessionStatsRow.BorderThickness = new Thickness(0, 0, 0, 1);
             PerfStatsRow.BorderThickness = new Thickness(0, 0, 0, 1);
             HeaderBar.BorderThickness = new Thickness(0, 0, 0, 1);
-            HeaderBar.Padding = new Thickness(12, 4, 12, 11);
+            HeaderBar.Padding = new Thickness(12, 4, 12, 4);
 
             // Edge glow: top edges when expanding downward
             EdgeGlow.BorderThickness = new Thickness(2, 3, 2, 0);

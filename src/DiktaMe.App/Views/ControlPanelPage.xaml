@@ -424,7 +424,7 @@
         <Border x:Name="VisionRow" Grid.Row="1"
                 Visibility="{x:Bind ViewModel.ShowVisionRow, Converter={StaticResource BoolToVis}, Mode=OneWay}"
                 BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="0,1,0,0">
-            <Grid Padding="8,6" Background="{StaticResource AppSurfaceBrush}">
+            <Grid Padding="8,4,8,12" Background="{StaticResource AppSurfaceBrush}">
 
                 <!-- ── Panel 1: CaptureType — Image / Video / Color ── -->
                 <Grid Visibility="{x:Bind ViewModel.IsStep_CaptureType, Converter={StaticResource BoolToVis}, Mode=OneWay}"
