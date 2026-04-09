@@ -25,7 +25,12 @@ public sealed record DictationModeItem(
     string Subtitle,
     bool IsActive,
     string BackgroundHex,
-    string ForegroundHex);
+    string ForegroundHex,
+    string HoverBgHex,
+    string HoverFgHex,
+    string PressedBgHex,
+    string HoverBorderHex,
+    string PressedBorderHex);
 
 /// <summary>
 /// Refine mode selection (Auto = no audio, Voice = instruction audio).
@@ -102,11 +107,28 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     private readonly SolidColorBrush _badgeCloudBrush;
     private readonly SolidColorBrush _badgeOffBrush;
 
-    // Active-state colors (V1 palette)
-    private const string ActiveBgHex = "#00607a";   // --dark-teal-3
-    private const string InactiveBgHex = "#00303d";  // --jet-black
-    private const string ActiveFgHex = "#ffffff";
-    private const string InactiveFgHex = "#888888";
+    // Midnight preset colors (V1 palette — kept as-is for visual continuity)
+    private const string MidnightActiveBg = "#FF00607A";
+    private const string MidnightActiveFg = "#FFFFFFFF";
+    private const string MidnightActiveHoverBg = "#FF00506A";
+    private const string MidnightActivePressedBg = "#FF003A4D";
+    private const string MidnightActiveHoverBorder = "#FF00709A";
+    private const string MidnightActivePressedBorder = "#FF004052";
+    private const string MidnightInactiveBg = "#FF00303D";
+    private const string MidnightInactiveFg = "#FF888888";
+    private const string MidnightInactiveHoverBg = "#FF003D4D";
+    private const string MidnightInactivePressedBg = "#FF002530";
+    private const string MidnightInactiveHoverBorder = "#FF004D66";
+    private const string MidnightInactivePressedBorder = "#FF002030";
+
+    private static string ToHex(Windows.UI.Color c) =>
+        $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+
+    private static Windows.UI.Color ShiftColor(Windows.UI.Color c, int amount)
+    {
+        static byte Clamp(int v) => (byte)Math.Clamp(v, 0, 255);
+        return Windows.UI.Color.FromArgb(c.A, Clamp(c.R + amount), Clamp(c.G + amount), Clamp(c.B + amount));
+    }
 
     // ── Pipeline state ──────────────────────────────────────────────────────
 
@@ -1328,6 +1350,9 @@ public sealed partial class ControlPanelViewModel : ObservableObject
                 OnPropertyChanged(nameof(SoundStateBrush));
                 OnPropertyChanged(nameof(KeyStateBrush));
                 OnPropertyChanged(nameof(RefineStateBrush));
+
+                // Refresh dictation preset buttons with new theme colors
+                LoadAvailableModes();
             }
             catch (Exception ex)
             {
@@ -1469,13 +1494,41 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             ? (string.IsNullOrEmpty(profile.ModelName) ? "LLM" : TruncateModel(profile.ModelName))
             : _loc.GetString("ControlPanel_Mode_RawStt");
 
+        // Midnight keeps the V1 teal palette for visual continuity.
+        // Frost & Ember derive colors from their ThemePalette.
+        var themeName = _themeService.CurrentTheme;
+        if (string.Equals(themeName, "Midnight", StringComparison.OrdinalIgnoreCase))
+        {
+            return new DictationModeItem(
+                mode.Id, mode.Title, subtitle, isActive,
+                BackgroundHex: isActive ? MidnightActiveBg : MidnightInactiveBg,
+                ForegroundHex: isActive ? MidnightActiveFg : MidnightInactiveFg,
+                HoverBgHex: isActive ? MidnightActiveHoverBg : MidnightInactiveHoverBg,
+                HoverFgHex: MidnightActiveFg,
+                PressedBgHex: isActive ? MidnightActivePressedBg : MidnightInactivePressedBg,
+                HoverBorderHex: isActive ? MidnightActiveHoverBorder : MidnightInactiveHoverBorder,
+                PressedBorderHex: isActive ? MidnightActivePressedBorder : MidnightInactivePressedBorder);
+        }
+
+        var palette = ThemeService.GetPalette(themeName);
+
+        // Both active and inactive hover show the accent color (previews "will become selected").
+        // Hover text: dark on light themes (readable on accent bg), dark bg color on dark themes.
+        string hoverBg = ToHex(palette.Accent);
+        string hoverFg = palette.IsDark ? ToHex(palette.Background) : ToHex(palette.Text);
+        string pressedBg = ToHex(ShiftColor(palette.Accent, -10));
+        string hoverBorder = ToHex(ShiftColor(palette.Accent, 30));
+        string pressedBorder = ToHex(ShiftColor(palette.Accent, -15));
+
+        // Active vs inactive differ only in resting background and foreground.
+        string bgHex = isActive ? ToHex(palette.Accent) : ToHex(palette.Surface2);
+        string fgHex = isActive
+            ? (palette.IsDark ? ToHex(palette.Background) : "#FFFFFFFF")
+            : ToHex(palette.TextDim);
+
         return new DictationModeItem(
-            mode.Id,
-            mode.Title,
-            subtitle,
-            isActive,
-            BackgroundHex: isActive ? ActiveBgHex : InactiveBgHex,
-            ForegroundHex: isActive ? ActiveFgHex : InactiveFgHex);
+            mode.Id, mode.Title, subtitle, isActive,
+            bgHex, fgHex, hoverBg, hoverFg, pressedBg, hoverBorder, pressedBorder);
     }
 
     /// <summary>

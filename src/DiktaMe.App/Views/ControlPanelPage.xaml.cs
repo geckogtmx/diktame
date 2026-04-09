@@ -419,6 +419,113 @@ public sealed partial class ControlPanelPage : Page
         VisionAiNone.Background = ViewModel.VisionAiMode == 2 ? active : inactive;
     }
 
+    // ── Preset button hover/pressed colors ──────────────────────────────
+
+    /// <summary>
+    /// Sets Button.Resources for hover/pressed colors from DictationModeItem data.
+    /// Cannot use {x:Bind} on SolidColorBrush inside Button.Resources in a DataTemplate
+    /// because WinUI's generated binding code gets a null brush reference (NRE).
+    /// </summary>
+    private void ModesRepeater_ElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
+    {
+        if (args.Element is not Button btn)
+        {
+            return;
+        }
+
+        // Use Index (not DataContext) because x:Bind compiles bindings separately
+        // and DataContext may not be set when ElementPrepared fires.
+        var index = args.Index;
+        if (index < 0 || index >= ViewModel.AvailableModes.Count)
+        {
+            return;
+        }
+
+        var item = ViewModel.AvailableModes[index];
+        btn.Resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(ColorFromHex(item.HoverBgHex));
+        btn.Resources["ButtonBackgroundPressed"] = new SolidColorBrush(ColorFromHex(item.PressedBgHex));
+        btn.Resources["ButtonBorderBrushPointerOver"] = new SolidColorBrush(ColorFromHex(item.HoverBorderHex));
+        btn.Resources["ButtonBorderBrushPressed"] = new SolidColorBrush(ColorFromHex(item.PressedBorderHex));
+        btn.Resources["ButtonForegroundPointerOver"] = new SolidColorBrush(ColorFromHex(item.HoverFgHex));
+        btn.Resources["ButtonForegroundPressed"] = new SolidColorBrush(ColorFromHex(item.HoverFgHex));
+    }
+
+    /// <summary>
+    /// Updates hover/pressed colors on all buttons inside ActionsRow (STT/LLM/TTS/SOUND/+KEY/REFINE).
+    /// These are static XAML buttons, not in an ItemsRepeater, so we set their Resources here.
+    /// </summary>
+    private void UpdateCycleButtonHoverColors()
+    {
+        // Only override on non-Midnight themes; Midnight keeps the hardcoded V1 teal from XAML.
+        if (_themeService is null)
+        {
+            return;
+        }
+
+        var themeName = _themeService.CurrentTheme;
+        if (string.Equals(themeName, "Midnight", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var palette = ThemeService.GetPalette(themeName);
+        var hoverBg = new SolidColorBrush(palette.Accent);
+        var pressedBg = new SolidColorBrush(ShiftColorLocal(palette.Accent, -10));
+        var hoverBorder = new SolidColorBrush(ShiftColorLocal(palette.Accent, 30));
+        var pressedBorder = new SolidColorBrush(ShiftColorLocal(palette.Accent, -15));
+
+        if (ActionsRow?.Child is not Grid grid)
+        {
+            return;
+        }
+
+        foreach (var child in grid.Children)
+        {
+            if (child is Button btn)
+            {
+                btn.Resources["ButtonBackgroundPointerOver"] = hoverBg;
+                btn.Resources["ButtonBackgroundPressed"] = pressedBg;
+                btn.Resources["ButtonBorderBrushPointerOver"] = hoverBorder;
+                btn.Resources["ButtonBorderBrushPressed"] = pressedBorder;
+            }
+        }
+
+        static Color ShiftColorLocal(Color c, int amount)
+        {
+            static byte Clamp(int v) => (byte)Math.Clamp(v, 0, 255);
+            return Color.FromArgb(c.A, Clamp(c.R + amount), Clamp(c.G + amount), Clamp(c.B + amount));
+        }
+    }
+
+    private static Color ColorFromHex(string hex)
+    {
+        // Parse #AARRGGBB or #RRGGBB hex string
+        var span = hex.AsSpan();
+        if (span.Length > 0 && span[0] == '#')
+        {
+            span = span[1..];
+        }
+
+        if (span.Length == 8)
+        {
+            byte a = byte.Parse(span[..2], System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
+            byte r = byte.Parse(span[2..4], System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
+            byte g = byte.Parse(span[4..6], System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
+            byte b = byte.Parse(span[6..8], System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
+            return Color.FromArgb(a, r, g, b);
+        }
+
+        if (span.Length == 6)
+        {
+            byte r = byte.Parse(span[..2], System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
+            byte g = byte.Parse(span[2..4], System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
+            byte b = byte.Parse(span[4..6], System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
+            return Color.FromArgb(255, r, g, b);
+        }
+
+        return Color.FromArgb(255, 128, 128, 128); // fallback gray
+    }
+
     // ── Visual effects engine ─────────────────────────────────────────────
 
     private void InitializeVisualEffects()
@@ -450,10 +557,15 @@ public sealed partial class ControlPanelPage : Page
         _themeService = App.Current.Services.GetRequiredService<Services.ThemeService>();
         _themeService.ThemeChanged += (_, _) => DispatcherQueue.TryEnqueue(() =>
         {
-            try { LoadThemeColors(); }
+            try
+            {
+                LoadThemeColors();
+                UpdateCycleButtonHoverColors();
+            }
             catch (Exception ex) { Log.Error(ex, "ControlPanelPage: CRASH in ThemeChanged/LoadThemeColors"); }
         });
         LoadThemeColors();
+        UpdateCycleButtonHoverColors();
 
         // Dedicated brush for header-only glow (starts at same color as AppSurfaceBrush)
         _headerBarBrush = new SolidColorBrush(Color.FromArgb(255, _baseHdrR, _baseHdrG, _baseHdrB));

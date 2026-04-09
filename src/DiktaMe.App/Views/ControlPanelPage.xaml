@@ -196,7 +196,9 @@
         <Border x:Name="ModesRow" Grid.Row="2"
                 Visibility="{x:Bind ViewModel.ShowModesRowEffective, Converter={StaticResource BoolToVis}, Mode=OneWay}">
             <Grid Padding="8,6">
-                <ItemsRepeater ItemsSource="{x:Bind ViewModel.AvailableModes, Mode=OneWay}">
+                <ItemsRepeater x:Name="ModesRepeater"
+                               ItemsSource="{x:Bind ViewModel.AvailableModes, Mode=OneWay}"
+                               ElementPrepared="ModesRepeater_ElementPrepared">
                     <ItemsRepeater.Layout>
                         <UniformGridLayout Orientation="Horizontal"
                                            MaximumRowsOrColumns="4"
@@ -219,12 +221,9 @@
                                 <Button.Background>
                                     <SolidColorBrush Color="{x:Bind BackgroundHex}"/>
                                 </Button.Background>
-                                <Button.Resources>
-                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#00506a"/>
-                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#003a4d"/>
-                                    <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#00709a"/>
-                                    <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#004052"/>
-                                </Button.Resources>
+                                <!-- Hover/pressed colors set programmatically in ModesRepeater_ElementPrepared
+                                     because {x:Bind} on SolidColorBrush inside Button.Resources causes NRE
+                                     (WinUI can't resolve brush references in ResourceDictionary context) -->
                                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="1">
                                     <TextBlock Text="{x:Bind Title}"
                                                FontSize="11" FontWeight="SemiBold"
