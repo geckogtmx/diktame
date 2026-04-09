@@ -62,16 +62,20 @@ public sealed partial class VisionActionWindow : Window
         }
         InjectControlBrushes(palette);
 
+        // Live theme switching — RequestedTheme is already set by ThemeService.ApplyTheme()
         themeService.ThemeChanged += (_, themeName) =>
         {
             DispatcherQueue.TryEnqueue(() =>
             {
-                var p = ThemeService.GetPalette(themeName);
-                if (Content is FrameworkElement r)
+                try
                 {
-                    r.RequestedTheme = p.IsDark ? ElementTheme.Dark : ElementTheme.Light;
+                    var p = ThemeService.GetPalette(themeName);
+                    InjectControlBrushes(p);
                 }
-                InjectControlBrushes(p);
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "VisionActionWindow: CRASH in ThemeChanged handler");
+                }
             });
         };
 

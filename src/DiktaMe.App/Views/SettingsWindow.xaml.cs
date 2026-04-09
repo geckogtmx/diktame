@@ -99,25 +99,39 @@ public sealed partial class SettingsWindow : Window
         {
             DispatcherQueue.TryEnqueue(() =>
             {
-                var palette = ThemeService.GetPalette(themeName);
-                Log.Information("SettingsWindow: ThemeChanged → {Theme} IsDark={IsDark}",
-                    themeName, palette.IsDark);
-
-                // Update RequestedTheme so {ThemeResource} resolves from correct dictionary
-                if (Content is FrameworkElement root)
+                try
                 {
-                    root.RequestedTheme = palette.IsDark ? ElementTheme.Dark : ElementTheme.Light;
-                }
+                    var palette = ThemeService.GetPalette(themeName);
+                    Log.Information("SettingsWindow: ThemeChanged → {Theme} IsDark={IsDark}",
+                        themeName, palette.IsDark);
 
-                InjectControlBrushes(palette);
-                if (ContentFrame.Content is FrameworkElement page)
-                {
-                    InjectPageBrushes(page, palette);
+                    // RequestedTheme is already set by ThemeService.ApplyTheme() on all active windows.
+                    // Do NOT set it again here — a second set triggers WinUI ThemeResource re-resolve
+                    // which can invalidate brush objects mid-handler and cause native crashes.
+
+                    InjectControlBrushes(palette);
+                    Log.Debug("SettingsWindow: ThemeChanged step 1/5 InjectControlBrushes OK");
+
+                    if (ContentFrame.Content is FrameworkElement page)
+                    {
+                        InjectPageBrushes(page, palette);
+                    }
+                    Log.Debug("SettingsWindow: ThemeChanged step 2/5 InjectPageBrushes OK");
+
+                    ApplyGlassmorphicGradient(palette);
+                    Log.Debug("SettingsWindow: ThemeChanged step 3/5 ApplyGlassmorphicGradient OK");
+
+                    ApplyGradientBackground(palette);
+                    Log.Debug("SettingsWindow: ThemeChanged step 4/5 ApplyGradientBackground OK");
+
+                    ApplyNavItemColors();
+                    PaneToggleIcon.Foreground = new SolidColorBrush(palette.TextDim);
+                    Log.Debug("SettingsWindow: ThemeChanged step 5/5 complete");
                 }
-                ApplyGlassmorphicGradient(palette);
-                ApplyGradientBackground(palette);
-                ApplyNavItemColors();
-                PaneToggleIcon.Foreground = new SolidColorBrush(palette.TextDim);
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "SettingsWindow: CRASH in ThemeChanged handler");
+                }
             });
         };
 

@@ -1307,25 +1307,32 @@ public sealed partial class ControlPanelViewModel : ObservableObject
     {
         _dispatcher.TryEnqueue(() =>
         {
-            bool isDark = ThemeService.GetPalette(themeName).IsDark;
-            _badgeLocalBrush.Color = isDark
-                ? ColorHelper.FromArgb(255, 122, 255, 158)   // #7AFF9E
-                : ColorHelper.FromArgb(255, 4, 120, 87);     // #047857
-            _badgeCloudBrush.Color = isDark
-                ? ColorHelper.FromArgb(255, 78, 168, 222)    // #4EA8DE
-                : ColorHelper.FromArgb(255, 29, 78, 216);    // #1D4ED8
-            _badgeOffBrush.Color = isDark
-                ? ColorHelper.FromArgb(255, 255, 68, 68)     // #FF4444
-                : ColorHelper.FromArgb(255, 185, 28, 28);    // #B91C1C
+            try
+            {
+                bool isDark = ThemeService.GetPalette(themeName).IsDark;
+                _badgeLocalBrush.Color = isDark
+                    ? ColorHelper.FromArgb(255, 122, 255, 158)   // #7AFF9E
+                    : ColorHelper.FromArgb(255, 4, 120, 87);     // #047857
+                _badgeCloudBrush.Color = isDark
+                    ? ColorHelper.FromArgb(255, 78, 168, 222)    // #4EA8DE
+                    : ColorHelper.FromArgb(255, 29, 78, 216);    // #1D4ED8
+                _badgeOffBrush.Color = isDark
+                    ? ColorHelper.FromArgb(255, 255, 68, 68)     // #FF4444
+                    : ColorHelper.FromArgb(255, 185, 28, 28);    // #B91C1C
 
-            // Force re-evaluation of all badge brush properties
-            UpdateBadgeBrushes();
-            OnPropertyChanged(nameof(SttStateBrush));
-            OnPropertyChanged(nameof(LlmStateBrush));
-            OnPropertyChanged(nameof(TtsStateBrush));
-            OnPropertyChanged(nameof(SoundStateBrush));
-            OnPropertyChanged(nameof(KeyStateBrush));
-            OnPropertyChanged(nameof(RefineStateBrush));
+                // Force re-evaluation of all badge brush properties
+                UpdateBadgeBrushes();
+                OnPropertyChanged(nameof(SttStateBrush));
+                OnPropertyChanged(nameof(LlmStateBrush));
+                OnPropertyChanged(nameof(TtsStateBrush));
+                OnPropertyChanged(nameof(SoundStateBrush));
+                OnPropertyChanged(nameof(KeyStateBrush));
+                OnPropertyChanged(nameof(RefineStateBrush));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "ControlPanelViewModel: CRASH in OnThemeChanged");
+            }
         });
     }
 

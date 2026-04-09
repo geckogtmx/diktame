@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Serilog;
 using Windows.Storage.Pickers;
 using Windows.System;
 using WinRT.Interop;
@@ -35,17 +36,20 @@ public sealed partial class QuickChatWindow : Window
         // at the root content scope, bypassing the ThemeDictionary brush-identity mismatch bug.
         InjectControlBrushes(initPalette);
 
-        // Live theme switching
+        // Live theme switching — RequestedTheme is already set by ThemeService.ApplyTheme()
         themeService.ThemeChanged += (_, themeName) =>
         {
             DispatcherQueue.TryEnqueue(() =>
             {
-                var palette = ThemeService.GetPalette(themeName);
-                if (Content is FrameworkElement root)
+                try
                 {
-                    root.RequestedTheme = palette.IsDark ? ElementTheme.Dark : ElementTheme.Light;
+                    var palette = ThemeService.GetPalette(themeName);
+                    InjectControlBrushes(palette);
                 }
-                InjectControlBrushes(palette);
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "QuickChatWindow: CRASH in ThemeChanged handler");
+                }
             });
         };
 

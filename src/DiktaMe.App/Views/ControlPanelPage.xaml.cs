@@ -448,7 +448,11 @@ public sealed partial class ControlPanelPage : Page
 
         // Subscribe to theme changes to re-derive glow colors
         _themeService = App.Current.Services.GetRequiredService<Services.ThemeService>();
-        _themeService.ThemeChanged += (_, _) => DispatcherQueue.TryEnqueue(LoadThemeColors);
+        _themeService.ThemeChanged += (_, _) => DispatcherQueue.TryEnqueue(() =>
+        {
+            try { LoadThemeColors(); }
+            catch (Exception ex) { Log.Error(ex, "ControlPanelPage: CRASH in ThemeChanged/LoadThemeColors"); }
+        });
         LoadThemeColors();
 
         // Dedicated brush for header-only glow (starts at same color as AppSurfaceBrush)

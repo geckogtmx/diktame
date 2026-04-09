@@ -92,6 +92,8 @@
                     <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#1E1D38"/>
                     <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#14FFFFFF"/>
                     <SolidColorBrush x:Key="ComboBoxDropDownForeground" Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="#18FFFFFF"/>
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="#18FFFFFF"/>
 
                     <!-- ListView — selected item -->
                     <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="#14FFFFFF"/>
@@ -195,6 +197,8 @@
                     <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#F2F4FF"/>
                     <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#14000000"/>
                     <SolidColorBrush x:Key="ComboBoxDropDownForeground" Color="#1A1A2E"/>
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="#0A000000"/>
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="#0A000000"/>
 
                     <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="#14000000"/>
                     <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#1A000000"/>

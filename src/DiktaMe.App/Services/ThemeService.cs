@@ -141,9 +141,15 @@ public sealed class ThemeService
         ("ComboBoxBorderBrushPointerOver", p => p.TextDim),
         ("ComboBoxBorderBrushPressed", p => p.Accent),
         ("ComboBoxForeground", p => p.Text),
-        ("ComboBoxDropDownBackground", p => p.Surface2Translucent),
+        ("ComboBoxDropDownBackground", p => p.Surface),
         ("ComboBoxDropDownBorderBrush", p => p.Border),
         ("ComboBoxDropDownForeground", p => p.Text),
+
+        // ComboBoxItem overrides (dropdown item hover/selected highlight)
+        ("ComboBoxItemBackgroundPointerOver", p => p.IsDark
+            ? ColorFrom(0xFF, 0xFF, 0xFF, 0x18) : ColorFrom(0x00, 0x00, 0x00, 0x0A)),
+        ("ComboBoxItemBackgroundSelected", p => p.IsDark
+            ? ColorFrom(0xFF, 0xFF, 0xFF, 0x18) : ColorFrom(0x00, 0x00, 0x00, 0x0A)),
 
         // ListView overrides (sub-nav selected item in settings pages)
         ("ListViewItemBackgroundSelected", p => p.Border),
@@ -293,7 +299,14 @@ public sealed class ThemeService
         _currentTheme = themeName;
         Log.Information("Theme applied: {Theme} (RequestedTheme={ElementTheme})", themeName, elementTheme);
 
-        ThemeChanged?.Invoke(this, themeName);
+        try
+        {
+            ThemeChanged?.Invoke(this, themeName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "ThemeService: CRASH in ThemeChanged event handlers");
+        }
     }
 
     /// <summary>
@@ -347,33 +360,54 @@ public sealed class ThemeService
                 }
 
                 // 2. ThemeDictionaries (WinUI control overrides in App.xaml)
+                // Each entry gets its own try-catch: WinUI throws when mutating certain
+                // Foreground brushes (the exception type varies — COMException, UnauthorizedAccessException,
+                // or InvalidOperationException depending on brush state). Without per-entry
+                // protection, the crash skips the active dictionary too (e.g. Foreground brushes
+                // stay white on Frost because the active Light dict is never reached).
                 if (resources.ThemeDictionaries is { } themeDicts)
                 {
                     foreach (var entry in themeDicts)
                     {
-                        if (entry.Value is ResourceDictionary themeDict
-                            && themeDict.TryGetValue(key, out var tObj) && tObj is SolidColorBrush tBrush)
+                        try
                         {
-                            tBrush.Color = accessor(palette);
-                            found = true;
-                            inTheme = true;
+                            if (entry.Value is ResourceDictionary themeDict
+                                && themeDict.TryGetValue(key, out var tObj) && tObj is SolidColorBrush tBrush)
+                            {
+                                tBrush.Color = accessor(palette);
+                                found = true;
+                                inTheme = true;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Debug("ThemeDicts[{Dict}].{Key} skipped: {Type}: {Msg}",
+                                entry.Key, key, ex.GetType().Name, ex.Message);
                         }
                     }
                 }
 
-                // 3. MergedDictionaries' ThemeDictionaries
+                // 3. MergedDictionaries' ThemeDictionaries (same per-entry protection)
                 foreach (var merged in resources.MergedDictionaries)
                 {
                     if (merged.ThemeDictionaries is { } mergedThemeDicts)
                     {
                         foreach (var entry in mergedThemeDicts)
                         {
-                            if (entry.Value is ResourceDictionary themeDict
-                                && themeDict.TryGetValue(key, out var mObj) && mObj is SolidColorBrush mBrush)
+                            try
                             {
-                                mBrush.Color = accessor(palette);
-                                found = true;
-                                inMergedTheme = true;
+                                if (entry.Value is ResourceDictionary themeDict
+                                    && themeDict.TryGetValue(key, out var mObj) && mObj is SolidColorBrush mBrush)
+                                {
+                                    mBrush.Color = accessor(palette);
+                                    found = true;
+                                    inMergedTheme = true;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Debug("MergedThemeDicts[{Dict}].{Key} skipped: {Type}: {Msg}",
+                                    entry.Key, key, ex.GetType().Name, ex.Message);
                             }
                         }
                     }

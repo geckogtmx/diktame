@@ -305,7 +305,14 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     {
         if (!_isLoading && value >= 0 && value < ThemeNames.Length)
         {
-            _ = _themeService.ApplyAndSaveAsync(ThemeNames[value]);
+            _ = _themeService.ApplyAndSaveAsync(ThemeNames[value]).ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    Log.Error(t.Exception, "GeneralSettingsViewModel: ApplyAndSaveAsync failed for theme '{Theme}'",
+                        ThemeNames[value]);
+                }
+            }, TaskScheduler.Default);
         }
     }
 
