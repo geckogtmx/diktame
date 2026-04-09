@@ -1126,6 +1126,7 @@ public sealed partial class LoadingViewModel : ObservableObject
                 _levelMonitor.Stop();
                 _muteDetector.Stop();
                 _muteDetector.MuteStateChanged -= OnMuteStateChanged;
+                _ = _audioDucker.RestoreAsync();
                 _notifications.PlayCustomSound(soundSettings.StopSound);
             };
             _currentRecorder.AutoStopped += stopHandler;
@@ -1138,6 +1139,10 @@ public sealed partial class LoadingViewModel : ObservableObject
             if (result.IsSuccess)
             {
                 Log.Information("WalletStreamingDictate: Success, {Chars} chars", result.Text.Length);
+                if (result.WarningMessage is not null)
+                {
+                    _notifications.ShowToast("Warning", result.WarningMessage, NotificationType.Warning);
+                }
             }
             else
             {

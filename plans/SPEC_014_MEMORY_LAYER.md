@@ -867,6 +867,40 @@ Open-source context retrieval layer for AI agents (YC X25). FastAPI + Vespa + Te
 | **Temporal relevance scoring** (`score = similarity × decay(age, recency_bias)`, bias 0.0–1.0, default 0.3) | **Adopt.** Our `SearchAsync` is pure vector — a 6-month-old fact ranks equally to yesterday's. Add `RecencyBias` float to `MemoryPluginSettings`, apply decay in search scoring. ~20 lines, high value for "what was I working on?" queries. |
 | **Hybrid search** (semantic + keyword + LLM reranking, tiered: instant/classic/agentic) | **Promote from future to Phase O.** FTS5 already planned for vision OCR — extend to all observations. Vector misses exact matches on proper nouns, codes, brand names. RRF (Reciprocal Rank Fusion) to merge vector + FTS5 results. |
 
+### MemPalace (github.com/milla-jovovich/mempalace) — Researched 2026-04-08
+
+Self-described "highest-scoring AI memory system ever benchmarked" — 96.6% on LongMemEval R@5 with zero LLM calls. Contrarian architecture built on ChromaDB + pure regex extraction + verbatim chunk storage.
+
+**Core claim:** LLM-based extraction (Mem0, Mastra, supermemory) introduces information loss. "User prefers Postgres" discards the *why* — the tradeoffs, alternatives considered. Verbatim storage + good embeddings outperforms extraction at smaller scales.
+
+**Architecture overview:**
+
+| Layer | Tokens | Content | When loaded |
+|-------|--------|---------|-------------|
+| L0 Identity | ~100 | Plain-text user profile (`~/.mempalace/identity.txt`) | Always |
+| L1 Essential Story | ~500–800 | Pre-computed narrative of top-15 highest-importance memories | Always (on wake-up) |
+| L2 On-Demand | ~200–500 | Wing/room-filtered retrieval on topic match | On demand |
+| L3 Deep Search | Unlimited | Full semantic search via ChromaDB | Explicit query |
+
+**Patterns worth considering at implementation time:**
+
+| Pattern | MemPalace implementation | Consideration for SPEC_014 |
+|---------|------------------------|---------------------------|
+| **Essential Story layer** | Pre-computed ~500-token narrative of top 15 most important memories, always injected on wake-up. Separate from identity/profile. | SPEC_014's `GetProfilePromptFragmentAsync()` covers Tier 3 profile but has no equivalent "greatest hits" narrative. An L1-style pre-computed memory summary could complement profile injection — especially useful for Chaviz cold-start context. |
+| **Regex pre-filter before LLM extraction** | Pure regex pattern matching (22 decision patterns, 18 preference patterns, 28+ milestone patterns) with sentiment-based disambiguation. No LLM in extraction hot path — 96.6% benchmark. | Phase P.1 currently calls LLM for every pipeline completion. A regex pre-filter could gate the LLM call: if no interesting patterns detected, skip extraction entirely. Saves cost on mundane dictations ("buy groceries"). |
+| **Verbatim chunk storage alongside observations** | Stores raw verbatim text chunks (800 chars, 100-char overlap) — no extraction or summarization in storage layer. Semantic search finds the raw context. | SPEC_014 extracts atomic observations and discards source text (other than `source_pipeline_id` link to HistoryManager). Dual-path (verbatim chunks + extracted observations) could raise recall for edge cases where extraction loses context. Not a blocking concern at MVP scale but worth benchmarking. |
+| **Deterministic chunk IDs for idempotent upsert** | `drawer_{wing}_{room}_{md5(source + chunk_index)[:16]}` — same source = same ID = safe to re-mine without duplicates. | Useful pattern for the batch re-indexer (Phase PV.7) and any future "re-extract" pass over HistoryManager sessions. Consider for observation IDs derived from `{source_pipeline_id}:{extraction_index}`. |
+| **Wing-based grouping beyond mode-scope** | Memories organized by Wing (person/project) → Room (named idea) → Hall (memory type). Cross-domain "tunnels" (rooms spanning 2+ wings) surfaced automatically. | SPEC_014 uses `mode_scope` (Professional/Casual/etc.) but has no project/person axis. A user could have 50 dictations about "Project X" across multiple modes — no way to query by project. Consider a `context_tag` metadata field (free-form, LLM-assigned) as a lightweight alternative to formal Wing structure. |
+| **Temporal knowledge graph** | Separate SQLite table with `valid_from` / `valid_to` per fact. `kg.invalidate("Max", "has_issue", "sports_injury")` marks facts expired. `as_of` date queries. | SPEC_014 uses `SupersedesId` + `IsSuperseded` boolean for version chains. Not queryable by date ("what did I know about this on Jan 15?"). A temporal validity column pair (`valid_from`, `valid_to`) on the `observations` table could replace the boolean flag with richer semantics at near-zero schema cost. |
+
+**Where SPEC_014 is ahead of MemPalace:**
+- Tier 1 session context (MemPalace has no ephemeral buffer — every lookup hits ChromaDB)
+- Consolidation / dreamer process (MemPalace has no promotion from observations to profile)
+- `MemoryTurnCache` per-turn dedup (MemPalace has no equivalent)
+- Mode-scoped observations (MemPalace has Wing/Room but no mode semantics)
+- Privacy tiers (MemPalace is local-only, no privacy model)
+- Vision memory (MemPalace has no image indexing)
+
 ### SurfSense (github.com/MODSetter/SurfSense) — Previously Researched
 
 | Pattern | Applicability |
