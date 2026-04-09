@@ -60,6 +60,14 @@ public sealed class OllamaProvider : ILLMProvider, IDisposable
         _chatUrl = trimmed + "/api/chat";
         _tagsUrl = trimmed + "/api/tags";
 
+        // Warn if Ollama endpoint is HTTP and NOT localhost — prompts would travel in cleartext
+        if (trimmed.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            && !trimmed.StartsWith("http://localhost", StringComparison.OrdinalIgnoreCase)
+            && !trimmed.StartsWith("http://127.0.0.1", StringComparison.OrdinalIgnoreCase))
+        {
+            Log.Warning("[Ollama] Remote endpoint uses HTTP (no TLS) — prompts and responses are unencrypted: {Url}", trimmed);
+        }
+
         _http = httpClient ?? new HttpClient
         {
             Timeout = TimeSpan.FromSeconds(180), // vision models need more time for image processing

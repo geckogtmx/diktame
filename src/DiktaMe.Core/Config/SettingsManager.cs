@@ -236,10 +236,20 @@ public sealed class SettingsManager
             },
         };
 
-        // Protect AccountSettings.WalletProxyUrl from JSON null override.
+        // Protect AccountSettings.WalletProxyUrl from JSON null override and enforce HTTPS.
         var acctDefaults = new AccountSettings();
-        if (string.IsNullOrEmpty(s.Account.WalletProxyUrl))
+        bool needsProxyReset = string.IsNullOrEmpty(s.Account.WalletProxyUrl)
+            || (!s.Account.WalletProxyUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+                && !s.Account.WalletProxyUrl.StartsWith("http://localhost", StringComparison.OrdinalIgnoreCase)
+                && !s.Account.WalletProxyUrl.StartsWith("http://127.0.0.1", StringComparison.OrdinalIgnoreCase));
+
+        if (needsProxyReset)
         {
+            if (!string.IsNullOrEmpty(s.Account.WalletProxyUrl))
+            {
+                Log.Warning("SettingsManager: WalletProxyUrl rejected (must be HTTPS or localhost), resetting to default");
+            }
+
             s = s with
             {
                 Account = s.Account with { WalletProxyUrl = acctDefaults.WalletProxyUrl },

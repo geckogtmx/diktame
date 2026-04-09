@@ -107,11 +107,11 @@ public sealed class WeatherService : IDisposable
         try
         {
             string geoJson = await _http.GetStringAsync(
-                "http://ip-api.com/json/?fields=lat,lon,region", cancellationToken).ConfigureAwait(false);
+                "https://get.geojs.io/v1/ip/geo.json", cancellationToken).ConfigureAwait(false);
 
             using var doc = JsonDocument.Parse(geoJson);
-            _latitude = doc.RootElement.GetProperty("lat").GetDouble();
-            _longitude = doc.RootElement.GetProperty("lon").GetDouble();
+            _latitude = double.Parse(doc.RootElement.GetProperty("latitude").GetString()!, System.Globalization.CultureInfo.InvariantCulture);
+            _longitude = double.Parse(doc.RootElement.GetProperty("longitude").GetString()!, System.Globalization.CultureInfo.InvariantCulture);
             if (doc.RootElement.TryGetProperty("region", out var regionProp))
             {
                 _region = regionProp.GetString();

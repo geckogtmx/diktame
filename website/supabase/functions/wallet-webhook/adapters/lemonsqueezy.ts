@@ -86,15 +86,12 @@ export async function parseLemonSqueezyEvent(
   let amountMicro = PRODUCT_CREDIT_MAP[productId];
 
   if (!amountMicro) {
-    // Fallback: derive from the total (in cents) minus service fee
-    // This allows new products to work without code changes
-    const totalCents = attrs.total ?? 0;
-    // Approximate: assume ~30% is service fee, rest is credit
-    // This is a safety fallback — production should use explicit mapping
-    console.warn(
-      `Unknown product_id ${productId}, falling back to total-based calculation`,
+    // Reject unknown products — all valid products must be in PRODUCT_CREDIT_MAP.
+    // A fallback calculation could grant incorrect credit amounts.
+    console.error(
+      `Unknown product_id ${productId} (total=${attrs.total}c) — rejecting. Add to PRODUCT_CREDIT_MAP.`,
     );
-    amountMicro = Math.round((totalCents / 130) * 1_000_000);
+    return null;
   }
 
   if (!email) {

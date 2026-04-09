@@ -498,14 +498,15 @@ public sealed class WalletStreamingSTTProxy : IStreamingSTTProvider
             ? baseUrl.Replace("wallet-proxy", "wallet-stream", StringComparison.OrdinalIgnoreCase)
             : DefaultStreamUrl;
 
-        // Convert https → wss
+        // Convert https → wss (reject unencrypted HTTP — JWT and audio must travel over TLS)
         if (streamBase.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
             streamBase = "wss://" + streamBase[8..];
         }
         else if (streamBase.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
         {
-            streamBase = "ws://" + streamBase[7..];
+            Log.Warning("[WalletStream] WalletProxyUrl uses HTTP — forcing WSS for security");
+            streamBase = "wss://" + streamBase[7..];
         }
 
         return $"{streamBase}?jwt={Uri.EscapeDataString(token)}&lang={Uri.EscapeDataString(language)}";

@@ -46,7 +46,7 @@ internal sealed class WeatherFakeHandler : HttpMessageHandler
 
 public sealed class WeatherServiceTests : IDisposable
 {
-    private const string GeoResponse = """{"lat":48.8566,"lon":2.3522,"region":"IDF"}""";
+    private const string GeoResponse = """{"latitude":"48.8566","longitude":"2.3522","region":"IDF"}""";
     private const string WeatherResponse = """
         {
             "current_weather": {
@@ -76,7 +76,7 @@ public sealed class WeatherServiceTests : IDisposable
     public WeatherServiceTests()
     {
         _handler = new WeatherFakeHandler();
-        _handler.SetResponse("ip-api.com", HttpStatusCode.OK, GeoResponse);
+        _handler.SetResponse("get.geojs.io", HttpStatusCode.OK, GeoResponse);
         _handler.SetResponse("api.open-meteo.com", HttpStatusCode.OK, WeatherResponse);
         _http = new HttpClient(_handler);
     }
@@ -163,7 +163,7 @@ public sealed class WeatherServiceTests : IDisposable
     public async Task GetCurrentWeather_HttpError_ReturnsNull()
     {
         var errorHandler = new WeatherFakeHandler();
-        errorHandler.SetResponse("ip-api.com", HttpStatusCode.InternalServerError, "error");
+        errorHandler.SetResponse("get.geojs.io", HttpStatusCode.InternalServerError, "error");
         using var errorHttp = new HttpClient(errorHandler);
         using var sut = new WeatherService(errorHttp);
 
@@ -190,7 +190,7 @@ public sealed class WeatherServiceTests : IDisposable
     public async Task GetCurrentWeather_GeoLocationFails_ReturnsNull()
     {
         var handler = new WeatherFakeHandler();
-        handler.SetResponse("ip-api.com", HttpStatusCode.Forbidden, "blocked");
+        handler.SetResponse("get.geojs.io", HttpStatusCode.Forbidden, "blocked");
         using var http = new HttpClient(handler);
         using var sut = new WeatherService(http);
 
@@ -203,7 +203,7 @@ public sealed class WeatherServiceTests : IDisposable
     public async Task GetCurrentWeather_WeatherApiFails_ReturnsNull()
     {
         var handler = new WeatherFakeHandler();
-        handler.SetResponse("ip-api.com", HttpStatusCode.OK, GeoResponse);
+        handler.SetResponse("get.geojs.io", HttpStatusCode.OK, GeoResponse);
         handler.SetResponse("api.open-meteo.com", HttpStatusCode.ServiceUnavailable, "down");
         using var http = new HttpClient(handler);
         using var sut = new WeatherService(http);
@@ -217,7 +217,7 @@ public sealed class WeatherServiceTests : IDisposable
     public async Task GetCurrentWeather_InvalidJson_ReturnsNull()
     {
         var handler = new WeatherFakeHandler();
-        handler.SetResponse("ip-api.com", HttpStatusCode.OK, GeoResponse);
+        handler.SetResponse("get.geojs.io", HttpStatusCode.OK, GeoResponse);
         handler.SetResponse("api.open-meteo.com", HttpStatusCode.OK, "not json");
         using var http = new HttpClient(handler);
         using var sut = new WeatherService(http);
@@ -231,7 +231,7 @@ public sealed class WeatherServiceTests : IDisposable
     public async Task GetCurrentWeather_RainResponse_ParsesCorrectly()
     {
         var handler = new WeatherFakeHandler();
-        handler.SetResponse("ip-api.com", HttpStatusCode.OK, GeoResponse);
+        handler.SetResponse("get.geojs.io", HttpStatusCode.OK, GeoResponse);
         handler.SetResponse("api.open-meteo.com", HttpStatusCode.OK, RainWeatherResponse);
         using var http = new HttpClient(handler);
         using var sut = new WeatherService(http);
