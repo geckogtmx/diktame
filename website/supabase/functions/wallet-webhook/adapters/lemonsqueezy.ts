@@ -9,6 +9,7 @@ const PRODUCT_CREDIT_MAP: Record<string, number> = {
   // These IDs are configured in the LemonSqueezy dashboard.
   // Format: "product_id": amount_in_microdollars
   "910127": 0, // dIKtame App Full — Power License (no wallet credit, license only)
+  "964385": 4000000, // dIKta.me Credits — 4,000 credits ($5 pack, ~20% margin)
 };
 
 /** Product ID → license tier mapping. */

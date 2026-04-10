@@ -21,7 +21,7 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
 
     [ObservableProperty] private bool _isSignedIn;
     [ObservableProperty] private string _email = string.Empty;
-    [ObservableProperty] private string _walletBalanceFormatted = "$0.00";
+    [ObservableProperty] private string _walletBalanceFormatted = "0 credits";
     [ObservableProperty] private string _statusText = "";
     [ObservableProperty] private string _balanceColorHex = "#FFFFFF";
     [ObservableProperty] private bool _useWalletProxy;
@@ -128,18 +128,26 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private static void TopUp()
+    private void BuyCredits()
     {
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://www.dikta.me/wallet")
+            // LemonSqueezy checkout for 4,000-credit pack ($5) — prefill email if signed in
+            string url = "https://diktame.lemonsqueezy.com/buy/964385";
+            string? email = _accountService.Email;
+            if (!string.IsNullOrEmpty(email))
+            {
+                url += "?checkout[email]=" + Uri.EscapeDataString(email);
+            }
+
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url)
             {
                 UseShellExecute = true,
             });
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "AccountSettingsViewModel: failed to open top-up page");
+            Log.Warning(ex, "AccountSettingsViewModel: failed to open credits purchase page");
         }
     }
 
@@ -165,15 +173,15 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
             ? _loc.GetString("License_UnlockedStatus")
             : "";
 
-        // Format wallet balance from cached microdollars
+        // Format wallet balance as credits (1 credit = 1,000 microdollars = $0.001)
         long balanceMicro = _settings.Current.Account.WalletBalanceMicro;
-        decimal balanceDollars = balanceMicro / 1_000_000m;
-        WalletBalanceFormatted = balanceDollars.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
+        long credits = balanceMicro / 1_000;
+        WalletBalanceFormatted = credits.ToString("N0", CultureInfo.InvariantCulture) + " credits";
 
-        // Color-code balance: green > $1, yellow $0.50-$1, red < $0.50
-        BalanceColorHex = balanceDollars >= 1.00m ? "#7AFF9E"  // green
-            : balanceDollars >= 0.50m ? "#FFD54F"              // yellow
-            : "#FF4444";                                        // red
+        // Color-code balance: green > 1000, yellow 500-1000, red < 500
+        BalanceColorHex = credits >= 1_000 ? "#7AFF9E"  // green
+            : credits >= 500 ? "#FFD54F"                // yellow
+            : "#FF4444";                                 // red
 
         StatusText = IsSignedIn
             ? _loc.GetString("Settings_Account_Status_Active")
@@ -187,18 +195,33 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     {
         try
         {
-            var transactions = await _wallet.GetTransactionsAsync(20);
+            var summaries = await _wallet.GetDailySummariesAsync(20);
             RecentTransactions.Clear();
-            foreach (var txn in transactions)
+
+            foreach (var summary in summaries)
             {
+                string typeLabel;
+                string icon;
+
+                if (summary.IsAggregate)
+                {
+                    typeLabel = "Usage";
+                    icon = "\uE700"; // Down arrow
+                }
+                else
+                {
+                    typeLabel = summary.Type;
+                    icon = GetTypeIcon(summary.Type);
+                }
+
                 RecentTransactions.Add(new WalletTransactionItem
                 {
-                    TypeIcon = GetTypeIcon(txn.Type),
-                    TypeLabel = txn.Type,
-                    AmountFormatted = FormatAmount(txn.AmountMicro),
-                    AmountColorHex = txn.AmountMicro >= 0 ? "#7AFF9E" : "#FF4444",
-                    DateFormatted = txn.CreatedAt.LocalDateTime.ToString("MMM d, h:mm tt", CultureInfo.InvariantCulture),
-                    BalanceAfterFormatted = (txn.BalanceAfterMicro / 1_000_000m).ToString("C2", CultureInfo.GetCultureInfo("en-US")),
+                    TypeIcon = icon,
+                    TypeLabel = typeLabel,
+                    AmountFormatted = FormatAmount(summary.AmountMicro),
+                    AmountColorHex = summary.AmountMicro >= 0 ? "#7AFF9E" : "#FF4444",
+                    DateFormatted = summary.DateLabel,
+                    BalanceAfterFormatted = (summary.BalanceAfterMicro / 1_000).ToString("N0", CultureInfo.InvariantCulture) + " cr",
                 });
             }
         }
@@ -212,18 +235,16 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     {
         WalletTransactionType.Grant => "\uE8A1",    // Gift
         WalletTransactionType.Purchase => "\uE8A1",  // Gift/Money
-        WalletTransactionType.Usage => "\uE700",     // Down arrow
         WalletTransactionType.Refund => "\uE72C",    // Undo
-        WalletTransactionType.Sync => "\uE895",      // Sync
         WalletTransactionType.Expiry => "\uE823",    // Clock
         _ => "\uE7BA",                               // Info
     };
 
     private static string FormatAmount(long amountMicro)
     {
-        decimal dollars = amountMicro / 1_000_000m;
-        string sign = dollars >= 0 ? "+" : "";
-        return sign + dollars.ToString("C4", CultureInfo.GetCultureInfo("en-US"));
+        long credits = amountMicro / 1_000;
+        string sign = credits >= 0 ? "+" : "";
+        return sign + credits.ToString("N0", CultureInfo.InvariantCulture) + " cr";
     }
 }
 

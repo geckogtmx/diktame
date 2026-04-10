@@ -588,6 +588,7 @@
   <data name="Settings_Account_SignOutButton.Content" xml:space="preserve"><value>Cerrar sesi&#243;n</value></data>
   <data name="Settings_Account_ManageAccountLink.Content" xml:space="preserve"><value>Administrar cuenta</value></data>
   <data name="Settings_Account_RefreshButton.Content" xml:space="preserve"><value>Actualizar</value></data>
+  <data name="Settings_Account_BuyCreditsButton.Text" xml:space="preserve"><value>Comprar Créditos</value></data>
   <data name="Settings_ApiKeys_DeepgramPlaceholder.PlaceholderText" xml:space="preserve"><value>Clave API de Deepgram</value></data>
   <data name="Settings_DictationModes_CloudSystemPrompt_Label.Text" xml:space="preserve"><value>Prompt del Sistema</value></data>
   <data name="Settings_DictationModes_LocalSystemPrompt_Label.Text" xml:space="preserve"><value>Prompt del Sistema</value></data>

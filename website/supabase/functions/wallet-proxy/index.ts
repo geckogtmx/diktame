@@ -29,8 +29,6 @@ const WALLET_MODEL = "gemini-2.5-flash";
 // Gemini pricing: $0.15/1M input tokens, $0.60/1M output tokens (2.5 Flash)
 const GEMINI_INPUT_COST_PER_TOKEN = 0.00000015; // $0.15 / 1M
 const GEMINI_OUTPUT_COST_PER_TOKEN = 0.00000060; // $0.60 / 1M
-// Deepgram pricing: ~$0.0077/min for Nova-3 (kept for rollback)
-const DEEPGRAM_COST_PER_MINUTE = 0.0077;
 
 const MAX_TEXT_BODY_BYTES = 100 * 1024; // 100KB
 const MAX_AUDIO_BODY_BYTES = 10 * 1024 * 1024; // 10MB
@@ -173,16 +171,11 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── 6-7. Forward to Upstream ────────────────────────────────────────
-  // Killswitch routing: when batch_fast, force audio requests through Deepgram
-  if (audioBlob && pipelineMode === "batch_fast" && service === "gemini-audio") {
-    service = "deepgram";
-  }
 
   let upstreamResponse: Response;
   let costMicro: number;
   let inputTokens: number | null = null;
   let outputTokens: number | null = null;
-  let audioDurationMs: number | null = null;
   let resultPayload: Record<string, unknown>;
   let audioTimingBase64 = 0;
   let audioTimingFetch = 0;
@@ -204,13 +197,6 @@ Deno.serve(async (req: Request) => {
       audioTimingBase64 = result.timingBase64Ms;
       audioTimingFetch = result.timingFetchMs;
       audioHasPrompt = result.hasPrompt;
-    } else if (service === "deepgram") {
-      // Kept for rollback — switch C# service field to "deepgram" to revert
-      const result = await handleDeepgram(audioBlob!, language);
-      upstreamResponse = result.response;
-      costMicro = result.costMicro;
-      audioDurationMs = result.audioDurationMs;
-      resultPayload = result.payload;
     } else {
       const result = await handleGemini(requestBody!);
       upstreamResponse = result.response;
@@ -268,7 +254,7 @@ Deno.serve(async (req: Request) => {
     cost_micro: costMicro,
     input_tokens: inputTokens,
     output_tokens: outputTokens,
-    audio_duration_ms: audioDurationMs,
+    audio_duration_ms: null,
     status_code: 200,
   });
 
@@ -472,64 +458,6 @@ async function handleGeminiAudio(
     timingBase64Ms: Math.round(tb - ta),
     timingFetchMs: Math.round(tc - tb),
     hasPrompt: !!systemPrompt,
-  };
-}
-
-// ── Deepgram Handler (kept for rollback) ────────────────────────────────
-
-interface DeepgramResult {
-  response: Response;
-  costMicro: number;
-  audioDurationMs: number | null;
-  payload: Record<string, unknown>;
-}
-
-async function handleDeepgram(
-  audio: Uint8Array,
-  language: string,
-): Promise<DeepgramResult> {
-  const apiKey = Deno.env.get("DEEPGRAM_API_KEY")!;
-
-  const url = new URL("https://api.deepgram.com/v1/listen");
-  url.searchParams.set("model", "nova-3");
-  url.searchParams.set("language", language);
-  url.searchParams.set("punctuate", "true");
-  url.searchParams.set("smart_format", "true");
-
-  const response = await fetch(url.toString(), {
-    method: "POST",
-    headers: {
-      Authorization: `Token ${apiKey}`,
-      "Content-Type": "audio/wav",
-    },
-    body: audio,
-  });
-
-  if (!response.ok) {
-    return { response, costMicro: 0, audioDurationMs: null, payload: {} };
-  }
-
-  const data = await response.json();
-  const transcript =
-    data?.results?.channels?.[0]?.alternatives?.[0]?.transcript ?? "";
-  const durationSeconds = data?.metadata?.duration ?? 0;
-  const durationMs = Math.round(durationSeconds * 1000);
-
-  // Calculate cost: $0.0077/min
-  const durationMinutes = durationSeconds / 60;
-  const costDollars = durationMinutes * DEEPGRAM_COST_PER_MINUTE;
-  const costMicro = Math.round(costDollars * 1_000_000);
-
-  return {
-    response,
-    costMicro,
-    audioDurationMs: durationMs,
-    payload: {
-      transcript,
-      duration_ms: durationMs,
-      confidence:
-        data?.results?.channels?.[0]?.alternatives?.[0]?.confidence ?? 0,
-    },
   };
 }
 

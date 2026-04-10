@@ -23,7 +23,6 @@ public sealed class PipelineFactory
     private readonly TextInjector _injector;
     private readonly SettingsManager _settings;
     private readonly SnippetManager _snippets;
-    private readonly ISTTProvider? _walletStt;
     private readonly ILLMProvider? _walletLlm;
     private readonly System.IServiceProvider? _sp;
     private readonly PipelineEventBus? _eventBus;
@@ -39,7 +38,6 @@ public sealed class PipelineFactory
         SettingsManager settings,
         SnippetManager snippets,
         System.IServiceProvider? sp = null,
-        ISTTProvider? walletStt = null,
         ILLMProvider? walletLlm = null,
         PipelineEventBus? eventBus = null,
         Security.LicenseManager? licenseManager = null)
@@ -53,7 +51,6 @@ public sealed class PipelineFactory
         _settings = settings;
         _snippets = snippets;
         _sp = sp;
-        _walletStt = walletStt;
         _walletLlm = walletLlm;
         _eventBus = eventBus;
         _licenseManager = licenseManager;
@@ -121,10 +118,10 @@ public sealed class PipelineFactory
 
     public VisionPipeline CreateVisionPipeline(string? modeOverride = null)
     {
-        // Wallet mode — override all provider selection with wallet proxies.
-        if (_settings.Current.AuthMode == AuthMode.Wallet && _walletStt is not null && _walletLlm is not null)
+        // Wallet mode — override LLM with wallet proxy (STT not needed for vision).
+        if (_settings.Current.AuthMode == AuthMode.Wallet && _walletLlm is not null)
         {
-            return new VisionPipeline(_walletLlm, _injector, _walletStt, _eventBus);
+            return new VisionPipeline(_walletLlm, _injector, stt: null, _eventBus);
         }
 
         // Use Vision-specific provider/model from VisionSettings (set by AI Engine > Vision)
@@ -153,9 +150,9 @@ public sealed class PipelineFactory
     public VisionPipeline CreateVisionPipeline(string providerName, string modelId)
     {
         // Wallet mode takes precedence
-        if (_settings.Current.AuthMode == AuthMode.Wallet && _walletStt is not null && _walletLlm is not null)
+        if (_settings.Current.AuthMode == AuthMode.Wallet && _walletLlm is not null)
         {
-            return new VisionPipeline(_walletLlm, _injector, _walletStt, _eventBus);
+            return new VisionPipeline(_walletLlm, _injector, stt: null, _eventBus);
         }
 
         var vision = _settings.Current.Vision;
@@ -266,17 +263,16 @@ public sealed class PipelineFactory
 
     private (ISTTProvider Stt, ILLMProvider? Llm) GetProviders(string mode, string? modeOverride)
     {
-        // Wallet mode — override all provider selection with wallet proxies.
-        if (_settings.Current.AuthMode == AuthMode.Wallet && _walletStt is not null && _walletLlm is not null)
+        // Wallet mode uses streaming only (WalletStreamingSTTProxy) — batch GetProviders should not be called.
+        if (_settings.Current.AuthMode == AuthMode.Wallet)
         {
-            return (_walletStt, _walletLlm);
+            throw new InvalidOperationException("Wallet mode uses streaming dictation only. Batch pipeline not supported.");
         }
 
         string effectiveMode = modeOverride ?? mode;
         ModeSettings ms = _profiles.GetModeSettings(effectiveMode);
 
         // License gate — local/BYOK providers require Power License.
-        // If unlicensed, fall back to wallet cloud proxies (with toast from caller).
         if (_licenseManager is not null && !_licenseManager.IsLicensed)
         {
             bool needsLicense = string.Equals(ms.SttProvider, "whisper", StringComparison.OrdinalIgnoreCase)
@@ -284,12 +280,6 @@ public sealed class PipelineFactory
 
             if (needsLicense)
             {
-                if (_walletStt is not null && _walletLlm is not null)
-                {
-                    Log.Information("PipelineFactory: local provider requires Power License — falling back to wallet cloud");
-                    return (_walletStt, _walletLlm);
-                }
-
                 throw new InvalidOperationException("Power License required for local providers. Purchase at dikta.me");
             }
         }

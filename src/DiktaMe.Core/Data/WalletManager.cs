@@ -284,6 +284,102 @@ public sealed class WalletManager : IDisposable
         return true;
     }
 
+    // ── Daily Summaries ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns a display-friendly list of wallet events: SYNC rows grouped by day
+    /// (representing accumulated usage), plus GRANT/PURCHASE/REFUND shown individually.
+    /// </summary>
+    public async Task<List<WalletDailySummary>> GetDailySummariesAsync(
+        int maxDays = 30,
+        CancellationToken cancellationToken = default)
+    {
+        var transactions = await GetTransactionsAsync(200, cancellationToken).ConfigureAwait(false);
+        var result = new List<WalletDailySummary>();
+
+        // Non-USAGE, non-SYNC rows shown individually (GRANT, PURCHASE, REFUND)
+        // SYNC rows grouped by day (they represent usage deltas from server sync)
+        // Old USAGE rows (pre-migration) also grouped by day
+        var individualTypes = new HashSet<string>(StringComparer.Ordinal)
+        {
+            WalletTransactionType.Grant,
+            WalletTransactionType.Purchase,
+            WalletTransactionType.Refund,
+            WalletTransactionType.Expiry,
+        };
+
+        var dailyGroups = new Dictionary<string, (long totalMicro, long lastBalance, int count, DateTimeOffset date)>();
+
+        foreach (var txn in transactions)
+        {
+            if (individualTypes.Contains(txn.Type))
+            {
+                result.Add(new WalletDailySummary
+                {
+                    Date = txn.CreatedAt,
+                    DateLabel = FormatDateLabel(txn.CreatedAt),
+                    Type = txn.Type,
+                    AmountMicro = txn.AmountMicro,
+                    BalanceAfterMicro = txn.BalanceAfterMicro,
+                    RequestCount = 0,
+                    IsAggregate = false,
+                });
+                continue;
+            }
+
+            // Group SYNC + USAGE by day
+            string dayKey = txn.CreatedAt.LocalDateTime.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+            if (dailyGroups.TryGetValue(dayKey, out var existing))
+            {
+                dailyGroups[dayKey] = (existing.totalMicro + txn.AmountMicro, txn.BalanceAfterMicro, existing.count + 1, txn.CreatedAt);
+            }
+            else
+            {
+                dailyGroups[dayKey] = (txn.AmountMicro, txn.BalanceAfterMicro, 1, txn.CreatedAt);
+            }
+        }
+
+        foreach (var (dayKey, group) in dailyGroups)
+        {
+            result.Add(new WalletDailySummary
+            {
+                Date = group.date,
+                DateLabel = FormatDateLabel(group.date),
+                Type = "DAILY",
+                AmountMicro = group.totalMicro,
+                BalanceAfterMicro = group.lastBalance,
+                RequestCount = group.count,
+                IsAggregate = true,
+            });
+        }
+
+        // Sort descending by date, take maxDays
+        result.Sort((a, b) => b.Date.CompareTo(a.Date));
+        if (result.Count > maxDays)
+        {
+            result.RemoveRange(maxDays, result.Count - maxDays);
+        }
+
+        return result;
+    }
+
+    private static string FormatDateLabel(DateTimeOffset date)
+    {
+        var local = date.LocalDateTime;
+        var today = DateTime.Today;
+        if (local.Date == today)
+        {
+            return "Today";
+        }
+
+        if (local.Date == today.AddDays(-1))
+        {
+            return "Yesterday";
+        }
+
+        return local.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
     // ── Schema ───────────────────────────────────────────────────────────────
 
     private async Task CreateSchemaAsync()

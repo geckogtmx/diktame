@@ -15,7 +15,6 @@ public sealed class STTRouter : ISTTProvider
     private readonly ISTTProvider _primary;
     private readonly ISTTProvider? _fallback;
     private readonly SettingsManager? _settings;
-    private readonly ISTTProvider? _walletStt;
 
     /// <inheritdoc/>
     public string ProviderName =>
@@ -29,17 +28,14 @@ public sealed class STTRouter : ISTTProvider
     /// <param name="primary">The preferred provider to use first.</param>
     /// <param name="fallback">Optional secondary provider used when the primary is unavailable or throws.</param>
     /// <param name="settings">Optional settings manager for AuthMode-aware routing.</param>
-    /// <param name="walletStt">Optional wallet STT proxy for managed Pay-As-You-Go routing.</param>
     public STTRouter(
         ISTTProvider primary,
         ISTTProvider? fallback = null,
-        SettingsManager? settings = null,
-        ISTTProvider? walletStt = null)
+        SettingsManager? settings = null)
     {
         _primary = primary;
         _fallback = fallback;
         _settings = settings;
-        _walletStt = walletStt;
     }
 
     /// <inheritdoc/>
@@ -68,13 +64,7 @@ public sealed class STTRouter : ISTTProvider
         string language = "en",
         CancellationToken cancellationToken = default)
     {
-        // Wallet mode — route through managed wallet STT proxy
-        if (_settings?.Current.AuthMode == AuthMode.Wallet && _walletStt is not null)
-        {
-            Log.Debug("STTRouter: AuthMode=Wallet — routing to {Provider}", _walletStt.ProviderName);
-            return await _walletStt.TranscribeAsync(audioFilePath, language, cancellationToken)
-                .ConfigureAwait(false);
-        }
+
 
         // ── Try primary ───────────────────────────────────────────────────────
         try

@@ -1441,8 +1441,10 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         ShowWalletBalance = settings.AuthMode == AuthMode.Wallet;
         if (ShowWalletBalance)
         {
-            decimal balanceDollars = settings.Account.WalletBalanceMicro / 1_000_000m;
-            WalletBalanceFormatted = balanceDollars.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
+            long credits = settings.Account.WalletBalanceMicro / 1_000;
+            WalletBalanceFormatted = credits >= 1_000
+                ? (credits / 1_000m).ToString("0.#", CultureInfo.InvariantCulture) + "k C"
+                : credits.ToString("N0", CultureInfo.InvariantCulture) + " C";
         }
 
         // Sync active mode ID from settings

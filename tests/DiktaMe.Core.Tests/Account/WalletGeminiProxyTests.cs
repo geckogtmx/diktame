@@ -120,7 +120,7 @@ public sealed class WalletGeminiProxyTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ProcessAsync_OnSuccess_RecordsUsageInWallet()
+    public async Task ProcessAsync_OnSuccess_DoesNotInsertLocalUsageRow()
     {
         await _wallet.InitAsync();
         await _wallet.InsertTransactionAsync(1_000_000, WalletTransactionType.Grant);
@@ -136,8 +136,9 @@ public sealed class WalletGeminiProxyTests : IAsyncDisposable
 
         await proxy.ProcessAsync("hello", "prompt", "dictate");
 
+        // Per-request USAGE rows are no longer inserted locally — daily sync handles it.
         var txns = await _wallet.GetTransactionsAsync(10);
-        txns.Should().Contain(t => t.Type == WalletTransactionType.Usage && t.AmountMicro == -1500);
+        txns.Should().NotContain(t => t.Type == WalletTransactionType.Usage);
     }
 
     [Fact]

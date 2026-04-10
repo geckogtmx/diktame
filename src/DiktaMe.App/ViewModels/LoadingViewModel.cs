@@ -57,6 +57,7 @@ public sealed partial class LoadingViewModel : ObservableObject
     private AudioRecorder? _currentRecorder;
     private CancellationTokenSource? _recordingCts;
     private DispatcherQueue? _uiDispatcher;
+    private int _walletRequestCount;
     private bool _isRecording;
 
     /// <summary>
@@ -844,17 +845,29 @@ public sealed partial class LoadingViewModel : ObservableObject
     /// </summary>
     private void WireWalletBalanceEvents()
     {
-        _walletProxy.BalanceUpdated += balanceMicro =>
+        // Shared handler for balance updates from any wallet proxy (LLM or streaming STT).
+        // Updates HUD immediately, and triggers a full server sync every 20 requests
+        // to insert a SYNC row for usage tracking on the Settings page.
+        void HandleBalanceUpdated(long balanceMicro)
         {
-            // Fire-and-forget: update settings cache + tell ControlPanel to refresh
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await _wallet.SyncBalanceAsync(balanceMicro);
-                    await CacheWalletBalanceAsync(balanceMicro);
+                    int count = System.Threading.Interlocked.Increment(ref _walletRequestCount);
+                    bool shouldSync = count % 20 == 0;
 
-                    // Refresh ControlPanel HUD on UI thread
+                    if (shouldSync)
+                    {
+                        await SyncWalletBalanceAsync();
+                        Log.Information("Wallet: periodic sync triggered after {Count} requests", count);
+                    }
+                    else
+                    {
+                        // Just update the cached balance for HUD — no local ledger insert
+                        await CacheWalletBalanceAsync(balanceMicro);
+                    }
+
                     _uiDispatcher?.TryEnqueue(() => _controlPanel.LoadFromSettings(_settings.Current));
                 }
                 catch (Exception ex)
@@ -862,10 +875,11 @@ public sealed partial class LoadingViewModel : ObservableObject
                     Log.Warning(ex, "Wallet: failed to update balance after proxy response");
                 }
             });
-        };
+        }
+
+        _walletProxy.BalanceUpdated += HandleBalanceUpdated;
 
         // Subscribe to session expiry — attempt refresh before showing error
-        var walletStt = App.Current.Services.GetRequiredService<WalletDeepgramProxy>();
         var walletStreamStt = App.Current.Services.GetService<WalletStreamingSTTProxy>();
         var tokenRefresh = App.Current.Services.GetRequiredService<TokenRefreshService>();
 
@@ -884,9 +898,9 @@ public sealed partial class LoadingViewModel : ObservableObject
             });
         }
 
-        walletStt.SessionExpired += HandleSessionExpired;
         if (walletStreamStt != null)
         {
+            walletStreamStt.BalanceUpdated += HandleBalanceUpdated;
             walletStreamStt.SessionExpired += HandleSessionExpired;
         }
         _walletProxy.SessionExpired += HandleSessionExpired;

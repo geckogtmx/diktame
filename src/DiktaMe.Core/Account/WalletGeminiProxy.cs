@@ -221,33 +221,25 @@ public sealed class WalletGeminiProxy : ILLMProvider, IDisposable
         }
     }
 
-    private async Task RecordUsageFromHeadersAsync(
+    private Task RecordUsageFromHeadersAsync(
         HttpResponseMessage response,
         string mode,
         CancellationToken cancellationToken)
     {
+        // No per-request local insert — daily sync handles usage aggregation.
+        // Only update the HUD balance from server headers.
+        _ = mode; // kept for signature compatibility
+        _ = cancellationToken;
         try
         {
-            if (response.Headers.TryGetValues("X-Wallet-Cost", out var costValues))
-            {
-                string costStr = costValues.FirstOrDefault() ?? "0";
-                if (long.TryParse(costStr, System.Globalization.CultureInfo.InvariantCulture, out long costMicro)
-                    && costMicro > 0)
-                {
-                    await _wallet.InsertTransactionAsync(
-                        -costMicro,
-                        WalletTransactionType.Usage,
-                        $"{{\"service\":\"gemini\",\"mode\":\"{mode}\"}}",
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
-                }
-            }
-
             UpdateBalanceFromHeaders(response);
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "WalletGeminiProxy: failed to record usage from headers");
+            Log.Warning(ex, "WalletGeminiProxy: failed to update balance from headers");
         }
+
+        return Task.CompletedTask;
     }
 
     private void UpdateBalanceFromHeaders(HttpResponseMessage response)

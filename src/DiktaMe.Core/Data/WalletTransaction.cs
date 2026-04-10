@@ -34,3 +34,21 @@ public sealed record WalletTransaction
     /// <summary>Balance after this transaction for display.</summary>
     public decimal BalanceAfterDollars => BalanceAfterMicro / 1_000_000m;
 }
+
+/// <summary>
+/// Aggregated daily usage summary or individual non-usage event for Settings display.
+/// </summary>
+public sealed record WalletDailySummary
+{
+    public required DateTimeOffset Date { get; init; }
+    public required string DateLabel { get; init; }
+    public required string Type { get; init; }
+    public required long AmountMicro { get; init; }
+    public required long BalanceAfterMicro { get; init; }
+
+    /// <summary>Number of sync/usage rows aggregated (0 for individual events).</summary>
+    public int RequestCount { get; init; }
+
+    /// <summary>True if this is a daily aggregate, false for individual GRANT/PURCHASE rows.</summary>
+    public bool IsAggregate { get; init; }
+}

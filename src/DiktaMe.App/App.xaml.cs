@@ -519,18 +519,13 @@ public partial class App : Application
         // NOTE: Cloud providers require keys; they are deliberately NOT registered
         // against ISTTProvider here — the router below uses WhisperProvider as
         // the default until settings/keys are configured.
-        services.AddSingleton<WalletDeepgramProxy>(sp => new WalletDeepgramProxy(
-            sp.GetRequiredService<SecureStorage>(),
-            sp.GetRequiredService<SettingsManager>(),
-            sp.GetRequiredService<WalletManager>()));
         services.AddTransient<WalletStreamingSTTProxy>(sp => new WalletStreamingSTTProxy(
             sp.GetRequiredService<SecureStorage>(),
             sp.GetRequiredService<SettingsManager>(),
             sp.GetRequiredService<WalletManager>()));
         services.AddSingleton<ISTTProvider>(sp => new STTRouter(
             primary: sp.GetRequiredService<WhisperProvider>(),
-            settings: sp.GetRequiredService<SettingsManager>(),
-            walletStt: sp.GetRequiredService<WalletDeepgramProxy>()));
+            settings: sp.GetRequiredService<SettingsManager>()));
 
         // ── LLM providers ────────────────────────────────────────────────────
         // Ollama (local, no API key — works out of the box when Ollama is running)
@@ -620,7 +615,6 @@ public partial class App : Application
             sp.GetRequiredService<SettingsManager>(),
             sp.GetRequiredService<SnippetManager>(),
             sp: sp,
-            walletStt: sp.GetRequiredService<WalletDeepgramProxy>(),
             walletLlm: sp.GetRequiredService<WalletGeminiProxy>(),
             eventBus: sp.GetRequiredService<DiktaMe.Core.Pipeline.PipelineEventBus>(),
             licenseManager: sp.GetRequiredService<LicenseManager>()));

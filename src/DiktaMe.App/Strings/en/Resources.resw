@@ -1560,6 +1560,9 @@
   <data name="Settings_Account_RefreshButton.Content" xml:space="preserve">
     <value>Refresh</value>
   </data>
+  <data name="Settings_Account_BuyCreditsButton.Text" xml:space="preserve">
+    <value>Buy Credits</value>
+  </data>
 
   <!-- API Keys — Deepgram placeholder (alt key name used in XAML) -->
   <data name="Settings_ApiKeys_DeepgramPlaceholder.PlaceholderText" xml:space="preserve">

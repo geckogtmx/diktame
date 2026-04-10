@@ -42,7 +42,6 @@
 - `JwtDecoder.cs` -> `JwtDecoderTests.cs` + `JwtDecoderExtendedTests.cs`
 - `TokenRefreshService.cs` -> `TokenRefreshServiceTests.cs`
 - `AccountService.cs` -> `AccountServiceTests.cs`
-- `WalletDeepgramProxy.cs` -> `WalletDeepgramProxyTests.cs`
 - `WalletGeminiProxy.cs` -> `WalletGeminiProxyTests.cs`
 
 ### Audio (5/6)

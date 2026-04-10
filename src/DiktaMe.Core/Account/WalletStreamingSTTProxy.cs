@@ -166,16 +166,7 @@ public sealed class WalletStreamingSTTProxy : IStreamingSTTProvider
                 Log.Information("WalletStreaming: final text received ({Chars} chars, cost={Cost}µ$)",
                     final.Text.Length, final.Cost);
 
-                // Record cost locally
-                if (final.Cost > 0)
-                {
-                    await _wallet.InsertTransactionAsync(
-                        -final.Cost,
-                        WalletTransactionType.Usage,
-                        "{\"service\":\"gemini-live\"}",
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
-                }
-
+                // Balance updated from server — no per-request local insert (daily sync handles it)
                 if (final.Balance > 0)
                 {
                     BalanceUpdated?.Invoke(final.Balance);
