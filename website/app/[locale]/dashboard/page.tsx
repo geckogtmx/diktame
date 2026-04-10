@@ -4,15 +4,16 @@ import { redirect } from 'next/navigation';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 
-/** Format microdollars as USD string, e.g. 1000000 → "$1.00" */
-function formatUSD(micro: number): string {
-  return `$${(micro / 1_000_000).toFixed(2)}`;
+/** Format microdollars as credits (1 credit = 1,000 microdollars) */
+function formatCredits(micro: number): string {
+  return Math.round(micro / 1000).toLocaleString();
 }
 
-/** Color class for wallet balance amount */
+/** Color class for credit balance */
 function balanceColor(micro: number): string {
-  if (micro >= 1_000_000) return 'text-green-400';
-  if (micro >= 500_000) return 'text-yellow-400';
+  const credits = micro / 1000;
+  if (credits >= 1000) return 'text-green-400';
+  if (credits >= 500) return 'text-yellow-400';
   return 'text-red-400';
 }
 
@@ -129,7 +130,7 @@ export default async function DashboardPage({
             </svg>
           </div>
           <p className={`text-3xl font-bold mb-3 ${balanceColor(balanceMicro)}`}>
-            {formatUSD(balanceMicro)}
+            {formatCredits(balanceMicro)}
           </p>
           <div className="flex gap-2">
             <Link
