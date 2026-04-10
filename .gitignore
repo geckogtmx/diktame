@@ -46,12 +46,16 @@ temp_audio/
 # Logs
 logs/
 
-# Internal governance (local-only)
+# Internal governance & planning (local-only)
 AI_CODEX.md
 DEV_HANDOFF.md
 TASKS.md
 CLAUDE.md
 GEMINI.md
+DEVELOPMENT_ROADMAP.md
+RELEASE_ROADMAP*.md
+Full_codebase_audit*.md
+plans/
 .agent/
 .agents/
 .claude/
@@ -73,8 +77,7 @@ nul
 # Remotion video project (entire directory — never committed)
 video/
 
-# News run content (auto-generated, never commit)
-plans/mkt/content/
+# News run content (covered by plans/ above)
 
 # Probes
 website/probes/

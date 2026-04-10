@@ -1,0 +1,66 @@
+name: Bug Report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this! The more detail you can provide, the faster we can fix it.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe what went wrong. What were you trying to do?
+      placeholder: "e.g., I pressed the dictation hotkey but nothing happened..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: What should have happened instead?
+      placeholder: "e.g., The app should have started recording and transcribing..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we trigger this bug?
+      placeholder: |
+        1. Open dIKta.me
+        2. Press Ctrl+Shift+D
+        3. Speak for 5 seconds
+        4. Release the hotkey
+    validations:
+      required: false
+
+  - type: input
+    id: windows-version
+    attributes:
+      label: Windows version
+      description: "Settings > System > About > Windows specifications"
+      placeholder: "e.g., Windows 11 23H2"
+    validations:
+      required: false
+
+  - type: input
+    id: app-version
+    attributes:
+      label: dIKta.me version
+      description: Shown at the bottom of the Settings page
+      placeholder: "e.g., 2.0.0"
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or logs
+      description: If applicable, paste screenshots or log snippets. Logs are in `%APPDATA%\DiktaMe\logs\`.
+      placeholder: Drag and drop images here, or paste log text...
+    validations:
+      required: false

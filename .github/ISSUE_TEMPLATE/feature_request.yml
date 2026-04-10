@@ -1,0 +1,26 @@
+name: Feature Request
+description: Suggest an idea or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for dIKta.me? We'd love to hear it!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What would you like?
+      description: Describe the feature or improvement you'd like to see.
+      placeholder: "e.g., It would be great if dIKta.me could..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Why is this useful?
+      description: How would this help your workflow?
+      placeholder: "e.g., I often need to dictate in meetings and..."
+    validations:
+      required: false
