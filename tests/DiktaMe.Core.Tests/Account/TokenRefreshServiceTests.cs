@@ -195,6 +195,187 @@ public sealed class TokenRefreshServiceTests : IDisposable
         _secureStorage.RetrieveKey("trial_token").Should().Be(newJwt);
     }
 
+    [Fact]
+    public async Task TryRefreshAsync_ConcurrentCalls_OnlyOneHttpRequest()
+    {
+        _secureStorage.StoreKey("refresh_token", "rt-1");
+
+        long newExpiry = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds();
+        string newJwt = BuildJwt(newExpiry);
+        string responseJson = JsonSerializer.Serialize(new
+        {
+            access_token = newJwt,
+            refresh_token = "rt-2",
+            expires_at = newExpiry,
+        });
+
+        // Add a small delay so concurrent calls actually overlap
+        var handler = new Mock<HttpMessageHandler>();
+        handler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(() =>
+            {
+                Thread.Sleep(100); // simulate server latency
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(responseJson, Encoding.UTF8, "application/json"),
+                };
+            });
+
+        var http = new HttpClient(handler.Object) { Timeout = TimeSpan.FromSeconds(10) };
+        using var sut = new TokenRefreshService(_secureStorage, _settings, http);
+
+        // Fire 5 concurrent refresh calls
+        var tasks = Enumerable.Range(0, 5)
+            .Select(_ => sut.TryRefreshAsync())
+            .ToArray();
+
+        bool[] results = await Task.WhenAll(tasks);
+
+        // All should succeed (first hits server, rest use skip window)
+        results.Should().AllSatisfy(r => r.Should().BeTrue());
+
+        // Only ONE HTTP call should have been made (semaphore + skip window)
+        handler.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.IsAny<HttpRequestMessage>(),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task TryRefreshAsync_SkipWindow_ReturnsWithoutHttpCall()
+    {
+        _secureStorage.StoreKey("refresh_token", "rt-1");
+
+        long newExpiry = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds();
+        string newJwt = BuildJwt(newExpiry);
+        string responseJson = JsonSerializer.Serialize(new
+        {
+            access_token = newJwt,
+            refresh_token = "rt-2",
+            expires_at = newExpiry,
+        });
+
+        var handler = new Mock<HttpMessageHandler>();
+        handler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(responseJson, Encoding.UTF8, "application/json"),
+            });
+
+        var http = new HttpClient(handler.Object) { Timeout = TimeSpan.FromSeconds(5) };
+        using var sut = new TokenRefreshService(_secureStorage, _settings, http);
+
+        // First call — hits server
+        bool first = await sut.TryRefreshAsync();
+        first.Should().BeTrue();
+
+        // Second call within 30s — should skip
+        bool second = await sut.TryRefreshAsync();
+        second.Should().BeTrue();
+
+        // Only 1 HTTP call total
+        handler.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.IsAny<HttpRequestMessage>(),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task TryRefreshAsync_ServerError_RetriesWithBackoff()
+    {
+        _secureStorage.StoreKey("refresh_token", "rt-1");
+
+        long newExpiry = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds();
+        string newJwt = BuildJwt(newExpiry);
+        string successJson = JsonSerializer.Serialize(new
+        {
+            access_token = newJwt,
+            refresh_token = "rt-2",
+            expires_at = newExpiry,
+        });
+
+        int callCount = 0;
+        var handler = new Mock<HttpMessageHandler>();
+        handler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(() =>
+            {
+                callCount++;
+                if (callCount <= 2)
+                {
+                    // First 2 attempts: server error (retryable)
+                    return new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.InternalServerError,
+                        Content = new StringContent("{}", Encoding.UTF8, "application/json"),
+                    };
+                }
+
+                // Third attempt: success
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(successJson, Encoding.UTF8, "application/json"),
+                };
+            });
+
+        var http = new HttpClient(handler.Object) { Timeout = TimeSpan.FromSeconds(30) };
+        using var sut = new TokenRefreshService(_secureStorage, _settings, http);
+
+        bool result = await sut.TryRefreshAsync();
+
+        result.Should().BeTrue();
+        callCount.Should().Be(3); // 2 failures + 1 success
+        _secureStorage.RetrieveKey("trial_token").Should().Be(newJwt);
+    }
+
+    [Fact]
+    public async Task TryRefreshAsync_401_DoesNotRetry()
+    {
+        _secureStorage.StoreKey("refresh_token", "revoked-rt");
+
+        var handler = new Mock<HttpMessageHandler>();
+        handler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Content = new StringContent("""{"error":"Invalid"}""", Encoding.UTF8, "application/json"),
+            });
+
+        var http = new HttpClient(handler.Object) { Timeout = TimeSpan.FromSeconds(5) };
+        using var sut = new TokenRefreshService(_secureStorage, _settings, http);
+
+        bool result = await sut.TryRefreshAsync();
+
+        result.Should().BeFalse();
+
+        // Should NOT retry on 401 — only 1 call
+        handler.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.IsAny<HttpRequestMessage>(),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
     public void Dispose()
     {
         try { Directory.Delete(_tempDir, recursive: true); }

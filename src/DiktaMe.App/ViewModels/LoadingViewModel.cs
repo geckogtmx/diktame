@@ -879,32 +879,59 @@ public sealed partial class LoadingViewModel : ObservableObject
 
         _walletProxy.BalanceUpdated += HandleBalanceUpdated;
 
-        // Subscribe to session expiry — attempt refresh before showing error
+        // Subscribe to session expiry — attempt refresh before showing error.
+        // TokenRefreshService.SessionExpired already tried TryRefreshAsync and failed,
+        // so we only show the toast (no redundant retry that would race).
+        // Proxy 401 events (WalletGeminiProxy, WalletStreamingSTTProxy) trigger a
+        // debounced refresh attempt — the SemaphoreSlim inside TryRefreshAsync
+        // prevents concurrent calls from racing on the refresh token.
         var walletStreamStt = App.Current.Services.GetService<WalletStreamingSTTProxy>();
         var tokenRefresh = App.Current.Services.GetRequiredService<TokenRefreshService>();
+        DateTimeOffset lastSessionExpiredToast = DateTimeOffset.MinValue;
 
-        void HandleSessionExpired()
+        void HandleProxySessionExpired()
         {
             _ = Task.Run(async () =>
             {
                 bool refreshed = await tokenRefresh.TryRefreshAsync().ConfigureAwait(false);
                 if (!refreshed)
                 {
-                    _uiDispatcher?.TryEnqueue(() =>
-                    {
-                        _notifications.ShowToast("Session Expired", "Please sign in again.", suppressTts: true);
-                    });
+                    ShowSessionExpiredToast(ref lastSessionExpiredToast);
                 }
             });
+        }
+
+        void HandleTokenServiceSessionExpired()
+        {
+            // TokenRefreshService already tried refresh and failed — just show toast
+            ShowSessionExpiredToast(ref lastSessionExpiredToast);
         }
 
         if (walletStreamStt != null)
         {
             walletStreamStt.BalanceUpdated += HandleBalanceUpdated;
-            walletStreamStt.SessionExpired += HandleSessionExpired;
+            walletStreamStt.SessionExpired += HandleProxySessionExpired;
         }
-        _walletProxy.SessionExpired += HandleSessionExpired;
-        tokenRefresh.SessionExpired += HandleSessionExpired;
+        _walletProxy.SessionExpired += HandleProxySessionExpired;
+        tokenRefresh.SessionExpired += HandleTokenServiceSessionExpired;
+    }
+
+    /// <summary>
+    /// Shows the "Session Expired" toast, debounced to at most once per 30 seconds.
+    /// </summary>
+    private void ShowSessionExpiredToast(ref DateTimeOffset lastToast)
+    {
+        var now = DateTimeOffset.UtcNow;
+        if (now - lastToast < TimeSpan.FromSeconds(30))
+        {
+            return;
+        }
+
+        lastToast = now;
+        _uiDispatcher?.TryEnqueue(() =>
+        {
+            _notifications.ShowToast("Session Expired", "Please sign in again.", suppressTts: true);
+        });
     }
 
     /// <summary>
