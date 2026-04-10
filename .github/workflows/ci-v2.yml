@@ -14,6 +14,8 @@ jobs:
     name: Build · Test · Lint · Publish
     runs-on: windows-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
 
     steps:
       # ── Checkout ──────────────────────────────────────────────────────
@@ -79,6 +81,11 @@ jobs:
             exit 1
           }
           Write-Host "OK: test count $passed >= $min"
+
+          # Write shields.io endpoint badge JSON (picked up by later step)
+          @{ schemaVersion = 1; label = "tests"; message = "$passed passing"; color = "brightgreen" } |
+            ConvertTo-Json | Set-Content ci/test-badge.json
+          echo "test_count=$passed" >> $env:GITHUB_OUTPUT
 
       # ── Secret scan ───────────────────────────────────────────────────
       # Gitleaks scans the full git history for hardcoded API keys, tokens,
@@ -203,6 +210,24 @@ jobs:
           name: diktame-installer
           path: installer/output/*.exe
           retention-days: 30
+
+      # ── Update test badge ──────────────────────────────────────────────
+      # Commits ci/test-badge.json so the shields.io endpoint badge in
+      # README always shows the latest passing test count.
+      - name: Update test badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci/test-badge.json
+          $diff = git diff --cached --quiet; $changed = $LASTEXITCODE
+          if ($changed -ne 0) {
+            git commit -m "ci: update test badge ($((Get-Content ci/test-badge.json | ConvertFrom-Json).message))"
+            git push
+          } else {
+            Write-Host "Badge unchanged, skipping commit"
+          }
 
   # ══════════════════════════════════════════════════════════════════════
   #  Release — creates a GitHub Release when a v* tag is pushed

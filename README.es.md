@@ -7,6 +7,8 @@
 **Dictado de voz a texto para Windows** — Reescritura en C# + WinUI 3.
 
 > Anteriormente *dIKtate*. Reescritura completa de Python + Electron a aplicación nativa de Windows.
+
+![dIKta.me — Configuración y Panel de Control](docs/images/app-overview.jpeg)
 >
 > 📚 **Documentación**: [Guía de Usuario](https://dikta.me/es/docs) • [Guía de Desarrollo](https://dikta.me/es/docs/dev) • [Privacidad](PRIVACY.md) • [Contribuir](CONTRIBUTING.md)
 

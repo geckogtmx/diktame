@@ -7,11 +7,13 @@
 [![CI](https://github.com/geckogtmx/diktame/actions/workflows/ci-v2.yml/badge.svg)](https://github.com/geckogtmx/diktame/actions/workflows/ci-v2.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![.NET 8](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-1134%20passing-brightgreen.svg)](#metrics)
+[![Tests](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/geckogtmx/diktame/main/ci/test-badge.json)](#metrics)
 
 **Private AI voice dictation for Windows** — local-first, multi-provider, MIT open source.
 
 > Stop typing at your AI models. Just talk to them.
+
+![dIKta.me — Settings and Control Panel](docs/images/app-overview.jpeg)
 
 ## Quick Start
 
