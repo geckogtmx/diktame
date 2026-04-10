@@ -268,6 +268,88 @@
                         </StackPanel>
                     </Grid>
                 </Border>
+
+                <!-- OpenRouter -->
+                <Border Style="{StaticResource SettingsCardStyle}" Padding="0">
+                    <Grid>
+                        <Border Width="3" HorizontalAlignment="Left" CornerRadius="8,0,0,8"
+                                Background="{x:Bind ViewModel.ApiKeys.OpenRouterHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"/>
+                        <StackPanel Spacing="8" Padding="16,12,16,12" Margin="3,0,0,0">
+                            <Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE72E;" FontSize="16" Opacity="0.8"/>
+                                    <TextBlock Text="OpenRouter" FontWeight="SemiBold" FontSize="14"/>
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="12"
+                                              Foreground="{x:Bind ViewModel.ApiKeys.OpenRouterHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"
+                                              Visibility="{x:Bind ViewModel.ApiKeys.OpenRouterHasKey, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.OpenRouterStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <PasswordBox Password="{x:Bind ViewModel.ApiKeys.OpenRouterKey, Mode=TwoWay}"
+                                             PlaceholderText="sk-or-..." VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.SaveOpenRouterKeyCommand}"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.TooltipSave, Mode=OneWay}" Width="36" Height="36" Padding="0"
+                                        Background="Transparent" BorderBrush="Transparent">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="14"/>
+                                </Button>
+                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.DeleteOpenRouterKeyCommand}"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.TooltipDelete, Mode=OneWay}" Width="36" Height="36" Padding="0"
+                                        Background="Transparent" BorderBrush="Transparent">
+                                    <FontIcon Glyph="&#xE74D;" FontSize="14"/>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Requesty -->
+                <Border Style="{StaticResource SettingsCardStyle}" Padding="0">
+                    <Grid>
+                        <Border Width="3" HorizontalAlignment="Left" CornerRadius="8,0,0,8"
+                                Background="{x:Bind ViewModel.ApiKeys.RequestyHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"/>
+                        <StackPanel Spacing="8" Padding="16,12,16,12" Margin="3,0,0,0">
+                            <Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE72E;" FontSize="16" Opacity="0.8"/>
+                                    <TextBlock Text="Requesty" FontWeight="SemiBold" FontSize="14"/>
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="12"
+                                              Foreground="{x:Bind ViewModel.ApiKeys.RequestyHasKey, Mode=OneWay, Converter={StaticResource BoolToBrush}}"
+                                              Visibility="{x:Bind ViewModel.ApiKeys.RequestyHasKey, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.ApiKeys.RequestyStatus, Mode=OneWay}" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <PasswordBox Password="{x:Bind ViewModel.ApiKeys.RequestyKey, Mode=TwoWay}"
+                                             PlaceholderText="Requesty API key" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.SaveRequestyKeyCommand}"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.TooltipSave, Mode=OneWay}" Width="36" Height="36" Padding="0"
+                                        Background="Transparent" BorderBrush="Transparent">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="14"/>
+                                </Button>
+                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.DeleteRequestyKeyCommand}"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.TooltipDelete, Mode=OneWay}" Width="36" Height="36" Padding="0"
+                                        Background="Transparent" BorderBrush="Transparent">
+                                    <FontIcon Glyph="&#xE74D;" FontSize="14"/>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </StackPanel>
 
             <!-- ═══════════════════════════════════════════════════════════════

@@ -52,6 +52,9 @@ public sealed class OpenAICompatibleProvider : ILLMProvider, IDisposable
     /// <summary>Perplexity</summary>
     public static string PerplexityBaseUrl => "https://api.perplexity.ai";
 
+    /// <summary>Requesty — unified LLM gateway for 300+ models</summary>
+    public static string RequestyBaseUrl => "https://router.requesty.ai";
+
     // ── Named constructors for common providers ───────────────────────────────
 
     /// <summary>Create a provider configured for OpenAI.</summary>
@@ -77,6 +80,10 @@ public sealed class OpenAICompatibleProvider : ILLMProvider, IDisposable
     /// <summary>Create a provider configured for Perplexity.</summary>
     public static OpenAICompatibleProvider ForPerplexity(string apiKey, string model = "sonar-pro")
         => new(PerplexityBaseUrl, apiKey, model, "Perplexity");
+
+    /// <summary>Create a provider configured for Requesty.</summary>
+    public static OpenAICompatibleProvider ForRequesty(string apiKey, string model = "openai/gpt-4o-mini")
+        => new(RequestyBaseUrl, apiKey, model, "Requesty");
 
     /// <summary>
     /// Create a provider for a custom OpenAI-compatible local server

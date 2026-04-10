@@ -41,6 +41,18 @@ public sealed partial class ApiKeysSettingsViewModel : ObservableObject
     [ObservableProperty] private string _inworldStatus = "";
     [ObservableProperty] private bool _inworldHasKey;
 
+    // ── OpenRouter ──────────────────────────────────────────────────────────
+
+    [ObservableProperty] private string _openRouterKey = "";
+    [ObservableProperty] private string _openRouterStatus = "";
+    [ObservableProperty] private bool _openRouterHasKey;
+
+    // ── Requesty ────────────────────────────────────────────────────────────
+
+    [ObservableProperty] private string _requestyKey = "";
+    [ObservableProperty] private string _requestyStatus = "";
+    [ObservableProperty] private bool _requestyHasKey;
+
     public ApiKeysSettingsViewModel(SecureStorage storage, LocalizationService loc)
     {
         _storage = storage;
@@ -65,6 +77,12 @@ public sealed partial class ApiKeysSettingsViewModel : ObservableObject
     [RelayCommand] private void SaveInworldKey() => SaveKey("inworld", InworldKey, ApiKeyValidator.IsValidGeneric, v => { InworldStatus = v; InworldHasKey = string.Equals(v, _loc.GetString("Settings_ApiKeys_Status_Saved"), StringComparison.Ordinal); });
     [RelayCommand] private void DeleteInworldKey() => DeleteKey("inworld", v => { InworldStatus = v; InworldHasKey = false; InworldKey = ""; });
 
+    [RelayCommand] private void SaveOpenRouterKey() => SaveKey("openrouter", OpenRouterKey, ApiKeyValidator.IsValidGeneric, v => { OpenRouterStatus = v; OpenRouterHasKey = string.Equals(v, _loc.GetString("Settings_ApiKeys_Status_Saved"), StringComparison.Ordinal); });
+    [RelayCommand] private void DeleteOpenRouterKey() => DeleteKey("openrouter", v => { OpenRouterStatus = v; OpenRouterHasKey = false; OpenRouterKey = ""; });
+
+    [RelayCommand] private void SaveRequestyKey() => SaveKey("requesty", RequestyKey, ApiKeyValidator.IsValidGeneric, v => { RequestyStatus = v; RequestyHasKey = string.Equals(v, _loc.GetString("Settings_ApiKeys_Status_Saved"), StringComparison.Ordinal); });
+    [RelayCommand] private void DeleteRequestyKey() => DeleteKey("requesty", v => { RequestyStatus = v; RequestyHasKey = false; RequestyKey = ""; });
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private void RefreshKeyStatus()
@@ -83,6 +101,12 @@ public sealed partial class ApiKeysSettingsViewModel : ObservableObject
 
         InworldHasKey = _storage.RetrieveKey("inworld") is not null;
         InworldStatus = InworldHasKey ? _loc.GetString("Settings_ApiKeys_Status_Saved") : _loc.GetString("Settings_ApiKeys_Status_NotSet");
+
+        OpenRouterHasKey = _storage.RetrieveKey("openrouter") is not null;
+        OpenRouterStatus = OpenRouterHasKey ? _loc.GetString("Settings_ApiKeys_Status_Saved") : _loc.GetString("Settings_ApiKeys_Status_NotSet");
+
+        RequestyHasKey = _storage.RetrieveKey("requesty") is not null;
+        RequestyStatus = RequestyHasKey ? _loc.GetString("Settings_ApiKeys_Status_Saved") : _loc.GetString("Settings_ApiKeys_Status_NotSet");
     }
 
     private void SaveKey(string provider, string key, Func<string?, bool> validator, Action<string> setStatus)

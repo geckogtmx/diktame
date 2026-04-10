@@ -86,6 +86,10 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
                 key ?? throw new InvalidOperationException("Perplexity API key not configured."),
                 model: effectiveModel),
 
+            "requesty" => OpenAICompatibleProvider.ForRequesty(
+                key ?? throw new InvalidOperationException("Requesty API key not configured."),
+                model: effectiveModel),
+
             "ollama" => CreateOllamaProvider(effectiveModel, keepAlive),
 
             _ => throw new NotSupportedException($"Unknown LLM provider type: '{type}'."),

@@ -43,7 +43,7 @@ public sealed class SecureStorage
     internal static readonly HashSet<string> ValidProviders = new(StringComparer.OrdinalIgnoreCase)
     {
         // API key providers (stored via Settings > API Keys or Wizard)
-        "openai", "deepgram", "gemini", "anthropic", "openrouter",
+        "openai", "deepgram", "gemini", "anthropic", "openrouter", "requesty",
         // TTS cloud providers (Phase E)
         "inworld",
         // Internal (auth JWT + refresh token)
