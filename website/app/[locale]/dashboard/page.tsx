@@ -33,7 +33,7 @@ export default async function DashboardPage({
   } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect('/login');
+    redirect(`/${locale}/login`);
   }
 
   // Get user profile

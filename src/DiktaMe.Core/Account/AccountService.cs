@@ -17,7 +17,6 @@ public sealed class AccountService : IAccountService, IDisposable
 {
     private const string TokenKey = "trial_token"; // kept for backward compat with existing keys.dat
     private const string RefreshTokenKey = "refresh_token";
-    private const string LoginUrl = "https://dikta.me/login?mode=app";
 
     private readonly SecureStorage _secureStorage;
     private readonly SettingsManager _settings;
@@ -49,9 +48,14 @@ public sealed class AccountService : IAccountService, IDisposable
     /// <inheritdoc />
     public void Login()
     {
+        var locale = GetWebsiteLocale(_settings.Current.General.UiLanguage);
+        var loginUrl = $"https://dikta.me/{locale}/login?mode=app";
         Log.Information("AccountService: opening browser for login");
-        Process.Start(new ProcessStartInfo(LoginUrl) { UseShellExecute = true });
+        Process.Start(new ProcessStartInfo(loginUrl) { UseShellExecute = true });
     }
+
+    private static string GetWebsiteLocale(string uiLanguage) =>
+        uiLanguage.StartsWith("es", StringComparison.OrdinalIgnoreCase) ? "es" : "en";
 
     // ── Auth Callback ─────────────────────────────────────────────────────────
 

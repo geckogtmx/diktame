@@ -6,7 +6,7 @@ import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 
 function LoginContent() {
     const router = useRouter()
@@ -14,6 +14,7 @@ function LoginContent() {
     const mode = searchParams.get('mode')
     const [isMounted, setIsMounted] = useState(false)
     const t = useTranslations('LoginPage')
+    const locale = useLocale()
 
     useEffect(() => {
         const supabase = createClient()
@@ -26,7 +27,7 @@ function LoginContent() {
                     // Already signed in — server route will issue diktame:// deeplink
                     window.location.href = '/api/auth/app-token'
                 } else {
-                    router.push('/dashboard')
+                    router.push(`/${locale}/dashboard`)
                 }
             }
         }
@@ -35,7 +36,7 @@ function LoginContent() {
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_IN' && session && mode !== 'app') {
-                router.push('/dashboard')
+                router.push(`/${locale}/dashboard`)
             }
         })
 

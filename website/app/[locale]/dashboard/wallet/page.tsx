@@ -84,7 +84,7 @@ export default async function WalletPage({
   } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect('/login');
+    redirect(`/${locale}/login`);
   }
 
   // Single query: daily aggregated summary via RPC

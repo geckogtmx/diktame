@@ -75,11 +75,12 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private static void BuyLicense()
+    private void BuyLicense()
     {
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://www.dikta.me/pricing")
+            var locale = GetWebsiteLocale(_settings.Current.General.UiLanguage);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo($"https://www.dikta.me/{locale}/pricing")
             {
                 UseShellExecute = true,
             });
@@ -112,11 +113,12 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private static void ManageAccount()
+    private void ManageAccount()
     {
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://www.dikta.me/dashboard")
+            var locale = GetWebsiteLocale(_settings.Current.General.UiLanguage);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo($"https://www.dikta.me/{locale}/dashboard")
             {
                 UseShellExecute = true,
             });
@@ -246,6 +248,9 @@ public sealed partial class AccountSettingsViewModel : ObservableObject
         string sign = credits >= 0 ? "+" : "";
         return sign + credits.ToString("N0", CultureInfo.InvariantCulture) + " cr";
     }
+
+    private static string GetWebsiteLocale(string uiLanguage) =>
+        uiLanguage.StartsWith("es", StringComparison.OrdinalIgnoreCase) ? "es" : "en";
 }
 
 /// <summary>

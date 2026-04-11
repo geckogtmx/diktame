@@ -2,7 +2,7 @@
  * Generates a branded HTML page that redirects to the diktame:// deeplink
  * for the desktop app, with a nice "You're signed in" message + dashboard link.
  */
-export function buildDeeplinkPage(deeplinkUrl: string): string {
+export function buildDeeplinkPage(deeplinkUrl: string, locale: string = 'en'): string {
   // Inline the logo SVG so it works without any asset references
   const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 250 250" fill="none">
 <path d="M 124.67,244 C 58.94,244 5.67,190.48 5.67,125.46 C 5.67,60.91 58.94,6 124.67,6 C 190.71,6 244.33,59.52 244.33,125.46 C 244.33,190.48 190.71,244 124.67,244 Z M 124.67,9.13 C 60.78,9.13 9.02,60.45 9.02,125.46 C 9.02,189.77 60.78,240.87 124.67,240.87 C 189.22,240.87 241.19,189.77 241.19,125.46 C 241.19,60.45 189.22,9.13 124.67,9.13 Z" fill="#C55A28"/>
@@ -90,7 +90,7 @@ export function buildDeeplinkPage(deeplinkUrl: string): string {
     <h1>You&rsquo;re signed in!</h1>
     <p>The dIKta.me desktop app should open automatically. You can close this tab, or head to your dashboard.</p>
     <div class="actions">
-      <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+      <a href="/${locale}/dashboard" class="btn btn-primary">Go to Dashboard</a>
       <button class="btn btn-secondary" onclick="window.close()">Close this tab</button>
     </div>
     <div class="footer">dikta.me</div>

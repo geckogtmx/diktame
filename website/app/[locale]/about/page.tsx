@@ -16,7 +16,7 @@ export async function generateMetadata({
     title: t('aboutTitle'),
     description: t('aboutDescription'),
     alternates: {
-      canonical: `https://dikta.me${locale === 'en' ? '' : '/es'}/about`,
+      canonical: `https://dikta.me/${locale}/about`,
       languages: {
         en: 'https://dikta.me/about',
         es: 'https://dikta.me/es/about',

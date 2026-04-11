@@ -92,13 +92,11 @@ export async function generateMetadata({
       ...(imageUrl ? { images: [imageUrl] } : {}),
     },
     alternates: {
-      canonical:
-        locale === 'es'
-          ? `https://dikta.me/es/blog/${post.slug_es || post.slug}`
-          : `https://dikta.me/blog/${post.slug}`,
+      canonical: `https://dikta.me/${locale}/blog/${locale === 'es' ? (post.slug_es || post.slug) : post.slug}`,
       languages: {
-        en: `https://dikta.me/blog/${post.slug}`,
+        en: `https://dikta.me/en/blog/${post.slug}`,
         es: `https://dikta.me/es/blog/${post.slug_es || post.slug}`,
+        'x-default': `https://dikta.me/en/blog/${post.slug}`,
       },
     },
   };

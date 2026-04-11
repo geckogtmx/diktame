@@ -1,12 +1,13 @@
 // SPEC_042: OAuth callback handler
 import { createClient, createAdminClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { buildDeeplinkPage } from '@/lib/auth/deeplink-page';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
+  const locale = request.cookies.get('NEXT_LOCALE')?.value ?? 'en';
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
+  const next = searchParams.get('next') ?? `/${locale}/dashboard`;
   const mode = searchParams.get('mode'); // 'app' for desktop app auth
 
   if (code) {
@@ -61,7 +62,7 @@ export async function GET(request: Request) {
         } = await supabase.auth.getSession();
         if (session) {
           const deeplinkUrl = `diktame://auth?token=${session.access_token}${session.refresh_token ? `&refresh_token=${session.refresh_token}` : ''}`;
-          return new NextResponse(buildDeeplinkPage(deeplinkUrl), {
+          return new NextResponse(buildDeeplinkPage(deeplinkUrl, locale), {
             status: 200,
             headers: { 'Content-Type': 'text/html' },
           });
@@ -83,5 +84,5 @@ export async function GET(request: Request) {
   }
 
   // Return to login on error
-  return NextResponse.redirect(`${origin}/login`);
+  return NextResponse.redirect(`${origin}/${locale}/login`);
 }

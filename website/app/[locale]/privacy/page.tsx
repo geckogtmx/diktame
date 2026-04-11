@@ -15,7 +15,7 @@ export async function generateMetadata({
     title: t('privacyTitle'),
     description: t('privacyDescription'),
     alternates: {
-      canonical: `https://dikta.me${locale === 'en' ? '' : '/es'}/privacy`,
+      canonical: `https://dikta.me/${locale}/privacy`,
       languages: {
         en: 'https://dikta.me/privacy',
         es: 'https://dikta.me/es/privacy',

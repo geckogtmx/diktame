@@ -43,10 +43,11 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `https://dikta.me${resolvedParams.locale === 'en' ? '' : '/es'}/docs/${slugPath}`,
+      canonical: `https://dikta.me/${resolvedParams.locale}/docs/${slugPath}`,
       languages: {
-        en: `https://dikta.me/docs/${slugPath}`,
+        en: `https://dikta.me/en/docs/${slugPath}`,
         es: `https://dikta.me/es/docs/${slugPath}`,
+        'x-default': `https://dikta.me/en/docs/${slugPath}`,
       },
     },
   };

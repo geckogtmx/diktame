@@ -15,7 +15,7 @@ export async function generateMetadata({
     title: t('roadmapTitle'),
     description: t('roadmapDescription'),
     alternates: {
-      canonical: `https://dikta.me${locale === 'en' ? '' : '/es'}/roadmap`,
+      canonical: `https://dikta.me/${locale}/roadmap`,
       languages: {
         en: 'https://dikta.me/roadmap',
         es: 'https://dikta.me/es/roadmap',

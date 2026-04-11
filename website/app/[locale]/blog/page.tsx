@@ -19,7 +19,7 @@ export async function generateMetadata({
     title: t('metaTitle'),
     description: t('metaDescription'),
     alternates: {
-      canonical: `https://dikta.me${locale === 'en' ? '' : '/es'}/blog`,
+      canonical: `https://dikta.me/${locale}/blog`,
       languages: {
         en: 'https://dikta.me/blog',
         es: 'https://dikta.me/es/blog',

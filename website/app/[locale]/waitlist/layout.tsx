@@ -12,7 +12,7 @@ export async function generateMetadata({
     title: t('waitlistTitle'),
     description: t('waitlistDescription'),
     alternates: {
-      canonical: `https://dikta.me${locale === 'en' ? '' : '/es'}/waitlist`,
+      canonical: `https://dikta.me/${locale}/waitlist`,
       languages: {
         en: 'https://dikta.me/waitlist',
         es: 'https://dikta.me/es/waitlist',

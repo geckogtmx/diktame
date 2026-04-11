@@ -34,7 +34,7 @@ export async function generateMetadata({
     openGraph: {
       type: 'website',
       locale: locale === 'es' ? 'es_ES' : 'en_US',
-      url: '/',
+      url: `https://dikta.me/${locale}`,
       title: t('title'),
       description: t('description'),
       siteName: 'dIKta.me',
@@ -54,10 +54,11 @@ export async function generateMetadata({
       images: ['/og-image.png'],
     },
     alternates: {
-      canonical: locale === 'en' ? 'https://dikta.me' : 'https://dikta.me/es',
+      canonical: `https://dikta.me/${locale}`,
       languages: {
-        en: 'https://dikta.me',
+        en: 'https://dikta.me/en',
         es: 'https://dikta.me/es',
+        'x-default': 'https://dikta.me/en',
       },
     },
   };
@@ -79,7 +80,7 @@ export default async function LocaleLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta name="theme-color" content="#020617" />
-        <link rel="canonical" href={locale === 'en' ? 'https://dikta.me' : 'https://dikta.me/es'} />
+        <link rel="canonical" href={`https://dikta.me/${locale}`} />
         <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
         <Script id="gtag-init" strategy="afterInteractive">
           {`window.dataLayer = window.dataLayer || [];
