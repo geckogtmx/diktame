@@ -48,6 +48,14 @@ dotnet run --project src/DiktaMe.App/DiktaMe.App.csproj -c Debug -p:Platform=x64
 
 ---
 
+## Licensing (Development)
+
+The app uses LemonSqueezy's License API to gate BYOK and Local mode behind a Power License. In a development build, you can activate a real key via **Settings → Account → License Key** — or test the unlicensed path directly (Wallet Mode works without a license).
+
+There is no separate dev-mode bypass. The license check calls `api.lemonsqueezy.com` with hard-coded `store_id=277708` and `product_id=910127`. Keys from other stores are rejected.
+
+---
+
 ## Code Quality Standards
 
 dIKta.me enforces strict code quality measures natively in the build pipeline. **You cannot commit code that generates warnings.**

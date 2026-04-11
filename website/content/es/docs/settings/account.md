@@ -1,22 +1,75 @@
 # Ajustes de Cuenta (Account Settings)
 
-La pestaña de **Cuenta (Account)** es tu centro principal para administrar tu configuración primaria de dIKta.me, el sistema de créditos y la suscripción.
+La pestaña **Cuenta (Account)** gestiona tu Power License, el saldo de la Billetera y el inicio de sesión en la nube.
 
-Si no quieres usar tus propias cuentas de Desarrollador para conectarte a Anthropic, OpenAI, o Google en la pestaña `API Keys` (Trae Tu Propia Clave), puedes utilizar la **Nube de dIKta.me (dIKta.me Cloud)** nativa.
+---
 
-## Opciones de Autenticación
+## Power License (Licencia Power)
 
-Dependiendo de cómo pretendas usar la aplicación, dIKta.me te permite declarar cómo te autenticas:
+La **Power License** desbloquea dos modos de autenticación adicionales:
 
-1.  **Wallet Mode (Modo Billetera)**: Se autentica a través de la infraestructura en la nube de dIKta.me. Cada dictado, traducción y consulta de chat descuenta micro-centavos sin esfuerzo del saldo pre-cargado de tu Billetera según los tokens exactos que consumiste. No necesitas administrar claves de API, monitorear el tráfico, ni preocuparte por límites de consumo.
-2.  **API Key Mode (Modo de Clave API)**: Omite por completo los servidores en la nube de dIKta.me. Debes proporcionar todas tus propias claves de desarrollador en la pestaña `API Keys`. Tus solicitudes se procesan completamente de forma local usando tus cuentas de proveedor personales.
-3.  **Local Mode (Modo Local)**: Omite todo. dIKta.me se comunica exclusivamente con Ollama y Whisper.net ejecutándose de forma nativa en tu computadora, lo que significa que no se requiere internet ni autenticación en absoluto para dictar, preguntar o refinar texto.
+- **Modo API Key (BYOK)** — usa tus propias claves de Deepgram, Gemini, Anthropic, OpenAI, OpenRouter o Requesty
+- **Modo Local** — funciona completamente sin internet con Whisper.net y Ollama en tu propio hardware
 
-## Gestión de Perfil
+Sin una Power License, el **Modo Wallet** (dictado en la nube usando créditos de dIKta.me) está disponible gratuitamente al iniciar sesión.
 
-*   **Log In (Iniciar Sesión)**: Autentica tu cuenta de dIKta.me sin problemas a través de tu navegador web para acceder al saldo de tu Billetera de forma segura en múltiples PCs.
-*   **Avatar Customization (Personalización de Avatar)**: Personaliza tu HUD de dIKta.me subiendo una foto de perfil personalizada. La interfaz de ajustes incluye una herramienta de recorte circular integrada para asegurar que tu avatar encaje perfectamente en tu panel de control y ventana de chat.
-*   **Balance Top-Up (Recarga de Saldo)**: Compra créditos de computación adicionales que se abonan en tu sesión activa al instante sin interrumpir tu flujo de trabajo.
-*   **Sign Out (Cerrar Sesión)**: Purga de manera segura tus tokens de autorización activos y vuelve a un estado No Autenticado. 
+### Activar tu licencia
 
-*Nota: Todos los ajustes locales de Dictado, Ajustes preestablecidos (Presets) y personalizaciones se conservan incluso si cierras sesión por completo o cambias los Modos de Autenticación.*
+1. Compra una Power License en [dikta.me/pricing](https://www.dikta.me/pricing). Recibirás una clave de licencia GUID por correo electrónico.
+2. En la pestaña Cuenta, pega la clave en el campo **License Key**.
+3. Haz clic en **Activate**.
+
+La clave se valida en línea mediante la API de LemonSqueezy y se almacena de forma segura con Windows DPAPI. Una vez activada, dIKta.me funciona sin conexión hasta **30 días** sin necesidad de reconexión a internet.
+
+> Cada clave admite hasta **3 activaciones por máquina**. Para mover tu licencia a otro PC, haz clic en **Deactivate** primero.
+
+---
+
+## Modos de Autenticación
+
+dIKta.me admite tres modos, que pueden cambiarse desde el Panel de Control:
+
+1. **Wallet Mode (Modo Billetera)** — Cada dictado, traducción y consulta de chat descuenta créditos de tu saldo precargado. No necesitas claves de API, solo iniciar sesión.
+2. **API Key Mode (Modo Clave API)** *(requiere Power License)* — Las solicitudes van directamente desde tu máquina a cada proveedor de IA usando tus propias claves de desarrollador. Los servidores de dIKta.me nunca intervienen.
+3. **Local Mode (Modo Local)** *(requiere Power License)* — Totalmente sin conexión. dIKta.me solo se comunica con Ollama y Whisper.net ejecutándose en tu hardware.
+
+*Todos los ajustes de Dictado, Macros y personalizaciones se conservan independientemente del modo o si cierras sesión.*
+
+---
+
+## Billetera y Créditos
+
+Inicia sesión con tu cuenta de dIKta.me (mediante OAuth en el navegador) para activar el Modo Wallet.
+
+### Saldo
+
+Tu saldo se muestra en **créditos** (1 crédito = $0,001). El HUD del Panel de Control muestra una versión compacta (p. ej., `4,8k C`).
+
+Indicadores de color:
+- **Verde** — 1.000+ créditos
+- **Amarillo** — 500–999 créditos
+- **Rojo** — menos de 500 créditos
+
+### Comprar créditos
+
+Haz clic en **Buy Credits** para abrir el pago del **paquete de 4.000 créditos ($5)**. Si has iniciado sesión, tu correo electrónico se rellena automáticamente. Los créditos aparecen en tu saldo inmediatamente después de la compra.
+
+### Historial de uso
+
+La sección **Historial de Uso** muestra resúmenes diarios de créditos. Cada fila muestra:
+
+| Columna | Descripción |
+|---------|-------------|
+| Tipo | Uso, Compra, Reembolso, etc. |
+| Fecha | Día en que ocurrió la actividad |
+| Cantidad | Créditos consumidos o añadidos (p. ej., `−12 cr`) |
+| Saldo | Saldo acumulado después de ese día |
+
+Haz clic en **View detailed usage history →** para abrir el panel completo en [dikta.me/dashboard](https://www.dikta.me/dashboard).
+
+---
+
+## Perfil
+
+- **Avatar Customization (Personalización de Avatar)**: Sube una foto de perfil personalizada. Una herramienta de recorte circular integrada la ajusta perfectamente al HUD y a la ventana de Quick Chat.
+- **Sign Out (Cerrar Sesión)**: Borra los tokens de sesión y vuelve al estado no autenticado.

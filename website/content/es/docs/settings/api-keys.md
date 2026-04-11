@@ -1,20 +1,31 @@
 # Ajustes de Claves API
 
-La pestaña de **Claves API (API Keys)** te permite integrar dIKta.me con servicios en la Nube premium y líderes en la industria, permitiéndote traer tu propia clave (BYOK).
+La sección **Claves API (API Keys)** (dentro de los ajustes del Motor de IA) te permite guardar credenciales cifradas para los proveedores en la nube, habilitando el modo Trae Tu Propia Clave (BYOK).
 
-En lugar de depender únicamente del marco de balance integrado de dIKta.me, conectar tus cuentas de desarrollador directamente te otorga control absoluto sobre tus costos y capacidades de API.
+> [!NOTE]
+> El modo API Key requiere una **Power License**. Las claves se almacenan con Windows DPAPI y nunca se envían a los servidores de dIKta.me — las solicitudes van directamente desde tu máquina a cada proveedor a través de HTTPS.
 
-## Proveedores Compatibles
+## Proveedores de Voz a Texto (STT)
 
-*   **Clave API de Deepgram**: Usada por nuestra canalización de STT en la Nube tanto para procesamiento por Lotes (Batch) como de Transmisión (Streaming) en tiempo real. Precisión extremadamente alta y tasas de reconocimiento asombrosamente rápidas. Consigue la tuya registrándote en deepgram.com.
-*   **Clave API de Gemini**: Usada por nuestro motor de procesamiento LLM en la Nube. Proporciona transformaciones de texto robustas e increíblemente inteligentes. Consigue tu clave en Google AI Studio.
-*   **Clave API de Anthropic**: Un procesador LLM en la Nube alternativo capaz de usar las familias de modelos Claude 3 y 3.5.
-*   **Clave API de OpenAI**: Se conecta a Whisper STT para traducciones por Lotes (si no quieres usar Deepgram) o a los motores de procesamiento LLM GPT-4o.
+*   **Deepgram** — STT en la nube para procesamiento por lotes y en tiempo real (streaming). Consigue una clave en deepgram.com.
+*   **OpenAI** — También usado para STT de Whisper por lotes. Consigue una clave en platform.openai.com.
 
-## Seguridad
+## Proveedores de Modelo de Lenguaje (LLM)
 
-Tus claves nunca se transmiten de forma suelta o insegura. Ellas están:
-1.  **Almacenadas de forma segura**: Se encriptan permanentemente a través de la integración estándar **DPAPI de Windows** (la misma forma en que Windows protege las contraseñas).
-2.  **Procesadas localmente**: Nunca se envían a un servidor principal de dIKta.me. Solo se procesan las solicitudes de API enviadas directamente a través de HTTPS desde tu computadora explícitamente a Google, OpenAI, Deepgram, o Anthropic.
+*   **Gemini** — Familia de LLM de Google (`gemini-2.5-flash`, `gemini-2.0-flash`, etc.). Consigue una clave en Google AI Studio.
+*   **Anthropic** — Familia de modelos Claude (`claude-sonnet-4-5`, `claude-3-5-haiku`, etc.). Consigue una clave en console.anthropic.com.
+*   **OpenAI** — Familia de modelos GPT (`gpt-4o`, `gpt-4o-mini`, etc.).
+*   **OpenRouter** — Una sola clave de API que enruta a 200+ modelos de distintos proveedores (OpenAI, Anthropic, Meta, Mistral y más). Prefijo de clave: `sk-or-...`. Consigue una clave en openrouter.ai.
+*   **Requesty** — Pasarela unificada de LLM para 300+ modelos. Consigue una clave en requesty.ai.
 
-Para actualizar una clave API, ingresa toda la cadena en el cuadro de texto enmascarado y presiona **Save Keys (Guardar Claves)**. Siempre puedes hacer clic en `Clear (Limpiar)` para purgar las claves de la bóveda encriptada.
+## Proveedores de Texto a Voz (TTS)
+
+*   **Deepgram** — También usado para TTS en la nube (voces Aura).
+*   **OpenAI** — TTS con voces como `alloy`, `nova`, `shimmer`. Usa la misma clave de OpenAI.
+*   **Inworld** — Voces de IA conversacional. Consigue una clave en inworld.ai.
+
+## Gestión de Claves
+
+- Ingresa la cadena completa de la clave en el campo enmascarado y haz clic en el botón **guardar (✓)**.
+- Haz clic en el botón **eliminar (✗)** para eliminar una clave de la bóveda cifrada.
+- Un indicador verde junto al nombre del proveedor significa que hay una clave guardada y lista.

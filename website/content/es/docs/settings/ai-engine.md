@@ -1,21 +1,34 @@
 # Ajustes del Motor de IA (AI Engine)
 
-La pestaña **Motor de IA (AI Engine)** es el cerebro de tu experiencia con dIKta.me. Te permite seleccionar qué motor de transcripción de Voz a Texto (STT) y qué motor de procesamiento de Modelo de Lenguaje (LLM) quieres activos en este momento.
+La pestaña **Motor de IA (AI Engine)** es el cerebro de tu experiencia con dIKta.me. Controla qué motores de Voz a Texto (STT) y de Modelo de Lenguaje (LLM) manejan cada canalización. La pestaña tiene un diseño maestro-detalle: selecciona una categoría a la izquierda para configurarla a la derecha.
 
 > [!TIP]
-> **Nube vs. Local**: Puedes cambiar rápidamente tu entorno activo en la superposición del Panel de Control sin tener que abrir el menú de ajustes. Elige entre un entorno puramente en la nube (Cloud) o una experiencia pura en tu máquina local.
+> **Nube vs. Local**: Puedes cambiar el entorno activo directamente desde el Panel de Control sin abrir la configuración.
 
 ## Enrutamiento del Entorno
 
-*   **Ruta en la Nube (Cloud Route - Predeterminado)**: Usa proveedores de API de terceros con capacidad de internet que sobresalen tanto en velocidad como en precisión. 
-    *   **Proveedor STT (Voz a Texto)**: Puede usar Deepgram o las APIs estándar de OpenAI Whisper dependiendo de qué claves tengas vinculadas.
-    *   **Proveedor LLM (Modelo de Lenguaje)**: Usa modelos de chat de última generación de Google (Gemini) o Anthropic (Claude), procesando nativamente instrucciones de estilo complejas de forma rápida.
-*   **Ruta Local (Local Route - En el dispositivo)**: Usa módulos de Inteligencia Artificial fuera de línea. Completamente libre de tarifas de suscripción y extremadamente seguro, ya que el audio de tu micrófono omite el internet por completo.
-    *   **Proveedor STT**: Usa **Whisper.net**. Descargará un modelo de IA directamente a tu máquina local la primera vez que lo ejecutes.
-    *   **Proveedor LLM**: Usa **Ollama**. Se comunica de forma transparente con aplicaciones de IA de Escritorio Locales, procesando grandes conjuntos de datos de parámetros de forma totalmente offline.
+*   **Ruta en la Nube (Cloud Route - Predeterminado)**: Usa proveedores de API de terceros a través de internet.
+    *   **Proveedor STT**: Deepgram (streaming) u OpenAI Whisper (por lotes), según las claves configuradas.
+    *   **Proveedor LLM**: Elige entre Gemini, Anthropic (Claude), OpenAI (GPT), OpenRouter o Requesty, según las claves guardadas.
+*   **Ruta Local (Local Route - En el dispositivo)**: Usa módulos de IA sin conexión. Tu audio nunca sale de tu máquina.
+    *   **Proveedor STT**: **Whisper.net** — descarga un modelo ONNX la primera vez que se ejecuta.
+    *   **Proveedor LLM**: **Ollama** — se comunica con modelos locales que se ejecutan en tu hardware.
 
 ## Selección de Modelo
 
-Una vez que un entorno está activo, puedes reducir exactamente qué modelos quieres que tomen el control de tus canalizaciones. Por ejemplo, si configuras el entorno de la Nube a `Gemini`, el menú desplegable del modelo LLM te permitirá elegir entre `gemini-1.5-pro` (más lento, mejor) o `gemini-1.5-flash` (increíblemente rápido, ligero).
+Una vez activo un entorno, usa los menús desplegables de modelo para elegir el modelo exacto para cada canalización. Por ejemplo, con Gemini seleccionado puedes elegir entre `gemini-2.5-flash` (rápido, predeterminado) u otra variante más potente.
 
-Cambiar estos menús desplegables altera fundamentalmente la velocidad, la precisión y las capacidades de todas y cada una de las ejecuciones de las canalizaciones.
+Cambiar el modelo afecta cada ejecución de canalización: velocidad, precisión y costo cambian en consecuencia.
+
+## Subsecciones
+
+La página de ajustes del Motor de IA contiene las siguientes subsecciones:
+
+| Sección | Qué configura |
+|---------|--------------|
+| **API Keys** | Guardar y gestionar claves de API para todos los proveedores en la nube |
+| **Speech to Text** | Proveedor y modelo STT activo para las rutas Nube y Local |
+| **Language Model** | Proveedor y modelo LLM activo para las rutas Nube y Local |
+| **Text to Speech** | Proveedor TTS activo y ajustes de voz |
+| **Chat** | Prompt del sistema del Quick Chat e historial |
+| **System Monitor** | Estado de Ollama, GPU y caché de modelos |

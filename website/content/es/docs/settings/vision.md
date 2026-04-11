@@ -66,6 +66,16 @@ El lado más largo que puede tener una imagen antes de que dIKta.me la redimensi
 
 ---
 
+## Carpeta de Guardado
+
+Dónde se guardan las capturas de pantalla y grabaciones en el disco.
+
+*   **Predeterminado**: `%APPDATA%\DiktaMe\vision\`
+*   Introduce una ruta personalizada o haz clic en **Browse** para elegir una carpeta.
+*   Déjalo vacío para usar la ubicación predeterminada.
+
+---
+
 ## Comportamiento de Salida
 
 Cada acción de Vision tiene su propia alternancia **Inject at cursor**. Cuando está activada, la respuesta de la IA se escribe en la ventana activa en la posición del cursor. Cuando está desactivada, la respuesta va únicamente al portapapeles.
@@ -93,15 +103,19 @@ La frecuencia de fotogramas es fija a 30 fps.
 
 ### Audio del Micrófono
 
-Captura tu micrófono durante la grabación. Utiliza el mismo dispositivo de entrada configurado en **Ajustes → Audio**.
+Captura tu micrófono durante la grabación.
 
 *   **Predeterminado**: Activado
+
+Cuando está activado, aparece un menú desplegable **Microphone Device** para que puedas elegir qué micrófono usar en la grabación.
 
 ### Audio del Sistema
 
-Captura el audio que se reproduce en tu computadora (aplicaciones, pestañas del navegador, etc.).
+Captura el audio que se reproduce en tu computadora (aplicaciones, pestañas del navegador, etc.) mediante WASAPI loopback.
 
 *   **Predeterminado**: Activado
+
+Cuando está activado, aparece un menú desplegable **Output Device** para elegir qué dispositivo de reproducción capturar.
 
 ### Burbuja de Cámara Web
 
@@ -119,6 +133,26 @@ Superpone una transmisión de cámara web en imagen en imagen en la esquina infe
 La grabación se detiene automáticamente después de este número de segundos aunque no hayas hecho clic en Stop.
 
 *   **Predeterminado**: 120 segundos
+
+---
+
+## Prompts de Acción (Action Prompts)
+
+La sección **Prompts de Acción** (contraída por defecto — haz clic para expandir) te permite personalizar las instrucciones enviadas a la IA para cada acción de Vision. Los cambios se aplican tanto a los proveedores en la nube como a los locales.
+
+| Prompt | Propósito predeterminado |
+|--------|------------------------|
+| **OCR** | Extraer todo el texto exactamente como está escrito, conservando el formato |
+| **Table Extraction** | Extraer datos tabulares en formato TSV con encabezados |
+| **Video: Describe** | Describir qué ocurre en la grabación de forma concisa |
+| **Video: Document** | Generar instrucciones numeradas paso a paso |
+| **Video: Bug Report** | Generar un informe de error estructurado (Resumen / Pasos / Entorno) |
+| **Video: System Prompt** | Instrucciones base enviadas con cada solicitud de análisis de video |
+
+Las pestañas **Cloud** y **Local** también tienen su propio **System Prompt** y **Default Query** para solicitudes de captura de pantalla/imagen.
+
+> [!TIP]
+> Mantén los prompts de OCR y Tabla cortos y directivos — las instrucciones largas pueden interferir con la extracción estructurada.
 
 ---
 

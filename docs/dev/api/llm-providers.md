@@ -44,6 +44,20 @@ public interface ILLMProvider
 
 *Implementations*: `AnthropicProvider.cs`, `GeminiProvider.cs`, `OllamaProvider.cs`, `OpenAICompatibleProvider.cs`
 
+### OpenAI-compatible providers
+
+`OpenAICompatibleProvider` implements `ILLMProvider` for any endpoint that speaks the OpenAI Chat Completions spec (`POST {baseUrl}/v1/chat/completions`). Named constructors exist for each well-known service:
+
+| Provider | Factory method | Default model | Notes |
+|----------|---------------|---------------|-------|
+| OpenAI | `ForOpenAI(key)` | `gpt-4o-mini` | api.openai.com |
+| OpenRouter | `ForOpenRouter(key)` | `openai/gpt-4o-mini` | Routes to 200+ models; key prefix `sk-or-...` |
+| Requesty | `ForRequesty(key)` | *(provider default)* | Unified gateway for 300+ models |
+| DeepSeek | `ForDeepSeek(key)` | `deepseek-chat` | api.deepseek.com |
+| Groq | `ForGroq(key)` | `llama-3.3-70b-versatile` | Fast inference |
+
+To add a new OpenAI-compatible provider, use the generic constructor directly: `new OpenAICompatibleProvider(baseUrl, apiKey, model, name)` — no code changes needed.
+
 ### Multimodal support
 
 `ProcessWithImageAsync` has a default virtual implementation that throws `NotSupportedException`. All four current providers override it. See [Vision Pipeline](vision.md) for a full walkthrough of adding multimodal support to a new provider.
@@ -67,8 +81,25 @@ dIKta.me supports infinite custom modes, so the `LLMRouter` is also responsible 
 
 ## Adding a New Provider
 
+### OpenAI-compatible endpoints (recommended path)
+
+If the provider speaks the OpenAI Chat Completions spec, you don't need a new class:
+
+```csharp
+// In LLMProviderFactory.cs, add a new case:
+"myprovider" => new OpenAICompatibleProvider(
+    "https://api.myprovider.com",
+    key ?? throw new InvalidOperationException("MyProvider API key not configured."),
+    "my-model-name",
+    "MyProvider"),
+```
+
+Then add the key name to `SecureStorage.ValidProviders` and wire up the UI in `ApiKeysSettingsViewModel`.
+
+### Custom protocol providers
+
 1.  Create `MyCustomLLMProvider.cs` in `src/DiktaMe.Core/LLM/`.
-2.  Implement `ILLMProvider`. Focus heavily on handling HTTP 429 Rate Limits and 401 Unauthorized exceptions gracefully.
-3.  Add your provider to the `LlmProviderType` enum.
-4.  Register it inside `LLMProviderFactory.cs`.
-5.  *(Dependency Injection)*: Register your new class as a Transient service in `App.xaml.cs`.
+2.  Implement `ILLMProvider`. Handle HTTP 429 (rate limit) and 401 (unauthorized) gracefully — do not throw uncaught exceptions.
+3.  Register it inside `LLMProviderFactory.cs` with a string key.
+4.  Add the API key name to `SecureStorage.ValidProviders`.
+5.  Wire up the save/delete commands in `ApiKeysSettingsViewModel` and the UI card in `AIEngineSettingsPage.xaml`.

@@ -1,21 +1,34 @@
 # AI Engine Settings
 
-The **AI Engine** tab is the brain of your dIKta.me experience. It allows you to select which specific Speech-to-Text (STT) transcribe engine and Large Language Model (LLM) processing engine you want active right now.
+The **AI Engine** tab is the brain of your dIKta.me experience. It controls which Speech-to-Text (STT) and Large Language Model (LLM) engines handle each pipeline. The tab has a master-detail layout — select a category on the left to configure it on the right.
 
 > [!TIP]
-> **Cloud vs. Local**: You can rapidly switch your active environment in the Control Panel overlay without having to open the settings menu. Choose between a pure Cloud environment or a pure Local machine experience.
+> **Cloud vs. Local**: You can switch the active environment directly from the Control Panel overlay without opening settings.
 
 ## Environment Routing
 
-*   **Cloud Route (Default)**: Uses internet-capable third-party API providers that excel in both speed and accuracy. 
-    *   **STT Provider**: Can use Deepgram or standard OpenAI Whisper APIs depending on what keys you have linked.
-    *   **LLM Provider**: Uses state-of-the-art chat models from Google (Gemini) or Anthropic (Claude), natively processing complex stylistic prompt instructions quickly.
-*   **Local Route (On-Device)**: Uses offline Artificial Intelligence modules. Completely free of subscription fees and extremely secure, as your microphone audio completely bypasses the internet.
-    *   **STT Provider**: Uses **Whisper.net**. It will download an AI model directly onto your local machine the first time you run it.
-    *   **LLM Provider**: Uses **Ollama**. It communicates seamlessly with Local Desktop AI applications processing large parameter datasets completely offline.
+*   **Cloud Route (Default)**: Uses third-party API providers over the internet.
+    *   **STT Provider**: Deepgram (streaming) or OpenAI Whisper (batch), depending on which keys you have configured.
+    *   **LLM Provider**: Choose from Gemini, Anthropic (Claude), OpenAI (GPT), OpenRouter, or Requesty — whichever keys you have saved.
+*   **Local Route (On-Device)**: Uses offline AI modules. Your audio never leaves your machine.
+    *   **STT Provider**: **Whisper.net** — downloads an ONNX model the first time it runs.
+    *   **LLM Provider**: **Ollama** — communicates with local models running on your hardware.
 
 ## Model Selection
 
-Once an environment is active, you can narrow down exactly what models you want taking control of your pipelines. For example, if you set the Cloud environment to `Gemini`, the LLM model dropdown will let you choose between `gemini-1.5-pro` (slower, better) or `gemini-1.5-flash` (blazing fast, lightweight).
+Once an environment is active, use the model dropdowns to pick the exact model for each pipeline. For example, with Gemini selected you can choose between `gemini-2.5-flash` (fast, default) or a more capable model variant.
 
-Changing these dropdowns fundamentally alters the speed, accuracy, and capabilities of every single pipeline execution.
+Changing the model dropdown affects every pipeline execution: speed, accuracy, and cost all shift accordingly.
+
+## Sub-sections
+
+The AI Engine settings page contains the following sub-sections:
+
+| Section | What it configures |
+|---------|-------------------|
+| **API Keys** | Save and manage API keys for all cloud providers |
+| **Speech to Text** | Active STT provider and model for Cloud and Local routes |
+| **Language Model** | Active LLM provider and model for Cloud and Local routes |
+| **Text to Speech** | Active TTS provider and voice settings |
+| **Chat** | Quick Chat system prompt and history settings |
+| **System Monitor** | Ollama health, GPU status, and model cache |

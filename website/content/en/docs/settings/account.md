@@ -1,22 +1,75 @@
 # Account Settings
 
-The **Account** tab is your central hub for managing your primary dIKta.me configuration, credit system, and subscription.
+The **Account** tab manages your Power License, Wallet balance, and cloud sign-in.
 
-If you don't want to use your own Developer accounts to connect to Anthropic, OpenAI, or Google in the `API Keys` tab (Bring Your Own Key), you can utilize the native **dIKta.me Cloud**.
+---
 
-## Authentication Options
+## Power License
 
-Depending on how you intend to use the app, dIKta.me allows you to declare how you authenticate:
+The **Power License** unlocks two additional authentication modes:
 
-1.  **Wallet Mode**: Authenticates via the dIKta.me cloud infrastructure. Every dictation, translation, and chat query effortlessly deducts micro-cents from your pre-loaded Wallet balance based on exactly how many tokens you consumed. You do not need to manage API keys, monitor traffic, or worry about rate limits.
-2.  **API Key Mode**: Completely bypasses the dIKta.me cloud servers. You must provide all of your own developer keys in the `API Keys` tab. Your requests are processed entirely locally using your personal provider accounts.
-3.  **Local Mode**: Bypasses everything. dIKta.me exclusively talks to Ollama and Whisper.net running natively on your computer, meaning no internet or authentication is required at all to dictate, ask, or refine text.
+- **API Key (BYOK) Mode** — bring your own Deepgram, Gemini, Anthropic, OpenAI, OpenRouter, or Requesty keys
+- **Local Mode** — run fully offline with Whisper.net and Ollama on your own hardware
 
-## Profile Management
+Without a Power License, **Wallet Mode** (cloud dictation using dIKta.me credits) is available for free after signing in.
 
-*   **Log In**: Authenticate your dIKta.me account seamlessly via your web browser to access your Wallet balance across multiple PCs securely.
-*   **Avatar Customization**: Personalize your dIKta.me HUD by uploading a custom profile picture. The settings interface includes a built-in circular cropping tool to ensure your avatar fits perfectly on your dashboard and user pane.
-*   **Balance Top-Up**: Purchase additional compute credits that are credited to your active session instantly without interrupting your workflow.
-*   **Sign Out**: Safely purge your active authorization tokens and revert to an Unauthenticated state. 
+### Activating your license
 
-*Note: All local Dictation settings, Presets, and customizations are preserved even if you completely log out or switch Authentication Modes.*
+1. Purchase a Power License at [dikta.me/pricing](https://www.dikta.me/pricing). You'll receive a GUID license key by email.
+2. In the Account tab, paste the key into the **License Key** field.
+3. Click **Activate**.
+
+The key is validated online against the LemonSqueezy License API and then stored securely with Windows DPAPI. Once activated, dIKta.me works offline for up to **30 days** without an internet re-check.
+
+> Each key supports up to **3 machine activations**. To move your license to a different PC, click **Deactivate** first.
+
+---
+
+## Authentication Modes
+
+dIKta.me supports three modes, switchable from the Control Panel:
+
+1. **Wallet Mode** — Every dictation, translation, and chat request deducts credits from your pre-loaded balance. No API keys needed — just sign in.
+2. **API Key Mode** *(Power License required)* — Requests go directly from your machine to each AI provider using your own developer keys. dIKta.me servers are never in the path.
+3. **Local Mode** *(Power License required)* — Fully offline. dIKta.me talks only to Ollama and Whisper.net running on your hardware.
+
+*All Dictation settings, Macros, and customizations are preserved regardless of mode or sign-out.*
+
+---
+
+## Wallet & Credits
+
+Sign in with your dIKta.me account (via secure browser OAuth) to activate Wallet Mode.
+
+### Balance
+
+Your balance is shown in **credits** (1 credit = $0.001). The Control Panel HUD displays a compact version (e.g., `4.8k C`).
+
+Color indicators:
+- **Green** — 1,000+ credits
+- **Yellow** — 500–999 credits
+- **Red** — below 500 credits
+
+### Buying credits
+
+Click **Buy Credits** to open a checkout for the **4,000-credit pack ($5)**. If signed in, your email is pre-filled. Credits appear in your balance immediately after purchase.
+
+### Usage history
+
+The **Usage History** section shows daily credit summaries. Each row displays:
+
+| Column | Description |
+|--------|-------------|
+| Type | Usage, Purchase, Refund, etc. |
+| Date | Day the activity occurred |
+| Amount | Credits consumed or added (e.g., `−12 cr`) |
+| Balance | Running balance after that day |
+
+Click **View detailed usage history →** to open the full dashboard at [dikta.me/dashboard](https://www.dikta.me/dashboard).
+
+---
+
+## Profile
+
+- **Avatar Customization**: Upload a custom profile picture. A built-in circular cropping tool fits it perfectly in the HUD and Quick Chat window.
+- **Sign Out**: Clears session tokens and returns to unauthenticated state.

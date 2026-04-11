@@ -1,32 +1,62 @@
 # Primeros Pasos
 
-¡Bienvenido! Vamos a prepararte con **dIKta.me**. Es más sencillo de lo que piensas—no requiere programación ni instalaciones complejas.
+¡Bienvenido! Vamos a prepararte con **dIKta.me**. No requiere programación ni instalaciones complejas.
 
 ## 1. Instalación
 
-Debido a que la V2 es una aplicación nativa de Windows, simplemente funciona.
+1. **Descargar**: Descarga el último `DiktaMe_Setup.exe` desde la [página de Releases](https://github.com/geckogtmx/diktame/releases).
+2. **Ejecutar**: Haz doble clic en el instalador.
+   > *Advertencia de Windows SmartScreen la primera vez: haz clic en "Más información" → "Ejecutar de todas formas" para continuar.*
+3. **Listo**: dIKta.me se iniciará y se ubicará en tu bandeja del sistema.
 
-1.  **Descargar**: dIKta.me se encuentra actualmente en acceso anticipado. Puedes unirte a la lista de espera (https://dikta.me/waitlist) para recibir una notificación cuando las descargas estén disponibles.
-2.  **Ejecutar**: Una vez disponible, haz doble clic en el instalador.
-    > *Aviso: Dado que somos una aplicación nueva, Windows podría preguntarte si confías en nosotros. Haz clic en "Más información" -> "Ejecutar de todas formas" para continuar.*
-3.  **Listo**: dIKta.me se iniciará automáticamente y se ubicará en tu bandeja del sistema.
+---
 
 ## 2. Asistente de Primera Ejecución
 
-La primera vez que abras dIKta.me, te guiaremos a través de una configuración rápida:
+La primera vez que abras dIKta.me, un breve asistente de configuración te guiará.
 
-- **🎙️ Prueba de Micrófono (Mic Check)**: Elige tu micrófono. Te mostraremos un pequeño medidor de nivel para que sepas que te estamos escuchando.
-- **🧠 Prueba de Cerebro (Brain Check)**: Elige tu IA.
-    - **Modo Nube (Cloud Mode)**: La forma más fácil de empezar. Solo necesitas una clave API.
-    - **Modo Local (Local Mode)**: Ideal para los fanáticos de la privacidad. Usa Whisper/Ollama en tu propia máquina.
-- **✅ Permisos (Permissions)**: Te pediremos permiso para escuchar (cuando tú lo digas) y escribir (donde tú nos digas).
+### Paso 1 — Idioma
+
+Elige inglés o español para la interfaz de la aplicación.
+
+### Paso 2 — Elige tu modo
+
+| Modo | Qué hace | Requiere |
+|------|----------|----------|
+| **Wallet (Billetera)** | Dictado en la nube con créditos de dIKta.me. Solo inicia sesión, sin claves de API. | Cuenta gratuita |
+| **API Key (BYOK)** | Usa tus propias claves de Deepgram, Gemini, Anthropic y/u OpenAI. Las solicitudes van directamente a cada proveedor. | Power License |
+| **Local** | Totalmente sin conexión con Whisper.net + Ollama en tu máquina. | Power License |
+
+> **Wallet es la forma más rápida de empezar.** El asistente abrirá una pestaña del navegador para iniciar sesión y listo.
+>
+> **BYOK y Local** requieren una [Power License](https://www.dikta.me/pricing). Si seleccionas uno de estos sin una licencia activa, el asistente mostrará un aviso de activación antes de continuar.
+
+### Pasos 3–5 — STT, LLM, TTS *(solo ruta BYOK)*
+
+Si elegiste el modo API Key, el asistente te guía por:
+
+- **Speech to Text (STT)**: Nube (Deepgram u OpenAI Whisper) o Local (Whisper.net, se descarga en el primer uso).
+- **Language Model (LLM)**: Nube (Gemini, Claude, GPT, OpenRouter…) o Local (Ollama).
+- **Text to Speech (TTS)**: Desactivado, Nube (Deepgram, OpenAI o Gemini TTS) o Local (Kokoro).
+
+### Paso 6 — Claves de API *(si se seleccionaron proveedores en la nube)*
+
+Introduce las claves para los proveedores en la nube que elegiste. Las claves se cifran inmediatamente con Windows DPAPI. Este paso se omite automáticamente si seleccionaste solo proveedores locales.
+
+### Paso 7 — Prueba
+
+Asegúrate de que tu micrófono sea detectado y de que la IA responda correctamente.
+
+### Paso 8 — ¡Listo!
+
+Todo está configurado. El Panel de Control aparece en pantalla y dIKta.me está listo para usar.
+
+---
 
 ## 3. Cómo Usarlo
 
-Piensa en dIKta.me como un asistente silencioso que vive en tu bandeja del sistema.
+dIKta.me vive en silencio en tu bandeja del sistema.
 
-- **Para Dictar (To Dictate)**: Haz clic en cualquier lugar donde puedas escribir y presiona **`Ctrl+Alt+D`**. Idealmente, mantenlo presionado mientras hablas, como un walkie-talkie.
-- **Para Detener (To Stop)**: Simplemente suelta la tecla. Escribiremos lo que dijiste.
-- **Para Modificar (To Tweak)**: Haz clic derecho en el pequeño icono de la bandeja para cambiar la configuración en cualquier momento.
-
-¡Eso es todo! Estás listo para hablar.
+- **Para Dictar**: Haz clic en cualquier lugar donde puedas escribir y presiona **`Ctrl+Alt+D`**. Mantenlo presionado mientras hablas, luego suéltalo — dIKta.me escribe lo que dijiste.
+- **Para Configurar**: Haz clic derecho en el icono de la bandeja o haz clic en el icono de engranaje del Panel de Control para abrir la Configuración.
+- **Para Cambiar de Modo**: Haz clic en el interruptor Nube/Local del HUD del Panel de Control.

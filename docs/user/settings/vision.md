@@ -78,6 +78,16 @@ The longest side (width or height) an image is allowed before dIKta.me resizes i
 
 ---
 
+## Save Folder
+
+Where screenshots and screen recordings are saved on disk.
+
+- **Default**: `%APPDATA%\DiktaMe\vision\`
+- Enter a custom path or click **Browse** to pick a folder.
+- Leave empty to use the default location.
+
+---
+
 ## Output Behaviour
 
 Each Vision action has its own **Inject at cursor** toggle. When enabled, the AI response is typed into the active window at the cursor position. When disabled, the response goes to the clipboard only.
@@ -115,7 +125,8 @@ Frame rate is fixed at **30 fps**.
 Captures your microphone during recording.
 
 - **Default**: On
-- Uses the same input device configured in **Settings → Audio**.
+
+When enabled, a **Microphone Device** dropdown appears below the toggle. Pick the specific device to use for the recording (defaults to the system default mic if left unchanged).
 
 ### System Audio
 
@@ -123,6 +134,8 @@ Captures audio playing on your computer (applications, browser tabs, etc.) via W
 
 - **Default**: On
 - Useful for capturing meeting replays, tutorials, or browser video.
+
+When enabled, an **Output Device** dropdown appears. Select the playback device whose audio you want to capture.
 
 ### Webcam Bubble
 
@@ -141,6 +154,26 @@ The recording stops automatically after this many seconds even if you have not c
 
 - **Default**: 120 seconds (2 minutes)
 - Configurable via `VideoRecordingOptions.MaxDurationSeconds`.
+
+---
+
+## Action Prompts
+
+The **Action Prompts** section (collapsed by default — click to expand) lets you customise the exact instructions sent to the AI for each Vision action. Changes apply to both Cloud and Local providers.
+
+| Prompt | Default purpose |
+|--------|----------------|
+| **OCR** | Extract all text exactly as written, preserving formatting and line breaks |
+| **Table Extraction** | Extract tabular data as TSV with headers |
+| **Video: Describe** | Describe what happens in the recording concisely |
+| **Video: Document** | Generate numbered step-by-step instructions from the recording |
+| **Video: Bug Report** | Generate a structured bug report (Summary, Expected, Actual, Steps, Environment) |
+| **Video: System Prompt** | Base instructions sent with every video analysis request |
+
+Additionally, the **Cloud** and **Local** tabs each have their own **System Prompt** and **Default Query** fields for screenshot/image requests.
+
+> [!TIP]
+> Keep OCR and Table prompts short and directive — long creative instructions confuse extraction-focused tasks.
 
 ---
 
