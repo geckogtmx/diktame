@@ -110,6 +110,39 @@ public sealed class AccountServiceTests : IDisposable
         _settings.Current.Account.Email.Should().BeEmpty();
     }
 
+    [Fact]
+    public void HasValidToken_WithStoredToken_ReturnsTrue()
+    {
+        string jwt = BuildJwt(new { email = "test@example.com" });
+        _secureStorage.StoreKey("trial_token", jwt);
+
+        _sut.HasValidToken.Should().BeTrue();
+    }
+
+    [Fact]
+    public void HasValidToken_NoToken_ReturnsFalse()
+    {
+        _sut.HasValidToken.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Email_FromSettings_ReturnsEmail()
+    {
+        var newSettings = _settings.Current with
+        {
+            Account = _settings.Current.Account with { Email = "user@example.com" },
+        };
+        await _settings.UpdateAsync(newSettings);
+
+        _sut.Email.Should().Be("user@example.com");
+    }
+
+    [Fact]
+    public void Email_Empty_ReturnsNull()
+    {
+        _sut.Email.Should().BeNull();
+    }
+
     public void Dispose()
     {
         _sut.Dispose();

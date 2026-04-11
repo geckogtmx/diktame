@@ -52,6 +52,12 @@ public sealed class LicenseManager
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
     }
 
+    internal LicenseManager(SecureStorage secureStorage, HttpClient httpClient)
+    {
+        _secureStorage = secureStorage;
+        _httpClient = httpClient;
+    }
+
     /// <summary>
     /// Loads license from DPAPI secure storage on startup.
     /// If a stored key exists, trusts it (offline grace). Call <see cref="ValidateAsync"/> separately for online re-check.

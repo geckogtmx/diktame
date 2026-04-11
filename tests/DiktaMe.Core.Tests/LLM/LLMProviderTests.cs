@@ -184,6 +184,44 @@ public sealed class OpenAICompatibleProviderTests
     }
 
     [Fact]
+    public async Task Process_429RateLimit_ThrowsOnFinalRetry()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.TooManyRequests, "rate limited");
+        using var http = new HttpClient(handler);
+        using var p = new OpenAICompatibleProvider(
+            OpenAICompatibleProvider.OpenAIBaseUrl, "key", "gpt-4o-mini", "OpenAI", http);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => p.ProcessAsync("text", "prompt"));
+    }
+
+    [Fact]
+    public async Task Process_MalformedJson_ReturnsEmptyResult()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, "{broken json");
+        using var http = new HttpClient(handler);
+        using var p = new OpenAICompatibleProvider(
+            OpenAICompatibleProvider.OpenAIBaseUrl, "key", "gpt-4o-mini", "OpenAI", http);
+
+        var result = await p.ProcessAsync("text", "prompt");
+
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Process_EmptyBody_ReturnsEmptyResult()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, "");
+        using var http = new HttpClient(handler);
+        using var p = new OpenAICompatibleProvider(
+            OpenAICompatibleProvider.OpenAIBaseUrl, "key", "gpt-4o-mini", "OpenAI", http);
+
+        var result = await p.ProcessAsync("text", "prompt");
+
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
     public async Task ProcessConversation_ValidResponse_ReturnsText()
     {
         var handler = new LlmFakeHandler(HttpStatusCode.OK, OaiResponse);
@@ -346,6 +384,41 @@ public sealed class GeminiProviderTests
         Assert.Contains("systemInstruction", body);
         Assert.DoesNotContain("\"role\":\"assistant\"", body);
     }
+
+    [Fact]
+    public async Task Process_429RateLimit_ThrowsOnFinalRetry()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.TooManyRequests, "rate limited");
+        using var http = new HttpClient(handler);
+        using var p = new GeminiProvider("key", httpClient: http);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => p.ProcessAsync("text", "prompt"));
+    }
+
+    [Fact]
+    public async Task Process_MalformedJson_ReturnsEmptyResult()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, "{broken");
+        using var http = new HttpClient(handler);
+        using var p = new GeminiProvider("key", httpClient: http);
+
+        var result = await p.ProcessAsync("text", "prompt");
+
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Process_EmptyBody_ReturnsEmptyResult()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, "");
+        using var http = new HttpClient(handler);
+        using var p = new GeminiProvider("key", httpClient: http);
+
+        var result = await p.ProcessAsync("text", "prompt");
+
+        Assert.False(result.IsSuccess);
+    }
 }
 
 // ── AnthropicProvider ─────────────────────────────────────────────────────────
@@ -447,6 +520,41 @@ public sealed class AnthropicProviderTests
         Assert.Contains("\"system\":\"Be helpful.\"", body);
         Assert.Contains("\"role\":\"user\"", body);
         Assert.Contains("\"role\":\"assistant\"", body);
+    }
+
+    [Fact]
+    public async Task Process_429RateLimit_ThrowsOnFinalRetry()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.TooManyRequests, "rate limited");
+        using var http = new HttpClient(handler);
+        using var p = new AnthropicProvider("key", httpClient: http);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => p.ProcessAsync("text", "prompt"));
+    }
+
+    [Fact]
+    public async Task Process_MalformedJson_ReturnsEmptyResult()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, "{broken");
+        using var http = new HttpClient(handler);
+        using var p = new AnthropicProvider("key", httpClient: http);
+
+        var result = await p.ProcessAsync("text", "prompt");
+
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Process_EmptyBody_ReturnsEmptyResult()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, "");
+        using var http = new HttpClient(handler);
+        using var p = new AnthropicProvider("key", httpClient: http);
+
+        var result = await p.ProcessAsync("text", "prompt");
+
+        Assert.False(result.IsSuccess);
     }
 }
 
@@ -558,6 +666,41 @@ public sealed class OllamaProviderTests
         await p.ProcessConversationAsync(history, "prompt");
 
         Assert.Contains("/api/chat", handler.LastRequestUri?.AbsolutePath ?? "");
+    }
+
+    [Fact]
+    public async Task Process_429RateLimit_ThrowsOnFinalRetry()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.TooManyRequests, "rate limited");
+        using var http = new HttpClient(handler);
+        using var p = new OllamaProvider("llama3.2", httpClient: http);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => p.ProcessAsync("text", "prompt"));
+    }
+
+    [Fact]
+    public async Task Process_MalformedJson_ReturnsEmptyResult()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, "{broken");
+        using var http = new HttpClient(handler);
+        using var p = new OllamaProvider("llama3.2", httpClient: http);
+
+        var result = await p.ProcessAsync("text", "prompt");
+
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Process_EmptyBody_ReturnsEmptyResult()
+    {
+        var handler = new LlmFakeHandler(HttpStatusCode.OK, "");
+        using var http = new HttpClient(handler);
+        using var p = new OllamaProvider("llama3.2", httpClient: http);
+
+        var result = await p.ProcessAsync("text", "prompt");
+
+        Assert.False(result.IsSuccess);
     }
 }
 
@@ -784,6 +927,67 @@ public sealed class LLMRouterTests
         var result = await router.ProcessConversationAsync(history, "prompt");
 
         Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task IsAvailable_PrimaryUnavailable_FallbackAvailable_ReturnsTrue()
+    {
+        var primary = new Mock<ILLMProvider>();
+        primary.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        var fallback = new Mock<ILLMProvider>();
+        fallback.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        var router = new LLMRouter(primary.Object, MockFactory().Object, fallback.Object);
+
+        Assert.True(await router.IsAvailableAsync());
+    }
+
+    [Fact]
+    public async Task IsAvailable_BothUnavailable_ReturnsFalse()
+    {
+        var primary = new Mock<ILLMProvider>();
+        primary.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        var fallback = new Mock<ILLMProvider>();
+        fallback.Setup(p => p.IsAvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        var router = new LLMRouter(primary.Object, MockFactory().Object, fallback.Object);
+
+        Assert.False(await router.IsAvailableAsync());
+    }
+
+    [Fact]
+    public async Task Process_NoFallback_PrimaryFails_ReturnsEmptyResult()
+    {
+        var primary = new Mock<ILLMProvider>();
+        primary.Setup(p => p.ProviderName).Returns("Primary");
+        primary.Setup(p => p.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new HttpRequestException("network error"));
+        var router = new LLMRouter(primary.Object, MockFactory().Object);
+
+        var result = await router.ProcessAsync("text", "prompt");
+
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ProcessConversation_WithModelName_DelegatesToFactory()
+    {
+        var history = new List<ConversationTurn> { new("user", "hi") };
+        var primary = new Mock<ILLMProvider>();
+        primary.Setup(p => p.ProviderName).Returns("Primary");
+
+        var resolved = new Mock<ILLMProvider>();
+        resolved.Setup(p => p.ProviderName).Returns("OpenAI");
+        resolved.Setup(p => p.ProcessConversationAsync(
+                It.IsAny<IReadOnlyList<ConversationTurn>>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OkResult("model chat output", "OpenAI"));
+
+        var factory = new Mock<ILLMProviderFactory>();
+        factory.Setup(f => f.CreateProvider("openai", null, "gpt-4o-mini")).Returns(resolved.Object);
+
+        var router = new LLMRouter(primary.Object, factory.Object);
+        var result = await router.ProcessConversationAsync(history, "prompt", modelName: "gpt-4o-mini");
+
+        Assert.Equal("model chat output", result.Text);
     }
 }
 

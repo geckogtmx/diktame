@@ -1,47 +1,48 @@
-# Testing Coverage Report — 2026-03-23
+# Testing Coverage Report — 2026-04-10
 
 ## Summary
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | 1010 (local) / ~520 (CI — DPAPI/Clipboard/Audio/Whisper skipped on runners) |
+| **Total Tests** | 1,192 (1,090 unit + 102 integration) |
+| **CI Tests** | ~1,090 (integration + hardware skipped on runners) |
 | **Test Framework** | xUnit + Moq + FluentAssertions |
-| **Test Files** | 60 |
-| **Core Source Files** | 91 (61 testable) |
-| **App Source Files** | 60 (0 unit tested — WinUI 3 UI layer) |
-| **Core File-Level Coverage** | **93.4%** (57 / 61 testable classes) |
-| **Estimated Line-Level Coverage** | **~70-75%** |
-| **Effective Coverage (controllable code)** | **~75%** |
+| **Test Files** | 71 |
+| **Core Source Files** | 106 |
+| **Core File-Level Coverage** | **95%** (57 / 60 testable classes) |
+| **Estimated Line-Level Coverage** | **~80%** |
 
 ---
 
 ## Module Breakdown
 
-| Module | Tests | Files | Covered / Testable | Coverage | Notes |
-|--------|-------|-------|-------------------|----------|-------|
-| **TTS** | 184 | 10 | 10 / 13 | 77% | `GeminiTtsProvider.cs` untested (newest) |
-| **Config** | 118 | 8 | 9 / 12 | 75% | `LLMProviderFactory`, `STTProviderFactory` untested |
-| **STT** | 95 | 6 | 5 / 9 | 56% | Whisper tests skipped on CI (no GPU/model) |
-| **Pipeline** | 89 | 4 | 8 / 8 | **100%** | All 8 pipelines covered |
-| **Data** | 82 | 5 | 5 / 6 | 83% | |
-| **LLM** | 69 | 3 | 5 / 7 | 71% | All providers + router tested |
-| **Audio** | 62 | 6 | 5 / 6 | 83% | Hardware-dependent tests skipped on CI |
-| **Account** | 46 | 6 | 5 / 6 | 83% | `AccountService.cs` untested (HTTP + OAuth redirect) |
-| **Input** | 44 | 4 | 4 / 4 | **100%** | Clipboard tests use `[Collection("Clipboard")]` |
-| **System** | 41 | 2 | 2 / 3 | 67% | `HardwareInfoService` untested (WMI queries) |
-| **Security** | 26 | 3 | 3 / 3 | **100%** | DPAPI tests skipped on CI |
-| **Weather** | 13 | 1 | 1 / 1 | **100%** | Open-Meteo + IP geolocation |
-| **Root** | 10 | 2 | — | — | Localization + scaffold tests |
-| **TOTAL** | **1010** | **60** | **57 / 61** | **93.4%** | |
+| Module | Tests | Files | Covered / Testable | Notes |
+|--------|-------|-------|-------------------|-------|
+| **TTS** | 200 | 11 | 11 / 13 | All providers including Gemini TTS |
+| **Config** | 157 | 12 | 11 / 12 | PipelineConfigManager, SettingsManager, PipelineFactory |
+| **Pipeline** | 96 | 4 | 8 / 8 | All 8 pipelines including Refine edge cases |
+| **STT** | 95 | 6 | 5 / 9 | Whisper tests skipped on CI (no GPU/model) |
+| **LLM** | 90 | 3 | 6 / 7 | All 4 providers + router + ModelListService HTTP |
+| **Data** | 84 | 5 | 5 / 6 | SQLite integration tests |
+| **Audio** | 62 | 6 | 5 / 6 | Hardware-dependent tests skipped on CI |
+| **System** | 50 | 3 | 2 / 3 | OllamaManager (33 unit + 9 integration) |
+| **Account** | 45 | 5 | 5 / 6 | AccountService, JWT, TokenRefresh, WalletProxy |
+| **Input** | 44 | 4 | 4 / 4 | Clipboard tests use `[Collection("Clipboard")]` |
+| **Plugin** | 24 | 4 | 4 / 4 | EventBus, PluginManager, UIRegistry, SettingsStore |
+| **Security** | 25 | 4 | 4 / 4 | LicenseManager (14 tests), ApiKeyValidator, PIIScrubber, SecureStorage |
+| **Weather** | 13 | 1 | 1 / 1 | Open-Meteo + IP geolocation |
+| **Vision** | 10 | 1 | 1 / 1 | VisionPipeline orchestration |
+| **Root** | 10 | 2 | — | Localization + scaffold tests |
+| **TOTAL** | **1,005** | **71** | **57 / 60** | (+83 [InlineData] theory cases = 1,090 CI) |
 
 ---
 
-## Classes WITH Test Coverage (57+ files)
+## Classes WITH Test Coverage (57 files)
 
 ### Account (5/6)
+- `AccountService.cs` -> `AccountServiceTests.cs` (9 tests)
 - `JwtDecoder.cs` -> `JwtDecoderTests.cs` + `JwtDecoderExtendedTests.cs`
 - `TokenRefreshService.cs` -> `TokenRefreshServiceTests.cs`
-- `AccountService.cs` -> `AccountServiceTests.cs`
 - `WalletGeminiProxy.cs` -> `WalletGeminiProxyTests.cs`
 
 ### Audio (5/6)
@@ -51,23 +52,25 @@
 - `AudioRecorder.cs` -> `AudioRecorderTests.cs`
 - `MuteDetector.cs` -> `MuteDetectorTests.cs`
 
-### Config (9/12)
+### Config (11/12)
 - `DictationModeDefaults.cs` -> `DictationModeDefaultsTests.cs`
 - `DictationModeManager.cs` -> `DictationModeManagerTests.cs`
-- `PipelineFactory.cs` -> `PipelineFactoryTests.cs`
+- `PipelineConfigManager.cs` -> `PipelineConfigManagerTests.cs` (9 tests)
+- `PipelineFactory.cs` -> `PipelineFactoryTests.cs` (17 tests)
 - `ProfileManager.cs` -> `ProfileManagerTests.cs`
 - `PromptDefaults.cs` -> `PromptDefaultsTests.cs`
 - `PromptRepository.cs` -> `PromptRepositoryTests.cs`
-- `SettingsManager.cs` -> `SettingsManagerTests.cs` (25 tests)
+- `SettingsManager.cs` -> `SettingsManagerTests.cs` (28 tests)
 - `SnippetManager.cs` -> `SnippetManagerTests.cs` (19 tests)
 - `TTSProviderFactory.cs` -> `TTSProviderFactoryTests.cs`
+- `ApiCommandParser.cs` -> included in Config tests
 
 ### Data (5/6)
-- `ConversationManager.cs` -> `ConversationManagerTests.cs` (20 tests)
-- `HistoryManager.cs` -> `HistoryManagerTests.cs`
+- `ConversationManager.cs` -> `ConversationManagerTests.cs` (20 tests, integration)
+- `HistoryManager.cs` -> `HistoryManagerTests.cs` (18 tests, integration)
 - `MetricsCollector.cs` -> `MetricsCollectorTests.cs`
-- `NoteWriter.cs` -> `NoteWriterTests.cs`
-- `WalletManager.cs` -> `WalletManagerTests.cs` (23 tests)
+- `NoteWriter.cs` -> `NoteWriterTests.cs` (16 tests, integration)
+- `WalletManager.cs` -> `WalletManagerTests.cs` (23 tests, integration)
 
 ### Input (4/4)
 - `ClipboardManager.cs` -> `ClipboardManagerTests.cs`
@@ -75,13 +78,13 @@
 - `HotkeyParser.cs` -> `HotkeyParserTests.cs`
 - `TextInjector.cs` -> `TextInjectorTests.cs`
 
-### LLM (5/7)
-- `AnthropicProvider.cs` -> `LLMProviderTests.cs::AnthropicProviderTests`
-- `GeminiProvider.cs` -> `LLMProviderTests.cs::GeminiProviderTests`
-- `LLMRouter.cs` -> `LLMProviderTests.cs::LLMRouterTests` + `LLMRouterWalletTests.cs`
-- `ModelListService.cs` -> `ModelListServiceTests.cs`
-- `OllamaProvider.cs` -> `LLMProviderTests.cs::OllamaProviderTests`
-- `OpenAICompatibleProvider.cs` -> `LLMProviderTests.cs::OpenAICompatibleProviderTests`
+### LLM (6/7)
+- `AnthropicProvider.cs` -> `LLMProviderTests.cs::AnthropicProviderTests` (8 tests)
+- `GeminiProvider.cs` -> `LLMProviderTests.cs::GeminiProviderTests` (10 tests)
+- `LLMRouter.cs` -> `LLMProviderTests.cs::LLMRouterTests` + `LLMRouterWalletTests.cs` (18 tests)
+- `ModelListService.cs` -> `ModelListServiceTests.cs` (20 tests including HTTP-level)
+- `OllamaProvider.cs` -> `LLMProviderTests.cs::OllamaProviderTests` (11 tests)
+- `OpenAICompatibleProvider.cs` -> `LLMProviderTests.cs::OpenAICompatibleProviderTests` (14 tests)
 
 ### Pipeline (8/8)
 - `AskPipeline.cs` -> `PipelineTests.cs`
@@ -89,12 +92,19 @@
 - `DictationPipeline.cs` -> `PipelineTests.cs`
 - `NotePipeline.cs` -> `PipelineTests.cs`
 - `ReadSelectionPipeline.cs` -> `ReadSelectionPipelineTests.cs` (21 tests)
-- `RefinePipeline.cs` -> `PipelineTests.cs`
+- `RefinePipeline.cs` -> `PipelineTests.cs` (8 tests)
 - `StreamingDictationPipeline.cs` -> `StreamingDictationPipelineTests.cs` (21 tests)
 - `TranslatePipeline.cs` -> `PipelineTests.cs`
 
-### Security (3/3)
+### Plugin (4/4)
+- `JsonPluginSettingsStore.cs` -> `JsonPluginSettingsStoreTests.cs`
+- `PipelineEventBus.cs` -> `PipelineEventBusTests.cs` (10 tests)
+- `PluginManager.cs` -> `PluginManagerTests.cs`
+- `PluginUIRegistry.cs` -> `PluginUIRegistryTests.cs` (7 tests)
+
+### Security (4/4)
 - `ApiKeyValidator.cs` -> `ApiKeyValidatorTests.cs`
+- `LicenseManager.cs` -> `LicenseManagerTests.cs` (14 tests)
 - `PIIScrubber.cs` -> `PIIScrubberTests.cs`
 - `SecureStorage.cs` -> `SecureStorageTests.cs`
 
@@ -106,11 +116,12 @@
 - `WhisperProvider.cs` -> `WhisperProviderTests.cs`
 
 ### SystemManagement (2/3)
-- `OllamaManager.cs` -> `OllamaManagerTests.cs` (33 tests)
+- `OllamaManager.cs` -> `OllamaManagerTests.cs` (33 unit) + `OllamaIntegrationTests.cs` (9 integration)
 - `OllamaSearchService.cs` -> `OllamaSearchServiceTests.cs`
 
-### TTS (10/13)
+### TTS (11/13)
 - `DeepgramTtsProvider.cs` -> `DeepgramTtsProviderTests.cs`
+- `GeminiTtsProvider.cs` -> `GeminiTtsProviderTests.cs` (13 tests)
 - `InworldTtsProvider.cs` -> `InworldTtsProviderTests.cs` (23 tests)
 - `KokoroModelManager.cs` -> `KokoroModelManagerTests.cs`
 - `KokoroTtsProvider.cs` -> `KokoroTtsProviderTests.cs` (19 tests)
@@ -123,60 +134,83 @@
 ### Weather (1/1)
 - `WeatherService.cs` -> `WeatherServiceTests.cs` (13 tests)
 
----
-
-## Classes WITHOUT Test Coverage (4 testable)
-
-| Class | Module | Reason |
-|-------|--------|--------|
-| `AccountService.cs` | Account | HTTP calls + browser OAuth redirect — hard to unit test without integration setup |
-| `LLMProviderFactory.cs` | Config | Factory with DI wiring — tested indirectly via `PipelineFactoryTests` |
-| `STTProviderFactory.cs` | Config | Factory with DI wiring — tested indirectly via `PipelineFactoryTests` |
-| `GeminiTtsProvider.cs` | TTS | Newest provider (added 2026-03-15) — not yet covered |
+### Vision (1/1)
+- `VisionPipeline.cs` -> `VisionPipelineTests.cs` (10 tests)
 
 ---
 
-## Not Unit-Testable (30 files — by design)
+## Classes WITHOUT Test Coverage (3 testable)
+
+| Class | Lines | Reason |
+|-------|-------|--------|
+| `WalletStreamingSTTProxy.cs` | 522 | ClientWebSocket + Gemini Live API streaming — no interface seam |
+| `SystemWebSocketClient.cs` | 58 | Thin `ClientWebSocket` wrapper — passthrough, low risk |
+| `HardwareInfoService.cs` | 115 | WMI + Win32 queries — not mockable without abstractions |
+
+---
+
+## Not Unit-Testable (46 files — by design)
 
 **Interfaces (10):** `IAccountService`, `IAudioDataSource`, `ILLMProvider`, `ILLMProviderFactory`, `ISTTProvider`, `ISTTProviderFactory`, `IStreamingSTTProvider`, `ITTSProvider`, `ITTSProviderFactory`, `IWebSocketClient`
 
-**Enums/Records/DTOs (12):** `AuthMode`, `Capabilities`, `PipelineOptions`, `PipelineResult`, `PipelineState`, `ModelInfo`, `ConversationRecord`, `WalletTransaction`, `TtsResult`, `AccountSettings`, `DictationMode`, `AppSettings`
+**Enums/Records/DTOs (20):** `AuthMode`, `Capabilities`, `PipelineOptions`, `PipelineResult`, `PipelineState`, `ModelInfo`, `ConversationRecord`, `WalletTransaction`, `TtsResult`, `AccountSettings`, `DictationMode`, `AppSettings`, `PipelineConfig`, `UtilityProfile`, `ModeSettings`, `OllamaCheckResult`, `OllamaModelDetail`, `OllamaRunningModel`, `OllamaModelInfo`, `ModelEntry`
 
-**System/Auto-generated (3):** `HardwareInfoService` (WMI), `SystemWebSocketClient` (native), `CoreStrings.Designer.cs`
+**Win32/Hardware/ONNX (10):** `ScreenCapture.cs` (582 lines), `Annotations/*.cs` (9 classes, ~400 lines), `ImageProcessor.cs` (195 lines) — GDI/WinRT P/Invoke
 
-**Data Models (5):** `PipelineConfig`, `PipelineConfigManager`, and other config DTOs tested via integration through `SettingsManagerTests`
+**System/Auto-generated (6):** `CoreStrings.Designer.cs`, `AppSettingsContext.cs` (source gen), etc.
 
 ---
 
 ## App Layer (DiktaMe.App) — 0% Unit Tested
 
-| Category | Files | Reason not unit tested |
-|----------|-------|----------------------|
-| **Views/Pages** | 24 XAML + code-behind | WinUI 3 XAML coupled to Windows App SDK runtime |
-| **ViewModels** | 12 | CommunityToolkit MVVM + `DispatcherQueue` dependency |
-| **Services** | 6 | `ThemeService`, `NotificationService` etc. require WinUI runtime |
+| Category | Files | Reason |
+|----------|-------|--------|
+| **Views/Pages** | 24 XAML + code-behind | WinUI 3 runtime dependency |
+| **ViewModels** | 12 | CommunityToolkit MVVM + `DispatcherQueue` |
+| **Services** | 6 | `ThemeService`, `NotificationService` — WinUI runtime |
 | **Converters** | 8 | Simple value converters — low risk |
 | **App entry** | 2 | `App.xaml.cs`, `Program.cs` |
 
-This is standard for WinUI 3 desktop apps. UI layer is validated via manual E2E testing.
+Standard for WinUI 3 desktop apps. UI layer validated via manual E2E testing (see `MANUAL_TEST_PLAN.md`).
+
+### Security Note
+
+The App layer gap is an **orchestration gap, not a security gap.** All security-critical logic lives in tested Core classes:
+
+| Concern | Tested In | Tests |
+|---------|-----------|-------|
+| License activation + anti-piracy | `LicenseManagerTests` | 14 |
+| JWT storage + refresh | `TokenRefreshServiceTests`, `AccountServiceTests` | 14 |
+| API key validation | `ApiKeyValidatorTests` | — |
+| PII scrubbing | `PIIScrubberTests` | — |
+| DPAPI secure storage | `SecureStorageTests` | — |
+| Wallet balance + transactions | `WalletManagerTests` | 23 |
+
+The untested ViewModels read tokens from `SecureStorage` and pass them as `Bearer` headers over HTTPS — standard usage, no crypto or validation logic. `WalletStreamingSTTProxy` forces WSS (rejects HTTP) and escapes URL parameters. No credentials are constructed, parsed, or validated in the App layer.
+
+**Planned for v2.x:** Extract ViewModel orchestration into a testable `PipelineOrchestrator` in Core.
 
 ---
 
-## CI Test Gaps (~490 tests skipped on runners)
+## Integration Tests (102 tests)
 
-| Category | Skipped Tests | Reason |
-|----------|--------------|--------|
-| **DPAPI/SecureStorage** | ~20 | No Windows user profile on CI runner |
-| **Clipboard/TextInjector** | ~15 | No desktop session (Win32 clipboard unavailable) |
-| **Audio (NAudio)** | ~30 | No audio devices on CI runner |
-| **Whisper (GPU)** | ~10 | No Vulkan GPU / model file on CI runner |
-| **Other hardware-dependent** | ~415 | Various Win32 API dependencies |
+Integration tests hit real resources (SQLite, file system, Ollama API) and are **skipped in CI**. Run locally with `dotnet test --filter "Category=Integration"`.
+
+| Class | Tests | What it exercises |
+|-------|-------|-------------------|
+| `HistoryManagerTests` | 18 | SQLite DB write/read, privacy levels, pruning |
+| `WalletManagerTests` | 23 | SQLite transactions, balance tracking, expiry |
+| `ConversationManagerTests` | 20 | SQLite conversations, messages, privacy |
+| `NoteWriterTests` | 16 | File system write, path validation, security |
+| `SettingsManagerTests` | 14 | JSON load/save, SanitizeNulls, migration, events |
+| `OllamaIntegrationTests` | 9 | Real Ollama API: check, version, models, info |
+| `SnippetManagerTests` | 2 | JSON persistence round-trip |
 
 ---
 
-## Recommendations for Future Coverage
+## CI Pipeline
 
-1. **GeminiTtsProvider** — add tests (matches pattern of other TTS provider tests, ~18-23 tests expected)
-2. **LLMProviderFactory / STTProviderFactory** — add factory resolution tests (verify correct provider type returned for each config combination)
-3. **AccountService** — consider integration test with mock HTTP handler
-4. **ViewModels** — extract testable logic from ViewModels into Core services where possible
+- **Filter:** `Category!=Integration&Category!=Hardware`
+- **Threshold:** Minimum 470 passing tests (enforced, auto-fails below)
+- **Coverage:** Coverlet collects Cobertura XML, uploaded as artifact (14-day retention)
+- **Lint:** `dotnet format --verify-no-changes` must pass

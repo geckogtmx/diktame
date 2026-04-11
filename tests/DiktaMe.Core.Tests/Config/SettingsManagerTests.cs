@@ -500,4 +500,64 @@ public sealed class SettingsManagerTests : IDisposable
         Assert.Equal("test@example.com", deserialized.Account.Email);
         Assert.Equal("2026-01-01T00:00:00Z", deserialized.Account.LastSynced);
     }
+
+    // ── SanitizeNulls tests ──────────────────────────────────────────────────
+
+    [Fact, Trait("Category", "Integration")]
+    public async Task LoadAsync_NullTtsInJson_SanitizesToDefault()
+    {
+        // Write JSON with explicit null sub-objects (overrides = new() initializers)
+        string json = """
+            {
+              "SchemaVersion": 2,
+              "WizardCompleted": true,
+              "Tts": null,
+              "Privacy": null,
+              "Audio": null,
+              "General": null,
+              "DictationModes": [],
+              "UtilityPipelines": []
+            }
+            """;
+        await File.WriteAllTextAsync(_testFile, json);
+
+        var manager = new SettingsManager(_testFile);
+        await manager.LoadAsync();
+
+        Assert.NotNull(manager.Current.Tts);
+        Assert.NotNull(manager.Current.Privacy);
+        Assert.NotNull(manager.Current.Audio);
+        Assert.NotNull(manager.Current.General);
+    }
+
+    [Fact, Trait("Category", "Integration")]
+    public async Task SaveAsync_NoTmpFileLeftover()
+    {
+        var manager = new SettingsManager(_testFile);
+        var newSettings = new AppSettings { WizardCompleted = true };
+
+        await manager.UpdateAsync(newSettings);
+
+        Assert.True(File.Exists(_testFile));
+        Assert.False(File.Exists(_testFile + ".tmp"));
+    }
+
+    [Fact, Trait("Category", "Integration")]
+    public async Task LoadAsync_SaveAsync_RoundTrip_PreservesAllSubObjects()
+    {
+        var manager = new SettingsManager(_testFile);
+        await manager.LoadAsync();
+
+        // Save current (defaults) then reload
+        await manager.UpdateAsync(manager.Current);
+        var manager2 = new SettingsManager(_testFile);
+        await manager2.LoadAsync();
+
+        Assert.NotNull(manager2.Current.Tts);
+        Assert.NotNull(manager2.Current.Privacy);
+        Assert.NotNull(manager2.Current.General);
+        Assert.NotNull(manager2.Current.Audio);
+        Assert.NotNull(manager2.Current.Hotkeys);
+        Assert.NotNull(manager2.Current.Account);
+    }
 }

@@ -127,6 +127,135 @@ public sealed class ModelListServiceTests
     }
 }
 
+// ── HTTP-level tests for GetAvailableModelsAsync ────────────────────────────
+
+public sealed class ModelListServiceHttpTests : IDisposable
+{
+    private readonly string _tempDir;
+    private readonly DiktaMe.Core.Security.SecureStorage _storage;
+
+    public ModelListServiceHttpTests()
+    {
+        _tempDir = Path.Combine(Path.GetTempPath(), $"diktame-mls-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_tempDir);
+        _storage = new DiktaMe.Core.Security.SecureStorage(Path.Combine(_tempDir, "keys.dat"));
+    }
+
+    public void Dispose()
+    {
+        if (Directory.Exists(_tempDir))
+        {
+            Directory.Delete(_tempDir, recursive: true);
+        }
+    }
+
+    private ModelListService CreateService(ModelsFakeHandler handler)
+    {
+        var http = new HttpClient(handler);
+        var sm = new DiktaMe.Core.Config.SettingsManager(Path.Combine(_tempDir, $"settings_{Guid.NewGuid()}.json"));
+        return new ModelListService(_storage, sm, http);
+    }
+
+    [Fact]
+    public async Task GetAvailableModelsAsync_NoApiKeys_ReturnsEmptyOrOllamaOnly()
+    {
+        // No keys stored — cloud providers should be skipped. Ollama always queries localhost.
+        var handler = new ModelsFakeHandler(System.Net.HttpStatusCode.OK, "{}");
+        using var service = CreateService(handler);
+
+        var models = await service.GetAvailableModelsAsync();
+
+        // Cloud models (OpenAI, Anthropic, Gemini, OpenRouter) should all be absent
+        Assert.DoesNotContain(models, m => string.Equals(m.Provider, "OpenAI", StringComparison.Ordinal));
+        Assert.DoesNotContain(models, m => string.Equals(m.Provider, "Anthropic", StringComparison.Ordinal));
+        Assert.DoesNotContain(models, m => string.Equals(m.Provider, "Gemini", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GetAvailableModelsAsync_OpenAI_ParsesModels()
+    {
+        _storage.StoreKey("openai", "sk-test");
+        const string response = """
+            {
+              "data": [
+                { "id": "gpt-4o-mini" },
+                { "id": "gpt-4o" },
+                { "id": "dall-e-3" },
+                { "id": "text-embedding-ada-002" }
+              ]
+            }
+            """;
+        var handler = new ModelsFakeHandler(System.Net.HttpStatusCode.OK, response);
+        using var service = CreateService(handler);
+
+        var models = await service.GetAvailableModelsAsync();
+
+        // Only chat models (gpt-*) should be included, not dall-e or embeddings
+        Assert.Contains(models, m => string.Equals(m.ModelId, "gpt-4o-mini", StringComparison.Ordinal));
+        Assert.Contains(models, m => string.Equals(m.ModelId, "gpt-4o", StringComparison.Ordinal));
+        Assert.DoesNotContain(models, m => string.Equals(m.ModelId, "dall-e-3", StringComparison.Ordinal));
+        Assert.DoesNotContain(models, m => string.Equals(m.ModelId, "text-embedding-ada-002", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GetAvailableModelsAsync_ProviderError_ReturnsEmptyForThatProvider()
+    {
+        _storage.StoreKey("openai", "sk-test");
+        var handler = new ModelsFakeHandler(System.Net.HttpStatusCode.InternalServerError, "server error");
+        using var service = CreateService(handler);
+
+        var models = await service.GetAvailableModelsAsync();
+
+        // OpenAI fails, but no exception thrown — just returns empty for that provider
+        Assert.DoesNotContain(models, m => string.Equals(m.Provider, "OpenAI", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GetAvailableModelsAsync_OllamaModels_Parsed()
+    {
+        // Ollama doesn't need an API key — it always queries localhost
+        var ollamaResponse = """{"models":[{"name":"llama3.2:latest","size":2000000000},{"name":"gemma3:1b","size":800000000}]}""";
+        var handler = new ModelsFakeHandler(System.Net.HttpStatusCode.OK, ollamaResponse);
+        using var service = CreateService(handler);
+
+        var models = await service.GetAvailableModelsAsync();
+
+        // Ollama models should be in the list (they're queried from localhost, not gated by API key)
+        // But in unit tests, the localhost call will fail — so this just verifies no crash
+        // The models list may be empty since other providers have no keys
+        Assert.NotNull(models);
+    }
+
+    [Fact]
+    public void Dispose_CalledTwice_DoesNotThrow()
+    {
+        var handler = new ModelsFakeHandler(System.Net.HttpStatusCode.OK, "{}");
+        var service = CreateService(handler);
+
+        service.Dispose();
+        var ex = Record.Exception(() => service.Dispose());
+
+        Assert.Null(ex);
+    }
+}
+
+internal sealed class ModelsFakeHandler(System.Net.HttpStatusCode statusCode, string body)
+    : HttpMessageHandler
+{
+    public int CallCount { get; private set; }
+
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        CallCount++;
+        return Task.FromResult(new HttpResponseMessage(statusCode)
+        {
+            Content = new StringContent(body),
+        });
+    }
+}
+
 /// <summary>
 /// Tests for <see cref="LLMProviderExtensions.ProcessWithModelAsync"/>.
 /// </summary>

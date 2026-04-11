@@ -462,6 +462,126 @@ public sealed class PipelineTests
         result.ErrorMessage.Should().Contain("No text selected");
     }
 
+    [Fact]
+    public async Task Refine_Autopilot_WithPreCapturedText_CallsLlmAndReturns()
+    {
+        var llm = OkLlm("polished text");
+        var pipeline = new RefinePipeline(llm.Object, NullInjector(), MockSettings(), stt: null);
+        var opts = new RefineOptions
+        {
+            SystemPrompt = "Clean this text.",
+            PreCapturedText = "messy text here",
+        };
+
+        var result = await pipeline.RunAsync(null, opts);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Text.Should().Be("polished text");
+        result.Mode.Should().Be("refine");
+    }
+
+    [Fact]
+    public async Task Refine_Autopilot_EmptyPreCapturedText_ReturnsFailure()
+    {
+        var pipeline = new RefinePipeline(OkLlm().Object, NullInjector(), MockSettings(), stt: null);
+        var opts = new RefineOptions
+        {
+            SystemPrompt = "Clean this.",
+            PreCapturedText = "   ",
+        };
+
+        var result = await pipeline.RunAsync(null, opts);
+
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("No text selected");
+    }
+
+    [Fact]
+    public async Task Refine_InstructionMode_EmptyTranscription_ReturnsFailure()
+    {
+        var pipeline = new RefinePipeline(OkLlm().Object, NullInjector(), MockSettings(), stt: EmptyStt().Object);
+        var opts = new RefineOptions
+        {
+            SystemPrompt = "Refine with {instruction}.",
+            PreCapturedText = "some text",
+        };
+
+        var result = await pipeline.RunAsync("audio.wav", opts);
+
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("No instruction");
+    }
+
+    [Fact]
+    public async Task Refine_InstructionMode_LlmReturnsEmpty_ReturnsFailure()
+    {
+        var pipeline = new RefinePipeline(EmptyLlm().Object, NullInjector(), MockSettings(), stt: OkStt("fix grammar").Object);
+        var opts = new RefineOptions
+        {
+            SystemPrompt = "Refine: {instruction}.",
+            PreCapturedText = "some text",
+        };
+
+        var result = await pipeline.RunAsync("audio.wav", opts);
+
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("LLM returned empty result");
+    }
+
+    [Fact]
+    public async Task Refine_Cancelled_ReturnsCancelledResult()
+    {
+        var llm = new Mock<ILLMProvider>();
+        llm.SetupGet(l => l.ProviderName).Returns("MockLLM");
+        llm.Setup(l => l.ProcessAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+           .ThrowsAsync(new OperationCanceledException());
+        var pipeline = new RefinePipeline(llm.Object, NullInjector(), MockSettings(), stt: null);
+        var opts = new RefineOptions
+        {
+            SystemPrompt = "Clean.",
+            PreCapturedText = "some text",
+        };
+
+        var result = await pipeline.RunAsync(null, opts);
+
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("Cancelled");
+    }
+
+    [Fact]
+    public async Task Refine_Autopilot_FiresCompletedEvent()
+    {
+        PipelineResult? fired = null;
+        var pipeline = new RefinePipeline(OkLlm("polished").Object, NullInjector(), MockSettings(), stt: null);
+        pipeline.Completed += (_, r) => fired = r;
+        var opts = new RefineOptions
+        {
+            SystemPrompt = "Clean.",
+            PreCapturedText = "messy",
+        };
+
+        await pipeline.RunAsync(null, opts);
+
+        fired.Should().NotBeNull();
+        fired!.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Refine_InstructionMode_NoSelection_FallsBackToAsk()
+    {
+        var llm = OkLlm("ask answer");
+        var pipeline = new RefinePipeline(llm.Object, NullInjector(), MockSettings(), stt: OkStt("what is AI?").Object);
+        var opts = new RefineOptions
+        {
+            SystemPrompt = "Refine: {instruction}.",
+            PreCapturedText = "",
+        };
+
+        var result = await pipeline.RunAsync("audio.wav", opts);
+
+        result.Mode.Should().Be("refine_ask_fallback");
+    }
+
     // ═══════════════════════════════════════════════════════════════════════
     // D.4: Oops re-inject (TextInjector.LastInjectedText)
     // ═══════════════════════════════════════════════════════════════════════
