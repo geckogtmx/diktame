@@ -519,7 +519,7 @@ public partial class App : Application
         // NOTE: Cloud providers require keys; they are deliberately NOT registered
         // against ISTTProvider here — the router below uses WhisperProvider as
         // the default until settings/keys are configured.
-        services.AddTransient<WalletStreamingSTTProxy>(sp => new WalletStreamingSTTProxy(
+        services.AddSingleton<WalletStreamingSTTProxy>(sp => new WalletStreamingSTTProxy(
             sp.GetRequiredService<SecureStorage>(),
             sp.GetRequiredService<SettingsManager>(),
             sp.GetRequiredService<WalletManager>()));
