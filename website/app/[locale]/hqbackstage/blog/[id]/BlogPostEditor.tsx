@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import Cropper from 'react-easy-crop';
+import type { Area, Point } from 'react-easy-crop';
 
 const MAX_IMAGE_WIDTH = 1920;
 const COMPRESSION_QUALITY = 0.82;
@@ -60,6 +62,14 @@ interface BlogPost {
   twitter_url: string | null;
   twitter_hook_en: string | null;
   twitter_hook_es: string | null;
+  facebook_post_en: string | null;
+  facebook_post_es: string | null;
+  facebook_post_en_b: string | null;
+  facebook_post_es_b: string | null;
+  facebook_image_url_en: string | null;
+  facebook_image_url_es: string | null;
+  facebook_post_id: string | null;
+  meta_campaign_id: string | null;
   headlines_used: string[] | null;
   newsletter_sources: string[] | null;
   run_date: string | null;
@@ -235,6 +245,26 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
           </div>
         )}
       </div>
+
+      {/* Facebook Post Copy */}
+      <FacebookPostCard
+        postEn={post.facebook_post_en}
+        postEs={post.facebook_post_es}
+        postEnB={post.facebook_post_en_b}
+        postEsB={post.facebook_post_es_b}
+        postId={post.id}
+        onUpdate={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
+      />
+
+      {/* Facebook Image Crop (1200×630) */}
+      <FacebookImageCrop
+        postId={post.id}
+        imageUrlEn={post.image_url_en}
+        imageUrlEs={post.image_url_es}
+        fbImageUrlEn={post.facebook_image_url_en}
+        fbImageUrlEs={post.facebook_image_url_es}
+        onUpdate={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
+      />
 
       {/* Two-Column Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -829,5 +859,435 @@ function MetadataRow({ label, value }: { label: string; value: string | null | u
       <span className="text-gray-500 shrink-0">{label}:</span>
       <span className="text-gray-300 break-all">{value || '—'}</span>
     </div>
+  );
+}
+
+// ── FacebookPostCard ──────────────────────────────────────────────��─────────
+function FacebookPostCard({
+  postEn,
+  postEs,
+  postEnB,
+  postEsB,
+  postId,
+  onUpdate,
+}: {
+  postEn: string | null;
+  postEs: string | null;
+  postEnB: string | null;
+  postEsB: string | null;
+  postId: string;
+  onUpdate: (fields: Record<string, string | null>) => void;
+}) {
+  const [lang, setLang] = useState<'en' | 'es'>('en');
+  const [variant, setVariant] = useState<'a' | 'b'>('a');
+  const [copied, setCopied] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [fbState, setFbState] = useState({
+    facebook_post_en: postEn,
+    facebook_post_es: postEs,
+    facebook_post_en_b: postEnB,
+    facebook_post_es_b: postEsB,
+  });
+
+  const fieldKey =
+    lang === 'en' && variant === 'a' ? 'facebook_post_en' :
+    lang === 'en' && variant === 'b' ? 'facebook_post_en_b' :
+    lang === 'es' && variant === 'a' ? 'facebook_post_es' :
+    'facebook_post_es_b';
+
+  const currentText = fbState[fieldKey as keyof typeof fbState];
+  const [draft, setDraft] = useState(currentText ?? '');
+
+  // Sync draft when lang/variant switches
+  const handleLangSwitch = (nextLang: 'en' | 'es') => {
+    setLang(nextLang);
+    setEditing(false);
+    const key = nextLang === 'en' && variant === 'a' ? 'facebook_post_en' :
+                nextLang === 'en' && variant === 'b' ? 'facebook_post_en_b' :
+                nextLang === 'es' && variant === 'a' ? 'facebook_post_es' :
+                'facebook_post_es_b';
+    setDraft(fbState[key as keyof typeof fbState] ?? '');
+  };
+
+  const handleVariantSwitch = (nextVariant: 'a' | 'b') => {
+    setVariant(nextVariant);
+    setEditing(false);
+    const key = lang === 'en' && nextVariant === 'a' ? 'facebook_post_en' :
+                lang === 'en' && nextVariant === 'b' ? 'facebook_post_en_b' :
+                lang === 'es' && nextVariant === 'a' ? 'facebook_post_es' :
+                'facebook_post_es_b';
+    setDraft(fbState[key as keyof typeof fbState] ?? '');
+  };
+
+  const handleCopy = async () => {
+    const text = editing ? draft : (currentText ?? '');
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/hqbackstage/blog/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [fieldKey]: draft || null }),
+      });
+      if (res.ok) {
+        const newState = { ...fbState, [fieldKey]: draft || null };
+        setFbState(newState);
+        onUpdate({ [fieldKey]: draft || null });
+        setEditing(false);
+      } else {
+        alert('Save failed');
+      }
+    } catch {
+      alert('Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const charCount = (editing ? draft : currentText ?? '').length;
+  const hasCopy = !!(fbState.facebook_post_en || fbState.facebook_post_es);
+
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          <h3 className="text-sm font-medium text-gray-400">Facebook Posts</h3>
+          {hasCopy && <span className="text-[10px] text-green-400/60">saved</span>}
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Lang toggle */}
+          <div className="flex rounded border border-white/10 overflow-hidden text-xs">
+            <button
+              onClick={() => handleLangSwitch('en')}
+              className={`px-2 py-0.5 transition-colors ${lang === 'en' ? 'bg-blue-500/30 text-blue-300' : 'text-gray-500 hover:text-gray-300'}`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => handleLangSwitch('es')}
+              className={`px-2 py-0.5 transition-colors ${lang === 'es' ? 'bg-blue-500/30 text-blue-300' : 'text-gray-500 hover:text-gray-300'}`}
+            >
+              ES
+            </button>
+          </div>
+          {/* Variant toggle */}
+          <div className="flex rounded border border-white/10 overflow-hidden text-xs">
+            <button
+              onClick={() => handleVariantSwitch('a')}
+              className={`px-2 py-0.5 transition-colors ${variant === 'a' ? 'bg-purple-500/30 text-purple-300' : 'text-gray-500 hover:text-gray-300'}`}
+            >
+              A
+            </button>
+            <button
+              onClick={() => handleVariantSwitch('b')}
+              className={`px-2 py-0.5 transition-colors ${variant === 'b' ? 'bg-purple-500/30 text-purple-300' : 'text-gray-500 hover:text-gray-300'}`}
+            >
+              B
+            </button>
+          </div>
+          {!editing && currentText && (
+            <button
+              onClick={() => { setDraft(currentText); setEditing(true); }}
+              className="text-gray-600 hover:text-gray-300 transition-colors"
+              title="Edit"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+              </svg>
+            </button>
+          )}
+          <button
+            onClick={handleCopy}
+            disabled={!currentText && !editing}
+            className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-colors disabled:opacity-30"
+          >
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      {editing ? (
+        <div className="space-y-2">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={6}
+            className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-400 resize-y"
+          />
+          <div className="flex items-center gap-2">
+            <button onClick={handleSave} disabled={saving} className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 disabled:opacity-50">
+              {saving ? '...' : 'Save'}
+            </button>
+            <button onClick={() => setEditing(false)} className="px-2 py-1 rounded text-xs bg-white/5 text-gray-400 hover:bg-white/10">
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : currentText ? (
+        <p className="text-sm text-gray-300 whitespace-pre-wrap">{currentText}</p>
+      ) : (
+        <p className="text-sm text-gray-600 italic">
+          No Facebook copy yet — generated by /news-writer during the news run.
+        </p>
+      )}
+
+      <p className={`text-xs mt-2 ${charCount > 500 ? 'text-yellow-500' : 'text-gray-600'}`}>
+        {charCount} chars{charCount > 500 ? ' (long for FB — consider trimming)' : ''}
+      </p>
+    </div>
+  );
+}
+
+// ── FacebookImageCrop ────────────────────────────────────────────────────────
+async function getCroppedFbImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
+  const image = new Image();
+  image.crossOrigin = 'anonymous';
+  image.src = imageSrc;
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = reject;
+  });
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1200;
+  canvas.height = 630;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    1200,
+    630,
+  );
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Canvas toBlob failed'));
+      },
+      'image/webp',
+      0.85,
+    );
+  });
+}
+
+function FacebookImageCrop({
+  postId,
+  imageUrlEn,
+  imageUrlEs,
+  fbImageUrlEn,
+  fbImageUrlEs,
+  onUpdate,
+}: {
+  postId: string;
+  imageUrlEn: string | null;
+  imageUrlEs: string | null;
+  fbImageUrlEn: string | null;
+  fbImageUrlEs: string | null;
+  onUpdate: (fields: Record<string, string>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [cropLang, setCropLang] = useState<'en' | 'es'>('en');
+  const [cropModal, setCropModal] = useState<{ lang: 'en' | 'es'; src: string } | null>(null);
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const onCropComplete = useCallback((_: Area, pixels: Area) => {
+    setCroppedAreaPixels(pixels);
+  }, []);
+
+  const openCropModal = (lang: 'en' | 'es') => {
+    const src = lang === 'en' ? imageUrlEn : imageUrlEs;
+    if (!src) {
+      alert(`No main image found for ${lang.toUpperCase()}. Upload a main image first.`);
+      return;
+    }
+    setCropLang(lang);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+    setCropModal({ lang, src });
+  };
+
+  const handleCropSave = async () => {
+    if (!cropModal || !croppedAreaPixels) return;
+    setUploading(true);
+    try {
+      const blob = await getCroppedFbImg(cropModal.src, croppedAreaPixels);
+      const formData = new FormData();
+      formData.append('image', blob, `fb-${cropLang}.webp`);
+      formData.append('lang', cropLang);
+
+      const res = await fetch(`/api/hqbackstage/blog/${postId}/facebook-image`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json() as { url: string };
+        const field = cropLang === 'en' ? 'facebook_image_url_en' : 'facebook_image_url_es';
+        onUpdate({ [field]: data.url });
+        setCropModal(null);
+      } else {
+        const err = await res.text();
+        alert(`Upload failed: ${err}`);
+      }
+    } catch (err) {
+      alert(`Crop failed: ${err}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="rounded-lg border border-white/10">
+        <button
+          onClick={() => setOpen(!open)}
+          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+            <span>Facebook Image (1200×630)</span>
+            {(fbImageUrlEn || fbImageUrlEs) && (
+              <span className="text-[10px] text-green-400/60">
+                {[fbImageUrlEn && 'EN', fbImageUrlEs && 'ES'].filter(Boolean).join(', ')}
+              </span>
+            )}
+          </div>
+          <span className="text-xs">{open ? '▲' : '▼'}</span>
+        </button>
+
+        {open && (
+          <div className="border-t border-white/10 px-4 py-4 space-y-4">
+            <p className="text-xs text-gray-500">
+              Crop your main blog images to the 1200×630 aspect ratio Facebook uses for link previews and feed posts.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* EN */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">EN (1200×630)</span>
+                  <button
+                    onClick={() => openCropModal('en')}
+                    className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-colors"
+                  >
+                    {fbImageUrlEn ? '↺ Re-crop EN' : '+ Crop EN'}
+                  </button>
+                </div>
+                {fbImageUrlEn ? (
+                  <img src={fbImageUrlEn} alt="Facebook EN" className="rounded-md w-full object-cover" style={{ aspectRatio: '1200/630' }} />
+                ) : imageUrlEn ? (
+                  <div className="rounded-md w-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-600 text-xs" style={{ aspectRatio: '1200/630' }}>
+                    Not cropped yet
+                  </div>
+                ) : (
+                  <div className="rounded-md w-full bg-white/5 border border-dashed border-white/10 flex items-center justify-center text-gray-600 text-xs" style={{ aspectRatio: '1200/630' }}>
+                    Upload main EN image first
+                  </div>
+                )}
+              </div>
+              {/* ES */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">ES (1200×630)</span>
+                  <button
+                    onClick={() => openCropModal('es')}
+                    className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-colors"
+                  >
+                    {fbImageUrlEs ? '↺ Re-crop ES' : '+ Crop ES'}
+                  </button>
+                </div>
+                {fbImageUrlEs ? (
+                  <img src={fbImageUrlEs} alt="Facebook ES" className="rounded-md w-full object-cover" style={{ aspectRatio: '1200/630' }} />
+                ) : imageUrlEs ? (
+                  <div className="rounded-md w-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-600 text-xs" style={{ aspectRatio: '1200/630' }}>
+                    Not cropped yet
+                  </div>
+                ) : (
+                  <div className="rounded-md w-full bg-white/5 border border-dashed border-white/10 flex items-center justify-center text-gray-600 text-xs" style={{ aspectRatio: '1200/630' }}>
+                    Upload main ES image first
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Crop Modal */}
+      {cropModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-2xl mx-4 overflow-hidden">
+            <div className="px-6 pt-5 pb-3">
+              <h3 className="text-lg font-semibold text-white">
+                Crop for Facebook — {cropModal.lang.toUpperCase()} (1200×630)
+              </h3>
+            </div>
+            <div className="relative w-full bg-black/50" style={{ height: '360px' }}>
+              <Cropper
+                image={cropModal.src}
+                crop={crop}
+                zoom={zoom}
+                aspect={1200 / 630}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            <div className="px-6 py-4">
+              <label className="block text-xs text-gray-400 mb-2">Zoom</label>
+              <input
+                type="range"
+                min={1}
+                max={3}
+                step={0.05}
+                value={zoom}
+                onChange={(e) => setZoom(Number(e.target.value))}
+                className="w-full accent-blue-500"
+              />
+            </div>
+            <div className="px-6 pb-5 flex gap-3">
+              <button
+                onClick={() => setCropModal(null)}
+                disabled={uploading}
+                className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCropSave}
+                disabled={uploading || !croppedAreaPixels}
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploading ? 'Saving...' : 'Save Crop'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

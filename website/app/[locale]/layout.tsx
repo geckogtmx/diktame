@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { locales } from '@/i18n/config';
 import { GA_ID } from '@/lib/analytics';
+import { MetaPixel } from '@/app/components/MetaPixel';
 import '../globals.css';
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ['latin'] });
@@ -193,6 +194,7 @@ gtag('config', '${GA_ID}');`}
           {children}
         </NextIntlClientProvider>
 
+        <MetaPixel />
         <Analytics />
         <SpeedInsights />
       </body>

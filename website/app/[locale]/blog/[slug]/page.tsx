@@ -7,6 +7,7 @@ import { MarkdownRenderer } from '@/app/components/MarkdownRenderer';
 import { Link } from '@/i18n/navigation';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
+import { FbViewContent } from './FbViewContent';
 
 const SPANISH_VOICES = [
   'fuentes',
@@ -162,6 +163,7 @@ export default async function BlogPostPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
+      <FbViewContent slug={post.slug} title={title} />
       <Navbar />
 
       <article className="relative pt-32 pb-20">
