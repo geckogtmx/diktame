@@ -9,10 +9,9 @@ declare global {
   }
 }
 
-const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+const PIXEL_ID = '2363740317444047';
 
 export function MetaPixel() {
-  if (!PIXEL_ID) return null;
 
   return (
     <>
