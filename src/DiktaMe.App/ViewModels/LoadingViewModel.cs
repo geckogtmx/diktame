@@ -261,6 +261,10 @@ public sealed partial class LoadingViewModel : ObservableObject
 
             // Wire post-pipeline balance updates from wallet proxy events
             WireWalletBalanceEvents();
+            Progress = 88;
+
+            // Step 5b: Check for app updates (non-blocking — download in background)
+            await CheckForAppUpdateAsync();
             Progress = 90;
 
             // Step 6: Start hotkey manager and register hotkeys
@@ -282,6 +286,49 @@ public sealed partial class LoadingViewModel : ObservableObject
         }
 
         LoadingComplete?.Invoke();
+    }
+
+    /// <summary>
+    /// Checks for app updates via Velopack/GitHub Releases.
+    /// Non-blocking: if an update is found, downloads in background and shows toast when ready.
+    /// Failures are logged and silently ignored — update issues must never block startup.
+    /// </summary>
+    private async Task CheckForAppUpdateAsync()
+    {
+        try
+        {
+            var updateService = App.Current.Services.GetRequiredService<Services.UpdateService>();
+            bool available = await updateService.CheckForUpdatesAsync();
+            if (!available)
+            {
+                return;
+            }
+
+            // Download in background — don't block startup
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await updateService.DownloadUpdateAsync();
+                    if (updateService.IsUpdateReady)
+                    {
+                        _notifications.ShowToast(
+                            _loc.GetString("Update_Available_Title"),
+                            _loc.GetFormatted("Update_Available_Message", updateService.LatestVersion ?? ""),
+                            NotificationType.Info,
+                            suppressTts: true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Background update download failed");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Update check skipped");
+        }
     }
 
     private async Task DiscoverPluginsAsync()

@@ -414,6 +414,21 @@ public partial class App : Application
     public void RequestExit()
     {
         Log.Information("App: exit requested, setting _isExiting flag");
+
+        // If a Velopack update was downloaded, schedule it to apply after exit
+        try
+        {
+            var updateService = Services.GetRequiredService<Services.UpdateService>();
+            if (updateService.IsUpdateReady)
+            {
+                updateService.ApplyUpdateOnExit();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "App: failed to schedule update on exit");
+        }
+
         _isExiting = true;
         Exit();
     }
@@ -643,6 +658,7 @@ public partial class App : Application
         services.AddSingleton<Services.NotificationService>();
         services.AddSingleton<Services.ThemeService>();
         services.AddSingleton<Services.LocalApiServer>();
+        services.AddSingleton<Services.UpdateService>();
 
         ConfigureViewModels(services);
     }

@@ -30,6 +30,17 @@ jobs:
         with:
           dotnet-version: 8.0.418
 
+      # ── Extract version ──────────────────────────────────────────────
+      - name: Extract version from Directory.Build.props
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$props = Get-Content Directory.Build.props
+          $version = $props.Project.PropertyGroup.Version
+          Write-Host "App version: $version"
+          echo "APP_VERSION=$version" >> $env:GITHUB_ENV
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
       # ── Restore ───────────────────────────────────────────────────────
       # Fails fast on hallucinated / non-existent NuGet packages (AI safeguard #1)
       - name: Restore
@@ -173,17 +184,24 @@ jobs:
           }
           Write-Host "OK: publish size $mb MB is within expected range"
 
-      # ── Inno Setup installer ─────────────────────────────────────────
-      # Compiles publish/win-x64/ into a single installer .exe (~47 MB)
-      - name: Install Inno Setup
-        shell: pwsh
-        run: choco install innosetup -y --no-progress
+      # ── Velopack packaging ──────────────────────────────────────────
+      # Packages publish/win-x64/ into Velopack installer + delta update packages
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk
 
-      - name: Build installer
-        working-directory: installer
-        shell: pwsh
+      - name: Pack with Velopack
         run: >
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" diktame-setup.iss
+          vpk pack
+          --packId DiktaMe
+          --packVersion ${{ env.APP_VERSION }}
+          --packDir publish/win-x64
+          --mainExe DiktaMe.App.exe
+          --packTitle "dIKta.me"
+          --packAuthors "geckogtmx"
+          --icon src/DiktaMe.App/Assets/tray-icon.ico
+          --shortcuts Desktop,StartMenuRoot
+          --delta BestSpeed
+          --outputDir velopack-output
 
       # ── Upload coverage artifact ──────────────────────────────────────
       - name: Upload coverage report
@@ -203,12 +221,12 @@ jobs:
           path: publish/win-x64/
           retention-days: 7
 
-      # ── Upload installer artifact ───────────────────────────────────
-      - name: Upload installer
+      # ── Upload Velopack artifact ──────────────────────────────────────
+      - name: Upload Velopack packages
         uses: actions/upload-artifact@v4
         with:
-          name: diktame-installer
-          path: installer/output/*.exe
+          name: diktame-velopack
+          path: velopack-output/
           retention-days: 30
 
       # ── Update test badge ──────────────────────────────────────────────
@@ -241,13 +259,15 @@ jobs:
       contents: write
 
     steps:
-      - name: Download installer
+      - name: Download Velopack packages
         uses: actions/download-artifact@v4
         with:
-          name: diktame-installer
+          name: diktame-velopack
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: "*.exe"
+          # Upload Setup.exe, .nupkg files, and releases.win.json feed
+          # The releases.win.json is critical — UpdateManager reads it to find updates
+          files: "*"
           generate_release_notes: true

@@ -2135,6 +2135,12 @@
   <data name="Loading_Error" xml:space="preserve">
     <value>Initialization error &#8212; starting with defaults</value>
   </data>
+  <data name="Update_Available_Title" xml:space="preserve">
+    <value>Update Available</value>
+  </data>
+  <data name="Update_Available_Message" xml:space="preserve">
+    <value>Version {0} is ready. Restart to apply.</value>
+  </data>
   <data name="Loading_HotkeyConflict_Title" xml:space="preserve">
     <value>Hotkey Conflict</value>
   </data>

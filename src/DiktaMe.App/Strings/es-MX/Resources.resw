@@ -784,6 +784,8 @@
   <data name="Loading_Hotkeys" xml:space="preserve"><value>Registrando atajos...</value></data>
   <data name="Loading_Ready" xml:space="preserve"><value>Listo</value></data>
   <data name="Loading_Error" xml:space="preserve"><value>Error de inicializaci&#243;n &#8212; iniciando con valores predeterminados</value></data>
+  <data name="Update_Available_Title" xml:space="preserve"><value>Actualizaci&#243;n Disponible</value></data>
+  <data name="Update_Available_Message" xml:space="preserve"><value>La versi&#243;n {0} est&#225; lista. Reinicia para aplicar.</value></data>
   <data name="Loading_HotkeyConflict_Title" xml:space="preserve"><value>Conflicto de Atajo</value></data>
   <data name="Loading_HotkeyConflict_Message" xml:space="preserve"><value>El atajo {0} ({1}) ya est&#225; en uso por otra aplicaci&#243;n</value></data>
   <data name="Loading_RecordingFailed" xml:space="preserve"><value>Grabaci&#243;n fallida</value></data>

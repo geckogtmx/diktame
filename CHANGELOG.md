@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - 2026-04-XX
 
 Complete rewrite from Python/Electron (V1) to C#/.NET 8/WinUI 3.
-Single native Windows process, self-contained ~47 MB installer, local-first architecture.
+Single native Windows process, self-contained installer with auto-updates, local-first architecture.
 
 ### Added
 
@@ -83,7 +83,7 @@ Single native Windows process, self-contained ~47 MB installer, local-first arch
 
 **Internationalization**
 - Full bilingual UI: English + Spanish
-- Bilingual installer (EN + ES)
+- Bilingual UI (EN + ES)
 
 **Data & Security**
 - SQLite history with 90-day auto-pruning
@@ -94,16 +94,16 @@ Single native Windows process, self-contained ~47 MB installer, local-first arch
 
 **Testing & CI**
 - 1,134 unit tests across 60+ test files
-- 11-step CI pipeline: restore, lint, build, test, threshold check, secret scan, vulnerability audit, deprecated packages, publish, size guard, artifacts
+- 11-step CI pipeline: restore, lint, build, test, threshold check, secret scan, vulnerability audit, deprecated packages, publish, size guard, Velopack packaging
 - Meziantou.Analyzer for culture bugs and string comparison safety
-- Inno Setup installer built and uploaded as artifact on every CI run
-- GitHub Release auto-created on `v*` tags with installer attached
+- Velopack auto-update: delta updates via GitHub Releases, background download, apply on restart
+- GitHub Release auto-created on `v*` tags with installer + update packages attached
 
 ### Changed
 
 - Architecture: Python + Electron (V1) to C# + .NET 8 + WinUI 3 (V2)
 - Packaging: Electron app to self-contained native Windows executable
-- Installer: ~47 MB (LZMA2 compressed), per-user install, no admin required
+- Installer: Velopack one-click install with automatic delta updates (replaced Inno Setup)
 - Startup: <3 seconds in cloud mode
 - Memory: 50-80 MB idle (vs ~300 MB Electron)
 - License: proprietary (V1) to MIT open source (V2)

@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiktaMe.App.Services;
 using DiktaMe.Core.Config;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Serilog;
 
@@ -429,6 +430,15 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     [RelayCommand]
     private void RestartApp()
     {
+        // If a Velopack update is downloaded, apply it during restart
+        var updateService = App.Current.Services.GetRequiredService<UpdateService>();
+        if (updateService.IsUpdateReady)
+        {
+            Log.Information("RestartApp: applying pending update v{Version}", updateService.LatestVersion);
+            updateService.ApplyUpdateAndRestart();
+            return; // Velopack handles the restart
+        }
+
         string? exePath = Environment.ProcessPath;
         if (exePath is null)
         {
