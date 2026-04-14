@@ -19,6 +19,8 @@
 
 **Download the installer** from [GitHub Releases](https://github.com/geckogtmx/diktame/releases) (~47 MB) or build from source:
 
+> 🛡️ **Security Note:** Official binaries are securely code-signed via the [SignPath Foundation](https://signpath.org/) specifically for open-source projects.
+
 ```bash
 git clone https://github.com/geckogtmx/diktame.git
 cd diktame
