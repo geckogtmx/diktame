@@ -3,9 +3,10 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:l="using:WinUI3Localizer">
 
-    <StackPanel VerticalAlignment="Center" Spacing="16" MaxWidth="450" Margin="24,0">
-        <TextBlock l:Uids.Uid="Wizard_Stt_Title" FontSize="24" FontWeight="SemiBold"/>
-        <TextBlock l:Uids.Uid="Wizard_Stt_Description" TextWrapping="Wrap" FontSize="14" Opacity="0.7"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel VerticalAlignment="Center" Spacing="12" MaxWidth="450" Margin="24,0">
+        <TextBlock l:Uids.Uid="Wizard_Stt_Title" FontSize="22" FontWeight="SemiBold"/>
+        <TextBlock l:Uids.Uid="Wizard_Stt_Description" TextWrapping="Wrap" FontSize="13" Opacity="0.7"/>
 
         <RadioButtons x:Name="SttRadio" MaxColumns="1" SelectionChanged="SttRadio_SelectionChanged">
             <RadioButton x:Name="SttCloud" Tag="cloud" IsChecked="True">
@@ -22,6 +23,28 @@
             </RadioButton>
         </RadioButtons>
 
+        <!-- API Key panel (BYOK cloud path) -->
+        <StackPanel x:Name="ApiKeyPanel" Spacing="8" Visibility="Collapsed">
+            <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.6">
+                <Run Text="Get your key from: "/>
+                <Hyperlink NavigateUri="https://console.deepgram.com">console.deepgram.com</Hyperlink>
+            </TextBlock>
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <PasswordBox x:Name="SttKeyBox" PlaceholderText="Deepgram API Key"
+                             PasswordChanged="SttKeyBox_PasswordChanged"/>
+                <Button x:Name="TestKeyButton" Content="Test" Grid.Column="1"
+                        Click="TestKeyButton_Click" IsEnabled="False"/>
+            </Grid>
+            <StackPanel x:Name="KeyStatus" Spacing="4" Visibility="Collapsed" Orientation="Horizontal">
+                <ProgressRing x:Name="KeyProgress" Width="16" Height="16" IsActive="False"/>
+                <TextBlock x:Name="KeyStatusText" FontSize="12" VerticalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+
         <!-- Download progress panel (shown when Local is selected) -->
         <StackPanel x:Name="DownloadPanel" Spacing="8" Visibility="Collapsed">
             <ProgressBar x:Name="DownloadProgress" Minimum="0" Maximum="100" Value="0"/>
@@ -29,5 +52,10 @@
             <TextBlock x:Name="DownloadError" FontSize="12" Foreground="Red"
                        TextWrapping="Wrap" Visibility="Collapsed"/>
         </StackPanel>
+
+        <!-- Skip warning (shown when BYOK but no key entered) -->
+        <InfoBar x:Name="SkipWarning" Severity="Warning" IsOpen="False" IsClosable="False"
+                 l:Uids.Uid="Wizard_SkipKeyWarning"/>
     </StackPanel>
+    </ScrollViewer>
 </Page>

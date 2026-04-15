@@ -24,6 +24,9 @@ public sealed partial class WizardSttPage : Page, IWizardStepPage
         this.Unloaded += OnUnloaded;
     }
 
+    private bool _isByok;
+    private bool _skipWarningShown;
+
     public void SetViewModel(WizardViewModel viewModel)
     {
         _viewModel = viewModel;
@@ -31,8 +34,29 @@ public sealed partial class WizardSttPage : Page, IWizardStepPage
         // Set the callback so the ViewModel calls us before leaving this step
         viewModel.BeforeLeaveStep = OnBeforeLeaveStepAsync;
 
-        // Restore selection from VM
-        if (string.Equals(viewModel.SttChoice, "local", StringComparison.Ordinal))
+        // Remove irrelevant options from RadioButtons (Collapsed still leaves gap)
+        bool isLocal = string.Equals(viewModel.OnboardingChoice, "local", StringComparison.Ordinal);
+        _isByok = string.Equals(viewModel.OnboardingChoice, "apikeys", StringComparison.Ordinal);
+        if (isLocal)
+        {
+            SttRadio.Items.Remove(SttCloud);
+        }
+        else
+        {
+            SttRadio.Items.Remove(SttLocal);
+        }
+
+        // Show API key panel for BYOK path
+        ApiKeyPanel.Visibility = _isByok ? Visibility.Visible : Visibility.Collapsed;
+
+        // Load existing key if any
+        if (_isByok && !string.IsNullOrWhiteSpace(viewModel.DeepgramApiKey))
+        {
+            SttKeyBox.Password = viewModel.DeepgramApiKey;
+        }
+
+        // Select the appropriate option
+        if (isLocal || string.Equals(viewModel.SttChoice, "local", StringComparison.Ordinal))
         {
             SttLocal.IsChecked = true;
             ShowModelStatus();
@@ -53,13 +77,75 @@ public sealed partial class WizardSttPage : Page, IWizardStepPage
         if (SttLocal.IsChecked == true)
         {
             _viewModel.SttChoice = "local";
+            ApiKeyPanel.Visibility = Visibility.Collapsed;
             ShowModelStatus();
         }
         else
         {
             _viewModel.SttChoice = "cloud";
+            ApiKeyPanel.Visibility = _isByok ? Visibility.Visible : Visibility.Collapsed;
             CancelDownload();
             DownloadPanel.Visibility = Visibility.Collapsed;
+        }
+
+        SkipWarning.IsOpen = false;
+        _skipWarningShown = false;
+    }
+
+    private void SttKeyBox_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel is not null)
+        {
+            _viewModel.DeepgramApiKey = SttKeyBox.Password;
+        }
+
+        TestKeyButton.IsEnabled = !string.IsNullOrWhiteSpace(SttKeyBox.Password);
+        KeyStatus.Visibility = Visibility.Collapsed;
+        SkipWarning.IsOpen = false;
+        _skipWarningShown = false;
+    }
+
+    private async void TestKeyButton_Click(object sender, RoutedEventArgs e)
+    {
+        string apiKey = SttKeyBox.Password;
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return;
+        }
+
+        TestKeyButton.IsEnabled = false;
+        KeyStatus.Visibility = Visibility.Visible;
+        KeyProgress.IsActive = true;
+        KeyStatusText.Text = _loc.GetString("Wizard_ApiKeys_Testing");
+
+        try
+        {
+            using var client = new System.Net.Http.HttpClient();
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Token", apiKey);
+            var response = await client.GetAsync("https://api.deepgram.com/v1/projects");
+
+            if (response.IsSuccessStatusCode)
+            {
+                KeyStatusText.Text = _loc.GetString("Wizard_ApiKeys_Valid");
+                KeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.LimeGreen);
+            }
+            else
+            {
+                KeyStatusText.Text = _loc.GetString("Wizard_ApiKeys_Invalid");
+                KeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Tomato);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Wizard: STT API key test failed");
+            KeyStatusText.Text = "Connection error";
+            KeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Tomato);
+        }
+        finally
+        {
+            KeyProgress.IsActive = false;
+            TestKeyButton.IsEnabled = true;
         }
     }
 
@@ -91,6 +177,21 @@ public sealed partial class WizardSttPage : Page, IWizardStepPage
     /// </summary>
     private async Task<bool> OnBeforeLeaveStepAsync()
     {
+        // BYOK cloud — warn if no key entered (but allow skip on second click)
+        if (_isByok && string.Equals(_viewModel?.SttChoice, "cloud", StringComparison.Ordinal)
+            && string.IsNullOrWhiteSpace(SttKeyBox.Password))
+        {
+            if (!_skipWarningShown)
+            {
+                SkipWarning.IsOpen = true;
+                _skipWarningShown = true;
+                return false; // Block first attempt, show warning
+            }
+
+            // Second click — let them through
+            return true;
+        }
+
         // Cloud STT — nothing to download, proceed immediately
         if (!string.Equals(_viewModel?.SttChoice, "local", StringComparison.Ordinal))
         {

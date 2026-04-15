@@ -1,0 +1,35 @@
+<Page x:Class="DiktaMe.App.Views.Wizard.WizardActivatePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:l="using:WinUI3Localizer">
+
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20" MaxWidth="400">
+
+        <TextBlock l:Uids.Uid="Wizard_Activate_Title" FontSize="22" FontWeight="SemiBold"
+                   HorizontalAlignment="Center" TextAlignment="Center"/>
+
+        <TextBlock l:Uids.Uid="Wizard_Activate_Description" FontSize="13" Opacity="0.6"
+                   HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+
+        <TextBox x:Name="LicenseKeyBox" PlaceholderText="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+                 HorizontalAlignment="Stretch"/>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+            <Button x:Name="ActivateButton" l:Uids.Uid="Wizard_Features_Activate"
+                    Style="{ThemeResource AccentButtonStyle}"
+                    Click="ActivateButton_Click"/>
+            <ProgressRing x:Name="ActivateProgress" IsActive="False"
+                          Width="20" Height="20" Visibility="Collapsed"/>
+        </StackPanel>
+
+        <TextBlock x:Name="ActivateStatus" FontSize="12" TextWrapping="Wrap"
+                   HorizontalAlignment="Center" TextAlignment="Center"
+                   Visibility="Collapsed"/>
+
+        <HyperlinkButton x:Name="BuyLink" Padding="0"
+                         l:Uids.Uid="Wizard_Activate_BuyLink"
+                         HorizontalAlignment="Center"
+                         Click="BuyLink_Click"/>
+
+    </StackPanel>
+</Page>

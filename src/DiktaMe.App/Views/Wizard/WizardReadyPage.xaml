@@ -3,8 +3,9 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:l="using:WinUI3Localizer">
 
-    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16" MaxWidth="400">
-        <FontIcon Glyph="&#xE73E;" FontSize="48" HorizontalAlignment="Center"
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" MaxWidth="400" Padding="0,8">
+        <FontIcon Glyph="&#xE73E;" FontSize="40" HorizontalAlignment="Center"
                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
 
         <TextBlock l:Uids.Uid="Wizard_Ready_Title" FontSize="24" FontWeight="SemiBold"
@@ -21,6 +22,7 @@
 
         <TextBlock l:Uids.Uid="Wizard_Ready_SettingsHint" TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Opacity="0.5"/>
 
-        <TextBlock l:Uids.Uid="Wizard_Ready_FinishHint" TextWrapping="Wrap" TextAlignment="Center" FontSize="13" Opacity="0.7" Margin="0,8,0,0"/>
+        <TextBlock l:Uids.Uid="Wizard_Ready_FinishHint" TextWrapping="Wrap" TextAlignment="Center" FontSize="13" Opacity="0.7" Margin="0,4,0,0"/>
     </StackPanel>
+    </ScrollViewer>
 </Page>

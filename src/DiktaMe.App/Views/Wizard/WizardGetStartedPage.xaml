@@ -36,15 +36,13 @@
 
         </RadioButtons>
 
-        <!-- License gate (shown below radios when BYOK or Local selected and unlicensed) -->
-        <StackPanel x:Name="LicenseGatePanel" Spacing="4" Visibility="Collapsed"
+        <!-- License info (shown when unlicensed — invitation, not blocker) -->
+        <StackPanel x:Name="LicenseInfoPanel" Spacing="4" Visibility="Collapsed"
                     Padding="4,0,0,0" Margin="0,-8,0,0">
-            <TextBlock l:Uids.Uid="Wizard_LicenseRequired" FontSize="13" FontWeight="SemiBold"
-                       Foreground="{ThemeResource SystemFillColorCautionBrush}"/>
+            <TextBlock l:Uids.Uid="Wizard_LicenseInfo" FontSize="12" Opacity="0.6"
+                       TextWrapping="Wrap"/>
             <HyperlinkButton x:Name="BuyLicenseLink" Padding="0"
                              l:Uids.Uid="Wizard_LicenseBuyButton"/>
-            <TextBlock l:Uids.Uid="Wizard_LicenseOrBuild" FontSize="11" FontStyle="Italic"
-                       Opacity="0.5"/>
         </StackPanel>
     </StackPanel>
 </Page>

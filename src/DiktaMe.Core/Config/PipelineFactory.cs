@@ -272,16 +272,13 @@ public sealed class PipelineFactory
         string effectiveMode = modeOverride ?? mode;
         ModeSettings ms = _profiles.GetModeSettings(effectiveMode);
 
-        // License gate — local/BYOK providers require Power License.
-        if (_licenseManager is not null && !_licenseManager.IsLicensed)
+        // License gate — non-wallet usage requires Power License.
+        // Wallet mode is free (handled via streaming proxy, not this path).
+        // BYOK (own API keys) and Local (Whisper/Ollama) both require a license.
+        if (_licenseManager is not null && !_licenseManager.IsLicensed
+            && _settings.Current.AuthMode != AuthMode.Wallet)
         {
-            bool needsLicense = string.Equals(ms.SttProvider, "whisper", StringComparison.OrdinalIgnoreCase)
-                             || string.Equals(ms.LlmProvider, "ollama", StringComparison.OrdinalIgnoreCase);
-
-            if (needsLicense)
-            {
-                throw new InvalidOperationException("Power License required for local providers. Purchase at dikta.me");
-            }
+            throw new InvalidOperationException("Power License required. Purchase at dikta.me/pricing");
         }
 
         ISTTProvider stt = _sttFactory.CreateProvider(ms.SttProvider);

@@ -54,20 +54,46 @@ This test plan is organized by **complete user journeys** rather than fragmented
 Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyContinue
 ```
 
-**Wizard has 8 steps (0-7). Step 5 (API Keys) is skipped if no cloud providers need keys.**
+**Wizard flow: Language → Get Started → [Features (Wallet) or STT/LLM/TTS (BYOK/Local)] → Test → Ready**
+**BYOK/Local paths show lane-filtered options (cloud-only or local-only). API keys entered inline on each step.**
 
-- [ ] **1.1.1** Launch app → Loading screen → Wizard appears
-- [ ] **1.1.2** Step 0 (Language) → Select UI language
-- [ ] **1.1.3** Step 1 (Get Started) → Choose **API Keys (BYOK)** path *(requires Power License)*
-- [ ] **1.1.4** Step 2 (STT) → Select **Cloud** → Select **Deepgram**
-- [ ] **1.1.5** Step 3 (LLM) → Select **Cloud** → Select **OpenAI** (or Gemini/Anthropic)
-- [ ] **1.1.6** Step 4 (TTS) → Select **Off** (or pick a provider)
-- [ ] **1.1.7** Step 5 (API Keys) → Enter API keys for selected cloud providers
-- [ ] **1.1.8** Step 6 (Test) → Record 3 seconds of audio → Transcription appears
-- [ ] **1.1.9** Step 6 (Test) → Can re-record if needed
-- [ ] **1.1.10** Step 7 (Ready) → Summary shows selected providers
-- [ ] **1.1.11** Step 7 (Ready) → Click "Start Dictating" → Wizard closes
-- [ ] **1.1.12** Verify settings saved: `.\test-helpers\Verify-AppSettings.ps1 -SettingPath "WizardCompleted" -ExpectedValue "true"`
+### Wallet Path (Unlicensed)
+- [x] **1.1.1** Launch app → Loading screen → Wizard appears
+- [x] **1.1.2** Step 0 (Language) → Select UI language
+- [x] **1.1.3** Step 1 (Get Started) → Wallet is default and only enabled option. BYOK/Local visible but disabled. "I Have a Key!" red button on left
+- [x] **1.1.3a** Click "I Have a Key!" → Activation page → Paste key → Activates → Returns to Get Started with BYOK/Local enabled
+- [x] **1.1.3b** (Without key) Click Next → Features page shows Power License benefits (Local AI, BYOK, Vision) + "Get yours now" link
+- [x] **1.1.3c** Click Next on Features → Browser opens for sign-in → App loads with Wallet mode active
+- [x] **1.1.3d** Close wizard before sign-in → Relaunch → Wizard re-appears (WizardCompleted not set until sign-in)
+
+### BYOK Path (Licensed)
+- [x] **1.1.4** Step 1 (Get Started) → Select **BYOK** (enabled with Power License)
+- [x] **1.1.5** Step 3 (STT) → Cloud STT only (local hidden) → Deepgram API key field + Test button
+- [x] **1.1.5a** Skip without key → Warning appears → Click Next again → Proceeds with warning
+- [x] **1.1.6** Step 4 (LLM) → Cloud AI only (local hidden) → Provider dropdown (Gemini/OpenAI/Anthropic/OpenRouter/Requesty) → API key field + Test button
+- [x] **1.1.6a** Skip without key → Warning appears → Click Next again → Proceeds with warning
+- [x] **1.1.7** Step 5 (TTS) → Off or Cloud TTS (local hidden) → Provider dropdown (Deepgram/OpenAI/Gemini/Inworld) → Shows if key already entered or needs new key
+- [x] **1.1.8** Step 7 (Test) → Record 3 seconds of audio → Transcription appears
+- [x] **1.1.9** Step 7 (Test) → Can re-record if needed
+- [x] **1.1.10** Step 8 (Ready) → Summary shows selected providers
+- [x] **1.1.11** Step 8 (Ready) → Click "Start Dictating" → Wizard closes → App loads
+- [x] **1.1.12** Verify settings saved: `.\test-helpers\Verify-AppSettings.ps1 -SettingPath "WizardCompleted" -ExpectedValue "true"`
+
+### Local Path (Licensed)
+- [ ] **1.1.13** Step 1 (Get Started) → Select **Local** (enabled with Power License)
+- [ ] **1.1.14** STT page → Only Whisper visible (cloud removed) → Pre-selected → Model download starts if not present
+- [ ] **1.1.14a** Whisper model downloads successfully → Progress bar → "Model ready"
+- [ ] **1.1.14b** If download fails → Error shown → Can retry or go Back
+- [ ] **1.1.15** LLM page → Only Ollama visible (cloud removed) → Pre-selected → Ollama health check runs
+- [ ] **1.1.15a** Ollama running + model present → "Ready" status
+- [ ] **1.1.15b** Ollama not running → Install/start prompt shown
+- [ ] **1.1.15c** Model not pulled → Auto-pull with progress bar
+- [ ] **1.1.16** TTS page → Off or Kokoro visible (cloud removed) → Select Kokoro or Off
+- [ ] **1.1.16a** Kokoro selected → Model download starts if not present → Progress → "Ready"
+- [ ] **1.1.17** Test page → Record audio → Whisper transcription appears (local, no cloud)
+- [ ] **1.1.18** Ready page → Summary shows Whisper + Ollama (+ Kokoro if selected)
+- [ ] **1.1.19** Click "Start Dictating" → Wizard closes → App loads fully local
+- [ ] **1.1.20** Verify offline: disconnect internet → Dictate → Still works
 
 ## 1.2: Core Dictation (Deepgram + LLM)
 
@@ -271,12 +297,11 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 - [ ] **2.1.1** Launch app → Wizard appears
 - [ ] **2.1.2** Step 0 (Language) → Select language
-- [ ] **2.1.3** Step 1 (Get Started) → Choose **API Keys (BYOK)** path
-- [ ] **2.1.4** Step 2 (STT) → Select **Cloud** → Select **Gemini Audio**
-- [ ] **2.1.5** Step 3 (LLM) → Select **Cloud** → Select **Gemini**
-- [ ] **2.1.6** Step 4 (TTS) → Select Off or a provider
-- [ ] **2.1.7** Step 5 (API Keys) → Enter Gemini API key
-- [ ] **2.1.8** Step 6 (Test) → Record audio → Gemini transcription appears
+- [ ] **2.1.3** Step 1 (Get Started) → With Power License: **BYOK** → Select it
+- [ ] **2.1.4** STT page → Cloud STT (Deepgram key) → Enter Deepgram key or skip
+- [ ] **2.1.5** LLM page → Select **Gemini** from provider dropdown → Enter Gemini API key
+- [ ] **2.1.6** TTS page → Select Off or cloud provider
+- [ ] **2.1.7** Test page → Record audio → Transcription appears
 - [ ] **2.1.9** Step 7 (Ready) → Summary shows Gemini Audio + Gemini LLM
 - [ ] **2.1.10** Complete wizard
 
@@ -317,16 +342,13 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 - [ ] **3.1.1** Verify Ollama running: `.\test-helpers\Test-OllamaHealth.ps1`
 - [ ] **3.1.2** Launch app → Wizard appears
 - [ ] **3.1.3** Step 0 (Language) → Select language
-- [ ] **3.1.4** Step 1 (Get Started) → Choose **Local** path *(requires Power License)*
-- [ ] **3.1.5** Step 2 (STT) → Select **Local** → Whisper option appears
-- [ ] **3.1.6** Step 2 (STT) → Confirm Whisper model download (if needed)
-- [ ] **3.1.7** Step 3 (LLM) → Select **Ollama** → Confirm localhost:11434 detected
-- [ ] **3.1.8** Step 3 (LLM) → Select model from installed models
-- [ ] **3.1.9** Step 4 (TTS) → Select **Kokoro** (local) or Off
-- [ ] **3.1.10** Step 5 (API Keys) → Should be skipped (no cloud providers)
-- [ ] **3.1.11** Step 6 (Test) → Record audio → Whisper transcription appears
-- [ ] **3.1.12** Step 7 (Ready) → Summary shows Whisper + Ollama
-- [ ] **3.1.13** Complete wizard
+- [ ] **3.1.4** Step 1 (Get Started) → With Power License: **Local** option enabled → Select it
+- [ ] **3.1.5** STT page → Only Whisper visible (cloud hidden) → Pre-selected → Download starts if needed
+- [ ] **3.1.6** LLM page → Only Ollama visible (cloud hidden) → Pre-selected → Ollama check + model pull
+- [ ] **3.1.7** TTS page → Off or Kokoro visible (cloud hidden) → Select Kokoro or Off
+- [ ] **3.1.8** Test page → Record audio → Whisper transcription appears
+- [ ] **3.1.9** Ready page → Summary shows Whisper + Ollama
+- [ ] **3.1.10** Click "Start Dictating" → Wizard closes → App loads
 
 ## 3.2: Core Functionality (Local Path)
 
@@ -371,14 +393,13 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 - [ ] **4.1.1** Launch app → Wizard appears
 - [ ] **4.1.2** Step 0 (Language) → Select language
-- [ ] **4.1.3** Step 1 (Get Started) → Choose **API Keys (BYOK)** path
-- [ ] **4.1.4** Step 2 (STT) → Select **Cloud** → Deepgram
-- [ ] **4.1.5** Step 3 (LLM) → Select **Skip** (no LLM)
-- [ ] **4.1.6** Step 4 (TTS) → Select Off
-- [ ] **4.1.7** Step 5 (API Keys) → Enter Deepgram key
-- [ ] **4.1.8** Step 6 (Test) → Record audio → Raw transcription appears
-- [ ] **4.1.9** Step 7 (Ready) → Summary shows Deepgram + No LLM
-- [ ] **4.1.10** Complete wizard
+- [ ] **4.1.3** Step 1 (Get Started) → With Power License: **BYOK** → Select it
+- [ ] **4.1.4** STT page → Cloud STT → Enter Deepgram key
+- [ ] **4.1.5** LLM page → Skip without entering key (warning shown, proceed)
+- [ ] **4.1.6** TTS page → Select Off
+- [ ] **4.1.7** Test page → Record audio → Raw transcription appears (no LLM cleanup)
+- [ ] **4.1.8** Ready page → Summary shows Deepgram + No LLM
+- [ ] **4.1.9** Complete wizard
 
 ## 4.2: Core Functionality (No LLM)
 
@@ -672,8 +693,8 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 - [ ] **6.5.3** Enter invalid key → Click Activate → Clear error message
 - [ ] **6.5.4** Restart app → License still active (persisted in SecureStorage)
 - [ ] **6.5.5** Deactivate license → License cleared
-- [ ] **6.5.6** Without license → Wizard "Get Started" blocks BYOK/Local paths (license gate)
-- [ ] **6.5.7** With license → Wizard BYOK/Local paths accessible
+- [ ] **6.5.6** Without license → Wizard shows BYOK/Local as disabled with info text, Wallet is default
+- [ ] **6.5.7** With license → Wizard BYOK/Local options enabled and selectable
 - [ ] **6.5.8** Disconnect internet → License still valid (30-day offline grace period)
 
 ## 6.6: Journey 6 Complete

@@ -3,9 +3,10 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:l="using:WinUI3Localizer">
 
-    <StackPanel VerticalAlignment="Center" Spacing="16" MaxWidth="450" Margin="24,0">
-        <TextBlock l:Uids.Uid="Wizard_Llm_Title" FontSize="24" FontWeight="SemiBold"/>
-        <TextBlock l:Uids.Uid="Wizard_Llm_Description" TextWrapping="Wrap" FontSize="14" Opacity="0.7"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel VerticalAlignment="Center" Spacing="12" MaxWidth="450" Margin="24,0">
+        <TextBlock l:Uids.Uid="Wizard_Llm_Title" FontSize="22" FontWeight="SemiBold"/>
+        <TextBlock l:Uids.Uid="Wizard_Llm_Description" TextWrapping="Wrap" FontSize="13" Opacity="0.7"/>
 
         <RadioButtons x:Name="LlmRadio" MaxColumns="1" SelectionChanged="LlmRadio_SelectionChanged">
             <RadioButton x:Name="LlmCloud" Tag="cloud" IsChecked="True">
@@ -21,6 +22,33 @@
                 </StackPanel>
             </RadioButton>
         </RadioButtons>
+
+        <!-- Provider selection + API Key (BYOK cloud path) -->
+        <StackPanel x:Name="ApiKeyPanel" Spacing="10" Visibility="Collapsed">
+            <ComboBox x:Name="LlmProviderCombo" Header="Provider" Width="280"
+                      SelectionChanged="LlmProviderCombo_SelectionChanged">
+                <ComboBoxItem Tag="gemini" Content="Gemini (Google)" IsSelected="True"/>
+                <ComboBoxItem Tag="openai" Content="OpenAI (GPT)"/>
+                <ComboBoxItem Tag="anthropic" Content="Anthropic (Claude)"/>
+                <ComboBoxItem Tag="openrouter" Content="OpenRouter"/>
+                <ComboBoxItem Tag="requesty" Content="Requesty"/>
+            </ComboBox>
+            <TextBlock x:Name="KeySourceLink" TextWrapping="Wrap" FontSize="12" Opacity="0.6"/>
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <PasswordBox x:Name="LlmKeyBox" PlaceholderText="API Key"
+                             PasswordChanged="LlmKeyBox_PasswordChanged"/>
+                <Button x:Name="TestKeyButton" Content="Test" Grid.Column="1"
+                        Click="TestKeyButton_Click" IsEnabled="False"/>
+            </Grid>
+            <StackPanel x:Name="KeyStatus" Spacing="4" Visibility="Collapsed" Orientation="Horizontal">
+                <ProgressRing x:Name="KeyProgress" Width="16" Height="16" IsActive="False"/>
+                <TextBlock x:Name="KeyStatusText" FontSize="12" VerticalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
 
         <!-- Ollama status panel (shown when Local is selected) -->
         <StackPanel x:Name="OllamaPanel" Spacing="8" Visibility="Collapsed">
@@ -39,5 +67,10 @@
                 </HyperlinkButton>
             </StackPanel>
         </StackPanel>
+
+        <!-- Skip warning (shown when BYOK but no key entered) -->
+        <InfoBar x:Name="SkipWarning" Severity="Warning" IsOpen="False" IsClosable="False"
+                 l:Uids.Uid="Wizard_SkipKeyWarning"/>
     </StackPanel>
+    </ScrollViewer>
 </Page>

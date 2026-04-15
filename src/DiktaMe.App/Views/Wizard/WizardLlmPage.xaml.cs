@@ -25,6 +25,9 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
         this.Unloaded += OnUnloaded;
     }
 
+    private bool _isByok;
+    private bool _skipWarningShown;
+
     public void SetViewModel(WizardViewModel viewModel)
     {
         _viewModel = viewModel;
@@ -32,8 +35,31 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
         // Set the callback so the ViewModel calls us before leaving this step
         viewModel.BeforeLeaveStep = OnBeforeLeaveStepAsync;
 
-        // Restore selection from VM
-        if (string.Equals(viewModel.LlmChoice, "local", StringComparison.Ordinal))
+        // Remove irrelevant options from RadioButtons (Collapsed still leaves gap)
+        bool isLocal = string.Equals(viewModel.OnboardingChoice, "local", StringComparison.Ordinal);
+        _isByok = string.Equals(viewModel.OnboardingChoice, "apikeys", StringComparison.Ordinal);
+        if (isLocal)
+        {
+            LlmRadio.Items.Remove(LlmCloud);
+        }
+        else
+        {
+            LlmRadio.Items.Remove(LlmLocal);
+        }
+
+        // Show API key panel for BYOK path
+        ApiKeyPanel.Visibility = _isByok ? Visibility.Visible : Visibility.Collapsed;
+
+        if (_isByok)
+        {
+            // Restore provider selection
+            SelectComboByTag(LlmProviderCombo, viewModel.CloudLlmProvider);
+            UpdateKeySourceLink(viewModel.CloudLlmProvider);
+            LoadKeyForProvider(viewModel.CloudLlmProvider);
+        }
+
+        // Select the appropriate option
+        if (isLocal || string.Equals(viewModel.LlmChoice, "local", StringComparison.Ordinal))
         {
             LlmLocal.IsChecked = true;
             _ = ShowOllamaStatusAsync();
@@ -54,14 +80,184 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
         if (LlmLocal.IsChecked == true)
         {
             _viewModel.LlmChoice = "local";
+            ApiKeyPanel.Visibility = Visibility.Collapsed;
             _ = ShowOllamaStatusAsync();
         }
         else
         {
             _viewModel.LlmChoice = "cloud";
+            ApiKeyPanel.Visibility = _isByok ? Visibility.Visible : Visibility.Collapsed;
             CancelPull();
             OllamaPanel.Visibility = Visibility.Collapsed;
             InstallPanel.Visibility = Visibility.Collapsed;
+        }
+
+        SkipWarning.IsOpen = false;
+        _skipWarningShown = false;
+    }
+
+    private void LlmProviderCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_viewModel is null || LlmProviderCombo.SelectedItem is not ComboBoxItem item)
+        {
+            return;
+        }
+
+        string provider = item.Tag as string ?? "gemini";
+        _viewModel.CloudLlmProvider = provider;
+        UpdateKeySourceLink(provider);
+        LoadKeyForProvider(provider);
+        KeyStatus.Visibility = Visibility.Collapsed;
+        SkipWarning.IsOpen = false;
+        _skipWarningShown = false;
+    }
+
+    private void LlmKeyBox_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        string provider = _viewModel.CloudLlmProvider;
+        string key = LlmKeyBox.Password;
+
+        // Store on the correct ViewModel property
+        switch (provider)
+        {
+            case "gemini": _viewModel.GeminiApiKey = key; break;
+            case "openai": _viewModel.OpenAiApiKey = key; break;
+            case "anthropic": _viewModel.AnthropicApiKey = key; break;
+            case "openrouter": _viewModel.OpenRouterApiKey = key; break;
+            case "requesty": _viewModel.RequestyApiKey = key; break;
+        }
+
+        TestKeyButton.IsEnabled = !string.IsNullOrWhiteSpace(key);
+        KeyStatus.Visibility = Visibility.Collapsed;
+        SkipWarning.IsOpen = false;
+        _skipWarningShown = false;
+    }
+
+    private async void TestKeyButton_Click(object sender, RoutedEventArgs e)
+    {
+        string apiKey = LlmKeyBox.Password;
+        string provider = _viewModel?.CloudLlmProvider ?? "gemini";
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return;
+        }
+
+        TestKeyButton.IsEnabled = false;
+        KeyStatus.Visibility = Visibility.Visible;
+        KeyProgress.IsActive = true;
+        KeyStatusText.Text = _loc.GetString("Wizard_ApiKeys_Testing");
+
+        try
+        {
+            bool success = await TestLlmKeyAsync(provider, apiKey);
+            KeyStatusText.Text = _loc.GetString(success ? "Wizard_ApiKeys_Valid" : "Wizard_ApiKeys_Invalid");
+            KeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                success ? Microsoft.UI.Colors.LimeGreen : Microsoft.UI.Colors.Tomato);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Wizard: LLM API key test failed for {Provider}", provider);
+            KeyStatusText.Text = "Connection error";
+            KeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Tomato);
+        }
+        finally
+        {
+            KeyProgress.IsActive = false;
+            TestKeyButton.IsEnabled = true;
+        }
+    }
+
+    private static async Task<bool> TestLlmKeyAsync(string provider, string apiKey)
+    {
+        using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+
+        switch (provider)
+        {
+            case "gemini":
+                using (var req = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get,
+                    "https://generativelanguage.googleapis.com/v1beta/models"))
+                {
+                    req.Headers.Add("x-goog-api-key", apiKey);
+                    var resp = await client.SendAsync(req);
+                    return resp.IsSuccessStatusCode;
+                }
+
+            case "openai":
+                client.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+                return (await client.GetAsync("https://api.openai.com/v1/models")).IsSuccessStatusCode;
+
+            case "anthropic":
+                // Anthropic doesn't have a simple list endpoint — use a minimal messages call
+                using (var req = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get,
+                    "https://api.anthropic.com/v1/models"))
+                {
+                    req.Headers.Add("x-api-key", apiKey);
+                    req.Headers.Add("anthropic-version", "2023-06-01");
+                    var resp = await client.SendAsync(req);
+                    return resp.IsSuccessStatusCode;
+                }
+
+            case "openrouter":
+                client.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+                return (await client.GetAsync("https://openrouter.ai/api/v1/models")).IsSuccessStatusCode;
+
+            case "requesty":
+                client.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+                return (await client.GetAsync("https://router.requesty.ai/v1/models")).IsSuccessStatusCode;
+
+            default:
+                return false;
+        }
+    }
+
+    private void UpdateKeySourceLink(string provider)
+    {
+        KeySourceLink.Text = provider switch
+        {
+            "gemini" => "Get your key from: aistudio.google.com/apikey",
+            "openai" => "Get your key from: platform.openai.com/api-keys",
+            "anthropic" => "Get your key from: console.anthropic.com/settings/keys",
+            "openrouter" => "Get your key from: openrouter.ai/keys",
+            "requesty" => "Get your key from: app.requesty.ai",
+            _ => "",
+        };
+    }
+
+    private void LoadKeyForProvider(string provider)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        LlmKeyBox.Password = provider switch
+        {
+            "gemini" => _viewModel.GeminiApiKey,
+            "openai" => _viewModel.OpenAiApiKey,
+            "anthropic" => _viewModel.AnthropicApiKey,
+            "openrouter" => _viewModel.OpenRouterApiKey,
+            "requesty" => _viewModel.RequestyApiKey,
+            _ => "",
+        };
+    }
+
+    private static void SelectComboByTag(ComboBox combo, string tag)
+    {
+        foreach (var item in combo.Items)
+        {
+            if (item is ComboBoxItem ci && string.Equals(ci.Tag as string, tag, StringComparison.Ordinal))
+            {
+                combo.SelectedItem = ci;
+                return;
+            }
         }
     }
 
@@ -255,6 +451,20 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
     /// </summary>
     private async Task<bool> OnBeforeLeaveStepAsync()
     {
+        // BYOK cloud — warn if no key entered (allow skip on second click)
+        if (_isByok && string.Equals(_viewModel?.LlmChoice, "cloud", StringComparison.Ordinal)
+            && string.IsNullOrWhiteSpace(LlmKeyBox.Password))
+        {
+            if (!_skipWarningShown)
+            {
+                SkipWarning.IsOpen = true;
+                _skipWarningShown = true;
+                return false;
+            }
+
+            return true;
+        }
+
         // Cloud LLM — nothing to validate, proceed immediately
         if (!string.Equals(_viewModel?.LlmChoice, "local", StringComparison.Ordinal))
         {

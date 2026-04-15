@@ -247,6 +247,14 @@ public partial class App : Application
             var accountService = Services.GetRequiredService<IAccountService>();
             await accountService.HandleAuthCallbackAsync(token, refreshToken).ConfigureAwait(false);
 
+            // Mark wizard as completed now that sign-in succeeded (Wallet path defers this)
+            var settings = Services.GetRequiredService<DiktaMe.Core.Config.SettingsManager>();
+            if (!settings.Current.WizardCompleted)
+            {
+                await settings.UpdateAsync(settings.Current with { WizardCompleted = true }).ConfigureAwait(false);
+                Log.Information("App: wizard marked completed after successful sign-in");
+            }
+
             // Sync wallet balance + refresh HUD after sign-in
             var loadingVm = Services.GetRequiredService<ViewModels.LoadingViewModel>();
             _ = Task.Run(async () =>

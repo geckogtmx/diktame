@@ -47,7 +47,7 @@ public sealed class WalletStreamingSTTProxy : IStreamingSTTProvider
     private bool _disposed;
 
     // Completion: resolves when the edge fn sends {"type":"final"} or an error/fallback
-    private readonly TaskCompletionSource<FinalMessage?> _finalTcs =
+    private TaskCompletionSource<FinalMessage?> _finalTcs =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     // Track accumulated text for partial display
@@ -95,6 +95,17 @@ public sealed class WalletStreamingSTTProxy : IStreamingSTTProvider
         {
             throw new WalletStreamingFallbackException("No wallet JWT token available.");
         }
+
+        // Reset state for reuse (singleton — must be clean for each dictation)
+        _ws?.Dispose();
+        _ws = null;
+        _sessionCts?.Dispose();
+        _wsReady = false;
+        _audioEnded = false;
+        _disposed = false;
+        _finalTcs = new TaskCompletionSource<FinalMessage?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _accumulatedText.Clear();
+        while (_audioBuffer.TryDequeue(out _)) { } // drain stale audio
 
         _sessionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 

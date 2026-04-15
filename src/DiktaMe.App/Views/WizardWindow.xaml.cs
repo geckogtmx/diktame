@@ -15,12 +15,14 @@ public sealed partial class WizardWindow : Window
     {
         typeof(WizardLanguagePage),      // 0
         typeof(WizardGetStartedPage),    // 1
-        typeof(WizardSttPage),           // 2
-        typeof(WizardLlmPage),           // 3
-        typeof(WizardTtsPage),           // 4
-        typeof(WizardApiKeysPage),       // 5 (skipped if no cloud providers)
-        typeof(WizardTestPage),          // 6
-        typeof(WizardReadyPage),         // 7
+        typeof(WizardFeaturesPage),      // 2 (Wallet path only — features showcase)
+        typeof(WizardSttPage),           // 3
+        typeof(WizardLlmPage),           // 4
+        typeof(WizardTtsPage),           // 5
+        typeof(WizardApiKeysPage),       // 6 (skipped if no cloud providers)
+        typeof(WizardTestPage),          // 7
+        typeof(WizardReadyPage),         // 8
+        typeof(WizardActivatePage),      // 9 (detour — accessed via "I Have a Key!" button)
     };
 
     public WizardWindow()
@@ -64,6 +66,17 @@ public sealed partial class WizardWindow : Window
         {
             page.SetViewModel(ViewModel);
         }
+
+        // Show "I Have a Key!" button only on Get Started step (1) when unlicensed
+        var licenseManager = App.Current.Services.GetRequiredService<DiktaMe.Core.Security.LicenseManager>();
+        HaveKeyButton.Visibility = step == 1 && !licenseManager.IsLicensed
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void HaveKeyButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Navigate to activation page (step index for WizardActivatePage)
+        ViewModel.NavigateToActivation();
     }
 
     private void OnWizardCompleted()

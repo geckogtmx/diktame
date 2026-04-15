@@ -390,9 +390,8 @@
   <data name="License_InvalidKey" xml:space="preserve"><value>Clave de licencia inv&#225;lida. Revisa tu correo para la clave correcta.</value></data>
   <data name="License_Activated" xml:space="preserve"><value>&#161;Licencia activada! La IA local est&#225; desbloqueada.</value></data>
   <data name="License_FallbackToast" xml:space="preserve"><value>El modo local requiere Licencia Power. Usando la nube.</value></data>
-  <data name="Wizard_LicenseRequired.Text" xml:space="preserve"><value>Requiere Licencia Power</value></data>
+  <data name="Wizard_LicenseInfo.Text" xml:space="preserve"><value>La Licencia Power desbloquea claves API y modos de IA local</value></data>
   <data name="Wizard_LicenseBuyButton.Content" xml:space="preserve"><value>Obtener Licencia Power &#x2014; $20</value></data>
-  <data name="Wizard_LicenseOrBuild.Text" xml:space="preserve"><value>O compila desde el c&#243;digo fuente &#x2014; es MIT</value></data>
   <!-- ══════════════════════════════════════════════════════════════════════
        Settings > Ollama
        ══════════════════════════════════════════════════════════════════════ -->
@@ -672,6 +671,22 @@
   <data name="Wizard_GetStarted_ApiKeys_Description.Text" xml:space="preserve"><value>Use sus propias claves API de Deepgram, Gemini u OpenAI.</value></data>
   <data name="Wizard_GetStarted_Local_Title.Text" xml:space="preserve"><value>Ejecutar localmente</value></data>
   <data name="Wizard_GetStarted_Local_Description.Text" xml:space="preserve"><value>Completamente sin conexi&#243;n con Whisper + Ollama &#8212; sin nube, sin claves.</value></data>
+  <data name="Wizard_Features_Title.Text" xml:space="preserve"><value>Esto es lo que puedes desbloquear</value></data>
+  <data name="Wizard_Features_Subtitle.Text" xml:space="preserve"><value>Cuando decidas honrarnos con una Licencia Power, todo esto es tuyo.</value></data>
+  <data name="Wizard_Features_LocalAI.Text" xml:space="preserve"><value>IA Local &#8212; Completamente Sin Conexi&#243;n</value></data>
+  <data name="Wizard_Features_LocalAI_Desc.Text" xml:space="preserve"><value>Ejecuta Whisper, Ollama y Kokoro en tu propio equipo. Sin nube, sin internet, sin l&#237;mites. Tus datos nunca salen de tu m&#225;quina.</value></data>
+  <data name="Wizard_Features_BYOK.Text" xml:space="preserve"><value>Trae Tus Propias Claves</value></data>
+  <data name="Wizard_Features_BYOK_Desc.Text" xml:space="preserve"><value>Usa tus propias claves API de Deepgram, OpenAI, Gemini o Anthropic. Sin cargos por uso &#8212; paga directamente a tus proveedores.</value></data>
+  <data name="Wizard_Features_Vision.Text" xml:space="preserve"><value>Visi&#243;n &#8212; Ver y Entender</value></data>
+  <data name="Wizard_Features_Vision_Desc.Text" xml:space="preserve"><value>Captura tu pantalla y deja que la IA analice, describa, extraiga texto o responda preguntas sobre lo que ve.</value></data>
+  <data name="Wizard_Features_Footer.Text" xml:space="preserve"><value>Sin prisa. Disfruta el plan gratuito primero. Esto estar&#225; aqu&#237; cuando est&#233;s listo.</value></data>
+  <data name="Wizard_Features_GetNow.Content" xml:space="preserve"><value>Obt&#233;n la tuya &#8212; $20 pago &#250;nico</value></data>
+  <data name="Wizard_Activate_Title.Text" xml:space="preserve"><value>Activa tu Licencia Power</value></data>
+  <data name="Wizard_Activate_Description.Text" xml:space="preserve"><value>Pega tu clave de licencia para desbloquear IA Local, BYOK y Visi&#243;n.</value></data>
+  <data name="Wizard_Features_Activate.Content" xml:space="preserve"><value>Activar</value></data>
+  <data name="Wizard_Activate_BuyLink.Content" xml:space="preserve"><value>&#191;No tienes clave? Obt&#233;n una aqu&#237;</value></data>
+  <data name="Wizard_HaveKey.Content" xml:space="preserve"><value>&#161;Tengo una Clave!</value></data>
+  <data name="Wizard_SkipKeyWarning.Message" xml:space="preserve"><value>Sin una clave API, esta funci&#243;n no funcionar&#225;. Puedes agregarla despu&#233;s en Configuraci&#243;n.</value></data>
   <data name="Wizard_Welcome_Title.Text" xml:space="preserve"><value>Bienvenido a dIKta.me V2</value></data>
   <data name="Wizard_Welcome_Description.Text" xml:space="preserve"><value>Este asistente le ayudar&#225; a configurar sus proveedores de voz a texto e IA. Puede cambiar esta configuraci&#243;n en cualquier momento.</value></data>
   <data name="Wizard_Welcome_Hint.Text" xml:space="preserve"><value>Presione Siguiente para comenzar, u Omitir para usar valores predeterminados.</value></data>

@@ -15,8 +15,6 @@ public sealed partial class WizardViewModel : ObservableObject
     private readonly SecureStorage _secureStorage;
     private readonly IAccountService _accountService;
     private readonly LocalizationService _loc;
-    private readonly LicenseManager _licenseManager;
-
     [ObservableProperty] private int _currentStep;
     [ObservableProperty] private bool _canGoBack;
     [ObservableProperty] private bool _canGoNext = true;
@@ -37,11 +35,23 @@ public sealed partial class WizardViewModel : ObservableObject
     // Step 4: TTS choice ("off", "cloud", or "local")
     [ObservableProperty] private string _ttsChoice = "off";
 
-    // Step 5: API Keys (only shown if cloud providers selected)
+    // Cloud provider selections (BYOK path)
+    [ObservableProperty] private string _cloudLlmProvider = "gemini";     // gemini, openai, anthropic, openrouter, requesty
+    [ObservableProperty] private string _cloudTtsProvider = "deepgram";   // deepgram, openai, gemini, inworld
+
+    // API Keys (keyed by provider name)
     [ObservableProperty] private string _deepgramApiKey = "";
     [ObservableProperty] private string _geminiApiKey = "";
+    [ObservableProperty] private string _openAiApiKey = "";
+    [ObservableProperty] private string _anthropicApiKey = "";
+    [ObservableProperty] private string _openRouterApiKey = "";
+    [ObservableProperty] private string _requestyApiKey = "";
+    [ObservableProperty] private string _inworldApiKey = "";
 
-    public const int TotalSteps = 8;
+    public const int TotalSteps = 9; // Steps 0-8 are sequential; step 9 (Activate) is a detour
+
+    /// <summary>Step index of the activation detour page (not part of the sequential flow).</summary>
+    public const int ActivateStep = 9;
 
     /// <summary>
     /// Optional async callback set by the current page. Called before leaving the step.
@@ -53,26 +63,38 @@ public sealed partial class WizardViewModel : ObservableObject
     public event Action? StepChanged;
     public event Action? WizardCompleted;
 
-    public WizardViewModel(SettingsManager settings, SecureStorage secureStorage, IAccountService accountService, LocalizationService loc, LicenseManager licenseManager)
+    public WizardViewModel(SettingsManager settings, SecureStorage secureStorage, IAccountService accountService, LocalizationService loc)
     {
         _settings = settings;
         _secureStorage = secureStorage;
         _accountService = accountService;
         _loc = loc;
-        _licenseManager = licenseManager;
         _nextButtonText = _loc.GetString("Wizard_Next");
     }
 
     [RelayCommand]
     private void GoBack()
     {
+        // Activate detour → return to Get Started
+        if (CurrentStep == ActivateStep)
+        {
+            ReturnToGetStarted();
+            return;
+        }
+
         if (CurrentStep > 0)
         {
             CurrentStep--;
             BeforeLeaveStep = null;
 
-            // Skip API Keys step (4) when going back if no cloud providers need keys
-            if (CurrentStep == 5 && !NeedsApiKeys())
+            // Skip API Keys step (6) — keys entered inline now
+            if (CurrentStep == 6)
+            {
+                CurrentStep--;
+            }
+
+            // Skip features page (2) when going back for non-wallet paths
+            if (CurrentStep == 2 && OnboardingChoice is not "wallet")
             {
                 CurrentStep--;
             }
@@ -91,24 +113,24 @@ public sealed partial class WizardViewModel : ObservableObject
             await ApplyLanguageAsync();
         }
 
-        // Wallet fork — skip wizard, open browser for account/wallet login
-        if (CurrentStep == 1 && string.Equals(OnboardingChoice, "wallet", StringComparison.Ordinal))
-        {
-            await StartWalletAsync();
-            return;
-        }
-
-        // License gate — BYOK and Local paths require Power License
-        if (CurrentStep == 1 && OnboardingChoice is "apikeys" or "local" && !_licenseManager.IsLicensed)
-        {
-            Log.Information("Wizard: {Choice} path blocked — Power License required", OnboardingChoice);
-            return; // UI shows upgrade prompt via LicenseGatePanel
-        }
-
-        // Local fork — skip wizard, configure Whisper + Ollama directly
+        // Pre-select defaults when leaving Get Started (step 1)
         if (CurrentStep == 1 && string.Equals(OnboardingChoice, "local", StringComparison.Ordinal))
         {
-            await StartLocalAsync();
+            SttChoice = "local";
+            LlmChoice = "local";
+            TtsChoice = "local";
+        }
+        else if (CurrentStep == 1 && string.Equals(OnboardingChoice, "apikeys", StringComparison.Ordinal))
+        {
+            SttChoice = "cloud";
+            LlmChoice = "cloud";
+            TtsChoice = "off";
+        }
+
+        // Wallet fork — features page shown at step 2, then sign-in on Next
+        if (CurrentStep == 2 && string.Equals(OnboardingChoice, "wallet", StringComparison.Ordinal))
+        {
+            await StartWalletAsync();
             return;
         }
 
@@ -127,11 +149,18 @@ public sealed partial class WizardViewModel : ObservableObject
             CurrentStep++;
             BeforeLeaveStep = null; // Reset for next page
 
-            // Skip API Keys step (4) when no cloud providers need keys
-            if (CurrentStep == 5 && !NeedsApiKeys())
+            // Skip features page (2) for BYOK/Local — they go straight to STT
+            if (CurrentStep == 2 && OnboardingChoice is not "wallet")
             {
                 CurrentStep++;
-                Log.Information("Wizard: skipped API Keys step (no cloud providers selected)");
+                Log.Information("Wizard: skipped features page (non-wallet path)");
+            }
+
+            // Skip API Keys step (6) — keys are now entered inline on each provider page
+            if (CurrentStep == 6)
+            {
+                CurrentStep++;
+                Log.Information("Wizard: skipped legacy API Keys step (keys entered inline)");
             }
 
             UpdateNavState();
@@ -171,15 +200,16 @@ public sealed partial class WizardViewModel : ObservableObject
     {
         try
         {
-            // Mark wizard as completed immediately (zero friction)
+            // Set Wallet mode but do NOT mark wizard completed yet.
+            // WizardCompleted will be set by the deeplink callback after successful sign-in.
+            // This ensures that if the user closes the app before signing in, the wizard re-appears.
             var updated = _settings.Current with
             {
-                WizardCompleted = true,
+                AuthMode = AuthMode.Wallet,
             };
             await _settings.UpdateAsync(updated);
 
             // Open browser for login — token will arrive via deeplink.
-            // AuthMode will be set to Wallet by HandleAuthCallbackAsync.
             _accountService.Login();
 
             Log.Information("Wizard: wallet path — wizard completed, browser opened for login");
@@ -187,51 +217,6 @@ public sealed partial class WizardViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Wizard: failed to start wallet path");
-        }
-
-        WizardCompleted?.Invoke();
-    }
-
-    private async Task StartLocalAsync()
-    {
-        try
-        {
-            // Configure for fully local operation: Whisper STT + Ollama LLM
-            var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
-            string[] modes = { "dictate", "refine", "ask", "translate", "note", "chat" };
-            foreach (var mode in modes)
-            {
-                for (int p = 0; p < 2; p++)
-                {
-                    string key = $"{mode}_{p}";
-                    var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
-                    profiles[key] = existing with
-                    {
-                        SttProvider = "whisper",
-                        LlmProvider = "ollama",
-                        UseLlm = true,
-                    };
-                }
-            }
-
-            var updated = _settings.Current with
-            {
-                WizardCompleted = true,
-                ActiveProfileName = "Local",
-                ModeProfiles = profiles,
-                Tts = _settings.Current.Tts with
-                {
-                    Enabled = true,
-                    Provider = "kokoro",
-                },
-            };
-            await _settings.UpdateAsync(updated);
-
-            Log.Information("Wizard: local path — configured Whisper + Ollama + Kokoro TTS");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Wizard: failed to start local path");
         }
 
         WizardCompleted?.Invoke();
@@ -246,7 +231,7 @@ public sealed partial class WizardViewModel : ObservableObject
             string defaultLlm = LlmChoice switch
             {
                 "local" => "ollama",
-                _ => "gemini",
+                _ => CloudLlmProvider,
             };
 
             // LLM choice determines ActiveProfileName (controls model name resolution).
@@ -259,7 +244,7 @@ public sealed partial class WizardViewModel : ObservableObject
             string ttsProvider = TtsChoice switch
             {
                 "local" => "kokoro",
-                "cloud" => "deepgram",
+                "cloud" => CloudTtsProvider,
                 _ => "kokoro", // default provider even if disabled
             };
 
@@ -296,15 +281,23 @@ public sealed partial class WizardViewModel : ObservableObject
             await _settings.UpdateAsync(updated);
 
             // Save API keys if provided
-            if (!string.IsNullOrWhiteSpace(DeepgramApiKey))
+            var keysToSave = new (string name, string value)[]
             {
-                _secureStorage.StoreKey("deepgram", DeepgramApiKey);
-                Log.Information("Wizard: saved Deepgram API key");
-            }
-            if (!string.IsNullOrWhiteSpace(GeminiApiKey))
+                ("deepgram", DeepgramApiKey),
+                ("gemini", GeminiApiKey),
+                ("openai", OpenAiApiKey),
+                ("anthropic", AnthropicApiKey),
+                ("openrouter", OpenRouterApiKey),
+                ("requesty", RequestyApiKey),
+                ("inworld", InworldApiKey),
+            };
+            foreach (var (name, value) in keysToSave)
             {
-                _secureStorage.StoreKey("gemini", GeminiApiKey);
-                Log.Information("Wizard: saved Gemini API key");
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    _secureStorage.StoreKey(name, value);
+                    Log.Information("Wizard: saved {Provider} API key", name);
+                }
             }
 
             Log.Information("Wizard completed: STT={Stt}, LLM={Llm}", defaultStt, defaultLlm);
@@ -321,6 +314,25 @@ public sealed partial class WizardViewModel : ObservableObject
         => string.Equals(SttChoice, "cloud", StringComparison.Ordinal)
         || string.Equals(LlmChoice, "cloud", StringComparison.Ordinal)
         || string.Equals(TtsChoice, "cloud", StringComparison.Ordinal);
+
+    /// <summary>Navigate to the activation detour page. Called by "I Have a Key!" button.</summary>
+    public void NavigateToActivation()
+    {
+        CurrentStep = ActivateStep;
+        BeforeLeaveStep = null;
+        CanGoBack = true;
+        NextButtonText = _loc.GetString("Wizard_Next");
+        StepChanged?.Invoke();
+    }
+
+    /// <summary>Navigate back to Get Started after successful activation.</summary>
+    public void ReturnToGetStarted()
+    {
+        CurrentStep = 1;
+        BeforeLeaveStep = null;
+        UpdateNavState();
+        StepChanged?.Invoke();
+    }
 
     private void UpdateNavState()
     {

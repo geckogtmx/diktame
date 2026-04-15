@@ -3,9 +3,10 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:l="using:WinUI3Localizer">
 
-    <StackPanel VerticalAlignment="Center" Spacing="16" MaxWidth="450" Margin="24,0">
-        <TextBlock l:Uids.Uid="Wizard_Tts_Title" FontSize="24" FontWeight="SemiBold"/>
-        <TextBlock l:Uids.Uid="Wizard_Tts_Description" TextWrapping="Wrap" FontSize="14" Opacity="0.7"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel VerticalAlignment="Center" Spacing="12" MaxWidth="450" Margin="24,0">
+        <TextBlock l:Uids.Uid="Wizard_Tts_Title" FontSize="22" FontWeight="SemiBold"/>
+        <TextBlock l:Uids.Uid="Wizard_Tts_Description" TextWrapping="Wrap" FontSize="13" Opacity="0.7"/>
 
         <RadioButtons x:Name="TtsRadio" MaxColumns="1" SelectionChanged="TtsRadio_SelectionChanged">
             <RadioButton x:Name="TtsOff" Tag="off" IsChecked="True">
@@ -28,15 +29,20 @@
             </RadioButton>
         </RadioButtons>
 
-        <!-- License gate for Local Kokoro (shown when unlicensed) -->
-        <StackPanel x:Name="TtsLicenseGatePanel" Spacing="4" Visibility="Collapsed"
-                    Padding="4,0,0,0" Margin="0,-8,0,0">
-            <TextBlock l:Uids.Uid="Wizard_LicenseRequired" FontSize="13" FontWeight="SemiBold"
-                       Foreground="{ThemeResource SystemFillColorCautionBrush}"/>
-            <HyperlinkButton x:Name="TtsBuyLicenseLink" Padding="0"
-                             l:Uids.Uid="Wizard_LicenseBuyButton"/>
-            <TextBlock l:Uids.Uid="Wizard_LicenseOrBuild" FontSize="11" FontStyle="Italic"
-                       Opacity="0.5"/>
+        <!-- Provider selection + API Key (BYOK cloud TTS path) -->
+        <StackPanel x:Name="TtsCloudPanel" Spacing="10" Visibility="Collapsed">
+            <ComboBox x:Name="TtsProviderCombo" Header="Provider" Width="280"
+                      SelectionChanged="TtsProviderCombo_SelectionChanged">
+                <ComboBoxItem Tag="deepgram" Content="Deepgram" IsSelected="True"/>
+                <ComboBoxItem Tag="openai" Content="OpenAI"/>
+                <ComboBoxItem Tag="gemini" Content="Gemini"/>
+                <ComboBoxItem Tag="inworld" Content="Inworld"/>
+            </ComboBox>
+            <TextBlock x:Name="TtsKeyInfo" FontSize="12" Opacity="0.6" TextWrapping="Wrap"/>
+            <StackPanel x:Name="TtsKeyInputPanel" Spacing="8" Visibility="Collapsed">
+                <PasswordBox x:Name="TtsKeyBox" PlaceholderText="API Key"
+                             PasswordChanged="TtsKeyBox_PasswordChanged"/>
+            </StackPanel>
         </StackPanel>
 
         <!-- Download progress panel (shown when Local is selected) -->
@@ -47,4 +53,5 @@
                        TextWrapping="Wrap" Visibility="Collapsed"/>
         </StackPanel>
     </StackPanel>
+    </ScrollViewer>
 </Page>

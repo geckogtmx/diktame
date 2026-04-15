@@ -1,31 +1,49 @@
-## Session Summary: 2026-04-14
+## Session Summary: 2026-04-14 (Evening — Manual Testing + Wizard Rework)
 
-### ✅ Completed
-- Designed the "Bootstrap Strategy" for initial distribution via the Microsoft Store using Lemon Squeezy to retain 100% of revenue and gather emails.
-- Architected the dual-build strategy using `.csproj` constants (`STORE_BUILD` / `STANDALONE_BUILD`) to easily toggle MSIX output and strip out Velopack for Store cloud submissions.
-- Added strict documentation on Store metadata formatting traps (automated bullets) and Lemon Squeezy TOS compliance (evergreen rules).
-- Detailed the MS Store App Tester requirements, explicitly mandating a 100% discount "Tester bypass" code be provided to avoid "Incomplete App" rejections.
-- Included exact CLI publishing commands needed to generate the `.msixupload` to ensure PDBs exist for MS Partner Center crash analytics.
-- Documented the critical local testing mandate using the **Windows App Certification Kit (WACK)** to prevent 3-day cloud rejection cycles.
-- Analyzed the MSIX data virtualization (Black Hole) risks and devised a clean path for legacy MS Store users when switching to independent distribution later.
+### Completed
+- **Wizard license gate UX**: BYOK/Local disabled for unlicensed users with info text. Wallet is default. "I Have a Key!" red button opens activation page. License activates → returns to Get Started with all options enabled.
+- **Features showcase page**: Wallet path shows Power License benefits (Local AI, BYOK, Vision) — not free pipelines. "Get yours now — $20" link. "No rush" footer.
+- **Wallet AuthMode fix**: `StartWalletAsync` now sets `AuthMode = Wallet` so dictation works immediately after sign-in.
+- **WebSocket singleton fix**: `WalletStreamingSTTProxy.ConnectAsync()` resets all state (WS, flags, buffers, TCS) for reuse across dictations. Fixed critical bug where 2nd+ dictation failed.
+- **Wizard lane filtering**: Removed `StartLocalAsync` shortcut. Both BYOK and Local go through STT → LLM → TTS steps. BYOK shows only cloud options, Local shows only local options.
+- **Inline API key entry**: STT and LLM pages now have API key field + Test button + skip warning for BYOK path. Separate API Keys step (6) always skipped.
 
-### 🚧 In Progress
-- Implementation of the `StoreBuild` toggle pattern in `DiktaMe.App.csproj`.
-- Implementing C# feature toggles `if (_licenseManager.IsLicensed)` to lock the Whisper/Ollama components.
-- Designing the checkout routing system (`ikta.me/checkout`).
-- Preparing graphical store assets and store metadata copy.
+### Bugs Found (12 total, 5 fixed this session)
+See `MANUAL_TEST_LOG.md` for full details and `memory/project_testing_bugs.md` for tracker.
 
-### 📋 Next Steps (Priority Order)
-1. Update `DiktaMe.App.csproj` to support the dual-build architecture (`STORE_BUILD`) and single-project MSIX settings to produce `.msixupload`.
-2. Wrap Velopack initialization in `STANDALONE_BUILD` preprocessor directives.
-3. Ensure absolute local paths for SQLite/DPAPI so that data sits gracefully across both the free tier and standalone migrations.
-4. Prepare the final MS Store assets and execute local WACK testing against the Store bundle.
+### Next Session Priority (Start Here)
 
-### 🔍 Key Context
-- **Files Modified:** `plans/SPEC_020_SIGNING.md`, `README.md`
-- **Dependencies Added:** None this session.
-- **Configuration Changes:** Add MSBuild conditions for `WindowsPackageType=MSIX`.
-- **Known Issues:** The MSIX Virtualization Sandbox will intercept `AppData/Roaming`. If a user uninstalls the MSIX store version natively, Windows wipes their local data. Any forced standalone migration must be done with extreme care via email communication.
+#### 1. BYOK Wizard — Provider Selection + Key Entry (BUG-010, BUG-011)
+The wizard BYOK path needs proper provider dropdowns on each page:
 
-### 💡 Notes for Next Session
-When building the `.msixupload`, ensure you use the exact CLI command provided in `SPEC_020_SIGNING.md` (which relies on `UapAppxPackageBuildMode=StoreUpload`) to guarantee symbol generation. Do NOT skip the local WACK test. Provide the Store testers with a Lemonsqueezy coupon specifically for them to bypass the $20 paywall so they don't reject the app.
+**LLM page (BUG-011):**
+- Add provider dropdown: Anthropic, Gemini, OpenAI, OpenRouter, Requesty
+- Each provider needs its own API key field
+- Current text is vague ("Cloud AI") — needs clearer copy explaining what the LLM does
+- Currently hardcoded to Gemini key only
+
+**TTS page (BUG-010):**
+- Add provider dropdown: Deepgram, OpenAI, Gemini, Inworld
+- Each has its own API key — does NOT share the LLM key (wrong assumption in current code)
+- Same pattern: dropdown + key field + Test button + skip warning
+
+#### 2. Wizard Layout (BUG-012)
+- Last wizard page (Ready) crops text at bottom — reduce top padding
+
+#### 3. Wizard Completion Timing (BUG-009)
+- `WizardCompleted` is set too early in `StartWalletAsync` (before sign-in completes)
+- If user closes wizard window before signing in, next launch skips wizard
+- Fix: only set `WizardCompleted = true` after final wizard step or after successful sign-in callback
+
+#### 4. Remaining from Test Plan
+- Add informational note to Get Started page ("You can change these settings after the wizard")
+- Continue Journey 1 testing from step 1.2 (Core Dictation)
+- Test Local wizard path end-to-end
+- License re-activation slot burning (BUG-008)
+
+### Key Context
+- **Files heavily modified**: `WizardViewModel.cs`, `WizardGetStartedPage.*`, `WizardSttPage.*`, `WizardLlmPage.*`, `WizardTtsPage.*`, `WizardWindow.*`, `PipelineFactory.cs`, `WalletStreamingSTTProxy.cs`
+- **New files created**: `WizardFeaturesPage.*`, `WizardActivatePage.*`
+- **Tests**: 1218 passing, 0 failing
+- **Build**: 0 warnings, 0 errors
+- **Test log**: `MANUAL_TEST_LOG.md` (repo root)

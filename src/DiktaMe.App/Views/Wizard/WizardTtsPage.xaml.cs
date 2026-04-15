@@ -26,11 +26,6 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
         _dispatcher = DispatcherQueue.GetForCurrentThread();
         this.InitializeComponent();
         this.Unloaded += OnUnloaded;
-
-        TtsBuyLicenseLink.Click += (_, _) =>
-        {
-            _ = Windows.System.Launcher.LaunchUriAsync(new System.Uri("https://dikta.me/pricing"));
-        };
     }
 
     public void SetViewModel(WizardViewModel viewModel)
@@ -40,8 +35,28 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
 
         _licenseManager.LicenseStateChanged += OnLicenseStateChanged;
 
-        // Restore selection from VM (but redirect local→off if unlicensed)
-        if (string.Equals(viewModel.TtsChoice, "local", StringComparison.Ordinal) && _licenseManager.IsLicensed)
+        // Remove irrelevant options from RadioButtons (Collapsed still leaves gap)
+        bool isLocal = string.Equals(viewModel.OnboardingChoice, "local", StringComparison.Ordinal);
+        bool isByok = string.Equals(viewModel.OnboardingChoice, "apikeys", StringComparison.Ordinal);
+        if (isLocal)
+        {
+            TtsRadio.Items.Remove(TtsCloud);
+        }
+
+        if (isByok)
+        {
+            TtsRadio.Items.Remove(TtsLocal);
+        }
+
+        TtsCloudPanel.Visibility = Visibility.Collapsed;
+
+        if (isByok)
+        {
+            SelectComboByTag(TtsProviderCombo, viewModel.CloudTtsProvider);
+        }
+
+        // Select the appropriate option
+        if (isLocal || (string.Equals(viewModel.TtsChoice, "local", StringComparison.Ordinal) && _licenseManager.IsLicensed))
         {
             TtsLocal.IsChecked = true;
             ShowModelStatus();
@@ -53,13 +68,8 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
         else
         {
             TtsOff.IsChecked = true;
-            if (string.Equals(viewModel.TtsChoice, "local", StringComparison.Ordinal))
-            {
-                viewModel.TtsChoice = "off"; // Reset if was local but now unlicensed
-            }
         }
 
-        UpdateTtsLicenseGate();
     }
 
     private void TtsRadio_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -76,7 +86,6 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
                 // Bounce back to previous selection
                 TtsOff.IsChecked = true;
                 _viewModel.TtsChoice = "off";
-                UpdateTtsLicenseGate();
                 return;
             }
 
@@ -86,17 +95,23 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
         else if (TtsCloud.IsChecked == true)
         {
             _viewModel.TtsChoice = "cloud";
+            bool isByok = string.Equals(_viewModel.OnboardingChoice, "apikeys", StringComparison.Ordinal);
+            TtsCloudPanel.Visibility = isByok ? Visibility.Visible : Visibility.Collapsed;
+            if (isByok)
+            {
+                UpdateTtsKeyInfo(_viewModel.CloudTtsProvider);
+            }
+
             CancelDownload();
             DownloadPanel.Visibility = Visibility.Collapsed;
         }
         else
         {
             _viewModel.TtsChoice = "off";
+            TtsCloudPanel.Visibility = Visibility.Collapsed;
             CancelDownload();
             DownloadPanel.Visibility = Visibility.Collapsed;
         }
-
-        UpdateTtsLicenseGate();
     }
 
     private void ShowModelStatus()
@@ -201,15 +216,98 @@ public sealed partial class WizardTtsPage : Page, IWizardStepPage
         _downloadCts = null;
     }
 
-    private void UpdateTtsLicenseGate()
+    private void TtsProviderCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        bool show = !_licenseManager.IsLicensed;
-        TtsLicenseGatePanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        if (_viewModel is null || TtsProviderCombo.SelectedItem is not ComboBoxItem item)
+        {
+            return;
+        }
+
+        string provider = item.Tag as string ?? "deepgram";
+        _viewModel.CloudTtsProvider = provider;
+        UpdateTtsKeyInfo(provider);
+    }
+
+    private void TtsKeyBox_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        string provider = _viewModel.CloudTtsProvider;
+        string key = TtsKeyBox.Password;
+
+        // Store on the correct ViewModel property
+        switch (provider)
+        {
+            case "deepgram": _viewModel.DeepgramApiKey = key; break;
+            case "openai": _viewModel.OpenAiApiKey = key; break;
+            case "gemini": _viewModel.GeminiApiKey = key; break;
+            case "inworld": _viewModel.InworldApiKey = key; break;
+        }
+    }
+
+    /// <summary>
+    /// Shows key info — if the key was already entered on STT/LLM page, tell the user.
+    /// If it's a new provider (Inworld), show the key input field.
+    /// </summary>
+    private void UpdateTtsKeyInfo(string provider)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        // Check if this provider's key was already entered on a previous wizard step
+        string? existingKey = provider switch
+        {
+            "deepgram" => _viewModel.DeepgramApiKey,
+            "openai" => _viewModel.OpenAiApiKey,
+            "gemini" => _viewModel.GeminiApiKey,
+            _ => null,
+        };
+
+        bool hasKey = !string.IsNullOrWhiteSpace(existingKey);
+
+        if (hasKey)
+        {
+            TtsKeyInfo.Text = $"Uses the {provider} API key you already entered.";
+            TtsKeyInfo.Visibility = Visibility.Visible;
+            TtsKeyInputPanel.Visibility = Visibility.Collapsed;
+        }
+        else if (string.Equals(provider, "inworld", StringComparison.Ordinal))
+        {
+            TtsKeyInfo.Text = "Get your key from: docs.inworld.ai";
+            TtsKeyInfo.Visibility = Visibility.Visible;
+            TtsKeyInputPanel.Visibility = Visibility.Visible;
+            TtsKeyBox.Password = _viewModel.InworldApiKey;
+        }
+        else
+        {
+            // Provider key not entered yet (e.g. picked Deepgram TTS but only entered Gemini for LLM)
+            TtsKeyInfo.Text = $"Requires a {provider} API key (not entered on previous steps).";
+            TtsKeyInfo.Visibility = Visibility.Visible;
+            TtsKeyInputPanel.Visibility = Visibility.Visible;
+            TtsKeyBox.Password = "";
+        }
+    }
+
+    private static void SelectComboByTag(ComboBox combo, string tag)
+    {
+        foreach (var item in combo.Items)
+        {
+            if (item is ComboBoxItem ci && string.Equals(ci.Tag as string, tag, StringComparison.Ordinal))
+            {
+                combo.SelectedItem = ci;
+                return;
+            }
+        }
     }
 
     private void OnLicenseStateChanged(bool licensed)
     {
-        _dispatcher.TryEnqueue(UpdateTtsLicenseGate);
+        // Reserved for future use — lane filtering handles visibility now
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)

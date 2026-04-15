@@ -1032,14 +1032,11 @@
   </data>
 
   <!-- Wizard license gate (shown inline when BYOK/Local selected and unlicensed) -->
-  <data name="Wizard_LicenseRequired.Text" xml:space="preserve">
-    <value>Requires Power License</value>
+  <data name="Wizard_LicenseInfo.Text" xml:space="preserve">
+    <value>Power License unlocks API Keys and Local AI modes</value>
   </data>
   <data name="Wizard_LicenseBuyButton.Content" xml:space="preserve">
     <value>Get Power License — $20</value>
-  </data>
-  <data name="Wizard_LicenseOrBuild.Text" xml:space="preserve">
-    <value>Or build from source — it's MIT</value>
   </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
@@ -1797,6 +1794,58 @@
   </data>
   <data name="Wizard_GetStarted_Local_Description.Text" xml:space="preserve">
     <value>Fully offline with Whisper + Ollama &#8212; no cloud, no keys.</value>
+  </data>
+
+  <!-- Features showcase page (Wallet path — Power License benefits) -->
+  <data name="Wizard_Features_Title.Text" xml:space="preserve">
+    <value>Here's what you can unlock</value>
+  </data>
+  <data name="Wizard_Features_Subtitle.Text" xml:space="preserve">
+    <value>When you decide to honor us with a Power License, these are yours.</value>
+  </data>
+  <data name="Wizard_Features_LocalAI.Text" xml:space="preserve">
+    <value>Local AI &#8212; Fully Offline</value>
+  </data>
+  <data name="Wizard_Features_LocalAI_Desc.Text" xml:space="preserve">
+    <value>Run Whisper, Ollama, and Kokoro on your own hardware. No cloud, no internet, no limits. Your data never leaves your machine.</value>
+  </data>
+  <data name="Wizard_Features_BYOK.Text" xml:space="preserve">
+    <value>Bring Your Own Keys</value>
+  </data>
+  <data name="Wizard_Features_BYOK_Desc.Text" xml:space="preserve">
+    <value>Use your own Deepgram, OpenAI, Gemini, or Anthropic API keys. No per-use wallet charges &#8212; pay your providers directly.</value>
+  </data>
+  <data name="Wizard_Features_Vision.Text" xml:space="preserve">
+    <value>Vision &#8212; See and Understand</value>
+  </data>
+  <data name="Wizard_Features_Vision_Desc.Text" xml:space="preserve">
+    <value>Capture your screen and let AI analyze, describe, extract text, or answer questions about what it sees.</value>
+  </data>
+  <data name="Wizard_Features_Footer.Text" xml:space="preserve">
+    <value>No rush. Enjoy the free tier first. These will be here when you're ready.</value>
+  </data>
+  <data name="Wizard_Features_GetNow.Content" xml:space="preserve">
+    <value>Get yours now &#8212; $20 one-time</value>
+  </data>
+
+  <!-- Wizard activation page -->
+  <data name="Wizard_Activate_Title.Text" xml:space="preserve">
+    <value>Activate your Power License</value>
+  </data>
+  <data name="Wizard_Activate_Description.Text" xml:space="preserve">
+    <value>Paste your license key below to unlock Local AI, BYOK, and Vision.</value>
+  </data>
+  <data name="Wizard_Features_Activate.Content" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="Wizard_Activate_BuyLink.Content" xml:space="preserve">
+    <value>Don't have a key? Get one here</value>
+  </data>
+  <data name="Wizard_HaveKey.Content" xml:space="preserve">
+    <value>I Have a Key!</value>
+  </data>
+  <data name="Wizard_SkipKeyWarning.Message" xml:space="preserve">
+    <value>Without an API key, this feature won't work. You can add it later in Settings.</value>
   </data>
 
   <!-- Welcome page -->
