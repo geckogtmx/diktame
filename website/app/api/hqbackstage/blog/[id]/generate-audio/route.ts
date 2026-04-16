@@ -19,10 +19,10 @@ function stripMarkdown(text: string): string {
   return text
     .replace(/```[\s\S]*?```/g, '')          // fenced code blocks
     .replace(/^#{1,6}\s+/gm, '')             // headings
-    .replace(/\*\*(.+?)\*\*/gs, '$1')        // **bold**
-    .replace(/\*(.+?)\*/gs, '$1')            // *italic*
-    .replace(/__(.+?)__/gs, '$1')            // __bold__
-    .replace(/_(.+?)_/gs, '$1')              // _italic_
+    .replace(/\*\*(.+?)\*\*/g, '$1')         // **bold**
+    .replace(/\*(.+?)\*/g, '$1')             // *italic*
+    .replace(/__(.+?)__/g, '$1')             // __bold__
+    .replace(/_(.+?)_/g, '$1')               // _italic_
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // [link](url) → text
     .replace(/^>\s*/gm, '')                  // blockquotes
     .replace(/^[-*+]\s+/gm, '')              // bullet lists
