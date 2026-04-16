@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import ReactMarkdown from 'react-markdown';
@@ -170,14 +171,27 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
   const handleGenerateAudio = async (lang: 'en' | 'es') => {
     setGeneratingAudio((prev) => ({ ...prev, [lang]: true }));
     try {
-      const res = await fetch(`/api/hqbackstage/blog/${post.id}/generate-audio`, {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Session expired — please refresh the page and try again.');
+        return;
+      }
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const res = await fetch(`${supabaseUrl}/functions/v1/generate-blog-audio`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lang }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ post_id: post.id, lang }),
       });
+
       if (res.ok) {
-        const data = await res.json() as { url: string };
+        const data = await res.json() as { url: string; durationSec: number; wavKb: number; totalMs: number };
         setPost((prev) => ({ ...prev, [`audio_url_${lang}`]: data.url }));
+        console.log(`Audio generated: ${data.durationSec}s, ${data.wavKb}KB, ${data.totalMs}ms`);
       } else {
         const err = await res.text();
         alert(`Audio generation failed: ${err}`);
