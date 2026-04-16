@@ -3,9 +3,10 @@
 // uploads it to the blog-audio storage bucket, and saves the URL on the post row.
 //
 // Called directly from the HQ admin panel (browser → Edge Function) to avoid
-// Vercel's 10s serverless timeout. Edge Functions support up to 400s.
+// Vercel's 10s serverless timeout. Edge Functions support up to 150s (free plan).
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { decodeBase64 } from "jsr:@std/encoding@1/base64";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -92,13 +93,7 @@ function buildWav(pcm: Uint8Array): Uint8Array {
   return wav;
 }
 
-/** Decodes a base64 string to Uint8Array (Deno-compatible, no Buffer). */
-function decodeBase64(b64: string): Uint8Array {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
+// decodeBase64 is now provided by jsr:@std/encoding/base64 (native Rust, not a JS loop)
 
 // ── Main handler ─────────────────────────────────────────────────────────────
 
@@ -191,10 +186,12 @@ Deno.serve(async (req: Request) => {
 
     const ttsScript = buildTtsScript(title, hook, bodyTxt, closing);
     const wordCount = ttsScript.split(/\s+/).length;
-    console.log(`[generate-blog-audio] TTS script ready: ${wordCount} words, lang=${lang}, post=${post.slug}`);
+    const charCount = ttsScript.length;
+    console.log(`[generate-blog-audio] TTS script ready: ${wordCount} words, ${charCount} chars, lang=${lang}, post=${post.slug} (${Math.round(performance.now() - t0)}ms)`);
 
     // ── Call Gemini 3.1 Flash TTS ─────────────────────────────────────────
     const tGemini = performance.now();
+    console.log(`[generate-blog-audio] Calling Gemini TTS...`);
     const geminiRes = await fetch(GEMINI_TTS_URL, {
       method: "POST",
       headers: {
@@ -214,7 +211,7 @@ Deno.serve(async (req: Request) => {
       }),
     });
 
-    console.log(`[generate-blog-audio] Gemini responded: ${geminiRes.status} (${Math.round(performance.now() - tGemini)}ms)`);
+    console.log(`[generate-blog-audio] Gemini responded: ${geminiRes.status} (${Math.round(performance.now() - tGemini)}ms, total=${Math.round(performance.now() - t0)}ms)`);
 
     if (!geminiRes.ok) {
       const errBody = await geminiRes.text();
@@ -233,7 +230,9 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── Build WAV and upload ──────────────────────────────────────────────
+    const tDecode = performance.now();
     const pcm = decodeBase64(base64Audio);
+    console.log(`[generate-blog-audio] Base64 decoded: ${pcm.byteLength} bytes PCM (${Math.round(performance.now() - tDecode)}ms)`);
     const wav = buildWav(pcm);
     const wavKb = Math.round(wav.byteLength / 1024);
     const durationSec = Math.round(pcm.byteLength / 2 / SAMPLE_RATE);
