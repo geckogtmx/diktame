@@ -14,6 +14,19 @@ export function AudioPlayer({ src }: { src: string }) {
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = Number(e.target.value);
+    if (audioRef.current) audioRef.current.volume = v;
+    setVolume(v);
+  };
+
+  const toggleMute = () => {
+    const next = volume === 0 ? 1 : 0;
+    if (audioRef.current) audioRef.current.volume = next;
+    setVolume(next);
+  };
 
   const toggle = useCallback(() => {
     const el = audioRef.current;
@@ -108,6 +121,47 @@ export function AudioPlayer({ src }: { src: string }) {
       <span className="text-xs text-gray-500 shrink-0 w-8 tabular-nums">
         {formatTime(duration)}
       </span>
+
+      {/* Volume (hidden on mobile) */}
+      <div className="hidden sm:flex items-center gap-2 shrink-0">
+        <button
+          onClick={toggleMute}
+          aria-label={volume === 0 ? 'Unmute' : 'Mute'}
+          className="text-gray-500 hover:text-gray-300 transition-colors"
+          title={volume === 0 ? 'Unmute' : 'Mute'}
+        >
+          {volume === 0 ? (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6 4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.506-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+            </svg>
+          ) : volume < 0.5 ? (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.506-1.938-1.354A9.01 9.01 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.506-1.938-1.354A9.01 9.01 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+            </svg>
+          )}
+        </button>
+        <div className="relative w-16 h-1.5 group">
+          <div className="absolute inset-0 rounded-full bg-white/10" />
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-orange-500/60"
+            style={{ width: `${volume * 100}%` }}
+          />
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={volume}
+            onChange={handleVolumeChange}
+            className="absolute inset-0 w-full opacity-0 cursor-pointer h-full"
+            aria-label="Volume"
+          />
+        </div>
+      </div>
 
       {/* Download */}
       <a
