@@ -73,6 +73,8 @@ interface BlogPost {
   headlines_used: string[] | null;
   newsletter_sources: string[] | null;
   run_date: string | null;
+  audio_url_en: string | null;
+  audio_url_es: string | null;
   created_at: string;
   published_at: string | null;
   updated_at: string | null;
@@ -85,6 +87,7 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
   const [uploadingEn, setUploadingEn] = useState(false);
   const [uploadingEs, setUploadingEs] = useState(false);
   const [metadataOpen, setMetadataOpen] = useState(false);
+  const [generatingAudio, setGeneratingAudio] = useState<{ en: boolean; es: boolean }>({ en: false, es: false });
 
   const statusColors: Record<string, string> = {
     draft: 'bg-yellow-500/20 text-yellow-300',
@@ -163,6 +166,28 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
     },
     [post.id, router],
   );
+
+  const handleGenerateAudio = async (lang: 'en' | 'es') => {
+    setGeneratingAudio((prev) => ({ ...prev, [lang]: true }));
+    try {
+      const res = await fetch(`/api/hqbackstage/blog/${post.id}/generate-audio`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lang }),
+      });
+      if (res.ok) {
+        const data = await res.json() as { url: string };
+        setPost((prev) => ({ ...prev, [`audio_url_${lang}`]: data.url }));
+      } else {
+        const err = await res.text();
+        alert(`Audio generation failed: ${err}`);
+      }
+    } catch (e) {
+      alert(`Audio generation failed: ${e}`);
+    } finally {
+      setGeneratingAudio((prev) => ({ ...prev, [lang]: false }));
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -299,6 +324,41 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
         </button>
         {metadataOpen && (
           <div className="border-t border-white/10 px-4 py-4 space-y-3 text-sm">
+
+            {/* ── Audio ─────────────────────────────────────────────────────── */}
+            <div className="pb-3 mb-1 border-b border-white/10">
+              <p className="text-gray-400 font-medium mb-2">Audio (Gemini TTS)</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {(['en', 'es'] as const).map((lang) => {
+                  const url = lang === 'en' ? post.audio_url_en : post.audio_url_es;
+                  const loading = generatingAudio[lang];
+                  return (
+                    <div key={lang} className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500 uppercase">{lang}</span>
+                        <button
+                          onClick={() => handleGenerateAudio(lang)}
+                          disabled={loading}
+                          className="text-xs px-2 py-1 rounded bg-orange-500/20 text-orange-300 hover:bg-orange-500/30 transition-colors disabled:opacity-50"
+                        >
+                          {loading ? 'Generating…' : url ? '↺ Regenerate' : '▶ Generate Audio'}
+                        </button>
+                      </div>
+                      {loading && (
+                        <p className="text-xs text-gray-500 italic">Calling Gemini 3.1 Flash TTS… this takes ~20–30s.</p>
+                      )}
+                      {!loading && url && (
+                        <audio controls src={url} className="w-full h-8" style={{ colorScheme: 'dark' }} />
+                      )}
+                      {!loading && !url && (
+                        <p className="text-xs text-gray-600 italic">No audio yet</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <MetadataRow label="Slug" value={post.slug} />
             <div className="flex gap-3 items-start">
               <span className="text-gray-500 shrink-0">Slug (ES):</span>

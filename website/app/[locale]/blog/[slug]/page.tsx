@@ -8,6 +8,7 @@ import { Link } from '@/i18n/navigation';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { FbViewContent } from './FbViewContent';
+import { AudioPlayer } from './AudioPlayer';
 
 const SPANISH_VOICES = [
   'fuentes',
@@ -130,6 +131,9 @@ export default async function BlogPostPage({
     post.image_url_en ??
     post.image_url_es;
 
+  const audioUrl =
+    (locale === 'es' ? post.audio_url_es : post.audio_url_en) ?? null;
+
   const publishedAt = post.published_at
     ? new Date(post.published_at).toLocaleDateString(
         locale === 'es' ? 'es-ES' : 'en-US',
@@ -181,6 +185,15 @@ export default async function BlogPostPage({
                   sizes="(max-width: 768px) 100vw, 1024px"
                 />
               </div>
+            </div>
+          </Container>
+        )}
+
+        {/* Audio player — shown when audio has been generated */}
+        {audioUrl && (
+          <Container>
+            <div className="max-w-3xl mx-auto mb-8">
+              <AudioPlayer src={audioUrl} />
             </div>
           </Container>
         )}
