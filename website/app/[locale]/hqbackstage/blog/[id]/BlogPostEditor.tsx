@@ -80,7 +80,13 @@ interface BlogPost {
   updated_at: string | null;
 }
 
-export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
+export function BlogPostEditor({
+  post: initialPost,
+  subscriberCounts = { en: 0, es: 0 },
+}: {
+  post: BlogPost;
+  subscriberCounts?: { en: number; es: number };
+}) {
   const router = useRouter();
   const [post, setPost] = useState(initialPost);
   const [publishing, setPublishing] = useState(false);
@@ -94,11 +100,17 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
     archived: 'bg-gray-500/20 text-gray-300',
   };
 
+  const isFirstPublish = post.status !== 'published' && post.published_at == null;
+
   const handlePublishToggle = async () => {
     const newStatus = post.status === 'published' ? 'draft' : 'published';
     const action = newStatus === 'published' ? 'publish' : 'unpublish';
 
-    if (!confirm(`Are you sure you want to ${action} this post?`)) return;
+    const confirmMsg =
+      newStatus === 'published' && isFirstPublish
+        ? `Publishing will send the newsletter to ${subscriberCounts.en} EN + ${subscriberCounts.es} ES subscribers. Continue?`
+        : `Are you sure you want to ${action} this post?`;
+    if (!confirm(confirmMsg)) return;
 
     setPublishing(true);
     try {
@@ -185,6 +197,11 @@ export function BlogPostEditor({ post: initialPost }: { post: BlogPost }) {
           </span>
         </div>
         <div className="flex items-center gap-3">
+          {isFirstPublish && (
+            <span className="text-xs text-gray-400">
+              Will email {subscriberCounts.en} EN + {subscriberCounts.es} ES subscribers
+            </span>
+          )}
           {post.status === 'published' && (
             <a
               href={`/blog/${post.slug}`}

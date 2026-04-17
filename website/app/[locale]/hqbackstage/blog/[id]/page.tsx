@@ -19,5 +19,23 @@ export default async function BlogPostEditPage({
     );
   }
 
-  return <BlogPostEditor post={post} />;
+  const [{ count: enCount }, { count: esCount }] = await Promise.all([
+    supabase
+      .from('newsletter_subscribers')
+      .select('*', { count: 'exact', head: true })
+      .eq('locale', 'en')
+      .eq('status', 'confirmed'),
+    supabase
+      .from('newsletter_subscribers')
+      .select('*', { count: 'exact', head: true })
+      .eq('locale', 'es')
+      .eq('status', 'confirmed'),
+  ]);
+
+  return (
+    <BlogPostEditor
+      post={post}
+      subscriberCounts={{ en: enCount ?? 0, es: esCount ?? 0 }}
+    />
+  );
 }

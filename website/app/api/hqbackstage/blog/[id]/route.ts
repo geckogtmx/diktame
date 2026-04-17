@@ -69,6 +69,14 @@ export async function PATCH(
       updates.published_at = null;
     }
 
+    // Snapshot previous published_at so we can detect first-ever publish
+    const { data: prev } = await supabase
+      .from('blog_posts')
+      .select('published_at')
+      .eq('id', id)
+      .single();
+    const wasEverPublished = prev?.published_at != null;
+
     const { data: post, error } = await supabase
       .from('blog_posts')
       .update(updates)
@@ -79,6 +87,21 @@ export async function PATCH(
     if (error) {
       console.error('Blog PATCH error:', error);
       return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
+    }
+
+    // Fire newsletter broadcast on FIRST publish only.
+    // Re-publishing an already-published post is skipped; newsletter-send also
+    // enforces idempotency via UNIQUE(post_id, locale) as a second guard.
+    if (body.status === 'published' && !wasEverPublished && post) {
+      const functionsUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/newsletter-send`;
+      const authHeader = `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`;
+      for (const locale of ['en', 'es']) {
+        fetch(functionsUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: authHeader },
+          body: JSON.stringify({ post_id: post.id, locale }),
+        }).catch((err) => console.error(`newsletter-send ${locale} failed:`, err));
+      }
     }
 
     return NextResponse.json(post);
