@@ -184,8 +184,9 @@ serve(async (req) => {
     subscriberId = inserted.id;
   }
 
-  // Send confirmation email via Resend
-  const confirmUrl = `${FUNCTIONS_URL}/newsletter-confirm?t=${confirmToken}`;
+  // Confirmation link points to the Next.js landing page, which flips the
+  // DB state server-side and renders a branded UI.
+  const confirmUrl = `${SITE_URL}/${locale}/newsletter/confirm/${confirmToken}`;
   const subject = locale === "es"
     ? "Confirma tu suscripción a dIKta.me"
     : "Confirm your dIKta.me subscription";

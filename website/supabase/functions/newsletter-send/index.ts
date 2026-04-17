@@ -257,8 +257,9 @@ serve(async (req) => {
 
   // Build per-recipient emails with individualized unsubscribe URLs
   const emailPayloads = subscribers!.map((sub) => {
-    const unsubscribeUrl = `${FUNCTIONS_URL}/newsletter-unsubscribe?t=${sub.unsubscribe_token}`;
-    const preferencesUrl = `${FUNCTIONS_URL}/newsletter-preferences?t=${sub.unsubscribe_token}`;
+    // Links point at Next.js landing pages, not edge functions — better UX.
+    const unsubscribeUrl = `${SITE_URL}/${locale}/newsletter/unsubscribe/${sub.unsubscribe_token}`;
+    const preferencesUrl = `${SITE_URL}/${locale}/newsletter/preferences/${sub.unsubscribe_token}`;
     const { subject, html } = renderPostEmail(post as Post, locale, unsubscribeUrl, preferencesUrl);
     return {
       from: "dIKta.me <newsletter@dikta.me>",
