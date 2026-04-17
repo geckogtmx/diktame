@@ -6,6 +6,14 @@ import { Link } from '@/i18n/navigation';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { BlogLanguagePills } from '@/app/components/BlogLanguagePills';
+import { NewsletterSignupBox } from '@/app/components/NewsletterSignupBox';
+import {
+  BlogArchiveNav,
+  type ArchiveYear,
+} from '@/app/components/BlogArchiveNav';
+import { BlogPagination } from '@/app/components/BlogPagination';
+
+const POSTS_PER_PAGE = 12;
 
 export async function generateMetadata({
   params,
@@ -28,27 +36,128 @@ export async function generateMetadata({
   };
 }
 
+function parseMonth(monthParam: string | undefined): {
+  key: string;
+  startIso: string;
+  endIso: string;
+} | null {
+  if (!monthParam) return null;
+  // Expect YYYY-MM
+  const match = /^(\d{4})-(\d{2})$/.exec(monthParam);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]); // 1-12
+  if (month < 1 || month > 12) return null;
+  const start = new Date(Date.UTC(year, month - 1, 1));
+  const end = new Date(Date.UTC(year, month, 1));
+  return {
+    key: `${match[1]}-${match[2]}`,
+    startIso: start.toISOString(),
+    endIso: end.toISOString(),
+  };
+}
+
+function buildArchive(
+  publishedAts: string[],
+  locale: string,
+): ArchiveYear[] {
+  const byMonth = new Map<string, number>();
+  for (const iso of publishedAts) {
+    if (!iso) continue;
+    const d = new Date(iso);
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+    byMonth.set(key, (byMonth.get(key) ?? 0) + 1);
+  }
+  const formatter = new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
+    month: 'long',
+    year: 'numeric',
+  });
+  const byYear = new Map<
+    string,
+    { total: number; months: { key: string; label: string; count: number }[] }
+  >();
+  // Sort descending by month key
+  const keys = Array.from(byMonth.keys()).sort().reverse();
+  for (const key of keys) {
+    const year = key.slice(0, 4);
+    const monthNum = Number(key.slice(5, 7));
+    const labelDate = new Date(Date.UTC(Number(year), monthNum - 1, 1));
+    const label = formatter.format(labelDate);
+    const count = byMonth.get(key) ?? 0;
+    const bucket = byYear.get(year) ?? { total: 0, months: [] };
+    bucket.total += count;
+    bucket.months.push({ key, label, count });
+    byYear.set(year, bucket);
+  }
+  return Array.from(byYear.entries())
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+    .map(([year, data]) => ({ year, ...data }));
+}
+
 export default async function BlogPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ page?: string; month?: string }>;
 }) {
   const { locale } = await params;
+  const { page: pageParam, month: monthParam } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations('BlogPage');
 
   const supabase = await createClient();
-  const { data: posts } = await supabase
+
+  // Parse + validate pagination
+  const page = Math.max(1, Number.parseInt(pageParam ?? '1', 10) || 1);
+  const monthFilter = parseMonth(monthParam);
+  const from = (page - 1) * POSTS_PER_PAGE;
+  const to = from + POSTS_PER_PAGE - 1;
+
+  // Main posts query — respects month filter and paginates
+  let postsQuery = supabase
     .from('blog_posts')
     .select(
       'id, slug, slug_es, title_en, title_es, hook_en, hook_es, image_url_en, image_url_es, published_at, voice_id',
+      { count: 'exact' },
     )
     .eq('status', 'published')
     .order('published_at', { ascending: false });
 
+  if (monthFilter) {
+    postsQuery = postsQuery
+      .gte('published_at', monthFilter.startIso)
+      .lt('published_at', monthFilter.endIso);
+  }
+
+  const { data: posts, count } = await postsQuery.range(from, to);
   const rows = posts ?? [];
-  const featured = rows[0] ?? null;
-  const rest = rows.slice(1);
+  const totalCount = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / POSTS_PER_PAGE));
+
+  // Featured hero only on the first page of the unfiltered view
+  const showFeatured = page === 1 && !monthFilter && rows.length > 0;
+  const featured = showFeatured ? rows[0] : null;
+  const grid = showFeatured ? rows.slice(1) : rows;
+
+  // Archive data — always the full published set, separate lightweight query
+  const { data: archiveRows } = await supabase
+    .from('blog_posts')
+    .select('published_at')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false });
+  const archiveYears = buildArchive(
+    (archiveRows ?? []).map((r) => r.published_at as string).filter(Boolean),
+    locale,
+  );
+
+  // Month label for breadcrumb
+  const activeMonthLabel = monthFilter
+    ? new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
+        month: 'long',
+        year: 'numeric',
+      }).format(new Date(monthFilter.startIso))
+    : null;
 
   function resolvePost(post: (typeof rows)[number]) {
     return {
@@ -85,15 +194,28 @@ export default async function BlogPage({
             <p className="text-lg text-gray-400">
               {t('metaDescription')}
             </p>
+            {activeMonthLabel && (
+              <p className="mt-4 text-sm text-gray-400">
+                {t('filteredBy')}{' '}
+                <span className="font-semibold text-white">{activeMonthLabel}</span>
+                {' · '}
+                <Link
+                  href="/blog"
+                  className="text-orange-400 hover:underline"
+                >
+                  {t('clearFilter')}
+                </Link>
+              </p>
+            )}
           </div>
 
-          {rows.length === 0 ? (
+          {totalCount === 0 ? (
             <p className="text-gray-500 text-center py-20 text-lg">
               {t('noPosts')}
             </p>
           ) : (
             <div className="max-w-5xl mx-auto">
-              {/* Featured Post — Hero */}
+              {/* Featured Post — Hero (only on page 1, unfiltered) */}
               {featured && (() => {
                 const f = resolvePost(featured);
                 return (
@@ -135,118 +257,132 @@ export default async function BlogPage({
               })()}
 
               {/* Divider */}
-              {rest.length > 0 && (
+              {featured && grid.length > 0 && (
                 <div className="border-t border-gray-800 mb-12" />
               )}
 
               {/* Content + Sidebar */}
-              {rest.length > 0 && (
-                <div className="flex flex-col lg:flex-row gap-12">
-                  {/* Mobile sidebar — horizontal bar above grid */}
-                  <div className="flex items-center justify-between lg:hidden mb-2">
-                    <div className="flex items-center gap-4">
-                      <a
-                        href="https://www.linkedin.com/company/diktame/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="LinkedIn"
-                        className="text-gray-500 hover:text-white transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                      </a>
-                      <a
-                        href="https://x.com/dIKtameapp"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="X (Twitter)"
-                        className="text-gray-500 hover:text-white transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                      </a>
-                    </div>
-                    <BlogLanguagePills />
+              <div className="flex flex-col lg:flex-row gap-12">
+                {/* Mobile sidebar — horizontal bar above grid */}
+                <div className="flex items-center justify-between lg:hidden mb-2">
+                  <div className="flex items-center gap-4">
+                    <a
+                      href="https://www.linkedin.com/company/diktame/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="LinkedIn"
+                      className="text-gray-500 hover:text-white transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                    </a>
+                    <a
+                      href="https://x.com/dIKtameapp"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="X (Twitter)"
+                      className="text-gray-500 hover:text-white transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
                   </div>
-
-                  {/* Main grid */}
-                  <div className="flex-1">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {rest.map((post) => {
-                        const p = resolvePost(post);
-                        return (
-                          <article key={post.id} className="group">
-                            <Link href={`/blog/${locale === 'es' && post.slug_es ? post.slug_es : post.slug}`} className="block">
-                              {p.imageUrl && (
-                                <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg mb-4">
-                                  <Image
-                                    src={p.imageUrl}
-                                    alt={p.title}
-                                    fill
-                                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px"
-                                  />
-                                </div>
-                              )}
-                              <div className="space-y-2">
-                                {p.publishedAt && (
-                                  <p className="text-xs text-gray-500 uppercase tracking-wider">
-                                    {p.publishedAt}
-                                  </p>
-                                )}
-                                <h3 className="text-lg font-semibold tracking-tight group-hover:text-orange-400 transition-colors leading-snug">
-                                  {p.title}
-                                </h3>
-                                <span className="inline-block text-orange-400 text-sm font-medium group-hover:underline">
-                                  {t('readMore')} &rarr;
-                                </span>
-                              </div>
-                            </Link>
-                          </article>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Desktop sidebar */}
-                  <aside className="hidden lg:block w-56 shrink-0">
-                    <div className="sticky top-24 space-y-8">
-                      {/* Social */}
-                      <div>
-                        <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-3">
-                          {t('followUs')}
-                        </h4>
-                        <div className="flex items-center gap-3">
-                          <a
-                            href="https://www.linkedin.com/company/diktame/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label="LinkedIn"
-                            className="text-gray-400 hover:text-white transition-colors"
-                          >
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                          </a>
-                          <a
-                            href="https://x.com/dIKtameapp"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label="X (Twitter)"
-                            className="text-gray-400 hover:text-white transition-colors"
-                          >
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                          </a>
-                        </div>
-                      </div>
-
-                      {/* Language */}
-                      <div>
-                        <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-3">
-                          {locale === 'es' ? 'Idioma' : 'Language'}
-                        </h4>
-                        <BlogLanguagePills />
-                      </div>
-                    </div>
-                  </aside>
+                  <BlogLanguagePills />
                 </div>
-              )}
+
+                {/* Main grid + pagination */}
+                <div className="flex-1 min-w-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {grid.map((post) => {
+                      const p = resolvePost(post);
+                      return (
+                        <article key={post.id} className="group">
+                          <Link href={`/blog/${locale === 'es' && post.slug_es ? post.slug_es : post.slug}`} className="block">
+                            {p.imageUrl && (
+                              <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg mb-4">
+                                <Image
+                                  src={p.imageUrl}
+                                  alt={p.title}
+                                  fill
+                                  className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px"
+                                />
+                              </div>
+                            )}
+                            <div className="space-y-2">
+                              {p.publishedAt && (
+                                <p className="text-xs text-gray-500 uppercase tracking-wider">
+                                  {p.publishedAt}
+                                </p>
+                              )}
+                              <h3 className="text-lg font-semibold tracking-tight group-hover:text-orange-400 transition-colors leading-snug">
+                                {p.title}
+                              </h3>
+                              <span className="inline-block text-orange-400 text-sm font-medium group-hover:underline">
+                                {t('readMore')} &rarr;
+                              </span>
+                            </div>
+                          </Link>
+                        </article>
+                      );
+                    })}
+                  </div>
+
+                  <BlogPagination
+                    locale={locale}
+                    currentPage={page}
+                    totalPages={totalPages}
+                    month={monthFilter?.key ?? null}
+                  />
+                </div>
+
+                {/* Desktop sidebar */}
+                <aside className="hidden lg:block w-72 shrink-0">
+                  <div className="sticky top-24 space-y-8">
+                    {/* Newsletter signup */}
+                    <NewsletterSignupBox />
+
+                    {/* Archive */}
+                    <BlogArchiveNav
+                      years={archiveYears}
+                      activeMonth={monthFilter?.key ?? null}
+                    />
+
+                    {/* Social */}
+                    <div>
+                      <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-3">
+                        {t('followUs')}
+                      </h4>
+                      <div className="flex items-center gap-3">
+                        <a
+                          href="https://www.linkedin.com/company/diktame/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="LinkedIn"
+                          className="text-gray-400 hover:text-white transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                        </a>
+                        <a
+                          href="https://x.com/dIKtameapp"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="X (Twitter)"
+                          className="text-gray-400 hover:text-white transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Language */}
+                    <div>
+                      <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-3">
+                        {locale === 'es' ? 'Idioma' : 'Language'}
+                      </h4>
+                      <BlogLanguagePills />
+                    </div>
+                  </div>
+                </aside>
+              </div>
             </div>
           )}
         </Container>

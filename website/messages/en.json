@@ -960,7 +960,13 @@
     "noPosts": "No posts yet. Check back soon.",
     "backToBlog": "Back to Blog",
     "minRead": "min read",
-    "followUs": "Follow us"
+    "followUs": "Follow us",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {current} of {total}",
+    "archive": "Archive",
+    "filteredBy": "Showing posts from",
+    "clearFilter": "clear filter"
   },
   "Newsletter": {
     "signupTitle": "Get weekly literary news",

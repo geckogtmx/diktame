@@ -960,7 +960,13 @@
     "noPosts": "Aún no hay publicaciones. Vuelve pronto.",
     "backToBlog": "Volver al Blog",
     "minRead": "min de lectura",
-    "followUs": "Síguenos"
+    "followUs": "Síguenos",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pageOf": "Página {current} de {total}",
+    "archive": "Archivo",
+    "filteredBy": "Mostrando publicaciones de",
+    "clearFilter": "borrar filtro"
   },
   "Newsletter": {
     "signupTitle": "Recibe las noticias literarias semanales",
