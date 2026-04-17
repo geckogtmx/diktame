@@ -170,17 +170,26 @@ export default async function NewsletterPreferencesPage({
             </form>
           )}
           {canDelete && (
-            <form action={applyAction}>
-              <input type="hidden" name="token" value={token} />
-              <input type="hidden" name="locale" value={locale} />
-              <input type="hidden" name="action" value="delete" />
-              <button
-                type="submit"
-                className="w-full rounded-lg border border-red-900/50 bg-red-950/40 px-4 py-3 text-sm font-semibold text-red-300 hover:bg-red-950/70 transition-colors"
+            <>
+              <a
+                href={`/api/newsletter/export?token=${token}`}
+                className="block w-full rounded-lg border border-gray-700 bg-gray-800/30 px-4 py-3 text-center text-sm font-semibold text-gray-300 hover:bg-gray-800 transition-colors"
+                download
               >
-                {t('deleteData')}
-              </button>
-            </form>
+                {t('downloadData')}
+              </a>
+              <form action={applyAction}>
+                <input type="hidden" name="token" value={token} />
+                <input type="hidden" name="locale" value={locale} />
+                <input type="hidden" name="action" value="delete" />
+                <button
+                  type="submit"
+                  className="w-full rounded-lg border border-red-900/50 bg-red-950/40 px-4 py-3 text-sm font-semibold text-red-300 hover:bg-red-950/70 transition-colors"
+                >
+                  {t('deleteData')}
+                </button>
+              </form>
+            </>
           )}
         </div>
 

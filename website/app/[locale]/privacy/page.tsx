@@ -96,6 +96,25 @@ export default async function PrivacyPage({
                 </p>
               </section>
 
+              {/* Newsletter & Email Marketing */}
+              <section>
+                <h2 className="text-2xl font-bold text-white mb-4">{t('newsletterTitle')}</h2>
+                <p>{t('newsletterP1')}</p>
+                <h3 className="text-lg font-semibold text-white mt-4 mb-2">{t('newsletterWhat')}</h3>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>{t('newsletterItem1')}</li>
+                  <li>{t('newsletterItem2')}</li>
+                  <li>{t('newsletterItem3')}</li>
+                </ul>
+                <p className="mt-4">{t('newsletterBasis')}</p>
+                <p className="mt-4">{t('newsletterRetention')}</p>
+                <p className="mt-4">{t('newsletterRights')}</p>
+                <p className="mt-4">{t('newsletterProcessor')}</p>
+                <p className="mt-4 text-sm text-gray-400">
+                  San Francisco 1826-C-101, Del Valle, 03100, CDMX, México
+                </p>
+              </section>
+
               {/* Your Data */}
               <section>
                 <h2 className="text-2xl font-bold text-white mb-4">{t('yourDataTitle')}</h2>

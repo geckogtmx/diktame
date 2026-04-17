@@ -835,7 +835,17 @@
     "yourDataItem2": "All associated data will be permanently removed",
     "yourDataItem3": "Local app data stays on your machine and is never uploaded",
     "contactTitle": "Contact",
-    "contactP1": "Questions about privacy? Reach out:"
+    "contactP1": "Questions about privacy? Reach out:",
+    "newsletterTitle": "Newsletter & Email Marketing",
+    "newsletterP1": "We run a first-party newsletter that delivers new blog posts directly to your inbox. Subscribing is always optional, requires your explicit action, and can be undone instantly.",
+    "newsletterWhat": "What we collect when you subscribe",
+    "newsletterItem1": "Your email address and preferred language.",
+    "newsletterItem2": "Your IP address, browser user-agent, and the page you subscribed from — kept as an audit record of consent.",
+    "newsletterItem3": "The version of the consent text you agreed to, and the timestamps of your subscribe, confirm, and unsubscribe actions.",
+    "newsletterBasis": "Legal basis: your explicit consent (GDPR Art. 6(1)(a)). You can withdraw consent at any time with one click; we keep only the minimum record needed to prove you consented.",
+    "newsletterRetention": "We retain your subscription data for as long as you remain subscribed, plus a short suppression window after you unsubscribe to prevent accidental re-mailing. Hard-bounced and complained addresses are auto-suppressed.",
+    "newsletterRights": "You can access, export, or delete all your subscriber data at any time from the preference center linked in every email footer. Deletion is irreversible and anonymizes your row while keeping a minimal audit trail as required by law.",
+    "newsletterProcessor": "Our email delivery processor is Resend (resend.com), which is GDPR-compliant and covered by a signed Data Processing Agreement. We do not use open-tracking pixels. Click tracking is disabled by default."
   },
   "TermsPage": {
     "title": "Terms of Service",
@@ -1003,6 +1013,7 @@
     "deleteConfirm": "Are you sure? This cannot be undone.",
     "flashUnsubscribed": "You have been unsubscribed.",
     "flashResubscribed": "Subscription reactivated.",
-    "flashDeleted": "Your data has been deleted."
+    "flashDeleted": "Your data has been deleted.",
+    "downloadData": "Download all my data"
   }
 }

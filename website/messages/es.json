@@ -835,7 +835,17 @@
     "yourDataItem2": "Todos los datos asociados serán eliminados permanentemente",
     "yourDataItem3": "Los datos locales de la app permanecen en tu máquina y nunca se suben",
     "contactTitle": "Contacto",
-    "contactP1": "¿Preguntas sobre privacidad? Escríbenos:"
+    "contactP1": "¿Preguntas sobre privacidad? Escríbenos:",
+    "newsletterTitle": "Boletín y marketing por correo",
+    "newsletterP1": "Ofrecemos un boletín propio que entrega las nuevas publicaciones del blog directamente en tu bandeja de entrada. Suscribirse siempre es opcional, requiere tu acción explícita y se puede cancelar al instante.",
+    "newsletterWhat": "Qué recopilamos cuando te suscribes",
+    "newsletterItem1": "Tu dirección de correo y tu idioma preferido.",
+    "newsletterItem2": "Tu dirección IP, user-agent del navegador y la página desde la que te suscribiste — conservados como registro de auditoría del consentimiento.",
+    "newsletterItem3": "La versión del texto de consentimiento que aceptaste y las marcas temporales de suscripción, confirmación y baja.",
+    "newsletterBasis": "Base legal: tu consentimiento explícito (RGPD art. 6.1.a). Puedes retirar tu consentimiento en cualquier momento con un clic; solo conservamos el registro mínimo necesario para probar que diste tu consentimiento.",
+    "newsletterRetention": "Conservamos tus datos de suscripción mientras sigas suscrito, más una breve ventana de supresión tras la baja para evitar reenvíos accidentales. Las direcciones con rebote fuerte o queja se suprimen automáticamente.",
+    "newsletterRights": "Puedes acceder, exportar o eliminar todos tus datos desde el centro de preferencias enlazado al pie de cada correo. La eliminación es irreversible y anonimiza tu fila conservando solo el mínimo registro de auditoría exigido por ley.",
+    "newsletterProcessor": "Nuestro procesador de envío es Resend (resend.com), conforme al RGPD y cubierto por un Acuerdo de Tratamiento de Datos firmado. No usamos píxeles de seguimiento de apertura. El seguimiento de clics está desactivado por defecto."
   },
   "TermsPage": {
     "title": "Términos de Servicio",
@@ -1003,6 +1013,7 @@
     "deleteConfirm": "¿Seguro? Esta acción no se puede deshacer.",
     "flashUnsubscribed": "Te has dado de baja.",
     "flashResubscribed": "Suscripción reactivada.",
-    "flashDeleted": "Tus datos han sido eliminados."
+    "flashDeleted": "Tus datos han sido eliminados.",
+    "downloadData": "Descargar todos mis datos"
   }
 }
