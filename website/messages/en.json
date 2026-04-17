@@ -1014,6 +1014,18 @@
     "flashUnsubscribed": "You have been unsubscribed.",
     "flashResubscribed": "Subscription reactivated.",
     "flashDeleted": "Your data has been deleted.",
-    "downloadData": "Download all my data"
+    "downloadData": "Download all my data",
+    "dashboardTitle": "Newsletter preferences",
+    "dashboardSubtitle": "Choose which newsletters you'd like to receive. Your email is already verified, so changes take effect instantly.",
+    "englishLabel": "English newsletter",
+    "spanishLabel": "Spanish newsletter",
+    "englishDesc": "Weekly literary news, posted in English.",
+    "spanishDesc": "Noticias literarias semanales, en español.",
+    "dashboardSubscribed": "Subscribed",
+    "dashboardUnsubscribed": "Not subscribed",
+    "dashboardPending": "Awaiting confirmation",
+    "dashboardSubscribe": "Subscribe",
+    "dashboardUnsubscribeAction": "Unsubscribe",
+    "dashboardResubscribe": "Resubscribe"
   }
 }

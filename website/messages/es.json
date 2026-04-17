@@ -1014,6 +1014,18 @@
     "flashUnsubscribed": "Te has dado de baja.",
     "flashResubscribed": "Suscripción reactivada.",
     "flashDeleted": "Tus datos han sido eliminados.",
-    "downloadData": "Descargar todos mis datos"
+    "downloadData": "Descargar todos mis datos",
+    "dashboardTitle": "Preferencias del boletín",
+    "dashboardSubtitle": "Elige qué boletines quieres recibir. Tu correo ya está verificado, así que los cambios son inmediatos.",
+    "englishLabel": "Boletín en inglés",
+    "spanishLabel": "Boletín en español",
+    "englishDesc": "Noticias literarias semanales, en inglés.",
+    "spanishDesc": "Noticias literarias semanales, en español.",
+    "dashboardSubscribed": "Suscrito",
+    "dashboardUnsubscribed": "No suscrito",
+    "dashboardPending": "Pendiente de confirmación",
+    "dashboardSubscribe": "Suscribirse",
+    "dashboardUnsubscribeAction": "Cancelar suscripción",
+    "dashboardResubscribe": "Reactivar suscripción"
   }
 }
