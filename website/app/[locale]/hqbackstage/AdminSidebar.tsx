@@ -3,15 +3,20 @@
 import { usePathname } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 
-const navItems = [
-  { href: '/hqbackstage', label: 'Overview', icon: ChartIcon },
-  { href: '/hqbackstage/blog', label: 'Blog', icon: BlogIcon },
-  { href: '/hqbackstage/newsletter', label: 'Newsletter', icon: MailIcon },
-  { href: '/hqbackstage/users', label: 'Users', icon: UsersIcon },
-  { href: '/hqbackstage/licenses', label: 'Licenses', icon: KeyIcon },
-  { href: '/hqbackstage/campaigns', label: 'Campaigns', icon: MegaphoneIcon },
-  { href: '/hqbackstage/sales', label: 'Sales', icon: DollarIcon },
-  { href: '/hqbackstage/support', label: 'Support', icon: ChatIcon },
+type NavItem =
+  | { type: 'link'; href: string; label: string; icon: (p: { className?: string }) => React.ReactElement }
+  | { type: 'separator' };
+
+const navItems: NavItem[] = [
+  { type: 'link', href: '/hqbackstage', label: 'Overview', icon: ChartIcon },
+  { type: 'link', href: '/hqbackstage/users', label: 'Users', icon: UsersIcon },
+  { type: 'link', href: '/hqbackstage/licenses', label: 'Licenses', icon: KeyIcon },
+  { type: 'link', href: '/hqbackstage/sales', label: 'Sales', icon: DollarIcon },
+  { type: 'link', href: '/hqbackstage/support', label: 'Support', icon: ChatIcon },
+  { type: 'separator' },
+  { type: 'link', href: '/hqbackstage/blog', label: 'Blog', icon: BlogIcon },
+  { type: 'link', href: '/hqbackstage/newsletter', label: 'Newsletter', icon: MailIcon },
+  { type: 'link', href: '/hqbackstage/campaigns', label: 'Campaigns', icon: MegaphoneIcon },
 ];
 
 export function AdminSidebar() {
@@ -21,7 +26,11 @@ export function AdminSidebar() {
   return (
     <nav className="w-52 shrink-0 min-h-screen border-r border-white/10 py-6 px-3 space-y-1">
       <h2 className="text-lg font-bold mb-4 px-3 text-white/80">Admin</h2>
-      {navItems.map(({ href, label, icon: Icon }) => {
+      {navItems.map((item, idx) => {
+        if (item.type === 'separator') {
+          return <div key={`sep-${idx}`} className="my-3 border-t border-white/10" />;
+        }
+        const { href, label, icon: Icon } = item;
         const isActive =
           href === '/hqbackstage'
             ? strippedPath === '/hqbackstage'
