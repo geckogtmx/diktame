@@ -1,6 +1,11 @@
 # Ajustes de Cuenta (Account Settings)
 
+![Cuenta — Power License, correo, créditos de wallet, historial de uso](/images/docs/settings-account.png)
+
 La pestaña **Cuenta (Account)** gestiona tu Power License, el saldo de la Billetera y el inicio de sesión en la nube.
+
+> [!TIP]
+> Para **cambiar** cualquier cosa (comprar créditos, actualizar el avatar, gestionar boletines) usa el [Panel Web](../dashboard.md). Esta pestaña es una vista local, mayormente de solo lectura, de los mismos datos.
 
 ---
 

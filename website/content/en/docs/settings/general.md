@@ -2,6 +2,29 @@
 
 The **General** tab in the dIKta.me Control Panel settings houses the core application configurations, user interface language, and baseline integration behavior.
 
+![General settings — Application sub-tab](/images/docs/themes-midnight.png)
+
+## Themes
+
+dIKta.me ships with three built-in themes. Drag the slider below to compare:
+
+<div data-theme-compare
+     data-before="/images/docs/themes-midnight.png"
+     data-after="/images/docs/themes-ember.png"
+     data-before-label="Midnight"
+     data-after-label="Ember"
+     data-alt="Theme comparison: Midnight vs Ember"></div>
+
+<div data-theme-compare
+     data-before="/images/docs/themes-midnight.png"
+     data-after="/images/docs/themes-frost.png"
+     data-before-label="Midnight"
+     data-after-label="Frost"
+     data-alt="Theme comparison: Midnight vs Frost"></div>
+
+The theme picker lives at **General → Application → Theme**.
+
+
 ## Behavior
 
 *   **Launch on Windows Startup**: When checked (Autostart), dIKta.me will automatically launch and minimize to the System Tray every time you turn on your computer.

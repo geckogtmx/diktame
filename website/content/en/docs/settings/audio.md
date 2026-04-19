@@ -1,5 +1,13 @@
 # Audio Settings
 
+![Audio & Mic — Microphone & Recording](/images/docs/settings-audio-mic.png)
+
+<div data-detail-section data-summary="Sound Feedback — dictation start/stop and pipeline sounds">
+
+![Audio & Mic — Sound Feedback](/images/docs/settings-audio-feedback.png)
+
+</div>
+
 The **Audio** tab configures how dIKta.me interacts with your microphone and speakers.
 
 ## Microphone Selection

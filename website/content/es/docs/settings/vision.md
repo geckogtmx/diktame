@@ -143,7 +143,6 @@ La sección **Prompts de Acción** (contraída por defecto — haz clic para exp
 | Prompt | Propósito predeterminado |
 |--------|------------------------|
 | **OCR** | Extraer todo el texto exactamente como está escrito, conservando el formato |
-| **Table Extraction** | Extraer datos tabulares en formato TSV con encabezados |
 | **Video: Describe** | Describir qué ocurre en la grabación de forma concisa |
 | **Video: Document** | Generar instrucciones numeradas paso a paso |
 | **Video: Bug Report** | Generar un informe de error estructurado (Resumen / Pasos / Entorno) |
@@ -152,7 +151,7 @@ La sección **Prompts de Acción** (contraída por defecto — haz clic para exp
 Las pestañas **Cloud** y **Local** también tienen su propio **System Prompt** y **Default Query** para solicitudes de captura de pantalla/imagen.
 
 > [!TIP]
-> Mantén los prompts de OCR y Tabla cortos y directivos — las instrucciones largas pueden interferir con la extracción estructurada.
+> Mantén los prompts de OCR cortos y directivos — las instrucciones largas pueden interferir con la extracción estructurada.
 
 ---
 
@@ -176,4 +175,4 @@ Límite superior de los tokens que la IA puede devolver para una consulta de vis
 Controla qué tan literal o creativa es la respuesta de la IA.
 
 *   **Predeterminado**: 0.3
-*   Mantén el valor bajo para OCR y extracción de tablas. Auméntalo ligeramente para tareas descriptivas.
+*   Mantén el valor bajo para OCR y extracción estructurada. Auméntalo ligeramente para tareas descriptivas.

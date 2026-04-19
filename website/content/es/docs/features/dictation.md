@@ -23,7 +23,13 @@ Para empezar a dictar, coloca tu cursor donde quieras escribir (por ejemplo, MS 
 
 El panel de control HUD cambiará para mostrar que está **Grabando**. Cuando termines de hablar, suelta la tecla de acceso rápido (si usas Mantener para hablar) o presiona la tecla de acceso rápido de nuevo para detener. Una vez que el procesamiento se complete, el texto aparecerá.
 
-![Panel de control grabando](/images/docs/workflow-dictation.png)
+> **Entrada:** [Voz](../inputs/voice.md) · **Atajo:** Ctrl+Alt+D
+
+![Panel de Control Escuchando](/images/docs/cp-hud-listening.png)
+
+Mientras la IA procesa tus palabras, el Panel de Control pasa a *Pensando*:
+
+![Panel de Control Pensando](/images/docs/cp-hud-thinking.png)
 
 ## Dictado en streaming vs. por lotes
 

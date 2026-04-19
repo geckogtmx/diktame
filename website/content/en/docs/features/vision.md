@@ -1,6 +1,10 @@
-# Vision (See)
+# Vision Actions
+
+> **Input:** [Screen](../inputs/screen.md) · **Hotkey:** Ctrl+Alt+S
 
 The **Vision** feature lets you capture anything on your screen — a screenshot, a selected region, or a window — and ask an AI about it. The response can be injected at your cursor, copied to the clipboard, or sent to Quick Chat, without leaving your workflow.
+
+![Vision Action panel — Save / OCR / Edit / Clip / Chat / Note](/images/docs/workflow-vision-panel.png)
 
 > [!TIP]
 > Vision pairs naturally with your voice. After capturing, you can record a spoken question (e.g. *"What does this error mean?"* or *"Summarise the data in this table"*) before the AI processes the image.
@@ -48,7 +52,6 @@ Switch between **Local** (your configured Ollama vision model, runs on-device) a
 | **Chat** | Attaches the screenshot to Quick Chat so you can have a multi-turn conversation about it. |
 | **Note** | Runs the vision pipeline and records a voice note appended to your notes file. |
 | **OCR** | Extracts all visible text from the screenshot exactly as it appears, and copies it to your clipboard. |
-| **Table** | Extracts tabular data as tab-separated values (TSV), ready to paste into Excel or Sheets. |
 | **Color** | Opens the [Color Picker](#color-picker) on the captured screenshot. |
 | **Record** | Starts a [video recording](#video-recording-capture-moments) of the selected region. |
 

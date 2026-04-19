@@ -60,7 +60,7 @@ To add a new OpenAI-compatible provider, use the generic constructor directly: `
 
 ### Multimodal support
 
-`ProcessWithImageAsync` has a default virtual implementation that throws `NotSupportedException`. All four current providers override it. See [Vision Pipeline](vision.md) for a full walkthrough of adding multimodal support to a new provider.
+`ProcessWithImageAsync` has a default virtual implementation that throws `NotSupportedException`. All four current providers override it to support image inputs for the Vision pipeline.
 
 ---
 

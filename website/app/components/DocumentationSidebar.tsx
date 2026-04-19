@@ -13,43 +13,48 @@ export function DocumentationSidebar() {
       title: t('overview'),
       links: [
         { href: '/docs/getting-started', label: t('gettingStarted') },
+        { href: '/docs/dashboard', label: t('webDashboard') },
         { href: '/docs/troubleshooting', label: t('troubleshooting') },
       ]
     },
     {
-      title: t('coreFeatures'),
+      title: t('threeInputs'),
       links: [
-        { href: '/docs/features/dictation', label: t('dictation') },
-        { href: '/docs/features/refine', label: t('refine') },
-        { href: '/docs/features/quick-chat', label: t('quickChat') },
+        { href: '/docs/inputs/voice', label: t('voiceInput') },
+        { href: '/docs/inputs/text-selection', label: t('textSelectionInput') },
+        { href: '/docs/inputs/screen', label: t('screenInput') },
       ]
     },
     {
-      title: t('utilityPipelines'),
+      title: t('infiniteOutput'),
       links: [
+        { href: '/docs/features/dictation', label: t('dictation') },
+        { href: '/docs/features/refine', label: t('refine') },
         { href: '/docs/features/ask', label: t('ask') },
         { href: '/docs/features/translate', label: t('translate') },
         { href: '/docs/features/note', label: t('note') },
+        { href: '/docs/features/vision', label: t('visionActions') },
+        { href: '/docs/features/quick-chat', label: t('quickChat') },
         { href: '/docs/features/oops', label: t('oops') },
+        { href: '/docs/features/macros', label: t('macros') },
         { href: '/docs/features/tts', label: t('textToSpeech') },
       ]
     },
     {
       title: t('settings'),
       links: [
+        // Follows the real app nav: General → Audio → AI Engine → Pipelines → Dictation Presets → Macros → Privacy → Account.
+        // Sub-tab docs are grouped directly under their parent.
         { href: '/docs/settings/general', label: t('general') },
-        { href: '/docs/settings/account', label: t('account') },
-        { href: '/docs/settings/ai-engine', label: t('aiEngine') },
-        { href: '/docs/settings/api-keys', label: t('apiKeys') },
-        { href: '/docs/settings/audio', label: t('audio') },
         { href: '/docs/settings/control-panel', label: t('controlPanel') },
-        { href: '/docs/settings/dictation-modes', label: t('dictationModes') },
         { href: '/docs/settings/hotkeys', label: t('hotkeys') },
-        { href: '/docs/settings/modes', label: t('utilityModes') },
-        { href: '/docs/settings/ollama', label: t('ollama') },
+        { href: '/docs/settings/audio', label: t('audio') },
+        { href: '/docs/settings/ai-engine', label: t('aiEngine') },
+        { href: '/docs/settings/pipelines', label: t('pipelines') },
+        { href: '/docs/settings/dictation-modes', label: t('dictationModes') },
+        { href: '/docs/settings/macros', label: t('macros') },
         { href: '/docs/settings/privacy', label: t('privacy') },
-        { href: '/docs/settings/snippets', label: t('snippets') },
-        { href: '/docs/settings/tts', label: t('ttsSettings') },
+        { href: '/docs/settings/account', label: t('account') },
       ]
     },
     {

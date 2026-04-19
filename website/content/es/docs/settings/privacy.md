@@ -1,5 +1,7 @@
 # Ajustes de Privacidad (Privacy)
 
+![Privacidad — Intensidad de Registro, Scrubber PII, Retención, Borrar](/images/docs/settings-privacy.png)
+
 La pestaña **Privacidad (Privacy)** controla exactamente cuánta información dIKta.me registra y retiene sobre tus sesiones de dictado.
 
 Debido a que dictas información sobre tu trabajo, contraseñas y otros detalles potencialmente delicados, necesitas opciones sólidas para controlar exactamente cómo, qué y dónde se registran las cosas localmente en tu computadora.

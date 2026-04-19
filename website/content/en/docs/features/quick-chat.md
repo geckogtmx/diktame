@@ -1,6 +1,8 @@
 # Quick Chat
 
-While dIKta.me is built around injecting text into your active applications, sometimes you just need to have a quick conversation with your AI assistant without typing into a document. 
+> **Inputs:** [Voice](../inputs/voice.md), text, images from [Screen](../inputs/screen.md) · **Hotkey:** Ctrl+Alt+C
+
+While dIKta.me is built around injecting text into your active applications, sometimes you just need to have a quick conversation with your AI assistant without typing into a document.
 
 This is where the **Quick Chat** overlay comes in. It behaves like a standard LLM chat interface (like ChatGPT or Claude) that you can summon anywhere, at any time.
 
@@ -13,6 +15,20 @@ To open the Quick Chat window, press the global hotkey:
 This will open an overlay window that stays on top of your work. The Chat window allows for multi-turn conversations, meaning it remembers the context of your previous messages during that session.
 
 ![Quick Chat Window](/images/docs/workflow-quickchat.png)
+
+## Editing the system prompt mid-conversation
+
+The cog icon in the top bar lets you edit the assistant's system prompt at any point — even partway through a conversation. The next turn immediately respects the new instruction without losing prior context.
+
+<div data-detail-section data-summary="See the system prompt edit in action">
+
+In the example below, the initial prompt is *"You are a helpful assistant. Answer concisely."* The first two turns answer in English. The user then edits the system prompt to add *"In french"*, asks a follow-up, and the next response switches to French — without resetting the conversation history.
+
+![Quick Chat with system prompt edited mid-conversation](/images/docs/workflow-quickchat-prompt-edit.png)
+
+The highlighted globe icon in the same shot is the **Web Search** toggle (Gemini models only) — an independent feature that lets the model ground answers with live web results.
+
+</div>
 
 ## Voice or Text Input
 

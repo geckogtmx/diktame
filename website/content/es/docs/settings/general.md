@@ -2,6 +2,29 @@
 
 La pestaña **General** en los ajustes del Panel de Control de dIKta.me alberga las configuraciones principales de la aplicación, el idioma de la interfaz de usuario y el comportamiento base de integración.
 
+![Ajustes Generales — sub-pestaña Aplicación](/images/docs/themes-midnight.png)
+
+## Temas
+
+dIKta.me incluye tres temas. Arrastra el deslizador para comparar:
+
+<div data-theme-compare
+     data-before="/images/docs/themes-midnight.png"
+     data-after="/images/docs/themes-ember.png"
+     data-before-label="Midnight"
+     data-after-label="Ember"
+     data-alt="Comparación de temas: Midnight vs Ember"></div>
+
+<div data-theme-compare
+     data-before="/images/docs/themes-midnight.png"
+     data-after="/images/docs/themes-frost.png"
+     data-before-label="Midnight"
+     data-after-label="Frost"
+     data-alt="Comparación de temas: Midnight vs Frost"></div>
+
+El selector de tema está en **General → Aplicación → Tema**.
+
+
 ## Comportamiento
 
 *   **Launch on Windows Startup (Iniciar al arrancar Windows)**: Cuando está marcado (Autostart), dIKta.me se iniciará automáticamente y se minimizará en la Bandeja del Sistema cada vez que enciendas tu computadora.

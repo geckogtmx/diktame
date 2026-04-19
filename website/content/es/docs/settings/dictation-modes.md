@@ -1,5 +1,7 @@
 # Modos de Dictado (Dictation Modes)
 
+![Presets de Dictado — Standard con perfil Cloud](/images/docs/settings-dictation-presets.png)
+
 La pestaña **Modos de Dictado (Dictation Modes)** es donde configuras exactamente *cómo* la IA formatea tus palabras habladas antes de inyectarlas en tus aplicaciones. 
 
 Puedes crear ilimitados Ajustes Preestablecidos (Presets) de Dictado personalizados (como "Tono Casual", "Comentarios de Código", o "Transcriptor Médico") y cambiar rápidamente entre ellos usando el menú desplegable en el Panel de Control flotante principal.

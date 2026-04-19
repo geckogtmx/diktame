@@ -21,7 +21,7 @@ The TTS pipeline operates quietly and intelligently:
 
 ## Providers
 
-dIKta.me offers multiple engines for generating speech, which you can configure in the [TTS Settings](../settings/tts):
+dIKta.me offers multiple engines for generating speech, which you can configure in the [AI Engine → Text to Speech](../settings/ai-engine.md) section:
 
 *   **Kokoro (Local):** A completely offline, extremely fast local ONNX model that runs on your CPU.
 *   **Deepgram Aura-2:** A high-quality cloud option utilizing your existing Deepgram API key.

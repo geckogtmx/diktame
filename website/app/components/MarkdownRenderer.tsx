@@ -1,6 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import { ThemeCompareSlider } from './ThemeCompareSlider';
 
 interface MarkdownRendererProps {
   content: string;
@@ -36,7 +37,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
               let bg = 'bg-gray-800/50';
               let border = 'border-gray-500';
               let text = 'text-gray-200';
-              
+
               if (type === 'tip') { bg = 'bg-emerald-900/30'; border = 'border-emerald-500'; text = 'text-emerald-200'; }
               if (type === 'note') { bg = 'bg-blue-900/30'; border = 'border-blue-500'; text = 'text-blue-200'; }
               if (type === 'warning') { bg = 'bg-amber-900/30'; border = 'border-amber-500'; text = 'text-amber-200'; }
@@ -49,6 +50,38 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                 </div>
               );
             }
+
+            // Theme compare slider
+            if (props['data-theme-compare'] !== undefined) {
+              return (
+                <ThemeCompareSlider
+                  before={props['data-before']}
+                  after={props['data-after']}
+                  beforeLabel={props['data-before-label']}
+                  afterLabel={props['data-after-label']}
+                  alt={props['data-alt']}
+                />
+              );
+            }
+
+            // Expandable detail section (native <details>)
+            if (props['data-detail-section'] !== undefined) {
+              const summary = props['data-summary'] || 'Show details';
+              return (
+                <details className="my-6 border border-white/10 rounded-lg bg-gray-900/40 overflow-hidden group">
+                  <summary className="px-4 py-3 cursor-pointer select-none text-sm font-medium text-gray-200 hover:bg-white/5 transition-colors flex items-center gap-2">
+                    <svg className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                    {summary}
+                  </summary>
+                  <div className="px-4 pb-4 pt-2">
+                    {props.children}
+                  </div>
+                </details>
+              );
+            }
+
             return <div {...props} />;
           }
         }}

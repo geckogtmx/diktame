@@ -1,5 +1,7 @@
 # Privacy Settings
 
+![Privacy — Logging Intensity, PII Scrubber, Retention, Wipe](/images/docs/settings-privacy.png)
+
 The **Privacy** tab controls exactly how much information dIKta.me logs and retains about your dictation sessions. 
 
 Because you dictate private workflows, passwords, and sensitive client data, you need robust options to control exactly how, what, and where things are logged locally on your computer.

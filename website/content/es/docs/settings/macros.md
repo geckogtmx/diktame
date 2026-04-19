@@ -1,5 +1,7 @@
 # Ajustes de Macros
 
+![Lista de Macros de Voz](/images/docs/settings-macros.png)
+
 La pestaña **Macros** proporciona un motor de expansión de texto instantáneo y robusto integrado nativamente en la canalización de inyección de texto de dIKta.me. 
 
 Dado que el formato de dictado a veces puede ser prolijo, los Macros te permiten definir comandos de atajo altamente personalizados que dIKta.me expande automáticamente en bloques de texto complejos, plantillas o datos repetitivos justo en el momento en que se inyectan en tu aplicación activa.

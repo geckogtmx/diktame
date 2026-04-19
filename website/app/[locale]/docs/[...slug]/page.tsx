@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { MarkdownRenderer } from '@/app/components/MarkdownRenderer';
 import { DocumentationSidebar } from '@/app/components/DocumentationSidebar';
+import { DocumentationFooterNav } from '@/app/components/DocumentationFooterNav';
 import { Navbar } from '@/app/components/Navbar';
 import { Footer } from '@/app/components/Footer';
 import type { Metadata } from 'next';
@@ -99,6 +100,7 @@ export default async function DocViewPage({
           {/* Right Content */}
           <div className="flex-1 min-w-0 max-w-4xl bg-gray-900/40 p-6 md:p-10 rounded-2xl border border-white/5 shadow-2xl">
             <MarkdownRenderer content={content} />
+            <DocumentationFooterNav slugPath={slugPath} locale={resolvedParams.locale} />
           </div>
         </div>
       </div>

@@ -1,5 +1,13 @@
 # Ajustes de Audio
 
+![Audio & Mic — Micrófono y Grabación](/images/docs/settings-audio-mic.png)
+
+<div data-detail-section data-summary="Sonidos de Feedback — inicio/fin de dictado y sonidos de pipelines">
+
+![Audio & Mic — Sonidos de Feedback](/images/docs/settings-audio-feedback.png)
+
+</div>
+
 La pestaña de **Audio** configura cómo dIKta.me interactúa con tu micrófono y tus altavoces.
 
 ## Selección de Micrófono

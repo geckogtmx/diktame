@@ -2,7 +2,7 @@
 
 **dIKta.me V2** follows a strict separation between the **UI Layer** (`DiktaMe.App`) and the **Business Logic** (`DiktaMe.Core`).
 
-> **Full Specification**: See [`ARCHITECTURE.md`](../../ARCHITECTURE.md) in the root directory.
+> **Full Specification**: See [`ARCHITECTURE.md`](https://github.com/geckogtmx/diktame/blob/main/ARCHITECTURE.md) in the repository root.
 
 ## Core Concepts
 

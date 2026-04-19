@@ -1,34 +1,35 @@
 # dIKta.me User Guide
 
-Hi there! 👋 Welcome to the manual.
+## Three Inputs. Infinite Output.
 
-**dIKta.me** is designed to be invisible until you need it. But when you do, it pays to know a few tricks. Use this guide to master your new voice superpowers.
+dIKta.me reads the world through three inputs — and turns any of them into whatever you need.
 
-## 📚 Where to Start?
+| Input | What it captures | Start here |
+|---|---|---|
+| 🎤 **Voice** | Your microphone, via a global hotkey | [Voice](inputs/voice.md) |
+| 📝 **Text Selection** | Any highlighted text in any app | [Text Selection](inputs/text-selection.md) |
+| 🖥️ **Screen** | Windows, regions, full monitors, or colors | [Screen](inputs/screen.md) |
 
-- **[Getting Started](getting-started.md)**: Installed in 2 minutes flat.
-- **[Troubleshooting](troubleshooting.md)**: If something feels off, look here first.
-- **[Settings](settings.md)**: Make it yours.
+Each input can flow into any of the outputs below. Mix and match: voice into Dictate for formatted typing, text selection into Refine for a cleanup, screen into Vision for OCR, voice + screen into a Quick Chat for multimodal reasoning.
 
-## 🎛️ The Three Inputs
+## Outputs
 
-dIKta.me processes information through three effortless modalities:
-*   **Voice**: Speak to interact naturally without typing.
-*   **Text Selection**: Highlight existing text in any application.
-*   **Screen Vision**: Capture screenshots, regions, or video clips.
+- **[Dictate](features/dictation.md)** — voice becomes formatted text at your cursor
+- **[Refine](features/refine.md)** — clean up or rewrite highlighted text
+- **[Ask](features/ask.md)** — a direct line to your AI for quick questions
+- **[Translate](features/translate.md)** — speak one language, get another
+- **[Note](features/note.md)** — capture thoughts to a file without losing focus
+- **[Vision Actions](features/vision.md)** — OCR, describe, tables, color picker, video capture
+- **[Quick Chat](features/quick-chat.md)** — a floating assistant for multi-turn conversations
+- **[Oops](features/oops.md)** — undo or re-inject the last response
+- **[Voice Macros](features/macros.md)** — magic phrases that expand into full text
+- **[Text-to-Speech](features/tts.md)** — let the app read text aloud
 
-## ✨ Features
+## Start here
 
-- **[Dictation](features/dictation.md)**: The bread and butter. Talk, and it types.
-- **[Refine](features/refine.md)**: Let AI fix your grammar or rewrite your messy thoughts.
-- **[Voice Macros](features/macros.md)**: Magic phrases that expand into full text.
-- **[Ask](features/ask.md)**: A direct line to your AI for quick questions.
-- **[Translate](features/translate.md)**: Speak English, type Spanish (and vice versa).
-- **[Quick Chat](features/quick-chat.md)**: A floating assistant for when you need a second opinion.
-- **[Note](features/note.md)**: Capture thoughts to a file without losing focus.
-- **[Vision (See)](features/vision.md)**: Capture your screen and ask an AI about it — screenshot, region, color picker, or video clip.
-- **[The "Oops" Hotkey](features/oops.md)**: Undo or re-inject responses.
-- **[Text-to-Speech (TTS)](features/tts.md)**: Let the app read text aloud.
+- **[Getting Started](getting-started.md)** — installed in 2 minutes flat
+- **[Troubleshooting](troubleshooting.md)** — if something feels off, look here first
+- **[Settings](settings.md)** — make it yours
 
 ---
 *Stuck? Check out our [GitHub Issues](https://github.com/geckogtmx/diktame/issues) to see if others have found a solution.*

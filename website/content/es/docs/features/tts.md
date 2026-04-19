@@ -21,7 +21,7 @@ La canalización TTS opera de manera silenciosa e inteligente:
 
 ## Proveedores (Providers)
 
-dIKta.me ofrece múltiples motores para generar voz, los cuales puedes configurar en los [Ajustes de TTS](../settings/tts):
+dIKta.me ofrece múltiples motores para generar voz, los cuales puedes configurar en la sección [Motor de IA → Texto a Voz](../settings/ai-engine.md):
 
 *   **Kokoro (Local):** Un modelo local ONNX completamente fuera de línea y extremadamente rápido que se ejecuta en tu CPU.
 *   **Gemini TTS (Nube):** Alternativa en la nube que aprovecha las voces ultra-realistas de Google y reutiliza tu clave de Gemini.

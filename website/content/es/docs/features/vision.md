@@ -1,6 +1,10 @@
-# Vision (Ver)
+# Acciones de Visión
+
+> **Entrada:** [Pantalla](../inputs/screen.md) · **Atajo:** Ctrl+Alt+S
 
 La función **Vision** te permite capturar cualquier cosa de tu pantalla — una captura completa, una región seleccionada o una ventana específica — y preguntarle a la IA sobre lo que ve. La respuesta puede inyectarse en la posición de tu cursor, copiarse al portapapeles o enviarse al Chat Rápido, todo sin interrumpir tu flujo de trabajo.
+
+![Panel de Acciones de Visión — Save / OCR / Edit / Clip / Chat / Note](/images/docs/workflow-vision-panel.png)
 
 > [!TIP]
 > Vision funciona de maravilla junto a tu voz. Después de capturar, puedes grabar una pregunta hablada (por ejemplo, *"¿Qué significa este error?"* o *"Resume los datos de esta tabla"*) antes de que la IA procese la imagen.
@@ -48,7 +52,6 @@ Cambia entre **Local** (tu modelo de visión de Ollama configurado, que se ejecu
 | **Chat** | Adjunta la captura al Chat Rápido para mantener una conversación de varios turnos sobre ella. |
 | **Note** | Ejecuta la canalización de visión y graba una nota de voz que se añade a tu archivo de notas. |
 | **OCR** | Extrae todo el texto visible de la captura exactamente como aparece y lo copia a tu portapapeles. |
-| **Table** | Extrae datos tabulares como valores separados por tabulaciones (TSV), listos para pegar en Excel o Sheets. |
 | **Color** | Abre el [Selector de Color](#selector-de-color) sobre la captura realizada. |
 | **Record** | Inicia una [grabación de video](#grabación-de-video-captura-de-momentos) de la región seleccionada. |
 

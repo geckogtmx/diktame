@@ -1,6 +1,11 @@
 # Account Settings
 
+![Account — Power License, email, wallet credits, usage history](/images/docs/settings-account.png)
+
 The **Account** tab manages your Power License, Wallet balance, and cloud sign-in.
+
+> [!TIP]
+> To **change** anything (buy credits, update avatar, manage newsletters) use the [Web Dashboard](../dashboard.md). This tab is a local read-mostly view of the same data.
 
 ---
 

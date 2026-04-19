@@ -45,22 +45,28 @@ export default async function DocsPage({
       ]
     },
     {
-      title: t('coreFeaturesTitle'),
-      description: t('coreFeaturesDesc'),
+      title: t('threeInputsTitle'),
+      description: t('threeInputsDesc'),
       links: [
-        { href: '/docs/features/dictation', label: t('dictation') },
-        { href: '/docs/features/refine', label: t('refineMode') },
-        { href: '/docs/features/quick-chat', label: t('quickChat') },
+        { href: '/docs/inputs/voice', label: t('voiceInput') },
+        { href: '/docs/inputs/text-selection', label: t('textSelectionInput') },
+        { href: '/docs/inputs/screen', label: t('screenInput') },
       ]
     },
     {
-      title: t('utilityPipelinesTitle'),
-      description: t('utilityPipelinesDesc'),
+      title: t('infiniteOutputTitle'),
+      description: t('infiniteOutputDesc'),
       links: [
+        { href: '/docs/features/dictation', label: t('dictation') },
+        { href: '/docs/features/refine', label: t('refineMode') },
         { href: '/docs/features/ask', label: t('askMode') },
         { href: '/docs/features/translate', label: t('translateMode') },
         { href: '/docs/features/note', label: t('noteMode') },
-        { href: '/docs/features/oops', label: t('textToSpeech') },
+        { href: '/docs/features/vision', label: t('visionActions') },
+        { href: '/docs/features/quick-chat', label: t('quickChat') },
+        { href: '/docs/features/oops', label: t('oops') },
+        { href: '/docs/features/macros', label: t('voiceMacros') },
+        { href: '/docs/features/tts', label: t('textToSpeech') },
       ]
     },
     {
@@ -70,7 +76,7 @@ export default async function DocsPage({
         { href: '/docs/settings/general', label: t('generalSettings') },
         { href: '/docs/settings/ai-engine', label: t('aiEngineConfig') },
         { href: '/docs/settings/hotkeys', label: t('hotkeySetup') },
-        { href: '/docs/settings/modes', label: t('dictationModeConfig') },
+        { href: '/docs/settings/pipelines', label: t('dictationModeConfig') },
       ]
     }
   ];

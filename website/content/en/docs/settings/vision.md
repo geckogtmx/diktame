@@ -143,7 +143,6 @@ The **Action Prompts** section (collapsed by default — click to expand) lets y
 | Prompt | Default purpose |
 |--------|----------------|
 | **OCR** | Extract all text exactly as written, preserving formatting |
-| **Table Extraction** | Extract tabular data as TSV with headers |
 | **Video: Describe** | Describe what happens in the recording concisely |
 | **Video: Document** | Generate numbered step-by-step instructions |
 | **Video: Bug Report** | Generate a structured bug report (Summary / Steps / Environment) |
@@ -152,7 +151,7 @@ The **Action Prompts** section (collapsed by default — click to expand) lets y
 The **Cloud** and **Local** tabs each also have their own **System Prompt** and **Default Query** for screenshot/image requests.
 
 > [!TIP]
-> Keep OCR and Table prompts short and directive — long creative instructions can interfere with structured extraction.
+> Keep OCR prompts short and directive — long creative instructions can interfere with structured extraction.
 
 ---
 
@@ -176,4 +175,4 @@ Upper limit on the tokens the AI may return for a vision query.
 Controls how literal vs. creative the AI's response is.
 
 *   **Default**: 0.3
-*   Keep low for OCR and table extraction. Raise slightly for descriptive tasks.
+*   Keep low for OCR and structured extraction. Raise slightly for descriptive tasks.

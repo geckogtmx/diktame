@@ -1,5 +1,7 @@
 # Hotkeys Settings
 
+![Hotkeys configuration — Dictate, Refine, Ask, Translate, Oops, Note](/images/docs/settings-general-hotkeys.png)
+
 The **Hotkeys** tab allows you to remap every pipeline to match your existing workflow and avoid conflicts with other powerful Desktop applications.
 
 By default, every action involves a three-key combination to ensure you don't inadvertently trigger an injection while pressing a generic key.

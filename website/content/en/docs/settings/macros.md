@@ -1,5 +1,7 @@
 # Macros Settings
 
+![Voice Macros list](/images/docs/settings-macros.png)
+
 The **Macros** tab provides a robust, instantaneous text-expansion engine built natively into the dIKta.me text injection pipeline.
 
 Because dictation formatting can sometimes be verbose, Macros allow you to define highly customized shorthand commands that dIKta.me automatically expands into complex text blocks, templates, or repetitive data exactly the moment it is injected into your active application.

@@ -23,7 +23,13 @@ To start dictating, place your cursor wherever you want to type (e.g., MS Word, 
 
 The Control Panel HUD will change to show it is **Recording**. When you are finished speaking, release the hotkey (if using Hold-To-Talk) or press the hotkey again to stop. Once processing is complete, the text will appear.
 
-![Control Panel Recording](/images/docs/workflow-dictation.png)
+> **Input:** [Voice](../inputs/voice.md) · **Hotkey:** Ctrl+Alt+D
+
+![Control Panel Listening](/images/docs/cp-hud-listening.png)
+
+While the AI processes your words, the Control Panel shifts to *Thinking*:
+
+![Control Panel Thinking](/images/docs/cp-hud-thinking.png)
 
 ## Streaming vs. Batch Dictation
 

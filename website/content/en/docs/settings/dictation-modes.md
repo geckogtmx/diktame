@@ -1,5 +1,7 @@
 # Dictation Modes
 
+![Dictation Presets — Standard with Cloud profile](/images/docs/settings-dictation-presets.png)
+
 The **Dictation Modes** tab is where you configure exactly *how* the AI formats your spoken words before injecting them into your applications. 
 
 You can create unlimited customized Dictation Presets (like "Casual Tone", "Code Comments", or "Medical Transcriber") and quickly switch between them using the dropdown on the main floating Control Panel.

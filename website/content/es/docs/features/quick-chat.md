@@ -1,5 +1,7 @@
 # Chat Rápido (Quick Chat)
 
+> **Entradas:** [Voz](../inputs/voice.md), texto, imágenes desde [Pantalla](../inputs/screen.md) · **Atajo:** Ctrl+Alt+C
+
 Aunque dIKta.me está construido para inyectar texto en tus aplicaciones activas, a veces solo necesitas tener una conversación rápida con tu asistente de IA sin escribir en un documento. 
 
 Aquí es donde entra la superposición de **Chat Rápido**. Se comporta como una interfaz de chat LLM estándar (como ChatGPT o Claude) que puedes invocar en cualquier lugar y en cualquier momento.
@@ -13,6 +15,20 @@ Para abrir la ventana de Chat Rápido, presiona la tecla de acceso rápido globa
 Esto abrirá una ventana superpuesta que se mantiene por encima de tu trabajo. La ventana de Chat permite conversaciones de múltiples turnos, lo que significa que recuerda el contexto de tus mensajes anteriores durante esa sesión.
 
 ![Ventana de Chat Rápido](/images/docs/workflow-quickchat.png)
+
+## Editar el prompt del sistema a mitad de conversación
+
+El icono de engranaje en la barra superior te permite editar el prompt del sistema del asistente en cualquier momento — incluso con una conversación en curso. El siguiente turno respeta inmediatamente la nueva instrucción sin perder el contexto previo.
+
+<div data-detail-section data-summary="Ver la edición del prompt del sistema en acción">
+
+En el ejemplo de abajo, el prompt inicial es *"You are a helpful assistant. Answer concisely."* Los dos primeros turnos responden en inglés. Luego el usuario edita el prompt del sistema para añadir *"In french"*, hace una pregunta de seguimiento, y la siguiente respuesta cambia a francés — sin reiniciar el historial de la conversación.
+
+![Chat Rápido con el prompt del sistema editado a mitad de conversación](/images/docs/workflow-quickchat-prompt-edit.png)
+
+El icono de globo resaltado en la misma captura es el toggle de **Búsqueda Web** (solo modelos Gemini) — una función independiente que permite al modelo anclar respuestas con resultados web en vivo.
+
+</div>
 
 ## Entrada de Voz o Texto
 

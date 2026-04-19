@@ -1,5 +1,7 @@
 # Ajustes de Teclas de Acceso Rápido (Hotkeys)
 
+![Configuración de atajos — Dictar, Refinar, Preguntar, Traducir, Oops, Nota](/images/docs/settings-general-hotkeys.png)
+
 La pestaña **Hotkeys (Teclas de Acceso Rápido)** te permite reasignar cada canalización para que coincida con tu flujo de trabajo existente y evitar conflictos con otras potentes aplicaciones de Escritorio.
 
 Por defecto, cada acción involucra una combinación de tres teclas para asegurar que no actives una inyección de forma inadvertida mientras presionas una tecla genérica.
