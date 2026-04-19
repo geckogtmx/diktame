@@ -12,7 +12,7 @@ Para abrir la ventana de Chat Rápido, presiona la tecla de acceso rápido globa
 
 Esto abrirá una ventana superpuesta que se mantiene por encima de tu trabajo. La ventana de Chat permite conversaciones de múltiples turnos, lo que significa que recuerda el contexto de tus mensajes anteriores durante esa sesión.
 
-![Ventana de Chat Rápido](/docs/assets/quick-chat-window.png)
+![Ventana de Chat Rápido](/images/docs/workflow-quickchat.png)
 
 ## Entrada de Voz o Texto
 

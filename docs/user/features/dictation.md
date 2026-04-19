@@ -23,7 +23,7 @@ To start dictating, place your cursor wherever you want to type (e.g., MS Word, 
 
 The Control Panel HUD will change to show it is **Recording**. When you are finished speaking, release the hotkey (if using Hold-To-Talk) or press the hotkey again to stop. Once processing is complete, the text will appear.
 
-![Control Panel Recording](/docs/assets/control-panel-recording.png)
+![Control Panel Recording](../../../website/public/images/docs/workflow-dictation.png)
 
 ## Streaming vs. Batch Dictation
 

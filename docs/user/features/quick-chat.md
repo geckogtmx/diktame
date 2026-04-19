@@ -12,7 +12,7 @@ To open the Quick Chat window, press the global hotkey:
 
 This will open an overlay window that stays on top of your work. The Chat window allows for multi-turn conversations, meaning it remembers the context of your previous messages during that session.
 
-![Quick Chat Window](/docs/assets/quick-chat-window.png)
+![Quick Chat Window](../../../website/public/images/docs/workflow-quickchat.png)
 
 ## Voice or Text Input
 
