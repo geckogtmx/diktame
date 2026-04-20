@@ -86,8 +86,6 @@ type Post = {
   image_url_es: string | null;
   audio_url_en: string | null;
   audio_url_es: string | null;
-  voice_label_en: string | null;
-  voice_label_es: string | null;
   published_at: string | null;
 };
 
@@ -103,7 +101,6 @@ function renderPostEmail(
   const closing = locale === "es" ? post.closing_es : post.closing_en;
   const imageUrl = locale === "es" ? post.image_url_es : post.image_url_en;
   const audioUrl = locale === "es" ? post.audio_url_es : post.audio_url_en;
-  const voiceLabel = locale === "es" ? post.voice_label_es : post.voice_label_en;
   const postUrl = `${SITE_URL}/${locale}/blog/${post.slug}`;
 
   const labels = locale === "es"
@@ -120,10 +117,13 @@ function renderPostEmail(
         unsubscribe: "Unsubscribe",
       };
 
+  // Byline shows the publish date only. Author attribution is intentionally
+  // omitted from the email: the literary "voice" is a stylistic register for
+  // the prose, not an authorship claim — signing posts with living or
+  // historical authors' names would be IP misuse.
   const dateStr = formatByline(post.published_at, locale);
-  const bylineBits = [voiceLabel ?? null, dateStr || null].filter(Boolean) as string[];
-  const bylineBlock = bylineBits.length > 0
-    ? `<div style="font-family:${SANS_STACK};font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#525866;margin:0 0 24px">${bylineBits.map(escapeHtml).join(" &middot; ")}</div>`
+  const bylineBlock = dateStr
+    ? `<div style="font-family:${SANS_STACK};font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#525866;margin:0 0 24px">${escapeHtml(dateStr)}</div>`
     : "";
 
   const heroImg = imageUrl
@@ -261,7 +261,7 @@ serve(async (req) => {
   // Fetch post
   const { data: post, error: postErr } = await supabase
     .from("blog_posts")
-    .select("id, slug, title_en, title_es, hook_en, hook_es, body_en, body_es, closing_en, closing_es, image_url_en, image_url_es, audio_url_en, audio_url_es, voice_label_en, voice_label_es, published_at, status")
+    .select("id, slug, title_en, title_es, hook_en, hook_es, body_en, body_es, closing_en, closing_es, image_url_en, image_url_es, audio_url_en, audio_url_es, published_at, status")
     .eq("id", postId)
     .maybeSingle();
 
