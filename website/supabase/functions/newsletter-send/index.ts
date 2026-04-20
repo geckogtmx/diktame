@@ -63,12 +63,24 @@ function paragraphsFromBody(body: string): string {
     .join("\n");
 }
 
-function formatByline(dateIso: string | null, locale: Locale): string {
+function formatDate(dateIso: string | null, locale: Locale): string {
   if (!dateIso) return "";
   const d = new Date(dateIso);
   if (Number.isNaN(d.getTime())) return "";
   const lang = locale === "es" ? "es-MX" : "en-US";
-  return d.toLocaleDateString(lang, { month: "short", day: "numeric", year: "numeric" }).toUpperCase();
+  // Full month name, uppercase: "APRIL 17, 2026" / "ABRIL 17, 2026"
+  return d.toLocaleDateString(lang, { month: "long", day: "numeric", year: "numeric" }).toUpperCase();
+}
+
+// Words-per-minute baseline for silent reading of long-form prose.
+const WPM = 225;
+
+function estimateReadMinutes(...parts: (string | null | undefined)[]): number {
+  const text = parts.filter((s): s is string => typeof s === "string" && s.length > 0).join(" ");
+  if (!text) return 1;
+  // Count whitespace-separated tokens; strip markdown bold markers first.
+  const words = text.replace(/\*\*/g, "").split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / WPM));
 }
 
 type Post = {
@@ -117,14 +129,18 @@ function renderPostEmail(
         unsubscribe: "Unsubscribe",
       };
 
-  // Byline shows the publish date only. Author attribution is intentionally
-  // omitted from the email: the literary "voice" is a stylistic register for
-  // the prose, not an authorship claim — signing posts with living or
-  // historical authors' names would be IP misuse.
-  const dateStr = formatByline(post.published_at, locale);
-  const bylineBlock = dateStr
-    ? `<div style="font-family:${SANS_STACK};font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#525866;margin:0 0 24px">${escapeHtml(dateStr)}</div>`
-    : "";
+  // Byline: DATE · N MIN READ · AUDIO AVAILABLE ✓ (last segment conditional).
+  // Author attribution is intentionally omitted — the literary "voice" is a
+  // stylistic register for the prose, not an authorship claim.
+  const dateStr = formatDate(post.published_at, locale);
+  const readMin = estimateReadMinutes(body, hook, closing);
+  const readLabel = locale === "es" ? `${readMin} MIN DE LECTURA` : `${readMin} MIN READ`;
+  const audioLabel = locale === "es" ? "AUDIO DISPONIBLE \u2713" : "AUDIO AVAILABLE \u2713";
+  const bylineBits: string[] = [];
+  if (dateStr) bylineBits.push(dateStr);
+  bylineBits.push(readLabel);
+  if (audioUrl) bylineBits.push(audioLabel);
+  const bylineBlock = `<div style="font-family:${SANS_STACK};font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#525866;margin:0 0 24px">${bylineBits.map(escapeHtml).join(" &middot; ")}</div>`;
 
   const heroImg = imageUrl
     ? `<img src="${escapeHtml(imageUrl)}" alt="" style="width:100%;max-width:620px;height:auto;margin:0 0 32px;display:block;border:0;outline:none;text-decoration:none">`
@@ -134,12 +150,15 @@ function renderPostEmail(
     ? `<div style="margin:0 0 32px"><a href="${escapeHtml(audioUrl)}" style="display:inline-block;background:#111827;color:#ffffff;padding:10px 20px;border-radius:999px;text-decoration:none;font-family:${SANS_STACK};font-size:14px;font-weight:600"><span style="display:inline-block;margin-right:8px">&#9654;</span>${labels.listen}</a></div>`
     : "";
 
+  // Pull-quote styling: left accent border, indent, italic serif. Used for
+  // both the hook (at the top, before the body) and the closing meditation
+  // (at the bottom, after the body).
   const hookBlock = hook
-    ? `<p style="font-family:${SANS_STACK};font-size:18px;line-height:1.5;color:#525866;margin:0 0 24px;font-style:italic">${escapeHtml(hook)}</p>`
+    ? `<blockquote style="margin:0 0 24px;padding:4px 0 4px 20px;border-left:3px solid #cbd5e1;font-family:${SERIF_STACK};font-size:18px;line-height:1.6;color:#475569;font-style:italic">${escapeHtml(hook)}</blockquote>`
     : "";
 
   const closingBlock = closing
-    ? `<p style="font-family:${SERIF_STACK};font-size:16px;line-height:1.7;color:#525866;margin:32px 0 0;font-style:italic">${escapeHtml(closing)}</p>`
+    ? `<blockquote style="margin:32px 0 0;padding:4px 0 4px 20px;border-left:3px solid #cbd5e1;font-family:${SERIF_STACK};font-size:17px;line-height:1.7;color:#475569;font-style:italic">${escapeHtml(closing)}</blockquote>`
     : "";
 
   const html = `<!DOCTYPE html>
