@@ -3,9 +3,12 @@
 // locale, renders the post as HTML, batch-sends via Resend, writes one row
 // to newsletter_sends. Idempotent via UNIQUE(post_id, locale).
 //
-// verify_jwt is enabled (default). Only callers with a valid Supabase JWT
-// reach this handler — in practice the hqbackstage server-side PATCH route
-// invokes it with the service role key after its own admin middleware.
+// Deployed with verify_jwt=false. The gateway's built-in JWT verifier does
+// not accept the new `sb_secret_...` API key format, only the legacy JWT-
+// based service_role key; so auth is enforced in-function by comparing the
+// Authorization bearer to SUPABASE_SERVICE_ROLE_KEY. Only callers holding
+// the service role key (the hqbackstage server-side PATCH/resend routes)
+// can reach the handler body.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -137,6 +140,14 @@ San Francisco 1826-C-101, Del Valle, 03100, CDMX, México
   return { subject: title, html };
 }
 
+// Constant-time string equality to blunt timing attacks on the bearer check.
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS });
@@ -146,6 +157,13 @@ serve(async (req) => {
   }
   if (!RESEND_API_KEY || !SUPABASE_URL || !SERVICE_ROLE_KEY) {
     return json({ error: "Server misconfigured" }, 500);
+  }
+
+  // In-function auth: replaces gateway verify_jwt (incompatible with sb_secret_ keys).
+  const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
+  const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  if (!bearer || !safeEqual(bearer, SERVICE_ROLE_KEY)) {
+    return json({ error: "Unauthorized" }, 401);
   }
 
   let payload: { post_id?: string; locale?: string; dry_run?: boolean } = {};

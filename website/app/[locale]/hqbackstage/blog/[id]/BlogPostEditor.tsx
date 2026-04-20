@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Cropper from 'react-easy-crop';
 import type { Area, Point } from 'react-easy-crop';
+import ResendButton from '../../newsletter/ResendButton';
 
 const MAX_IMAGE_WIDTH = 1920;
 const COMPRESSION_QUALITY = 0.82;
@@ -203,14 +204,21 @@ export function BlogPostEditor({
             </span>
           )}
           {post.status === 'published' && (
-            <a
-              href={`/blog/${post.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-colors"
-            >
-              View
-            </a>
+            <>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-gray-500">Newsletter:</span>
+                <ResendButton postId={post.id} locale="en" label="Send EN" />
+                <ResendButton postId={post.id} locale="es" label="Send ES" />
+              </div>
+              <a
+                href={`/blog/${post.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-colors"
+              >
+                View
+              </a>
+            </>
           )}
           <button
             onClick={handlePublishToggle}

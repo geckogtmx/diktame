@@ -96,11 +96,20 @@ export async function PATCH(
       const functionsUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/newsletter-send`;
       const authHeader = `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`;
       for (const locale of ['en', 'es']) {
+        // Fire-and-forget (publish should not wait for mail), but still surface
+        // non-2xx status codes so silent 401s don't happen again.
         fetch(functionsUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: authHeader },
           body: JSON.stringify({ post_id: post.id, locale }),
-        }).catch((err) => console.error(`newsletter-send ${locale} failed:`, err));
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              const text = await res.text().catch(() => '');
+              console.error(`newsletter-send ${locale} non-2xx`, res.status, text.slice(0, 300));
+            }
+          })
+          .catch((err) => console.error(`newsletter-send ${locale} fetch error:`, err));
       }
     }
 

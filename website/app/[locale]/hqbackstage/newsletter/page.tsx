@@ -6,6 +6,7 @@
 
 import { createAdminClient } from '@/lib/supabase/server';
 import { Link } from '@/i18n/navigation';
+import ResendButton from './ResendButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,13 @@ type SubStatusRow = { locale: string; status: string; count: number };
 async function fetchData() {
   const supabase = await createAdminClient();
 
-  const [{ data: subs }, { data: sends }, { data: events }] = await Promise.all([
+  const [
+    { data: subs },
+    { data: sends },
+    { data: events },
+    { data: publishedPosts },
+    { data: allSends },
+  ] = await Promise.all([
     supabase.from('newsletter_subscribers').select('locale, status, confirmed_at, unsubscribed_at'),
     supabase
       .from('newsletter_sends')
@@ -25,7 +32,57 @@ async function fetchData() {
       .from('newsletter_events')
       .select('event_type, created_at')
       .gte('created_at', new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()),
+    supabase
+      .from('blog_posts')
+      .select('id, slug, title_en, title_es, published_at')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .limit(50),
+    supabase.from('newsletter_sends').select('post_id, locale, status'),
   ]);
+
+  // Missing-sends matrix: for each published post, which locales have no row
+  // OR have a row with a non-done status (failed/partial).
+  type SendLookup = Map<string, Map<'en' | 'es', { status: string }>>;
+  const sendsByPost: SendLookup = new Map();
+  for (const s of allSends ?? []) {
+    const pid = s.post_id as string;
+    const loc = s.locale as 'en' | 'es';
+    if (!sendsByPost.has(pid)) sendsByPost.set(pid, new Map());
+    sendsByPost.get(pid)!.set(loc, { status: s.status as string });
+  }
+
+  type MissingRow = {
+    post_id: string;
+    slug: string;
+    title: string;
+    published_at: string | null;
+    en: { state: 'missing' | 'failed' | 'partial' | 'done'; status?: string };
+    es: { state: 'missing' | 'failed' | 'partial' | 'done'; status?: string };
+  };
+  const missingSends: MissingRow[] = [];
+  for (const p of publishedPosts ?? []) {
+    const pid = p.id as string;
+    const m = sendsByPost.get(pid);
+    const classify = (locale: 'en' | 'es'): MissingRow['en'] => {
+      const hit = m?.get(locale);
+      if (!hit) return { state: 'missing' };
+      if (hit.status === 'failed') return { state: 'failed', status: hit.status };
+      if (hit.status === 'partial') return { state: 'partial', status: hit.status };
+      return { state: 'done', status: hit.status };
+    };
+    const en = classify('en');
+    const es = classify('es');
+    if (en.state === 'done' && es.state === 'done') continue;
+    missingSends.push({
+      post_id: pid,
+      slug: (p.slug as string) ?? '',
+      title: (p.title_en as string) || (p.title_es as string) || (p.slug as string) || pid,
+      published_at: (p.published_at as string | null) ?? null,
+      en,
+      es,
+    });
+  }
 
   // Subscriber breakdown: group by locale + status
   const statusRows: SubStatusRow[] = [];
@@ -70,7 +127,7 @@ async function fetchData() {
     eventCounts.set(key, (eventCounts.get(key) ?? 0) + 1);
   }
 
-  return { statusRows, growth, sends: sends ?? [], eventCounts };
+  return { statusRows, growth, sends: sends ?? [], eventCounts, missingSends };
 }
 
 const STATUS_ORDER = ['confirmed', 'pending', 'unsubscribed', 'bounced', 'complained', 'deleted'];
@@ -99,7 +156,7 @@ const SEND_STATUS_COLOR: Record<string, string> = {
 };
 
 export default async function NewsletterAdminPage() {
-  const { statusRows, growth, sends, eventCounts } = await fetchData();
+  const { statusRows, growth, sends, eventCounts, missingSends } = await fetchData();
 
   const locales = Array.from(new Set(statusRows.map((r) => r.locale))).sort();
 
@@ -170,6 +227,83 @@ export default async function NewsletterAdminPage() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      {/* Missing / failed sends — operator can retrigger from here */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">
+          Published posts with missing or failed sends
+        </h2>
+        {missingSends.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            All published posts have a successful send on both locales. Nothing to retrigger.
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-white/10">
+            <table className="w-full text-sm">
+              <thead className="bg-white/5">
+                <tr className="text-left text-gray-400">
+                  <th className="px-4 py-2 font-medium">Published</th>
+                  <th className="px-4 py-2 font-medium">Post</th>
+                  <th className="px-4 py-2 font-medium">EN</th>
+                  <th className="px-4 py-2 font-medium">ES</th>
+                </tr>
+              </thead>
+              <tbody>
+                {missingSends.map((row) => {
+                  const when = row.published_at
+                    ? new Date(row.published_at).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : '—';
+                  const cell = (side: 'en' | 'es') => {
+                    const d = row[side];
+                    if (d.state === 'done') {
+                      return <span className="text-green-400 text-xs">✓ sent</span>;
+                    }
+                    if (d.state === 'missing') {
+                      return (
+                        <ResendButton
+                          postId={row.post_id}
+                          locale={side}
+                          label={`Send ${side.toUpperCase()}`}
+                        />
+                      );
+                    }
+                    // failed / partial — require force + confirm
+                    return (
+                      <ResendButton
+                        postId={row.post_id}
+                        locale={side}
+                        force
+                        label={`Retry ${side.toUpperCase()} (${d.state})`}
+                        confirmText={`A previous ${side.toUpperCase()} send for this post is marked "${d.state}". Retrying will delete the old row and re-send to every confirmed ${side.toUpperCase()} subscriber — some may get a duplicate email. Proceed?`}
+                      />
+                    );
+                  };
+                  return (
+                    <tr key={row.post_id} className="border-t border-white/10">
+                      <td className="px-4 py-2 text-gray-400 whitespace-nowrap">{when}</td>
+                      <td className="px-4 py-2 text-gray-200">
+                        <Link
+                          href={`/hqbackstage/blog/${row.post_id}`}
+                          className="hover:text-blue-400 hover:underline"
+                        >
+                          {row.title}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2">{cell('en')}</td>
+                      <td className="px-4 py-2">{cell('es')}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {/* Recent sends */}
