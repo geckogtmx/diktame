@@ -147,11 +147,27 @@ serve(async (req) => {
     if (sub) subscriberId = sub.id;
   }
 
+  // Link the event back to the originating newsletter_sends row. The send row
+  // stores resend_batch_ids as an array of Resend email IDs; the webhook gets
+  // event_data.data.email_id. Postgres array contains → a single row per send.
+  let sendId: string | null = null;
+  const emailId = event.data?.email_id;
+  if (typeof emailId === "string" && emailId.length > 0) {
+    const { data: sendRow } = await supabase
+      .from("newsletter_sends")
+      .select("id")
+      .contains("resend_batch_ids", [emailId])
+      .limit(1)
+      .maybeSingle();
+    if (sendRow) sendId = sendRow.id;
+  }
+
   // Insert the event (dedupes on resend_event_id UNIQUE constraint)
   const { error: insertErr } = await supabase
     .from("newsletter_events")
     .insert({
       subscriber_id: subscriberId,
+      send_id: sendId,
       event_type: eventType,
       resend_event_id: svixId,
       event_data: event as unknown as Record<string, unknown>,
@@ -179,5 +195,5 @@ serve(async (req) => {
     }
   }
 
-  return jsonResponse({ status: "ok", event_type: eventType, subscriber_id: subscriberId }, 200);
+  return jsonResponse({ status: "ok", event_type: eventType, subscriber_id: subscriberId, send_id: sendId }, 200);
 });
