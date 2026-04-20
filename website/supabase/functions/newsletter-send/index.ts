@@ -201,7 +201,7 @@ ${closingBlock}
 &nbsp;&middot;&nbsp;
 <a href="${unsubscribeUrl}" style="color:#525866;text-decoration:underline">${labels.unsubscribe}</a>
 <br><br>
-San Francisco 1826-C-101, Del Valle, 03100, CDMX, México
+Diktame &mdash; San Francisco 1826-C-101, Del Valle, 03100, CDMX, México
 </div>
 
 </td></tr>
