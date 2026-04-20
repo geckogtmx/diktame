@@ -1,26 +1,37 @@
 # dIKta.me V2 — Manual Test Log
 
-**Session:** 2026-04-14
+**Session:** 2026-04-20
 **Tester:** Eduardo
 **Build:** Local dev build (x64 Release)
-**Recording:** Video recording in progress
+**Focus:** Journey 3 (Local path: Whisper + Ollama) — fresh run
+**Source of truth:** `MANUAL_TEST_PLAN.md`. Prior log archived at `MANUAL_TEST_LOG_2026-04-14.md` (not trusted).
+
+---
+
+## Preconditions Checklist
+
+- [ ] Ollama uninstalled — verify `%LOCALAPPDATA%\Programs\Ollama\ollama.exe` absent
+- [ ] `%APPDATA%\DiktaMe\models\` deleted (Whisper `.bin` files)
+- [ ] `%APPDATA%\DiktaMe\models\tts\` deleted (Kokoro ONNX)
+- [ ] `%APPDATA%\DiktaMe\settings.json` deleted
+- [ ] Power License active (valid key, slots available)
+- [ ] App rebuilt fresh: `dotnet build src/DiktaMe.App/DiktaMe.App.csproj -c Release "-p:Platform=x64"`
+
+Cleanup commands:
+```powershell
+Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyContinue
+Remove-Item "$env:APPDATA\DiktaMe\models" -Recurse -Force -ErrorAction SilentlyContinue
+```
 
 ---
 
 ## Session Progress
 
-### Steps Completed
-- [x] 1.1.1 — App launches, wizard appears. **Finding: No desktop icon/logo (BUG-001, BUG-002)**
-- [x] 1.1.2 — Language selection works (tested EN + ES)
-- [x] 1.1.3 — Get Started page: Wallet default, BYOK/Local disabled for unlicensed, info text shown
-- [x] 1.1.3a — "I Have a Key!" button works, activation page, key activates, returns to Get Started with BYOK/Local enabled
-- [x] 1.1.3b — Wallet path: Features page shows Power License benefits (Local AI, BYOK, Vision), "Get yours now" link, "No rush" footer
-- [x] 1.1.3c — Wallet path completes: browser opens for sign-in, app loads with Wallet mode active
+Check against MANUAL_TEST_PLAN.md §3 (Journey 3). One-line entry per step as it passes.
 
-### Steps Blocked / Deferred
-- [ ] 1.1.4+ (BYOK path) — Not yet tested end-to-end with cloud API keys
-- [ ] Local path — Needs retest after wizard lane-filtering fix (STT/LLM/TTS now show only relevant options)
-- [ ] License re-activation test — Key burned 3 slots on same PC (BUG-008), need new key
+| Step | Result | Notes |
+|------|--------|-------|
+|      |        |       |
 
 ---
 
@@ -28,100 +39,65 @@
 
 | ID | Severity | Step | Description | Status |
 |----|----------|------|-------------|--------|
-| BUG-001 | Minor | 1.1.1 | No desktop icon/logo on app window/taskbar | Open |
-| BUG-002 | Minor | Pre-test | Compiled .exe has no embedded icon | Open |
-| BUG-003 | Critical | 1.1.3 | Wizard blocked BYOK/Local with no way to continue | **FIXED** |
-| BUG-004 | High | 1.1.3c | Wallet path didn't set AuthMode=Wallet after sign-in | **FIXED** |
-| BUG-005 | Critical | 1.2 | WebSocket streaming died after first dictation (singleton reuse) | **FIXED** |
-| BUG-006 | Medium | 1.2 | Settings file contention (IOException on settings.json.tmp) | Open (pre-existing) |
-| BUG-007 | Low | Startup | Double hotkey registration in logs | Open (pre-existing) |
-| BUG-008 | Medium | 6.5 | License re-activation burns slots on same PC after app data wipe | Open |
+| BUG-013 | Low | 1.1.19 | "You're All Set!" / Ready page summary box lists Whisper + Ollama but omits Kokoro when TTS=Local is selected | Open |
+| BUG-014 | High | 1.2.8 (raw mode) | Toggling LLM=OFF pill on CP did NOT skip LLM in pipeline. Root cause: `OnLlmModeChanged` in ControlPanelViewModel.cs:941-954 skipped writing `UseLlm=false` when rawMode, leaving pipeline to try Gemini. Fix: always walk profile slots, write `UseLlm=false` on OFF, both `LlmProvider`+`UseLlm=true` on LOCAL/CLOUD. Verified 17:02:12 — raw Whisper-only dictation, no LLM call, no errors. | **FIXED** |
+| BUG-015 | High | 1.2.8 (raw mode) | Pipeline exception from BUG-014 is logged as `[ERR] Dictate pipeline failed` but produces NO user-facing notification/toast. Silent failure — user sees no feedback, thinks dictation did nothing. Error handling in `LoadingViewModel.RunBatchDictationAsync` (line 1466) swallows without surfacing. NOTE: Code review found `ShowToast` IS called at LoadingViewModel.cs:1495 — needs re-verification after BUG-014 fix whether toast actually renders. | Open (needs re-verify) |
+| BUG-016 | Medium | Settings > TTS | Wizard downloads Kokoro `int8` variant (`kokoro-quant-convinteger.onnx`, 88MB) but Settings > Text to Speech defaults the variant pulldown to a different value (fp16/fp32/gpu), causing "Kokoro model not downloaded" warning even though the file exists on disk. Fix: either default Settings pulldown to match wizard-downloaded variant, or have wizard write the chosen variant to settings so both agree. User workaround: change pulldown to `int8` → works. | Open |
 
-## Observations
+---
+
+## Observations / UX Findings
 
 | ID | Step | Description |
 |----|------|-------------|
-| OBS-001 | Local path | Model download failed (network/CDN — not a code bug) |
+| OBS-001 | 3.1.6 | Wizard LLM step blocks progression when Ollama absent — no Skip option. Heavy mid-wizard install. Candidate redesign: finish wizard with Whisper only, auto-open Settings post-wizard for Ollama install. |
+| OBS-002 | 1.1.14 | Whisper model download UX: no visible numeric progress (% or MB/total) or live progress bar. Feels static during multi-minute download. Needs realtime % + "XX MB / YY MB" indicator. |
+| OBS-003 | 1.1.15 | Ollama winget install spawns a visible Ollama setup window/UI mid-wizard. Before clicking Install, the wizard must show an upfront notice: "Ollama will open its own window during install. Please minimize or close it when it appears — the wizard handles everything automatically." Without this warning, users interact with Ollama's window, cancel it, or get confused whether progress is in the wizard or the Ollama installer. |
+| OBS-004 | 1.2.x (first dictation) | Local pipeline latency: REC 6.59s, TRNS 1.03s, PROC 0.33s, INJ 0.09s, TOT 1.45s. Clean local dictation working end-to-end on fresh install. |
+| OBS-005 | 1.1.15 | Ollama model pull in wizard is very long with no realtime feedback. User cannot tell if the process is moving or stuck. Required UX: live percentage AND "XX MB / YY MB" counter, updating at least every 1-2 seconds. Parse `ollama pull` stdout (emits progress lines) and surface to wizard LLM page. Without this the wizard feels frozen for several minutes. |
 
 ---
 
-## Code Changes Made This Session
+## Timing Captures (Wizard Local path, cold machine)
 
-### 1. Wizard License Gate UX (BUG-003 fix)
-- `WizardGetStartedPage.xaml` — BYOK/Local radio buttons disabled for unlicensed, info text panel
-- `WizardGetStartedPage.xaml.cs` — `UpdateOptionAvailability()` enables/disables based on license state
-- `WizardViewModel.cs` — Removed blocking `return;` in `GoNextAsync()`, removed `_licenseManager` field
-- `PipelineFactory.cs` — Runtime license gate: non-wallet + unlicensed = blocked (covers both BYOK and Local)
+| Phase | Duration | Notes |
+|-------|----------|-------|
+| Whisper model download |  |  |
+| Ollama winget install |  |  |
+| Ollama service start |  |  |
+| Model pull (gemma3:4b) |  |  |
+| Kokoro model download |  |  |
+| **Total wizard wall-clock** |  |  |
 
-### 2. Wallet AuthMode Default (BUG-004 fix)
-- `WizardViewModel.cs` — `StartWalletAsync()` now sets `AuthMode = AuthMode.Wallet` before opening browser
+### STT-Only Dictation Benchmark (post BUG-014 fix, 2026-04-20 17:02–17:05)
 
-### 3. WebSocket Singleton Reuse (BUG-005 fix)
-- `WalletStreamingSTTProxy.cs` — `ConnectAsync()` resets all state (WebSocket, flags, buffers, TaskCompletionSource) for singleton reuse across multiple dictations
+**Setup:** Whisper (small, Vulkan GPU), LLM=OFF, 6 consecutive dictations, cache warm.
 
-### 4. Features Showcase Page (new)
-- `WizardFeaturesPage.xaml` + `.xaml.cs` — Shows Power License benefits (Local AI, BYOK, Vision) for Wallet path users
-- Inserted as step 2 (Wallet-only), skipped for BYOK/Local paths
+| # | Audio | Whisper ms | Inject ms | Rec-end → Injected | Chars |
+|---|-------|-----------|-----------|---------------------|-------|
+| 1 | 5.7s  | 254 | 102 | 981ms | 48 |
+| 2 | 4.8s  | 585 |  84 | 670ms | 42 |
+| 3 | 6.2s  | 423 |  85 | 509ms | 68 |
+| 4 | 10.7s | 567 |  85 | 653ms | 107 |
+| 5 | 20.3s | 679 |  85 | 765ms | 192 |
+| 6 | 17.3s | 658 |  86 | 745ms | 203 |
 
-### 5. License Activation Page (new)
-- `WizardActivatePage.xaml` + `.xaml.cs` — "I Have a Key!" detour page with key input, activate button, buy link
-- Accessible via red "I Have a Key!" button on Get Started step
-- On success: returns to Get Started with all options enabled
-
-### 6. Wizard Lane Filtering
-- Removed `StartLocalAsync()` shortcut — Local path now goes through same STT/LLM/TTS steps as BYOK
-- `WizardSttPage.xaml.cs` — Hides cloud option for Local lane, hides local option for BYOK lane
-- `WizardLlmPage.xaml.cs` — Same lane filtering
-- `WizardTtsPage.xaml.cs` — Same lane filtering
-- `WizardViewModel.cs` — Pre-selects defaults based on onboarding choice (local→Whisper/Ollama/Kokoro, BYOK→Cloud/Cloud/Off)
-
-### 7. Wizard Step Restructure
-- `WizardWindow.xaml.cs` — Step array now 10 entries (0-8 sequential + 9 activate detour)
-- `WizardWindow.xaml` — "I Have a Key!" red button, progress bar updated
-- `WizardViewModel.cs` — TotalSteps=9, skip logic updated for new step numbers
-
-### 8. Localization (EN + ES)
-- New strings: `Wizard_Features_*` (Local AI, BYOK, Vision descriptions), `Wizard_Activate_*`, `Wizard_HaveKey`, `Wizard_LicenseInfo`
-- Removed old strings: `Wizard_LicenseRequired`, `Wizard_LicenseOrBuild`
-
-### 9. Test Plan Updates
-- `MANUAL_TEST_PLAN.md` — Updated steps 1.1.3, 2.1.3, 3.1.4, 4.1.3, 6.5.6, 6.5.7 to reflect new wizard flow
+**Averages:** Whisper=528 ms · Inject=88 ms · Rec-end→Injected=**720 ms** · STT/audio ratio=~6%.
+**Observation:** Latency is near-flat across 4.8s–20.3s audio (ratio 3–6%), so STT scales sub-linearly. Inject latency is effectively constant (~85ms). Compared to full Whisper+Ollama pipeline (earlier sample 17:02 was dictate+LLM ~335ms LLM processing on top of STT), STT-only saves ~300–500ms per dictation. Useful mode for speed-sensitive, verbatim capture.
 
 ---
 
-## Decisions Made This Session
+## Deferred / Follow-ups
 
-1. **Wizard never blocks** — License enforcement at runtime, not wizard setup
-2. **BYOK + Local both require Power License** — Only Wallet is free
-3. **Features page for Wallet users** — Shows what Power License unlocks (Local AI, BYOK, Vision), not free pipelines
-4. **"I Have a Key!" button** — Red button on Get Started step, takes to activation page, returns after success
-5. **Lane filtering in wizard** — BYOK path shows only cloud options, Local path shows only local options
-6. **No more Local shortcut** — Both paths go through the same wizard steps with different defaults
-7. **Informational note planned** — "You can change these settings after the wizard" (not yet implemented)
-8. **Dedicated license landing page needed** — dikta.me/pricing needs a focused conversion page
+- Wizard UX redesign (defer Ollama install to Settings, auto-open Settings first time after wizard completes) — spec-worthy, not this session.
+- Re-verify BUG-009 through BUG-012 from archived log against current code — separate pass.
+- BUG-008 (license slot burn on same PC after data wipe) — reproducible? Track if it recurs.
 
 ---
 
-## Additional Bugs Found (End of Session)
+## Session Summary (fill at close)
 
-| ID | Severity | Step | Description | Status |
-|----|----------|------|-------------|--------|
-| BUG-009 | High | Wizard close | WizardCompleted set too early in Wallet path — closing wizard mid-flow skips it on next launch | Open |
-| BUG-010 | High | TTS page | TTS has 4 cloud providers (Deepgram, OpenAI, Gemini, Inworld) each with own keys — page wrongly says "shares LLM key" | Open |
-| BUG-011 | High | LLM page | Only shows "Cloud AI" — needs dropdown for Anthropic/Gemini/OpenAI/OpenRouter/Requesty + per-provider key | Open |
-| BUG-012 | Medium | Ready page | Last wizard page crops text at bottom — reduce padding | Open |
-
-## Next Steps (When Resuming)
-
-1. **Fix BYOK provider selection** (BUG-010, BUG-011) — LLM and TTS pages need provider dropdowns + per-provider API key fields (STT page is fine as-is)
-2. **Fix LLM page copy** — text is vague, needs clearer description
-3. **Fix Ready page layout** (BUG-012) — reduce top padding
-4. **Fix WizardCompleted timing** (BUG-009) — don't set until wizard actually completes
-5. Get new license key (old one burned 3 slots — BUG-008)
-6. Add informational note to Get Started page
-7. Test Local wizard path end-to-end
-8. Continue Journey 1 from step 1.2 (Core Dictation)
-9. Update MANUAL_TEST_PLAN.md with remaining flow changes
-
-## Future Consideration (After Test Plan Complete)
-- **STT provider dropdown for BYOK**: Currently hardcoded to Deepgram. Gemini Audio is used for Wallet. May want to let BYOK users choose between Deepgram and Gemini Audio for STT. Needs testing first to confirm both work with user-provided keys.
+- Steps passed: __ / __
+- Bugs found: __ critical, __ high, __ medium, __ low
+- Time spent: __ hours
+- Journey 3 complete: [ ] yes / [ ] no

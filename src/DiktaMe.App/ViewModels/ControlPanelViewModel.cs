@@ -939,17 +939,16 @@ public sealed partial class ControlPanelViewModel : ObservableObject
             string profileName = value == LlmMode.Local ? "Local" : "Cloud";
 
             var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
-            if (!rawMode)
+            string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
+            foreach (var mode in modes)
             {
-                string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
-                foreach (var mode in modes)
+                for (int p = 0; p < 2; p++)
                 {
-                    for (int p = 0; p < 2; p++)
-                    {
-                        string key = $"{mode}_{p}";
-                        var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
-                        profiles[key] = existing with { LlmProvider = llmProvider, UseLlm = true };
-                    }
+                    string key = $"{mode}_{p}";
+                    var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
+                    profiles[key] = rawMode
+                        ? existing with { UseLlm = false }
+                        : existing with { LlmProvider = llmProvider, UseLlm = true };
                 }
             }
 

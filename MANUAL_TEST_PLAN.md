@@ -80,20 +80,20 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 - [x] **1.1.12** Verify settings saved: `.\test-helpers\Verify-AppSettings.ps1 -SettingPath "WizardCompleted" -ExpectedValue "true"`
 
 ### Local Path (Licensed)
-- [ ] **1.1.13** Step 1 (Get Started) → Select **Local** (enabled with Power License)
-- [ ] **1.1.14** STT page → Only Whisper visible (cloud removed) → Pre-selected → Model download starts if not present
-- [ ] **1.1.14a** Whisper model downloads successfully → Progress bar → "Model ready"
+- [x] **1.1.13** Step 1 (Get Started) → Select **Local** (enabled with Power License)
+- [x] **1.1.14** STT page → Only Whisper visible (cloud removed) → Pre-selected → Model download starts if not present
+- [x] **1.1.14a** Whisper model downloads successfully → Progress bar → "Model ready"
 - [ ] **1.1.14b** If download fails → Error shown → Can retry or go Back
-- [ ] **1.1.15** LLM page → Only Ollama visible (cloud removed) → Pre-selected → Ollama health check runs
+- [x] **1.1.15** LLM page → Only Ollama visible (cloud removed) → Pre-selected → Ollama health check runs
 - [ ] **1.1.15a** Ollama running + model present → "Ready" status
-- [ ] **1.1.15b** Ollama not running → Install/start prompt shown
-- [ ] **1.1.15c** Model not pulled → Auto-pull with progress bar
-- [ ] **1.1.16** TTS page → Off or Kokoro visible (cloud removed) → Select Kokoro or Off
-- [ ] **1.1.16a** Kokoro selected → Model download starts if not present → Progress → "Ready"
-- [ ] **1.1.17** Test page → Record audio → Whisper transcription appears (local, no cloud)
+- [x] **1.1.15b** Ollama not running → Install/start prompt shown
+- [x] **1.1.15c** Model not pulled → Auto-pull with progress bar
+- [x] **1.1.16** TTS page → Off or Kokoro visible (cloud removed) → Select Kokoro or Off
+- [x] **1.1.16a** Kokoro selected → Model download starts if not present → Progress → "Ready"
+- [x] **1.1.17** Test page → Record audio → Whisper transcription appears (local, no cloud)
 - [ ] **1.1.18** Ready page → Summary shows Whisper + Ollama (+ Kokoro if selected)
-- [ ] **1.1.19** Click "Start Dictating" → Wizard closes → App loads fully local
-- [ ] **1.1.20** Verify offline: disconnect internet → Dictate → Still works
+- [x] **1.1.19** Click "Start Dictating" → Wizard closes → App loads fully local
+- [x] **1.1.20** Verify offline: disconnect internet → Dictate → Still works
 
 ## 1.2: Core Dictation (Deepgram + LLM)
 
