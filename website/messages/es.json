@@ -186,7 +186,7 @@
     "platformSoon": "Pronto™"
   },
   "CoreArsenalSection": {
-    "title": "Tres Entradas. Salida Infinita.",
+    "title": "Tres Puertas de Entrada. Salidas Infinitas.",
     "subtitle": "La Voz, la Selección de Texto y la Visión son los pilares.",
     "pillar01Label": "Entrada: Voz",
     "pillar01Hotkey": "Ctrl+Alt+D",
@@ -244,7 +244,7 @@
   },
   "SpecsSection": {
     "title": "Las Especificaciones.",
-    "subtitle": "Todo lo que necesitas para que tu voz sea escuchada. Nada que no.",
+    "subtitle": "Todo lo que necesitas para que tu voz sea escuchada. Sin Restricciones.",
     "g1f1Label": "Núcleo",
     "g1f1Title": "Whisper V3 Turbo",
     "g1f1Desc": "STT local de última generación con tolerancia natural a muletillas, tartamudeos y puntuación.",
@@ -751,7 +751,7 @@
     "ctaViewDashboard": "Ver Panel"
   },
   "DocsPage": {
-    "heroTitle": "Tres Entradas. Salida Infinita.",
+    "heroTitle": "Tres Puertas de Entrada. Salidas Infinitas.",
     "heroSubtitle": "dIKta.me lee el mundo a través de la voz, la selección de texto y tu pantalla — y convierte cualquiera de ellas en lo que necesites.",
     "threeInputsTitle": "Tres Entradas",
     "threeInputsDesc": "Las tres formas en que dIKta.me captura el mundo a tu alrededor.",

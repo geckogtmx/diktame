@@ -1,6 +1,6 @@
 # Guía de Usuario de dIKta.me
 
-## Tres Entradas. Salida Infinita.
+## Tres Puertas de Entrada. Salidas Infinitas.
 
 dIKta.me lee el mundo a través de tres entradas — y convierte cualquiera de ellas en lo que necesites.
 
