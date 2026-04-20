@@ -25,8 +25,21 @@ public sealed partial class WizardReadyPage : Page, IWizardStepPage
             "local" => _loc.GetString("Wizard_Ready_Llm_Ollama"),
             _ => _loc.GetString("Wizard_Ready_Llm_Gemini"),
         };
+        string ttsName = viewModel.TtsChoice switch
+        {
+            "local" => _loc.GetString("Wizard_Ready_Tts_Kokoro"),
+            "cloud" => viewModel.CloudTtsProvider switch
+            {
+                "openai" => _loc.GetString("Wizard_Ready_Tts_OpenAI"),
+                "gemini" => _loc.GetString("Wizard_Ready_Tts_Gemini"),
+                "inworld" => _loc.GetString("Wizard_Ready_Tts_Inworld"),
+                _ => _loc.GetString("Wizard_Ready_Tts_Deepgram"),
+            },
+            _ => _loc.GetString("Wizard_Ready_Tts_Off"),
+        };
 
         SttSummary.Text = _loc.GetFormatted("Wizard_Ready_SttSummary", sttName);
         LlmSummary.Text = _loc.GetFormatted("Wizard_Ready_LlmSummary", llmName);
+        TtsSummary.Text = _loc.GetFormatted("Wizard_Ready_TtsSummary", ttsName);
     }
 }

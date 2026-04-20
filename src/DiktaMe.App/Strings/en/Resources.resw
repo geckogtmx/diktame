@@ -2110,6 +2110,27 @@
   <data name="Wizard_Ready_LlmSummary" xml:space="preserve">
     <value>AI Processing: {0}</value>
   </data>
+  <data name="Wizard_Ready_TtsSummary" xml:space="preserve">
+    <value>Text-to-Speech: {0}</value>
+  </data>
+  <data name="Wizard_Ready_Tts_Kokoro" xml:space="preserve">
+    <value>Kokoro (local)</value>
+  </data>
+  <data name="Wizard_Ready_Tts_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Wizard_Ready_Tts_Deepgram" xml:space="preserve">
+    <value>Deepgram (cloud)</value>
+  </data>
+  <data name="Wizard_Ready_Tts_OpenAI" xml:space="preserve">
+    <value>OpenAI (cloud)</value>
+  </data>
+  <data name="Wizard_Ready_Tts_Gemini" xml:space="preserve">
+    <value>Gemini (cloud)</value>
+  </data>
+  <data name="Wizard_Ready_Tts_Inworld" xml:space="preserve">
+    <value>Inworld (cloud)</value>
+  </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Tray Icon

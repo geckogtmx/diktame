@@ -769,6 +769,13 @@
   <data name="Wizard_Ready_Llm_Gemini" xml:space="preserve"><value>Gemini (nube)</value></data>
   <data name="Wizard_Ready_SttSummary" xml:space="preserve"><value>Voz a Texto: {0}</value></data>
   <data name="Wizard_Ready_LlmSummary" xml:space="preserve"><value>Procesamiento IA: {0}</value></data>
+  <data name="Wizard_Ready_TtsSummary" xml:space="preserve"><value>Texto a Voz: {0}</value></data>
+  <data name="Wizard_Ready_Tts_Kokoro" xml:space="preserve"><value>Kokoro (local)</value></data>
+  <data name="Wizard_Ready_Tts_Off" xml:space="preserve"><value>Desactivado</value></data>
+  <data name="Wizard_Ready_Tts_Deepgram" xml:space="preserve"><value>Deepgram (nube)</value></data>
+  <data name="Wizard_Ready_Tts_OpenAI" xml:space="preserve"><value>OpenAI (nube)</value></data>
+  <data name="Wizard_Ready_Tts_Gemini" xml:space="preserve"><value>Gemini (nube)</value></data>
+  <data name="Wizard_Ready_Tts_Inworld" xml:space="preserve"><value>Inworld (nube)</value></data>
 
   <!-- ══════════════════════════════════════════════════════════════════════
        Tray Icon

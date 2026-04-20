@@ -256,6 +256,9 @@ public sealed partial class WizardViewModel : ObservableObject
                 {
                     Enabled = ttsEnabled,
                     Provider = ttsProvider,
+                    KokoroModelVariant = string.Equals(ttsProvider, "kokoro", StringComparison.Ordinal)
+                        ? "int8"
+                        : _settings.Current.Tts.KokoroModelVariant,
                 },
             };
 
