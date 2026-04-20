@@ -1,6 +1,7 @@
 import { Navbar } from '@/app/components/Navbar';
 import { Footer } from '@/app/components/Footer';
 import { GlassCard } from '@/app/components/GlassCard';
+import { PluginRoadmap } from '@/app/components/PluginRoadmap';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 
 export async function generateMetadata({
@@ -196,59 +197,13 @@ export default async function RoadmapPage({
             </div>
           </section>
 
-          {/* ─── Section 3: What's Next (Timeline) ────────────────── */}
-          <section aria-labelledby="next-heading">
-            <div className="text-center mb-16">
-              <h2 id="next-heading" className="text-3xl md:text-4xl font-bold text-white mb-3">{t('nextTitle')}</h2>
-              <p className="text-muted max-w-xl mx-auto">{t('nextSubtitle')}</p>
-            </div>
-
-            <div className="relative max-w-3xl mx-auto">
-              {/* Vertical line */}
-              <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-primary/40 via-primary/20 to-transparent" aria-hidden="true" />
-
-              <div className="space-y-10">
-                {timeline.map((node) => (
-                  <div key={node.phase} className="flex gap-6 group">
-                    {/* Circle node */}
-                    <div className="relative flex-shrink-0">
-                      <div className="w-12 h-12 rounded-full bg-surface border border-white/10 flex items-center justify-center text-xl z-10 relative group-hover:border-primary/40 transition-colors">
-                        {node.icon}
-                      </div>
-                    </div>
-
-                    {/* Card */}
-                    <GlassCard className="flex-1 group-hover:border-white/15 transition-all duration-300">
-                      <div className="flex flex-wrap items-center gap-3 mb-3">
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-muted">{node.phase}</span>
-                        <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full border ${node.statusColor}`}>
-                          {node.status}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-1">{node.title}</h3>
-                      <p className="text-sm text-muted mb-4 leading-relaxed">{node.subtitle}</p>
-                      <ul className="space-y-2">
-                        {node.items.map((item) => (
-                          <li key={item} className="flex items-start gap-2 text-sm text-gray-300">
-                            <span className="text-primary mt-0.5 flex-shrink-0">›</span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </GlassCard>
-                  </div>
-                ))}
-              </div>
-
-              {/* End of timeline note */}
-              <div className="flex gap-6 mt-10">
-                <div className="flex-shrink-0 w-12 flex items-center justify-center">
-                  <div className="w-3 h-3 rounded-full bg-muted/30 border border-white/10" />
-                </div>
-                <p className="text-sm text-muted/60 italic self-center">{t('timelineNote')}</p>
-              </div>
-            </div>
-          </section>
+          {/* ─── Section 3: The Plugin Roadmap ─────────────────────── */}
+          <PluginRoadmap
+            title={t('nextTitle')}
+            subtitle={t('nextSubtitle')}
+            phases={timeline}
+            endNote={t('timelineNote')}
+          />
 
         </div>
       </div>

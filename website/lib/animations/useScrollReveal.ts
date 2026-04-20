@@ -5,10 +5,17 @@ import { useEffect, useRef, useState } from 'react';
 interface UseScrollRevealOptions {
   threshold?: number;
   once?: boolean;
+  /**
+   * Shrinks (negative) or expands (positive) the observer's "viewport" so the
+   * trigger fires later or earlier in the scroll. E.g. "0px 0px -20% 0px"
+   * treats the viewport as ending 20% above its real bottom, so elements must
+   * scroll further up before firing.
+   */
+  rootMargin?: string;
 }
 
 export function useScrollReveal(options: UseScrollRevealOptions = {}) {
-  const { threshold = 0.2, once = true } = options;
+  const { threshold = 0.2, once = true, rootMargin } = options;
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -25,7 +32,7 @@ export function useScrollReveal(options: UseScrollRevealOptions = {}) {
           setIsVisible(false);
         }
       },
-      { threshold }
+      { threshold, rootMargin },
     );
 
     if (currentRef) {
@@ -37,7 +44,7 @@ export function useScrollReveal(options: UseScrollRevealOptions = {}) {
         observer.unobserve(currentRef);
       }
     };
-  }, [threshold, once]);
+  }, [threshold, once, rootMargin]);
 
   return { ref, isVisible };
 }
