@@ -43,13 +43,32 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+const SERIF_STACK = "Georgia, 'Iowan Old Style', 'Apple Garamond', Baskerville, 'Times New Roman', Times, serif";
+const SANS_STACK = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+function applyInlineMarkdown(html: string): string {
+  // Bold **text** → <strong>text</strong>. Body already HTML-escaped.
+  return html.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+}
+
 function paragraphsFromBody(body: string): string {
   return body
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0)
-    .map((p) => `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`)
+    .map((p) => {
+      const inner = applyInlineMarkdown(escapeHtml(p).replace(/\n/g, "<br>"));
+      return `<p style="margin:0 0 22px;font-family:${SERIF_STACK};font-size:17px;line-height:1.75;color:#1f2937">${inner}</p>`;
+    })
     .join("\n");
+}
+
+function formatByline(dateIso: string | null, locale: Locale): string {
+  if (!dateIso) return "";
+  const d = new Date(dateIso);
+  if (Number.isNaN(d.getTime())) return "";
+  const lang = locale === "es" ? "es-MX" : "en-US";
+  return d.toLocaleDateString(lang, { month: "short", day: "numeric", year: "numeric" }).toUpperCase();
 }
 
 type Post = {
@@ -67,6 +86,9 @@ type Post = {
   image_url_es: string | null;
   audio_url_en: string | null;
   audio_url_es: string | null;
+  voice_label_en: string | null;
+  voice_label_es: string | null;
+  published_at: string | null;
 };
 
 function renderPostEmail(
@@ -81,61 +103,92 @@ function renderPostEmail(
   const closing = locale === "es" ? post.closing_es : post.closing_en;
   const imageUrl = locale === "es" ? post.image_url_es : post.image_url_en;
   const audioUrl = locale === "es" ? post.audio_url_es : post.audio_url_en;
+  const voiceLabel = locale === "es" ? post.voice_label_es : post.voice_label_en;
   const postUrl = `${SITE_URL}/${locale}/blog/${post.slug}`;
 
   const labels = locale === "es"
     ? {
         listen: "Escuchar el episodio",
-        readOnSite: "Leer en el sitio",
+        readOnSite: "Leer en el sitio →",
         manage: "Gestionar preferencias",
         unsubscribe: "Cancelar suscripción",
       }
     : {
         listen: "Listen to the episode",
-        readOnSite: "Read on the site",
+        readOnSite: "Read on the site →",
         manage: "Manage preferences",
         unsubscribe: "Unsubscribe",
       };
 
+  const dateStr = formatByline(post.published_at, locale);
+  const bylineBits = [voiceLabel ?? null, dateStr || null].filter(Boolean) as string[];
+  const bylineBlock = bylineBits.length > 0
+    ? `<div style="font-family:${SANS_STACK};font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#525866;margin:0 0 24px">${bylineBits.map(escapeHtml).join(" &middot; ")}</div>`
+    : "";
+
   const heroImg = imageUrl
-    ? `<img src="${escapeHtml(imageUrl)}" alt="" style="width:100%;max-width:600px;height:auto;border-radius:12px;margin:0 0 28px;display:block">`
+    ? `<img src="${escapeHtml(imageUrl)}" alt="" style="width:100%;max-width:620px;height:auto;margin:0 0 32px;display:block;border:0;outline:none;text-decoration:none">`
     : "";
 
   const audioBlock = audioUrl
-    ? `<div style="margin:28px 0"><a href="${escapeHtml(audioUrl)}" style="display:inline-block;background:#2563eb;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold">▶ ${labels.listen}</a></div>`
+    ? `<div style="margin:0 0 32px"><a href="${escapeHtml(audioUrl)}" style="display:inline-block;background:#111827;color:#ffffff;padding:10px 20px;border-radius:999px;text-decoration:none;font-family:${SANS_STACK};font-size:14px;font-weight:600"><span style="display:inline-block;margin-right:8px">&#9654;</span>${labels.listen}</a></div>`
     : "";
 
   const hookBlock = hook
-    ? `<p style="font-size:18px;line-height:1.6;color:#cbd5e1;margin:0 0 24px;font-style:italic">${escapeHtml(hook)}</p>`
+    ? `<p style="font-family:${SANS_STACK};font-size:18px;line-height:1.5;color:#525866;margin:0 0 24px;font-style:italic">${escapeHtml(hook)}</p>`
     : "";
 
   const closingBlock = closing
-    ? `<p style="font-size:16px;line-height:1.6;color:#94a3b8;margin:24px 0 0;font-style:italic">${escapeHtml(closing)}</p>`
+    ? `<p style="font-family:${SERIF_STACK};font-size:16px;line-height:1.7;color:#525866;margin:32px 0 0;font-style:italic">${escapeHtml(closing)}</p>`
     : "";
 
   const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#020617;color:#fff;margin:0;padding:40px 16px}
-.c{max-width:600px;margin:0 auto;background:#0f172a;border:1px solid #1e293b;border-radius:16px;padding:40px}
-.logo{font-size:20px;font-weight:bold;margin:0 0 28px}
-h1{font-size:28px;font-weight:800;margin:0 0 16px;letter-spacing:-0.02em;line-height:1.2}
-p{font-size:16px;line-height:1.7;color:#e2e8f0;margin:0 0 20px}
-.foot{margin-top:40px;padding-top:24px;border-top:1px solid #1e293b;font-size:12px;color:#64748b;line-height:1.6}
-.foot a{color:#94a3b8}
-</style></head><body><div class="c">
-<div class="logo">dIKta<span style="color:#2563eb">.</span>me</div>
-${heroImg}
-<h1>${escapeHtml(title)}</h1>
+<html lang="${locale}"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>${escapeHtml(title)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#ffffff;color:#1a1a1a;-webkit-font-smoothing:antialiased">
+<div style="background-color:#ffffff;padding:32px 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="max-width:620px;width:100%;margin:0 auto;background-color:#ffffff">
+<tr><td style="padding:0 8px">
+
+<div style="text-align:center;padding:16px 0 32px">
+<span style="font-family:${SANS_STACK};font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.01em">dIKta<span style="color:#2563eb">.</span>me</span>
+</div>
+
+<h1 style="font-family:${SANS_STACK};font-size:32px;font-weight:800;color:#0f172a;letter-spacing:-0.02em;line-height:1.15;margin:0 0 20px">${escapeHtml(title)}</h1>
+
 ${hookBlock}
+
+${bylineBlock}
+
+<div style="height:1px;background:#e5e7eb;margin:0 0 28px;line-height:1px;font-size:1px">&nbsp;</div>
+
 ${audioBlock}
+
+${heroImg}
+
 ${paragraphsFromBody(body)}
+
 ${closingBlock}
-<div style="margin:32px 0 0"><a href="${postUrl}" style="color:#60a5fa;text-decoration:none;font-weight:600">${labels.readOnSite} →</a></div>
-<div class="foot">
-<a href="${preferencesUrl}">${labels.manage}</a> · <a href="${unsubscribeUrl}">${labels.unsubscribe}</a><br><br>
+
+<div style="margin:32px 0 0"><a href="${postUrl}" style="font-family:${SANS_STACK};color:#2563eb;text-decoration:none;font-weight:600;font-size:15px">${labels.readOnSite}</a></div>
+
+<div style="margin:48px 0 0;padding:24px 0 0;border-top:1px solid #e5e7eb;text-align:center;font-family:${SANS_STACK};font-size:12px;color:#64748b;line-height:1.7">
+<a href="${preferencesUrl}" style="color:#525866;text-decoration:underline">${labels.manage}</a>
+&nbsp;&middot;&nbsp;
+<a href="${unsubscribeUrl}" style="color:#525866;text-decoration:underline">${labels.unsubscribe}</a>
+<br><br>
 San Francisco 1826-C-101, Del Valle, 03100, CDMX, México
 </div>
-</div></body></html>`;
+
+</td></tr>
+</table>
+</div>
+</body></html>`;
 
   return { subject: title, html };
 }
@@ -208,7 +261,7 @@ serve(async (req) => {
   // Fetch post
   const { data: post, error: postErr } = await supabase
     .from("blog_posts")
-    .select("id, slug, title_en, title_es, hook_en, hook_es, body_en, body_es, closing_en, closing_es, image_url_en, image_url_es, audio_url_en, audio_url_es, status")
+    .select("id, slug, title_en, title_es, hook_en, hook_es, body_en, body_es, closing_en, closing_es, image_url_en, image_url_es, audio_url_en, audio_url_es, voice_label_en, voice_label_es, published_at, status")
     .eq("id", postId)
     .maybeSingle();
 
