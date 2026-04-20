@@ -10,6 +10,12 @@ import ResendButton from './ResendButton';
 
 export const dynamic = 'force-dynamic';
 
+// Newsletter system first went live 2026-04-17. Posts published before that
+// were never part of the newsletter backlog and shouldn't surface in the
+// "missing sends" UI (showing them would invite sending month-old posts to
+// current subscribers). Per-post editor still allows force-sends if needed.
+const NEWSLETTER_LAUNCH_ISO = '2026-04-17T00:00:00Z';
+
 type SubStatusRow = { locale: string; status: string; count: number };
 
 async function fetchData() {
@@ -36,6 +42,7 @@ async function fetchData() {
       .from('blog_posts')
       .select('id, slug, title_en, title_es, published_at')
       .eq('status', 'published')
+      .gte('published_at', NEWSLETTER_LAUNCH_ISO)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(50),
     supabase.from('newsletter_sends').select('post_id, locale, status'),
