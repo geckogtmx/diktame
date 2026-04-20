@@ -55,8 +55,22 @@ export function Navbar() {
           }`}
       >
         <div className="w-full flex justify-between items-center px-8">
-        {/* Logo */}
-        <Link href="/" className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+        {/* Logo — Link for SPA navigation from other routes; onClick handles
+             the "already on /" case by scrolling to top manually, since the
+             router treats a same-route Link click as a no-op. */}
+        <Link
+          href="/"
+          className="text-xl font-bold tracking-tight text-white flex items-center gap-2"
+          onClick={(e) => {
+            if (typeof window === 'undefined') return;
+            const path = window.location.pathname.replace(/\/$/, '');
+            const isLocaleRoot = /^\/(en|es)?$/.test(path);
+            if (isLocaleRoot) {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }}
+        >
           <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
             <Image src="/images/app-icon.png" alt="dIKta.me — local AI voice dictation for Windows" width={32} height={32} className="object-cover" />
           </div>
@@ -65,23 +79,30 @@ export function Navbar() {
 
         {/* Desktop Links & CTA */}
         <div className="hidden md:flex items-center gap-12 text-sm font-medium">
-          <Link href="/#core-track" className="text-muted hover:text-white transition-colors">
-            {t('features')}
-          </Link>
-          <Link href="/#versus-track" className="text-muted hover:text-white transition-colors">
+          {/*
+            Same-page anchor links use a plain <a> instead of next/link's <Link>.
+            On the App Router, <Link href="/#x"> suppresses scroll when the
+            user is already on "/" (it sees "same route, nothing to do"), so
+            the click appears to do nothing. A native <a> bypasses the router
+            and the browser handles the hash scroll correctly from any page.
+          */}
+          <a href="/#versus-track" className="text-muted hover:text-white transition-colors">
             {t('vsOthers')}
-          </Link>
-          <Link href="/#specs-track" className="text-muted hover:text-white transition-colors">
+          </a>
+          <a href="/#specs-track" className="text-muted hover:text-white transition-colors">
             {t('specs')}
-          </Link>
-          <Link href="/#pricing" className="text-muted hover:text-white transition-colors">
+          </a>
+          <a href="/#pricing" className="text-muted hover:text-white transition-colors">
             {t('pricing')}
-          </Link>
+          </a>
           <Link href="/docs" className="text-primary hover:text-white transition-colors">
             {t('docs')}
           </Link>
           <Link href="/blog" className="text-muted hover:text-white transition-colors">
             {t('blog')}
+          </Link>
+          <Link href="/roadmap" className="text-muted hover:text-white transition-colors">
+            {t('roadmap')}
           </Link>
           <LanguageSwitcher />
           {isSignedIn ? (
@@ -115,23 +136,23 @@ export function Navbar() {
             : 'bg-surface border-b border-white/10'
           }`}
       >
-        <Link href="/#core-track" className="text-white hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
-          {t('features')}
-        </Link>
-        <Link href="/#versus-track" className="text-white hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+        <a href="/#versus-track" className="text-white hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
           {t('vsOthers')}
-        </Link>
-        <Link href="/#specs-track" className="text-white hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+        </a>
+        <a href="/#specs-track" className="text-white hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
           {t('specs')}
-        </Link>
-        <Link href="/#pricing" className="text-white hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+        </a>
+        <a href="/#pricing" className="text-white hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
           {t('pricing')}
-        </Link>
+        </a>
         <Link href="/docs" className="text-primary hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>
           {t('docsMobile')}
         </Link>
         <Link href="/blog" className="text-white hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
           {t('blog')}
+        </Link>
+        <Link href="/roadmap" className="text-white hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+          {t('roadmap')}
         </Link>
         <LanguageSwitcher />
         {isSignedIn ? (

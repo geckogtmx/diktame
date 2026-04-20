@@ -147,12 +147,12 @@
     "timelineNote": "The roadmap evolves. Follow @diktameapp on X (x.com/diktameapp) or star the repo to stay updated."
   },
   "Navbar": {
-    "features": "Features",
     "vsOthers": "vs Others",
     "specs": "Specs",
     "pricing": "Pricing",
     "docs": "Docs",
     "blog": "Blog",
+    "roadmap": "Roadmap",
     "docsMobile": "Documentation",
     "dashboard": "Dashboard",
     "signUp": "Sign Up",

@@ -13,7 +13,7 @@ export function PricingSection({ asH1 = false }: { asH1?: boolean }) {
 
   return (
     <>
-      <section id="pricing" className="py-32 px-4 relative bg-background">
+      <section id="pricing" className="py-32 px-4 relative bg-background scroll-mt-20">
         <div className="section-container text-center">
           <Heading className="text-4xl md:text-5xl font-bold mb-6 text-white">{t('title')}</Heading>
           <p className="text-xl text-muted mb-20  delay-100">

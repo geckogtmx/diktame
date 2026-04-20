@@ -8,7 +8,7 @@ export function CoreArsenalSection() {
   const t = useTranslations('CoreArsenalSection');
 
   return (
-    <div id="core-track" className="relative h-[220vh]">
+    <div id="core-track" className="relative h-[220vh] scroll-mt-20">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         {/* Background Effects */}
         <div className="absolute inset-0 bg-background z-0" aria-hidden="true"></div>

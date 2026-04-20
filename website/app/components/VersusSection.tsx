@@ -8,7 +8,7 @@ export function VersusSection() {
   const t = useTranslations('VersusSection');
 
   return (
-    <div id="versus-track" className="relative h-[180vh]">
+    <div id="versus-track" className="relative h-[180vh] scroll-mt-20">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         <div className="section-container relative z-10 w-full max-w-5xl">
           <div className="text-center mb-12">

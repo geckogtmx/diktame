@@ -147,12 +147,12 @@
     "timelineNote": "La hoja de ruta evoluciona. Sigue @diktameapp en X (x.com/diktameapp) o dale estrella al repo para mantenerte actualizado."
   },
   "Navbar": {
-    "features": "Funciones",
     "vsOthers": "vs Otros",
     "specs": "Especificaciones",
     "pricing": "Precios",
     "docs": "Docs",
     "blog": "Blog",
+    "roadmap": "Hoja de ruta",
     "docsMobile": "Documentación",
     "dashboard": "Panel",
     "signUp": "Registrarse",

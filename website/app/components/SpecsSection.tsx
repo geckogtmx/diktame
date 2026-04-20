@@ -11,7 +11,7 @@ export function SpecsSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div id="specs-track" className="relative h-[300vh]">
+    <div id="specs-track" className="relative h-[300vh] scroll-mt-20">
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 blur-[120px]" aria-hidden="true"></div>
 
