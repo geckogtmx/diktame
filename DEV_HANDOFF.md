@@ -1,49 +1,61 @@
-## Session Summary: 2026-04-14 (Evening — Manual Testing + Wizard Rework)
+# Dev Handoff
 
-### Completed
-- **Wizard license gate UX**: BYOK/Local disabled for unlicensed users with info text. Wallet is default. "I Have a Key!" red button opens activation page. License activates → returns to Get Started with all options enabled.
-- **Features showcase page**: Wallet path shows Power License benefits (Local AI, BYOK, Vision) — not free pipelines. "Get yours now — $20" link. "No rush" footer.
-- **Wallet AuthMode fix**: `StartWalletAsync` now sets `AuthMode = Wallet` so dictation works immediately after sign-in.
-- **WebSocket singleton fix**: `WalletStreamingSTTProxy.ConnectAsync()` resets all state (WS, flags, buffers, TCS) for reuse across dictations. Fixed critical bug where 2nd+ dictation failed.
-- **Wizard lane filtering**: Removed `StartLocalAsync` shortcut. Both BYOK and Local go through STT → LLM → TTS steps. BYOK shows only cloud options, Local shows only local options.
-- **Inline API key entry**: STT and LLM pages now have API key field + Test button + skip warning for BYOK path. Separate API Keys step (6) always skipped.
+## Session Summary: 2026-04-20 (Journey 1 Local path dogfooding)
 
-### Bugs Found (12 total, 5 fixed this session)
-See `MANUAL_TEST_LOG.md` for full details and `memory/project_testing_bugs.md` for tracker.
+### Plan progress
+- **~40% through MANUAL_TEST_PLAN.md** (127 / 507 steps checked)
+- Source of truth: `MANUAL_TEST_PLAN.md` + `MANUAL_TEST_LOG.md`. Older `MANUAL_TEST_LOG_2026-04-14.md` is archived and not trusted.
 
-### Next Session Priority (Start Here)
+### Shipped this session (3 commits, not pushed)
+1. `c595623` **fix(ui)**: LLM=OFF pill now writes `UseLlm=false` on all profile slots (BUG-014)
+2. `21a0591` **fix(ui)**: Wizard Ready page shows TTS provider; wizard persists downloaded Kokoro variant (`int8`) to settings so Settings TTS page opens with matching pulldown (BUG-013 + BUG-016)
+3. `7d3ed5d` **docs(tests)**: §1.3 rewritten to match current Settings > General UI; §1.7 rewritten to reflect orthogonal Logging Intensity × PII Scrubber model (post BUG-024 decision); BUG-017..024 logged
 
-#### 1. BYOK Wizard — Provider Selection + Key Entry (BUG-010, BUG-011)
-The wizard BYOK path needs proper provider dropdowns on each page:
+### Bugs logged today
+| ID | Sev | Area | Status |
+|----|-----|------|--------|
+| BUG-013 | Low | Wizard Ready page missing Kokoro | **FIXED** |
+| BUG-014 | High | LLM=OFF pill ignored | **FIXED** |
+| BUG-015 | — | silent failure | closed as resolved-by-BUG-014 |
+| BUG-016 | Medium | Kokoro variant mismatch wizard↔Settings | **FIXED** |
+| BUG-017 | Medium | `AdditionalKey` has no UI | Open |
+| BUG-018 | High | Auto-Start toggle writes JSON but no OS registration | Open |
+| BUG-019 | Low | Vision hotkey row missing from Settings UI (feature works) | Open |
+| BUG-020 | Medium | Hotkey Record capture fires bound pipeline instead of capturing | Open |
+| BUG-021 | Low | Quick Chat no mic button (cosmetic — global Dictate hotkey already works inside) | Open |
+| BUG-022 | **Critical** | Esc in Quick Chat → `this.Close()` → zombie window → hard crash on reopen. **One-line fix**: `QuickChatWindow.xaml.cs:116` → `this.AppWindow.Hide()` | Open |
+| BUG-023 | High | Settings API Keys: no Test Connection button; validator accepts ≥30-char garbage as Deepgram/Gemini keys | Open |
+| BUG-024 | Medium | `HistoryManager.cs:117-122` Full-level override ignores `PiiScrubEnabled`. Remove override so controls are orthogonal; update PII Scrubber copy | Open |
 
-**LLM page (BUG-011):**
-- Add provider dropdown: Anthropic, Gemini, OpenAI, OpenRouter, Requesty
-- Each provider needs its own API key field
-- Current text is vague ("Cloud AI") — needs clearer copy explaining what the LLM does
-- Currently hardcoded to Gemini key only
+### Observations (OBS-001..007)
+Wizard UX (defer Ollama to Settings post-wizard), download progress needs live %/MB indicator, Ollama install spawns its own window mid-wizard (needs upfront notice), STT-only latency benchmark captured (avg 720ms rec-end → injected across 6 samples), Ollama pull progress missing, Auto-Collapse default should be ON, Always-On-Top default should be ON.
 
-**TTS page (BUG-010):**
-- Add provider dropdown: Deepgram, OpenAI, Gemini, Inworld
-- Each has its own API key — does NOT share the LLM key (wrong assumption in current code)
-- Same pattern: dropdown + key field + Test button + skip warning
+## Next Session — Start Here
 
-#### 2. Wizard Layout (BUG-012)
-- Last wizard page (Ready) crops text at bottom — reduce top padding
+### Priority 1 (code fixes, low effort, high value)
+1. **BUG-022 Critical** — one-line fix in `QuickChatWindow.xaml.cs:116`. Change `this.Close()` → `this.AppWindow.Hide()`. Prevents zombie-window crash.
+2. **BUG-024 Medium** — delete `if (level == PrivacyLevel.Full)` override at `HistoryManager.cs:117-122`. Update `Settings_Privacy_PiiScrubber_Description` copy (EN + ES).
 
-#### 3. Wizard Completion Timing (BUG-009)
-- `WizardCompleted` is set too early in `StartWalletAsync` (before sign-in completes)
-- If user closes wizard window before signing in, next launch skips wizard
-- Fix: only set `WizardCompleted = true` after final wizard step or after successful sign-in callback
+### Priority 2 (manual test runs, ~1.5 hr total)
+3. **§1.7 Data & Privacy (13 steps)** — just rewritten to the orthogonal model. Runnable now.
+4. **§1.8 + §1.9 System Integration + Performance (15 steps)** — closes Journey 1 cloud-style coverage.
+5. **§3.3 + §3.4 + §3.2 remainder** — closes Journey 3 Local (~13 steps).
 
-#### 4. Remaining from Test Plan
-- Add informational note to Get Started page ("You can change these settings after the wizard")
-- Continue Journey 1 testing from step 1.2 (Core Dictation)
-- Test Local wizard path end-to-end
-- License re-activation slot burning (BUG-008)
+### Priority 3 (larger feature pass)
+6. **§CT.7 Vision (17 steps)** — self-contained, good next-day session.
+7. **§7.2–§7.5 TTS** (playback, ReadSelection, notification TTS, prefs).
 
-### Key Context
-- **Files heavily modified**: `WizardViewModel.cs`, `WizardGetStartedPage.*`, `WizardSttPage.*`, `WizardLlmPage.*`, `WizardTtsPage.*`, `WizardWindow.*`, `PipelineFactory.cs`, `WalletStreamingSTTProxy.cs`
-- **New files created**: `WizardFeaturesPage.*`, `WizardActivatePage.*`
-- **Tests**: 1218 passing, 0 failing
-- **Build**: 0 warnings, 0 errors
-- **Test log**: `MANUAL_TEST_LOG.md` (repo root)
+### Not yet started (separate sessions each)
+- Journey 2 Gemini Audio (~19 steps, needs Gemini-only wizard cycle)
+- Journey 4 Hybrid Skip-LLM (~17 steps, BUG-014 now unblocks this)
+- Journey 6 Wallet + License (~29 steps, needs Wallet-mode dictation runs to verify billing)
+- §10 Audio Feeder automation (~16 steps, requires Python→PowerShell port first)
+
+## Known deferred
+- BUG-008 (license slot burn on repeated wipes) — keep watching, may recur
+- BUG-009..012 from archived 2026-04-14 log — re-verify against current code in a dedicated pass, do not trust verbatim
+- Wizard UX redesign (defer Ollama install to post-wizard Settings, with Settings auto-open on first run) — spec-worthy, not a quick fix
+- Test plan structure cleanup pass (§1.3 + §5 duplicate settings coverage; "per-journey vs per-feature" drift)
+
+## How to resume
+Short prompt for fresh thread: *"Continuing manual testing. Read MANUAL_TEST_PLAN.md, MANUAL_TEST_LOG.md, and DEV_HANDOFF.md to pick up where we left off — ~40% through. Priority: [§1.7 / §1.8+1.9 / BUG-022 + BUG-024 fixes first]."*
