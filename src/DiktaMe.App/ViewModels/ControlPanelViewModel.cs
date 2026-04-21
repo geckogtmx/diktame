@@ -948,11 +948,20 @@ public sealed partial class ControlPanelViewModel : ObservableObject
                 }
             }
 
+            // Off preserves the prior ActiveProfileName — toggling LLM off shouldn't
+            // silently change which profile (Cloud vs Local) future dictations use.
+            string activeProfileName = value switch
+            {
+                LlmMode.Local => "Local",
+                LlmMode.Cloud => "Cloud",
+                _ => _settings.Current.ActiveProfileName,
+            };
+
             var updated = _settings.Current with
             {
                 General = _settings.Current.General with { RawModeOverride = rawMode },
                 ModeProfiles = profiles,
-                ActiveProfileName = value == LlmMode.Local ? "Local" : "Cloud",
+                ActiveProfileName = activeProfileName,
             };
             _ = _settings.UpdateAsync(updated);
         }
@@ -1382,18 +1391,24 @@ public sealed partial class ControlPanelViewModel : ObservableObject
                 ? TtsMode.Local
                 : TtsMode.Cloud;
         }
-        // Read STT/LLM provider from ModeProfiles (dictate_0 is the reference slot)
+        // Read STT provider from ModeProfiles (dictate_0 is the reference slot)
         var refSlot = settings.ModeProfiles.GetValueOrDefault("dictate_0", new ModeSettings());
         IsLocalStt = string.Equals(refSlot.SttProvider, "whisper", StringComparison.OrdinalIgnoreCase);
 
-        // Derive LlmMode from RawModeOverride + LlmProvider
+        // Derive LlmMode from RawModeOverride + ActiveProfileName. ActiveProfileName is
+        // the single source of truth for Cloud vs Local (consumed by DictationModeManager
+        // .GetActiveProfile to pick CloudProfile vs LocalProfile). Deriving from the
+        // deprecated ModeProfiles.LlmProvider field causes a feedback loop when the wizard
+        // writes e.g. "anthropic" there and the pill writes ActiveProfileName="Local" —
+        // LoadFromSettings then snaps LlmMode back to Cloud while the saved
+        // ActiveProfileName stays "Local", silently routing dictation to the wrong profile.
         if (settings.General.RawModeOverride)
         {
             LlmMode = LlmMode.Off;
         }
         else
         {
-            LlmMode = string.Equals(refSlot.LlmProvider, "ollama", StringComparison.OrdinalIgnoreCase)
+            LlmMode = string.Equals(settings.ActiveProfileName, "Local", StringComparison.OrdinalIgnoreCase)
                 ? LlmMode.Local
                 : LlmMode.Cloud;
         }
