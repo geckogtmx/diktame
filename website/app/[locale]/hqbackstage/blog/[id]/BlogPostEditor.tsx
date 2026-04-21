@@ -87,12 +87,21 @@ interface BlogPost {
   updated_at: string | null;
 }
 
+type SendInfo = {
+  status: string;
+  subscriber_count: number | null;
+  started_at: string | null;
+  completed_at: string | null;
+};
+
 export function BlogPostEditor({
   post: initialPost,
   subscriberCounts = { en: 0, es: 0 },
+  sends = { en: null, es: null },
 }: {
   post: BlogPost;
   subscriberCounts?: { en: number; es: number };
+  sends?: { en: SendInfo | null; es: SendInfo | null };
 }) {
   const router = useRouter();
   const [post, setPost] = useState(initialPost);
@@ -214,8 +223,8 @@ export function BlogPostEditor({
             <>
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-gray-500">Newsletter:</span>
-                <ResendButton postId={post.id} locale="en" label="Send EN" />
-                <ResendButton postId={post.id} locale="es" label="Send ES" />
+                <ResendButton postId={post.id} locale="en" label="Send EN" priorSend={sends.en} />
+                <ResendButton postId={post.id} locale="es" label="Send ES" priorSend={sends.es} />
               </div>
               <a
                 href={`/blog/${post.slug}`}

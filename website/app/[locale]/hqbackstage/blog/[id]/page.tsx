@@ -19,7 +19,7 @@ export default async function BlogPostEditPage({
     );
   }
 
-  const [{ count: enCount }, { count: esCount }] = await Promise.all([
+  const [{ count: enCount }, { count: esCount }, { data: sendRows }] = await Promise.all([
     supabase
       .from('newsletter_subscribers')
       .select('*', { count: 'exact', head: true })
@@ -30,12 +30,34 @@ export default async function BlogPostEditPage({
       .select('*', { count: 'exact', head: true })
       .eq('locale', 'es')
       .eq('status', 'confirmed'),
+    supabase
+      .from('newsletter_sends')
+      .select('locale, status, subscriber_count, started_at, completed_at')
+      .eq('post_id', id),
   ]);
+
+  type SendInfo = {
+    status: string;
+    subscriber_count: number | null;
+    started_at: string | null;
+    completed_at: string | null;
+  };
+  const sends: { en: SendInfo | null; es: SendInfo | null } = { en: null, es: null };
+  for (const row of sendRows ?? []) {
+    const key = row.locale === 'es' ? 'es' : 'en';
+    sends[key] = {
+      status: row.status,
+      subscriber_count: row.subscriber_count,
+      started_at: row.started_at,
+      completed_at: row.completed_at,
+    };
+  }
 
   return (
     <BlogPostEditor
       post={post}
       subscriberCounts={{ en: enCount ?? 0, es: esCount ?? 0 }}
+      sends={sends}
     />
   );
 }
