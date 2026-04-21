@@ -545,14 +545,24 @@
                                           IsExpanded="True"
                                           Margin="0,0,0,4">
                                     <Expander.Header>
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="{Binding ProviderName}" FontWeight="SemiBold" FontSize="14"/>
-                                            <TextBlock FontSize="12" Opacity="0.6" VerticalAlignment="Center">
-                                                <Run Text="("/>
-                                                <Run Text="{Binding ModelCount}"/>
-                                                <Run Text=" models)"/>
-                                            </TextBlock>
-                                        </StackPanel>
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ProviderName}" FontWeight="SemiBold" FontSize="14"/>
+                                                <TextBlock FontSize="12" Opacity="0.6" VerticalAlignment="Center">
+                                                    <Run Text="("/>
+                                                    <Run Text="{Binding ModelCount}"/>
+                                                    <Run Text=" models)"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                            <ToggleSwitch Grid.Column="1"
+                                                          IsOn="{Binding IsAnyEnabled, Mode=TwoWay}"
+                                                          OnContent="All on" OffContent="All off"
+                                                          VerticalAlignment="Center"/>
+                                        </Grid>
                                     </Expander.Header>
                                     <Expander.Content>
                                         <ItemsRepeater ItemsSource="{Binding Models}" Margin="0,4,0,0">

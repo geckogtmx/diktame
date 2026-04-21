@@ -64,6 +64,23 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
         _ = LoadAsync();
     }
 
+    // ── Canonical default model per provider ─────────────────────────────
+    // Matches WizardViewModel.DefaultModelForProvider + LLMProviderFactory.ResolveModel.
+    // When the "all off except canonical" defaults are first applied, these are the
+    // single models left enabled per provider. Keys match ModelListService's Provider
+    // display names (see ModelListService.cs fetch methods).
+
+    private static readonly Dictionary<string, string> CanonicalByProvider =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Anthropic"] = "claude-haiku-4-5-20251001",
+            ["Google (Gemini)"] = "gemini-2.5-flash",
+            ["Gemini"] = "gemini-2.5-flash",
+            ["OpenAI"] = "gpt-4o-mini",
+            ["OpenRouter"] = "openai/gpt-4o-mini",
+            ["Requesty"] = "openai/gpt-4o-mini",
+        };
+
     // ── Commands ─────────────────────────────────────────────────────────
 
     [RelayCommand]
@@ -95,12 +112,32 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
         try
         {
             var allModels = await _modelListService.GetAvailableModelsAsync().ConfigureAwait(false);
-            var disabledIds = new HashSet<string>(_settings.Current.CloudLlm.DisabledModelIds, StringComparer.Ordinal);
 
             // Exclude local (Ollama) models — those are managed in the Local tab
             var cloudModels = allModels
                 .Where(m => !string.Equals(m.Provider, "Ollama (Local)", StringComparison.OrdinalIgnoreCase))
                 .ToList();
+
+            // First-run default filter: keep one canonical model per provider enabled,
+            // disable everything else. Prevents fresh installs from drowning the user
+            // in 400+ models in the dropdowns (BUG-028).
+            if (!_settings.Current.CloudLlm.DefaultsApplied && cloudModels.Count > 0)
+            {
+                var disabledDefaults = ComputeDefaultDisabledSet(cloudModels);
+                var updated = _settings.Current with
+                {
+                    CloudLlm = _settings.Current.CloudLlm with
+                    {
+                        DisabledModelIds = disabledDefaults,
+                        DefaultsApplied = true,
+                    },
+                };
+                await _settings.UpdateAsync(updated).ConfigureAwait(false);
+                Log.Information("CloudLlmSettings: applied first-run defaults — disabled {N} of {T} models",
+                    disabledDefaults.Count, cloudModels.Count);
+            }
+
+            var disabledIds = new HashSet<string>(_settings.Current.CloudLlm.DisabledModelIds, StringComparer.Ordinal);
 
             // Group by provider
             var groups = cloudModels
@@ -118,11 +155,14 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
                             OnModelToggled))
                         .ToList();
 
-                    return new ProviderModelGroup
+                    var group = new ProviderModelGroup
                     {
                         ProviderName = g.Key,
                         Models = new ObservableCollection<ModelToggleItem>(items),
+                        OnAllToggled = OnProviderAllToggled,
                     };
+                    group.RefreshIsAnyEnabled();
+                    return group;
                 })
                 .ToList();
 
@@ -156,6 +196,33 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// First-run default: disable everything except one canonical model per provider.
+    /// Falls back to the alphabetically-first model if the canonical isn't in the list
+    /// (provider may have deprecated/renamed it).
+    /// </summary>
+    private static List<string> ComputeDefaultDisabledSet(IReadOnlyList<ModelInfo> cloudModels)
+    {
+        var enabledPerProvider = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var group in cloudModels.GroupBy(m => m.Provider, StringComparer.Ordinal))
+        {
+            string? chosen = null;
+            if (CanonicalByProvider.TryGetValue(group.Key, out var canonical))
+            {
+                chosen = group.FirstOrDefault(m =>
+                    string.Equals(m.ModelId, canonical, StringComparison.Ordinal))?.ModelId;
+            }
+
+            chosen ??= group.OrderBy(m => m.DisplayName, StringComparer.Ordinal).First().ModelId;
+            enabledPerProvider.Add(chosen);
+        }
+
+        return cloudModels
+            .Where(m => !enabledPerProvider.Contains(m.ModelId))
+            .Select(m => m.ModelId)
+            .ToList();
+    }
+
     // ── Usage loading ────────────────────────────────────────────────────
 
     private async Task LoadUsageAsync()
@@ -186,7 +253,7 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
         }
     }
 
-    // ── Toggle handler ───────────────────────────────────────────────────
+    // ── Individual model toggle handler ──────────────────────────────────
 
     private void OnModelToggled(ModelToggleItem item)
     {
@@ -205,15 +272,55 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
             }
         }
 
+        PersistDisabledIds(updated);
+
+        // Sync the provider group's master toggle display without cascading
+        foreach (var group in ProviderGroups)
+        {
+            if (string.Equals(group.ProviderName, item.Provider, StringComparison.Ordinal))
+            {
+                group.RefreshIsAnyEnabled();
+                break;
+            }
+        }
+    }
+
+    // ── Provider-level master toggle handler ─────────────────────────────
+
+    private void OnProviderAllToggled(ProviderModelGroup group, bool newValue)
+    {
+        // Cascade to all children, then persist in a single save.
+        var current = _settings.Current.CloudLlm.DisabledModelIds;
+        var updated = new HashSet<string>(current, StringComparer.Ordinal);
+
+        foreach (var model in group.Models)
+        {
+            model.SetIsEnabledSilent(newValue);
+            if (newValue)
+            {
+                updated.Remove(model.ModelId);
+            }
+            else
+            {
+                updated.Add(model.ModelId);
+            }
+        }
+
+        PersistDisabledIds([.. updated]);
+    }
+
+    private void PersistDisabledIds(List<string> disabledIds)
+    {
         var newSettings = _settings.Current with
         {
             CloudLlm = _settings.Current.CloudLlm with
             {
-                DisabledModelIds = updated,
+                DisabledModelIds = disabledIds,
+                DefaultsApplied = true, // any user interaction counts as curation
             },
         };
 
-        int enabled = TotalModelCount - updated.Count;
+        int enabled = TotalModelCount - disabledIds.Count;
         EnabledModelCount = enabled > 0 ? enabled : 0;
         StatusText = $"{EnabledModelCount} of {TotalModelCount} models enabled";
 
@@ -229,12 +336,50 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
 
 /// <summary>
 /// A group of models from a single LLM provider (e.g., "OpenAI", "Anthropic").
+/// Has a master toggle that bulk-enables or bulk-disables all models in the group.
 /// </summary>
-public sealed class ProviderModelGroup
+public sealed partial class ProviderModelGroup : ObservableObject
 {
+    private bool _muteMasterChanged;
+
     public required string ProviderName { get; init; }
-    public ObservableCollection<ModelToggleItem> Models { get; init; } = [];
+    public required ObservableCollection<ModelToggleItem> Models { get; init; } = [];
+
+    /// <summary>
+    /// Invoked when the master toggle is flipped by the user (not when synced from children).
+    /// Owner is expected to cascade the new value to all <see cref="Models"/> and persist.
+    /// </summary>
+    public required Action<ProviderModelGroup, bool> OnAllToggled { get; init; }
+
     public int ModelCount => Models.Count;
+
+    /// <summary>
+    /// Master toggle. True = at least one model in this group is enabled.
+    /// Flipping OFF disables all; flipping ON enables all.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isAnyEnabled;
+
+    /// <summary>
+    /// Recomputes <see cref="IsAnyEnabled"/> from the current child state without
+    /// triggering the user-initiated cascade.
+    /// </summary>
+    public void RefreshIsAnyEnabled()
+    {
+        _muteMasterChanged = true;
+        IsAnyEnabled = Models.Any(m => m.IsEnabled);
+        _muteMasterChanged = false;
+    }
+
+    partial void OnIsAnyEnabledChanged(bool value)
+    {
+        if (_muteMasterChanged)
+        {
+            return;
+        }
+
+        OnAllToggled(this, value);
+    }
 }
 
 /// <summary>
@@ -243,6 +388,7 @@ public sealed class ProviderModelGroup
 public sealed partial class ModelToggleItem : ObservableObject
 {
     private readonly Action<ModelToggleItem> _onToggled;
+    private bool _muteToggle;
 
     public string ModelId { get; }
     public string DisplayName { get; }
@@ -260,8 +406,30 @@ public sealed partial class ModelToggleItem : ObservableObject
         _onToggled = onToggled;
     }
 
+    /// <summary>
+    /// Sets <see cref="IsEnabled"/> without firing the toggle callback.
+    /// Used when the provider-level master toggle cascades state to children —
+    /// the owner persists once in a single batched save instead of N times.
+    /// </summary>
+    public void SetIsEnabledSilent(bool value)
+    {
+        if (IsEnabled == value)
+        {
+            return;
+        }
+
+        _muteToggle = true;
+        IsEnabled = value;
+        _muteToggle = false;
+    }
+
     partial void OnIsEnabledChanged(bool value)
     {
+        if (_muteToggle)
+        {
+            return;
+        }
+
         _onToggled(this);
     }
 }

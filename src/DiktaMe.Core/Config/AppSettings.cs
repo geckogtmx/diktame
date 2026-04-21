@@ -443,6 +443,14 @@ public sealed record CloudLlmSettings
     /// Model IDs that the user has disabled. Blacklist approach — new models are auto-enabled.
     /// </summary>
     public List<string> DisabledModelIds { get; init; } = [];
+
+    /// <summary>
+    /// True once the "all off except canonical per provider" default filter has been
+    /// applied to DisabledModelIds. Ensures a fresh install starts with only one
+    /// curated model per provider enabled (keeps dropdowns usable), and prevents
+    /// re-applying the filter on every model list refresh once the user has curated.
+    /// </summary>
+    public bool DefaultsApplied { get; init; } = false;
 }
 
 /// <summary>
