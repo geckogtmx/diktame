@@ -930,14 +930,12 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         if (!_suppressSave)
         {
             bool rawMode = value == LlmMode.Off;
-            string llmProvider = value switch
-            {
-                LlmMode.Local => "ollama",
-                LlmMode.Cloud => "gemini",
-                _ => _settings.Current.ModeProfiles.GetValueOrDefault("dictate_0", new ModeSettings()).LlmProvider,
-            };
-            string profileName = value == LlmMode.Local ? "Local" : "Cloud";
 
+            // The pill is a Cloud/Local/Off switch — it flips ActiveProfileName (which
+            // selects CloudProfile vs LocalProfile in DictationModeManager) and toggles
+            // UseLlm. It must NOT overwrite ModeProfiles[...].LlmProvider — doing so
+            // clobbers the user's per-mode provider selection (BUG-030). The LLM provider
+            // is now derived from DictationProfile.ModelName via LLMRouter, not stored here.
             var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
             string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
             foreach (var mode in modes)
@@ -946,9 +944,7 @@ public sealed partial class ControlPanelViewModel : ObservableObject
                 {
                     string key = $"{mode}_{p}";
                     var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
-                    profiles[key] = rawMode
-                        ? existing with { UseLlm = false }
-                        : existing with { LlmProvider = llmProvider, UseLlm = true };
+                    profiles[key] = existing with { UseLlm = !rawMode };
                 }
             }
 

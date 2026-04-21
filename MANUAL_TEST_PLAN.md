@@ -43,6 +43,8 @@ This test plan is organized by **complete user journeys** rather than fragmented
 
 # Journey 1: Cloud STT (Deepgram) + Cloud LLM Path
 
+> ⚠ **All cloud LLM steps blocked pending BUG-030 fix — retest required.** Router silently routes every cloud selection to Gemini (or drops LLM step entirely for Anthropic). Checked ✅ items that involve cloud LLM executed against Gemini regardless of what was selected in Settings. Invalid as signal until fix lands. See `MANUAL_TEST_LOG.md` and `C:\Users\gecko\.claude\plans\your-context-is-at-valiant-simon.md`.
+
 **Configuration:** Deepgram STT + OpenAI/Gemini/Anthropic LLM
 **Duration:** ~3 hours
 **Goal:** Validate complete cloud-based workflow with API key management
@@ -309,6 +311,8 @@ Sample sentence for every PII step: **"My email is test@example.com and my phone
 ---
 
 # Journey 2: Cloud STT (Gemini Audio) + Cloud LLM Path
+
+> ⚠ **Blocked pending BUG-030 fix — retest required.** Also title is misleading: GeminiAudio is preview-only and not user-selectable. Real Journey 2 work is Deepgram STT + non-Gemini cloud LLM, which is exactly the case BUG-030 breaks. See `MANUAL_TEST_LOG.md`.
 
 **Configuration:** Gemini Audio STT + Gemini LLM
 **Duration:** ~1.5 hours

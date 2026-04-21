@@ -23,6 +23,7 @@ public sealed class PipelineFactory
     private readonly TextInjector _injector;
     private readonly SettingsManager _settings;
     private readonly SnippetManager _snippets;
+    private readonly ILLMProvider? _llmRouter;
     private readonly ILLMProvider? _walletLlm;
     private readonly System.IServiceProvider? _sp;
     private readonly PipelineEventBus? _eventBus;
@@ -37,6 +38,7 @@ public sealed class PipelineFactory
         TextInjector injector,
         SettingsManager settings,
         SnippetManager snippets,
+        ILLMProvider? llmRouter = null,
         System.IServiceProvider? sp = null,
         ILLMProvider? walletLlm = null,
         PipelineEventBus? eventBus = null,
@@ -50,6 +52,7 @@ public sealed class PipelineFactory
         _injector = injector;
         _settings = settings;
         _snippets = snippets;
+        _llmRouter = llmRouter;
         _sp = sp;
         _walletLlm = walletLlm;
         _eventBus = eventBus;
@@ -283,9 +286,25 @@ public sealed class PipelineFactory
 
         ISTTProvider stt = _sttFactory.CreateProvider(ms.SttProvider);
 
-        ILLMProvider? llm = ms.UseLlm
-            ? _llmFactory.CreateProvider(ms.LlmProvider, model: ms.LlmModel)
-            : null;
+        // LLM routing is driven by options.ModelName (from DictationProfile.ModelName /
+        // UtilityProfile.ModelName) resolved dynamically by LLMRouter via
+        // ModelListService.ResolveProviderFromModelId. We hand the router to the pipeline
+        // rather than a concrete provider so the per-mode model selection is honoured
+        // end-to-end. Fallback: if no router injected (legacy test paths), build from
+        // the deprecated ModeProfiles.LlmProvider so existing tests stay green.
+        ILLMProvider? llm;
+        if (!ms.UseLlm)
+        {
+            llm = null;
+        }
+        else if (_llmRouter is not null)
+        {
+            llm = _llmRouter;
+        }
+        else
+        {
+            llm = _llmFactory.CreateProvider(ms.LlmProvider, model: ms.LlmModel);
+        }
 
         return (stt, llm);
     }

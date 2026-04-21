@@ -124,6 +124,7 @@ public sealed class DictationPipeline
                     else
                     {
                         Log.Warning("DictationPipeline: LLM returned empty — falling back to raw transcript");
+                        warningMessage = llmResult.ErrorMessage ?? warningMessage;
                     }
                 }
                 catch (OperationCanceledException)

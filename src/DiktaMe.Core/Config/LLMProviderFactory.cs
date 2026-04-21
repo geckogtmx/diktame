@@ -123,7 +123,7 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
         return type switch
         {
             "gemini" => "gemini-2.5-flash",
-            "anthropic" or "claude" => "claude-3-5-haiku-20241022",
+            "anthropic" or "claude" => "claude-haiku-4-5-20251001",
             "openai" => "gpt-4o-mini",
             "deepseek" => "deepseek-chat",
             "openrouter" => "openai/gpt-4o-mini",

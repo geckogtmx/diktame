@@ -637,6 +637,7 @@ public partial class App : Application
             sp.GetRequiredService<TextInjector>(),
             sp.GetRequiredService<SettingsManager>(),
             sp.GetRequiredService<SnippetManager>(),
+            llmRouter: sp.GetRequiredService<ILLMProvider>(),
             sp: sp,
             walletLlm: sp.GetRequiredService<WalletGeminiProxy>(),
             eventBus: sp.GetRequiredService<DiktaMe.Core.Pipeline.PipelineEventBus>(),

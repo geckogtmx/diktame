@@ -281,6 +281,33 @@ public sealed partial class WizardViewModel : ObservableObject
             }
 
             updated = updated with { ModeProfiles = profiles };
+
+            // Sync DictationModes[].CloudProfile.ModelName and UtilityPipelines[].CloudProfile.ModelName
+            // to match the user's cloud LLM choice. Without this, every preset keeps the
+            // "gemini-2.5-flash" default baked in by DictationModeDefaults, and LLMRouter
+            // routes all cloud requests to Gemini regardless of the chosen provider (BUG-030).
+            if (!string.Equals(LlmChoice, "local", StringComparison.Ordinal))
+            {
+                string cloudDefaultModel = DefaultModelForProvider(CloudLlmProvider);
+                updated = updated with
+                {
+                    DictationModes =
+                    [
+                        .. updated.DictationModes.Select(m => m with
+                        {
+                            CloudProfile = m.CloudProfile with { ModelName = cloudDefaultModel },
+                        }),
+                    ],
+                    UtilityPipelines =
+                    [
+                        .. updated.UtilityPipelines.Select(p => p with
+                        {
+                            CloudProfile = p.CloudProfile with { ModelName = cloudDefaultModel },
+                        }),
+                    ],
+                };
+            }
+
             await _settings.UpdateAsync(updated);
 
             // Save API keys if provided
@@ -317,6 +344,20 @@ public sealed partial class WizardViewModel : ObservableObject
         => string.Equals(SttChoice, "cloud", StringComparison.Ordinal)
         || string.Equals(LlmChoice, "cloud", StringComparison.Ordinal)
         || string.Equals(TtsChoice, "cloud", StringComparison.Ordinal);
+
+    /// <summary>
+    /// Canonical default cloud LLM model for each provider, used when the wizard sets up
+    /// initial dictation presets and utility pipelines. Keeps model IDs aligned with
+    /// <see cref="LLMProviderFactory"/>.ResolveModel defaults.
+    /// </summary>
+    private static string DefaultModelForProvider(string provider) => provider switch
+    {
+        "anthropic" => "claude-haiku-4-5-20251001",
+        "openai" => "gpt-4o-mini",
+        "openrouter" => "openai/gpt-4o-mini",
+        "requesty" => "openai/gpt-4o-mini",
+        _ => "gemini-2.5-flash", // gemini + unknown fallback
+    };
 
     /// <summary>Navigate to the activation detour page. Called by "I Have a Key!" button.</summary>
     public void NavigateToActivation()

@@ -121,6 +121,7 @@ public sealed class LLMRouter : ILLMProvider
                 Text = string.Empty,
                 Provider = "unknown",
                 LatencyMs = 0,
+                ErrorMessage = $"LLM provider for '{modelName}' unavailable — check API keys in Settings.",
             };
         }
 
@@ -184,6 +185,7 @@ public sealed class LLMRouter : ILLMProvider
                 Text = string.Empty,
                 Provider = "unknown",
                 LatencyMs = 0,
+                ErrorMessage = $"LLM provider for '{modelName}' unavailable — check API keys in Settings.",
             };
         }
 
@@ -241,6 +243,7 @@ public sealed class LLMRouter : ILLMProvider
                 Text = string.Empty,
                 Provider = "unknown",
                 LatencyMs = 0,
+                ErrorMessage = $"Vision provider for '{modelName}' unavailable — check API keys in Settings.",
             };
         }
 
@@ -334,6 +337,7 @@ public sealed class LLMRouter : ILLMProvider
             Text = string.Empty,
             Provider = primary.ProviderName,
             LatencyMs = 0,
+            ErrorMessage = $"LLM request failed ({primary.ProviderName}) — check API keys and connectivity.",
         };
     }
 
@@ -399,6 +403,7 @@ public sealed class LLMRouter : ILLMProvider
             Text = string.Empty,
             Provider = primary.ProviderName,
             LatencyMs = 0,
+            ErrorMessage = $"Chat request failed ({primary.ProviderName}) — check API keys and connectivity.",
         };
     }
 
@@ -466,6 +471,7 @@ public sealed class LLMRouter : ILLMProvider
             Text = string.Empty,
             Provider = primary.ProviderName,
             LatencyMs = 0,
+            ErrorMessage = $"Vision request failed ({primary.ProviderName}) — check API keys and connectivity.",
         };
     }
 }

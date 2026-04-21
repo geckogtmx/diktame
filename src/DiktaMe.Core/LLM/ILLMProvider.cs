@@ -83,6 +83,13 @@ public sealed record LlmResult
     /// <summary>Inference speed in tokens/sec, if reported by the provider (Ollama).</summary>
     public double? TokensPerSec { get; init; }
 
+    /// <summary>
+    /// User-facing error message when routing or provider creation failed. Null on success
+    /// or on benign empty results. Populated by <see cref="LLMRouter"/> when an API key is
+    /// missing or the provider cannot be instantiated for the requested model.
+    /// </summary>
+    public string? ErrorMessage { get; init; }
+
     /// <summary>Whether the result contains non-empty output text.</summary>
     public bool IsSuccess => !string.IsNullOrWhiteSpace(Text);
 }

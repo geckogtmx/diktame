@@ -274,4 +274,83 @@ public sealed class PipelineFactoryTests
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
+    // ── BUG-030: Router injection ────────────────────────────────────────────
+    // When an LLMRouter is injected, PipelineFactory must hand it to pipelines
+    // rather than building a concrete provider from ModeProfiles.LlmProvider.
+    // Pipelines then call router.ProcessWithModelAsync(options.ModelName), which
+    // resolves the provider dynamically from DictationProfile.ModelName via
+    // ModelListService.ResolveProviderFromModelId — the user's per-mode model
+    // selection is honoured end-to-end.
+
+    [Fact]
+    public async Task CreateDictationPipeline_WithRouter_SkipsConcreteProviderConstruction()
+    {
+        var settings = new AppSettings
+        {
+            ModeProfiles = new Dictionary<string, ModeSettings>
+            {
+                ["dictate_0"] = new ModeSettings { LlmProvider = "gemini", UseLlm = true },
+            },
+        };
+        var sm = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_pf_{Guid.NewGuid()}.json"));
+        await sm.UpdateAsync(settings);
+
+        var profiles = new ProfileManager(sm);
+        var sttFactory = new Mock<ISTTProviderFactory>();
+        var llmFactory = new Mock<ILLMProviderFactory>();
+        var ttsFactory = new Mock<ITTSProviderFactory>();
+        var ttsPlayer = new Mock<ITtsPlayerService>();
+        var injector = new TextInjector();
+        var snippets = new SnippetManager();
+
+        sttFactory.Setup(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string>()))
+                  .Returns(MakeStt().Object);
+        var routerMock = MakeLlm();
+        routerMock.Setup(l => l.ProviderName).Returns("LLMRouter");
+
+        var factory = new PipelineFactory(profiles, sttFactory.Object, llmFactory.Object,
+            ttsFactory.Object, ttsPlayer.Object, injector, sm, snippets,
+            llmRouter: routerMock.Object);
+
+        factory.CreateDictationPipeline();
+
+        // When router is injected, the factory must NOT construct an LLM via the factory.
+        llmFactory.Verify(f => f.CreateProvider(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateDictationPipeline_WithRouterAndUseLlmFalse_PassesNullLlm()
+    {
+        var settings = new AppSettings
+        {
+            ModeProfiles = new Dictionary<string, ModeSettings>
+            {
+                ["dictate_0"] = new ModeSettings { LlmProvider = "gemini", UseLlm = false },
+            },
+        };
+        var sm = new SettingsManager(Path.Combine(Path.GetTempPath(), $"diktame_pf_{Guid.NewGuid()}.json"));
+        await sm.UpdateAsync(settings);
+
+        var profiles = new ProfileManager(sm);
+        var sttFactory = new Mock<ISTTProviderFactory>();
+        var llmFactory = new Mock<ILLMProviderFactory>();
+        var ttsFactory = new Mock<ITTSProviderFactory>();
+        var ttsPlayer = new Mock<ITtsPlayerService>();
+        var injector = new TextInjector();
+        var snippets = new SnippetManager();
+
+        sttFactory.Setup(f => f.CreateProvider(It.IsAny<string>(), It.IsAny<string>()))
+                  .Returns(MakeStt().Object);
+
+        var factory = new PipelineFactory(profiles, sttFactory.Object, llmFactory.Object,
+            ttsFactory.Object, ttsPlayer.Object, injector, sm, snippets,
+            llmRouter: MakeLlm().Object);
+
+        // Should not throw — UseLlm=false means null LLM even with router injected.
+        factory.CreateDictationPipeline();
+
+        llmFactory.Verify(f => f.CreateProvider(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
 }
