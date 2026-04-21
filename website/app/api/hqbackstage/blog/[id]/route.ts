@@ -46,6 +46,8 @@ export async function PATCH(
       'linkedin_url', 'twitter_url', 'twitter_hook_en', 'twitter_hook_es',
       'facebook_post_en', 'facebook_post_es', 'facebook_post_en_b', 'facebook_post_es_b',
       'facebook_image_url_en', 'facebook_image_url_es', 'facebook_post_id', 'meta_campaign_id',
+      'voice_rationale', 'argument_architecture', 'style_moves',
+      'research_log', 'facts_corrected', 'unverified_claims',
     ];
 
     const updates: Record<string, unknown> = {};

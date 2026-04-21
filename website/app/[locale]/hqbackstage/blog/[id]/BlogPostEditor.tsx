@@ -76,6 +76,12 @@ interface BlogPost {
   run_date: string | null;
   audio_url_en: string | null;
   audio_url_es: string | null;
+  voice_rationale: string | null;
+  argument_architecture: string | null;
+  style_moves: string | null;
+  research_log: string | null;
+  facts_corrected: string | null;
+  unverified_claims: string | null;
   created_at: string;
   published_at: string | null;
   updated_at: string | null;
@@ -94,6 +100,7 @@ export function BlogPostEditor({
   const [uploadingEn, setUploadingEn] = useState(false);
   const [uploadingEs, setUploadingEs] = useState(false);
   const [metadataOpen, setMetadataOpen] = useState(false);
+  const [blueprintOpen, setBlueprintOpen] = useState(false);
 
   const statusColors: Record<string, string> = {
     draft: 'bg-yellow-500/20 text-yellow-300',
@@ -262,6 +269,7 @@ export function BlogPostEditor({
           twitterHookEn={post.twitter_hook_en}
           twitterHookEs={post.twitter_hook_es}
           slug={post.slug}
+          slugEs={post.slug_es}
           postId={post.id}
           onUpdate={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
         />
@@ -279,6 +287,8 @@ export function BlogPostEditor({
         postEs={post.facebook_post_es}
         postEnB={post.facebook_post_en_b}
         postEsB={post.facebook_post_es_b}
+        slug={post.slug}
+        slugEs={post.slug_es}
         postId={post.id}
         onUpdate={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
       />
@@ -352,6 +362,7 @@ export function BlogPostEditor({
                   : null
               }
             />
+            <MetadataRow label="Image Prompt" value={post.image_prompt} />
             <MetadataRow label="Image Anchor" value={post.image_anchor} />
             <div className="flex gap-3 items-start">
               <span className="text-gray-500 shrink-0">LinkedIn:</span>
@@ -396,6 +407,120 @@ export function BlogPostEditor({
             <MetadataRow
               label="Updated"
               value={post.updated_at ? new Date(post.updated_at).toLocaleString('en-US') : null}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Audio (conditional — only when at least one track exists) */}
+      {(post.audio_url_en || post.audio_url_es) && (
+        <div className="rounded-lg border border-white/10 px-4 py-4 space-y-3 text-sm">
+          <div className="text-gray-400 font-medium">Audio</div>
+          {post.audio_url_en && (
+            <div className="space-y-1">
+              <div className="text-xs text-gray-500">EN</div>
+              <audio controls preload="none" src={post.audio_url_en} className="w-full" />
+              <a
+                href={post.audio_url_en}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-blue-400 hover:text-blue-300 break-all"
+              >
+                {post.audio_url_en}
+              </a>
+            </div>
+          )}
+          {post.audio_url_es && (
+            <div className="space-y-1">
+              <div className="text-xs text-gray-500">ES</div>
+              <audio controls preload="none" src={post.audio_url_es} className="w-full" />
+              <a
+                href={post.audio_url_es}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-blue-400 hover:text-blue-300 break-all"
+              >
+                {post.audio_url_es}
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Process Blueprint (collapsible) — the durable record of why the post was written the way it was */}
+      <div className="rounded-lg border border-white/10">
+        <button
+          onClick={() => setBlueprintOpen(!blueprintOpen)}
+          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors"
+        >
+          <span>Process Blueprint</span>
+          <span className="text-xs">{blueprintOpen ? '▲' : '▼'}</span>
+        </button>
+        {blueprintOpen && (
+          <div className="border-t border-white/10 px-4 py-4 space-y-4 text-sm">
+            {!post.voice_rationale &&
+              !post.argument_architecture &&
+              !post.style_moves &&
+              !post.research_log &&
+              !post.facts_corrected &&
+              !post.unverified_claims && (
+                <p className="text-gray-500 italic text-xs">
+                  No blueprint recorded for this post.
+                </p>
+              )}
+            <EditableField
+              label="Voice rationale"
+              value={post.voice_rationale}
+              fieldKey="voice_rationale"
+              postId={post.id}
+              onSave={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
+              inputType="textarea"
+              rows={3}
+            />
+            <EditableField
+              label="Argument architecture"
+              value={post.argument_architecture}
+              fieldKey="argument_architecture"
+              postId={post.id}
+              onSave={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
+              inputType="textarea"
+              rows={4}
+            />
+            <EditableField
+              label="Style moves deployed"
+              value={post.style_moves}
+              fieldKey="style_moves"
+              postId={post.id}
+              onSave={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
+              inputType="textarea"
+              rows={5}
+            />
+            <EditableField
+              label="Research log"
+              value={post.research_log}
+              fieldKey="research_log"
+              postId={post.id}
+              onSave={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
+              inputType="textarea"
+              rows={6}
+            />
+            <EditableField
+              label="Facts corrected"
+              value={post.facts_corrected}
+              fieldKey="facts_corrected"
+              postId={post.id}
+              onSave={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
+              inputType="textarea"
+              rows={3}
+            />
+            <EditableField
+              label="Unverified claims"
+              value={post.unverified_claims}
+              fieldKey="unverified_claims"
+              postId={post.id}
+              onSave={(fields) => setPost((prev) => ({ ...prev, ...fields }))}
+              inputType="textarea"
+              rows={3}
             />
           </div>
         )}
@@ -645,9 +770,11 @@ function ImageDropZone({
   );
 }
 
-function autoXHook(hook: string | null, slug: string, maxLen = 280): string {
+function autoXHook(hook: string | null, slug: string, lang: 'en' | 'es' = 'en', slugEs: string | null = null, maxLen = 280): string {
   if (!hook) return '';
-  const url = `https://dikta.me/blog/${slug}`;
+  const url = lang === 'es' && slugEs
+    ? `https://dikta.me/es/blog/${slugEs}`
+    : `https://dikta.me/blog/${slug}`;
   const available = maxLen - url.length - 2; // 2 for \n\n
   // Try first complete sentence
   const sentenceMatch = hook.match(/^[^.!?]+[.!?]/);
@@ -673,6 +800,7 @@ function XHookCard({
   twitterHookEn,
   twitterHookEs,
   slug,
+  slugEs,
   postId,
   onUpdate,
 }: {
@@ -681,6 +809,7 @@ function XHookCard({
   twitterHookEn: string | null;
   twitterHookEs: string | null;
   slug: string;
+  slugEs: string | null;
   postId: string;
   onUpdate: (fields: Record<string, string | null>) => void;
 }) {
@@ -692,10 +821,12 @@ function XHookCard({
   const fieldKey = lang === 'en' ? 'twitter_hook_en' : 'twitter_hook_es';
   const savedHook = lang === 'en' ? twitterHookEn : twitterHookEs;
   const blogHook = lang === 'en' ? hookEn : hookEs;
-  const url = `https://dikta.me/blog/${slug}`;
+  const url = lang === 'es' && slugEs
+    ? `https://dikta.me/es/blog/${slugEs}`
+    : `https://dikta.me/blog/${slug}`;
 
   // Use saved hook if available, otherwise auto-generate
-  const displayText = savedHook ?? autoXHook(blogHook, slug);
+  const displayText = savedHook ?? autoXHook(blogHook, slug, lang, slugEs);
   const [draft, setDraft] = useState(displayText);
 
   // Update draft when language changes
@@ -704,7 +835,7 @@ function XHookCard({
     setLang(nextLang);
     const nextSaved = nextLang === 'en' ? twitterHookEn : twitterHookEs;
     const nextBlog = nextLang === 'en' ? hookEn : hookEs;
-    setDraft(nextSaved ?? autoXHook(nextBlog, slug));
+    setDraft(nextSaved ?? autoXHook(nextBlog, slug, nextLang, slugEs));
     setEditing(false);
   };
 
@@ -896,6 +1027,8 @@ function FacebookPostCard({
   postEs,
   postEnB,
   postEsB,
+  slug,
+  slugEs,
   postId,
   onUpdate,
 }: {
@@ -903,6 +1036,8 @@ function FacebookPostCard({
   postEs: string | null;
   postEnB: string | null;
   postEsB: string | null;
+  slug: string;
+  slugEs: string | null;
   postId: string;
   onUpdate: (fields: Record<string, string | null>) => void;
 }) {
@@ -949,8 +1084,14 @@ function FacebookPostCard({
   };
 
   const handleCopy = async () => {
-    const text = editing ? draft : (currentText ?? '');
-    if (!text) return;
+    const raw = editing ? draft : (currentText ?? '');
+    if (!raw) return;
+    // Strip any existing dikta.me URL (any lang) and append the lang-correct one
+    const correctUrl = lang === 'es' && slugEs
+      ? `https://dikta.me/es/blog/${slugEs}`
+      : `https://dikta.me/en/blog/${slug}`;
+    const stripped = raw.replace(/\s*https?:\/\/(?:www\.)?dikta\.me\/[^\s]*/gi, '').trimEnd();
+    const text = `${stripped}\n\n${correctUrl}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
