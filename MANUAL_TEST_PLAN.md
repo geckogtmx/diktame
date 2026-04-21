@@ -97,163 +97,189 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 ## 1.2: Core Dictation (Deepgram + LLM)
 
-- [ ] **1.2.1** Open Notepad
-- [ ] **1.2.2** Press Ctrl+Alt+D, speak "Hello world", release → text injected
-- [ ] **1.2.3** Verify text appears in Notepad
-- [ ] **1.2.4** Check Control Panel shows: Recording → Transcribing → Processing → Idle
-- [ ] **1.2.5** Verify history.db: `.\test-helpers\Verify-HistoryDb.ps1 -ExpectedMode "dictate"`
+- [x] **1.2.1** Open Notepad
+- [x] **1.2.2** Press Ctrl+Alt+D, speak "Hello world", release → text injected
+- [x] **1.2.3** Verify text appears in Notepad
+- [x] **1.2.4** Check Control Panel shows: Recording → Transcribing → Processing → Idle
+- [x] **1.2.5** Verify history.db: `.\test-helpers\Verify-HistoryDb.ps1 -ExpectedMode "dictate"`
 - [ ] **1.2.6** Confirm stt_provider = "Deepgram" in history
-- [ ] **1.2.7** Dictate messy text: "um hello uh world like yeah" → LLM cleans to "Hello world"
-- [ ] **1.2.8** Settings → Enable **Raw Mode** → Dictate again → Raw transcript injected (no LLM)
-- [ ] **1.2.9** Settings → Disable Raw Mode
+- [x] **1.2.7** Dictate messy text: "um hello uh world like yeah" → LLM cleans to "Hello world"
+- [x] **1.2.8** Settings → Enable **Raw Mode** → Dictate again → Raw transcript injected (no LLM)
+- [x] **1.2.9** Settings → Disable Raw Mode
 
-## 1.3: Settings Configuration (Cloud Path)
+## 1.3: Settings → General Tab
 
-### General Settings
-- [ ] **1.3.1** Settings → General → Enable trailing space → Dictate → text ends with space
-- [ ] **1.3.2** Settings → General → Disable trailing space → Dictate → no space
-- [ ] **1.3.3** Settings → General → Additional Key = **Enter** → Dictate → text + Enter
-- [ ] **1.3.4** Settings → General → Additional Key = **Tab** → Dictate → text + Tab
-- [ ] **1.3.5** Settings → General → Additional Key = **None**
+**Scope:** All 4 sub-items under the General nav entry (Application, Control Panel, Keyboard Shortcuts, Language). Other tabs (Audio & Mic, AI Engine, Pipelines, Dictation Presets, Macros, Privacy, Account, About) are covered in **§5 Comprehensive Settings Verification**.
 
-### Audio Settings
-- [ ] **1.3.6** Settings → Audio → Enable ducking → Play music → Dictate → music volume drops
-- [ ] **1.3.7** Settings → Audio → Disable ducking → Dictate → music unchanged
-- [ ] **1.3.8** Settings → Audio → Set max duration = 10s → Hold hotkey 15s → stops at 10s
+### Application sub-item
+- [x] **1.3.1** Theme dropdown shows Midnight / Ember / Frost → select each → UI repaints immediately
+- [x] **1.3.2** Selected theme persists across app restart
+- [ ] **1.3.3** Auto-Start toggle ON → verify Task Scheduler entry created: `.\test-helpers\Verify-AutoStart.ps1`
+- [ ] **1.3.4** Auto-Start toggle OFF → Task Scheduler entry removed
 
-### Pipelines Settings (Utility Pipelines)
-- [ ] **1.3.9** Settings → Pipelines → Verify 7 sub-items visible: Ask, Refine (Auto), Refine (Verbal), Translate, Notes, Vision, Speak (TTS)
-- [ ] **1.3.10** Settings → Pipelines → Select "Ask" → Edit cloud/local system prompts → Save
-- [ ] **1.3.11** Settings → Pipelines → Select "Refine (Auto)" → Edit prompts → Save
-- [ ] **1.3.12** Settings → Pipelines → Select "Refine (Verbal)" → Edit prompts → Save
-- [ ] **1.3.13** Settings → Pipelines → Select "Translate" → Edit prompts → Save
+### Control Panel sub-item
 
-### Dictation Presets (CRUD)
-- [ ] **1.3.14** Settings → Dictation Presets → Verify 3 built-in presets: Standard, Prompt, Professional
-- [ ] **1.3.15** Select "Standard" preset → Edit Cloud system prompt → Save → Verify persists
-- [ ] **1.3.16** Select "Standard" preset → Model dropdown shows "(Default)" + 30+ models
-- [ ] **1.3.17** Select "Standard" preset → Verify NO Ollama models in Cloud profile dropdown
-- [ ] **1.3.18** Select "Standard" preset → Change model to "gpt-4o (OpenAI)" → Save
-- [ ] **1.3.19** Click "Add Preset" → Enter name "My Custom Preset" → Save
-- [ ] **1.3.20** Select custom preset → Edit prompts → Save → Verify persists
-- [ ] **1.3.21** Try to delete built-in preset → Verify delete button disabled
-- [ ] **1.3.22** Delete custom preset → Verify removed from sidebar
-- [ ] **1.3.23** Verify NO hotkey fields visible (hotkeys managed in Hotkeys tab)
-- [ ] **1.3.24** Restart app → Verify custom preset and changes persist
+#### Rows & Stats
+- [x] **1.3.5** Show Modes Row toggle OFF → CP modes row hidden → toggle ON → row returns
+- [x] **1.3.6** Show Actions Row toggle OFF → CP actions row hidden → ON → returns
+- [x] **1.3.7** Show Session Stats toggle OFF → REQ / CHAR / WORDS / WORD/MIN tiles hidden
+- [x] **1.3.8** Show Performance Stats toggle OFF → REC / TRNS / PROC / INJ / TOT tiles hidden
 
-### Notes Settings
-- [ ] **1.3.25** Settings → Notes → Verify default file path = `%USERPROFILE%\Documents\diktame-notes.md`
-- [ ] **1.3.26** Click "Browse" → FileSavePicker appears → Select new path → Path updates
-- [ ] **1.3.27** Toggle "LLM Processing" off → Save
-- [ ] **1.3.28** Change timestamp format to "dd/MM/yyyy HH:mm" → Live preview updates immediately
-- [ ] **1.3.29** Change timestamp format to invalid format → Preview shows error or DateTime.Now
-- [ ] **1.3.30** Edit Cloud system prompt → Save
-- [ ] **1.3.31** Edit Local system prompt → Save
-- [ ] **1.3.32** Click "Reset to Defaults" → All fields revert to defaults
-- [ ] **1.3.33** Restart app → Verify all Notes settings persist
+#### Bar Position, Layout & Behavior
+- [x] **1.3.9** Always On Top toggle ON → CP stays on top of other windows (focus another app, CP visible) → **default should be ON (OBS-007)**
+- [x] **1.3.10** Expand Direction → select **Down** → CP expands downward on activity
+- [x] **1.3.11** Expand Direction → select **Up** → CP expands upward
+- [x] **1.3.12** Bar Position 6-button grid — click each (Top-Left / Top-Center / Top-Right / Bottom-Left / Bottom-Center / Bottom-Right) → CP snaps to that screen anchor
+- [x] **1.3.13** Bar Position persists across restart
 
-### Chat Settings
-- [ ] **1.3.34** Settings → Chat → Font size slider: drag to 18pt → Value displays "18"
-- [ ] **1.3.35** Window opacity slider: drag to 0.8 → Value displays "0.8"
-- [ ] **1.3.36** Theme: select "Light" → Save
-- [ ] **1.3.37** Theme: select "Dark" → Save
-- [ ] **1.3.38** Theme: select "System" → Save
-- [ ] **1.3.39** Toggle "Forget on Close" on → Save
-- [ ] **1.3.40** Set max history messages to 50 → Save
-- [ ] **1.3.41** Toggle "Show Timestamps" on → Save
-- [ ] **1.3.42** Toggle "Enable Markdown" on → Save
-- [ ] **1.3.43** Edit Cloud system prompt → Save
-- [ ] **1.3.44** Edit Local system prompt → Save
-- [ ] **1.3.45** Click "Reset to Defaults" → All fields revert
-- [ ] **1.3.46** Restart app → Verify all Chat settings persist
+#### Visual Effects
+- [x] **1.3.14** Visual Effects Enable toggle ON → glassmorphic blur active on CP
+- [x] **1.3.15** Scope radios appear when enabled → select **Whole App** vs **Top Bar Only**
+- [x] **1.3.16** Intensity slider (0–100, step 5) → drag → blur intensity updates live
+- [x] **1.3.17** Waveform Style radios → **Wave** / **Bars** / **Off** → each renders as described during recording
+- [x] **1.3.18** Visual Effects Enable OFF → blur + waveform controls hidden or inert
 
-### Settings Persistence
-- [ ] **1.3.47** Verify settings.json has correct structure: 3 DictationModes + 7 UtilityPipelines
-- [ ] **1.3.48** Verify: `.\test-helpers\Verify-AppSettings.ps1 -SettingPath "Note.UseLlmProcessing"`
-- [ ] **1.3.49** Verify: `.\test-helpers\Verify-AppSettings.ps1 -SettingPath "Chat.ForgetOnClose"`
+#### Idle Roller
+- [x] **1.3.19** Idle Roll Enable ON → CP cycles idle layers (status → logo+clock → weather)
+- [x] **1.3.20** Show Clock checkbox OFF → clock layer skipped
+- [x] **1.3.21** Show Weather checkbox OFF → weather layer skipped
+- [x] **1.3.22** Clock Format dropdown → 12h / 24h / with-seconds variants render correctly
+- [x] **1.3.23** Hold Duration slider (5–20s) → layer dwell time changes accordingly
+- [x] **1.3.24** Idle Roll Enable OFF → CP shows static status only
+
+#### Auto-Collapse
+- [x] **1.3.25** Auto-Collapse Enable ON → CP collapses to compact size after idle delay → **default should be ON (OBS-006)**
+- [x] **1.3.26** Delay dropdown → change (e.g. 5s / 15s / 30s) → CP collapses after chosen delay
+- [x] **1.3.27** Auto-Collapse Enable OFF → CP stays expanded indefinitely
+
+#### Auto-Hide
+- [x] **1.3.28** Auto-Hide Enable ON → CP fades/hides after idle delay
+- [x] **1.3.29** Delay dropdown → change value → hide timing matches
+- [x] **1.3.30** Trigger activity (dictate or hover) → CP reappears
+
+### Keyboard Shortcuts sub-item
+- [ ] **1.3.31** Verify 8 hotkey rows visible: Dictate, Refine, Ask, Translate, Oops, Note, Chat, Read Selection
+- [ ] **1.3.32** Defaults: Dictate=Ctrl+Alt+D, Refine=Ctrl+Alt+R, Ask=Ctrl+Alt+A, Translate=Ctrl+Alt+T, Oops=Ctrl+Alt+V, Note=Ctrl+Alt+N, Chat=Ctrl+Alt+C, Read Selection=Ctrl+Alt+Q
+- [x] **1.3.33** Click **Record** on Dictate → press Ctrl+Shift+D → field updates → Save
+- [x] **1.3.34** Press new hotkey Ctrl+Shift+D → dictation fires (old Ctrl+Alt+D no longer active)
+- [x] **1.3.35** Click **Reset** on Dictate → reverts to Ctrl+Alt+D
+- [ ] **1.3.36** Assign duplicate combo (e.g. set Refine = Ctrl+Alt+D) → warning/error shown or silent conflict (document behavior)
+- [x] **1.3.37** Restart app → hotkey changes persist
+- [x] **1.3.38** InfoBar at bottom of page is visible and informational
+- [ ] **1.3.39** Verify Vision hotkey is NOT in this list (reported drift vs §5 — Vision may live elsewhere or not be wired yet)
+
+### Language sub-item
+- [x] **1.3.40** UI Language dropdown → list includes English + Español (Mexico) → select other → restart warning InfoBar appears
+- [x] **1.3.41** Restart app → UI renders in selected language
+- [x] **1.3.42** Transcription Language dropdown → select different language → dictate → STT transcribes in that language
+- [x] **1.3.43** Transcription Language persists across restart
+
+### Persistence (General tab)
+- [x] **1.3.44** Change one setting per sub-item → restart → all changes persist
+- [x] **1.3.45** Verify settings.json structure intact: `.\test-helpers\Get-AppState.ps1`
 
 ## 1.4: Advanced Modes (Deepgram + LLM)
 
 ### Refine Mode (Auto/Voice toggle via Control Panel)
-- [ ] **1.4.1** Verify Control Panel shows Refine mode toggle (Auto/Voice)
-- [ ] **1.4.2** Set to **Auto** mode → Type "hello wrold" in Notepad, select it
-- [ ] **1.4.3** Press Ctrl+Alt+R → "hello world" replaces selection (no audio, LLM cleans text)
-- [ ] **1.4.4** Set to **Voice** mode → Type "make this better", select it
-- [ ] **1.4.5** Press Ctrl+Alt+R, say "more professional", release → refined text replaces
+- [x] **1.4.1** Verify Control Panel shows Refine mode toggle (Auto/Voice)
+- [x] **1.4.2** Set to **Auto** mode → Type "hello wrold" in Notepad, select it
+- [x] **1.4.3** Press Ctrl+Alt+R → "hello world" replaces selection (no audio, LLM cleans text)
+- [x] **1.4.4** Set to **Voice** mode → Type "make this better", select it
+- [x] **1.4.5** Press Ctrl+Alt+R, say "more professional", release → refined text replaces
 - [ ] **1.4.6** Press Ctrl+Alt+F (dedicated verbal hotkey) → Same as voice mode
 - [ ] **1.4.7** Press Ctrl+Alt+R with no selection → Error notification
 
 ### Ask Mode
-- [ ] **1.4.8** Press Ctrl+Alt+A, say "What is 2 plus 2", release
-- [ ] **1.4.9** Answer "4" appears in notification/UI (not injected to Notepad)
-- [ ] **1.4.10** Verify history.db mode='ask'
+- [x] **1.4.8** Press Ctrl+Alt+A, say "What is 2 plus 2", release
+- [x] **1.4.9** Answer "4" appears in notification/UI (not injected to Notepad)
+- [x] **1.4.10** Verify history.db mode='ask'
 
 ### Translate Mode
-- [ ] **1.4.11** Press Ctrl+Alt+T, say "Hello how are you", release
-- [ ] **1.4.12** "Hola cómo estás" injected to Notepad
-- [ ] **1.4.13** Press Ctrl+Alt+T, say "Hola cómo estás", release
-- [ ] **1.4.14** "Hello how are you" injected (bidirectional)
+- [x] **1.4.11** Press Ctrl+Alt+T, say "Hello how are you", release
+- [x] **1.4.12** "Hola cómo estás" injected to Notepad
+- [x] **1.4.13** Press Ctrl+Alt+T, say "Hola cómo estás", release
+- [x] **1.4.14** "Hello how are you" injected (bidirectional)
 
 ### Note Mode
-- [ ] **1.4.15** Press Ctrl+Alt+N, say "Remember to buy groceries", release
-- [ ] **1.4.16** Check file at path from Notes settings has timestamp + note
-- [ ] **1.4.17** Verify timestamp matches format from Notes settings
-- [ ] **1.4.18** If LLM Processing enabled in Notes settings, verify text is formatted
-- [ ] **1.4.19** If LLM Processing disabled, verify raw transcription saved
-- [ ] **1.4.20** Verify: `.\test-helpers\Verify-FileSystem.ps1 -Path "%USERPROFILE%\Documents\diktame-notes.md" -Type File`
+- [x] **1.4.15** Press Ctrl+Alt+N, say "Remember to buy groceries", release
+- [x] **1.4.16** Check file at path from Notes settings has timestamp + note
+- [x] **1.4.17** Verify timestamp matches format from Notes settings
+- [x] **1.4.18** If LLM Processing enabled in Notes settings, verify text is formatted
+- [x] **1.4.19** If LLM Processing disabled, verify raw transcription saved
+- [x] **1.4.20** Verify: `.\test-helpers\Verify-FileSystem.ps1 -Path "%USERPROFILE%\Documents\diktame-notes.md" -Type File`
 
 ### Oops Mode
-- [ ] **1.4.21** Dictate "test text" → injected
-- [ ] **1.4.22** Press Ctrl+Alt+V → "test text" re-injected
-- [ ] **1.4.23** Restart app → Press Ctrl+Alt+V → No-op (nothing stored)
+- [x] **1.4.21** Dictate "test text" → injected
+- [x] **1.4.22** Press Ctrl+Alt+V → "test text" re-injected
+- [x] **1.4.23** Restart app → Press Ctrl+Alt+V → No-op (nothing stored)
 
 ### Quick Chat
-- [ ] **1.4.24** Press Ctrl+Alt+C → QuickChatWindow appears (always-on-top)
-- [ ] **1.4.25** Verify font size matches Chat settings (default 14pt)
-- [ ] **1.4.26** Verify window opacity matches Chat settings (default 0.95)
-- [ ] **1.4.27** Type "What is the capital of Spain" → Click Send → "Madrid" appears
+- [x] **1.4.24** Press Ctrl+Alt+C → QuickChatWindow appears (always-on-top)
+- [x] **1.4.25** Verify font size matches Chat settings (default 14pt)
+- [x] **1.4.26** Verify window opacity matches Chat settings (default 0.95)
+- [x] **1.4.27** Type "What is the capital of Spain" → Click Send → "Madrid" appears
 - [ ] **1.4.28** Click Mic button, say "What is 5 plus 5", release → "10" appears
 - [ ] **1.4.29** Verify timestamps shown/hidden per Chat settings (default: shown)
 - [ ] **1.4.30** If markdown enabled (default: on), type "**bold** and `code`" → Verify formatted
-- [ ] **1.4.31** Press Esc → Window closes
+- [x] **1.4.31** Press Esc → Window closes
 - [ ] **1.4.32** If "Forget on Close" enabled → Press Ctrl+Alt+C → No history
 - [ ] **1.4.33** If "Forget on Close" disabled (default) → Press Ctrl+Alt+C → History persists
 - [ ] **1.4.34** Test max history limit: Send 55 messages → Only last 50 shown (default max=50)
 
 ## 1.5: Voice Macros (Cloud Path)
 
-- [ ] **1.5.1** Settings → Macros → Add Macro: Trigger="my email", Content="test@example.com"
-- [ ] **1.5.2** Dictate "Send to my email please" → expands to "Send to test@example.com please"
-- [ ] **1.5.3** Dictate "MY EMAIL" (uppercase) → expands (case-insensitive)
-- [ ] **1.5.4** Dictate "my email, thanks" → expands before punctuation
-- [ ] **1.5.5** Add Macro: Trigger="my phone", Content="555-1234"
-- [ ] **1.5.6** Dictate "my email and my phone" → both expand
-- [ ] **1.5.7** Edit Macro → Changes saved
-- [ ] **1.5.8** Delete Macro → Removed
-- [ ] **1.5.9** Verify: `.\test-helpers\Verify-Snippets.ps1`
+- [x] **1.5.1** Settings → Macros → Add Macro: Trigger="my email", Content="test@example.com"
+- [x] **1.5.2** Dictate "Send to my email please" → expands to "Send to test@example.com please"
+- [x] **1.5.3** Dictate "MY EMAIL" (uppercase) → expands (case-insensitive)
+- [x] **1.5.4** Dictate "my email, thanks" → expands before punctuation
+- [x] **1.5.5** Add Macro: Trigger="my phone", Content="555-1234"
+- [x] **1.5.6** Dictate "my email and my phone" → both expand
+- [x] **1.5.7** Edit Macro → Changes saved
+- [x] **1.5.8** Delete Macro → Removed
+- [x] **1.5.9** Verify: `.\test-helpers\Verify-Snippets.ps1`
 
 ## 1.6: API Keys & Security (Cloud Path)
 
-- [ ] **1.6.1** Settings → API Keys → Deepgram key visible (masked)
-- [ ] **1.6.2** Settings → API Keys → LLM key visible (masked)
-- [ ] **1.6.3** Settings → API Keys → Click **Test Connection** on Deepgram → Success
-- [ ] **1.6.4** Settings → API Keys → Click **Test Connection** on LLM → Success
-- [ ] **1.6.5** Settings → API Keys → Enter invalid key → Test fails with error
-- [ ] **1.6.6** Verify keys encrypted: `.\test-helpers\Verify-SecureStorage.ps1`
-- [ ] **1.6.7** Restart app → Keys still work (persisted)
+- [x] **1.6.1** Settings → API Keys → Deepgram key visible (masked)
+- [x] **1.6.2** Settings → API Keys → LLM key visible (masked)
+- [x] **1.6.3** Settings → API Keys → Click **Test Connection** on Deepgram → Success
+- [x] **1.6.4** Settings → API Keys → Click **Test Connection** on LLM → Success
+- [x] **1.6.5** Settings → API Keys → Enter invalid key → Test fails with error
+- [x] **1.6.6** Verify keys encrypted: `.\test-helpers\Verify-SecureStorage.ps1`
+- [x] **1.6.7** Restart app → Keys still work (persisted)
 
-## 1.7: Data & Privacy (Cloud Path)
+## 1.7: Data & Privacy
 
-- [ ] **1.7.1** Settings → Privacy → Set to **Full** (verbatim logging)
-- [ ] **1.7.2** Dictate "My email is test@example.com" → Check history.db has verbatim
-- [ ] **1.7.3** Settings → Privacy → Set to **Balanced** (PII scrubbed)
-- [ ] **1.7.4** Dictate "My email is test@example.com" → Check history.db has [REDACTED]
-- [ ] **1.7.5** Settings → Privacy → Set to **Stats** (counts only)
-- [ ] **1.7.6** Dictate "test" → Check history.db has no text, only count
-- [ ] **1.7.7** Settings → Privacy → Set to **Ghost** (zero storage)
-- [ ] **1.7.8** Dictate "test" → Check history.db has no new entry
-- [ ] **1.7.9** Settings → Privacy → Click **Wipe Data** → Confirm → history.db cleared
-- [ ] **1.7.10** Verify: `.\test-helpers\Verify-HistoryDb.ps1`
+**Model (post BUG-024 fix):** two orthogonal controls in Settings → Privacy.
+- **Logging Intensity slider** — Ghost / Stats / Balanced / Full. Controls *what rows + metadata* get stored.
+- **PII Scrubber toggle** — independent ON/OFF. Controls whether stored text is redacted. Active at Balanced **and** Full. Irrelevant at Stats/Ghost (no text stored).
+
+Sample sentence for every PII step: **"My email is test@example.com and my phone is 555-1234."**
+
+### Full — verbatim metadata, scrubber governs text
+- [ ] **1.7.1** Set Logging Intensity = **Full**, PII Scrubber = **OFF** → dictate sample → history.db row has text + raw_transcript both verbatim (email + phone intact)
+- [ ] **1.7.2** Keep Full, flip PII Scrubber = **ON** → dictate sample → history.db row exists with full metadata (timings, words, provider) AND email/phone replaced with `[REDACTED]` in text + raw_transcript
+- [ ] **1.7.3** Toggle PII Scrubber OFF again → dictate → verbatim again (toggle round-trip works)
+
+### Balanced — scrubber governs text the same way
+- [ ] **1.7.4** Set Logging Intensity = **Balanced**, PII Scrubber = **ON** → dictate sample → row has text scrubbed (email + phone → `[REDACTED]`)
+- [ ] **1.7.5** Balanced + PII Scrubber = **OFF** → dictate sample → row has text verbatim
+- [ ] **1.7.6** Compare rows from 1.7.2 and 1.7.4 — text field should be identical (scrubber behavior is level-agnostic at Balanced and Full)
+
+### Stats — counts only, scrubber inert
+- [ ] **1.7.7** Set Logging Intensity = **Stats** → dictate "test" → row exists with word_count + timings but text + raw_transcript are NULL or empty
+- [ ] **1.7.8** Flip PII Scrubber in either direction → no effect on Stats rows (control is inert at this level; UI may show it disabled or note the no-op)
+
+### Ghost — no row at all
+- [ ] **1.7.9** Set Logging Intensity = **Ghost** → dictate "test" → no new history.db row (row count unchanged from before)
+- [ ] **1.7.10** Scrubber state irrelevant at Ghost (same as Stats above)
+
+### Wipe + verification
+- [ ] **1.7.11** Click **Wipe All Data** → confirm → history.db row count drops to 0
+- [ ] **1.7.12** Verify: `.\test-helpers\Verify-HistoryDb.ps1`
+
+### UX sanity (after BUG-024 fix copy lands)
+- [ ] **1.7.13** PII Scrubber description text reads explicitly "Works at Balanced and Full; at Stats/Ghost text isn't stored at all" (or equivalent — confirm EN + ES copy)
 
 ## 1.8: System Integration (Cloud Path)
 
@@ -352,9 +378,9 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 ## 3.2: Core Functionality (Local Path)
 
-- [ ] **3.2.1** Dictate "Hello world" → Text injected
-- [ ] **3.2.2** Verify history.db stt_provider = "Whisper"
-- [ ] **3.2.3** Verify history.db llm_provider = "Ollama"
+- [x] **3.2.1** Dictate "Hello world" → Text injected
+- [x] **3.2.2** Verify history.db stt_provider = "Whisper"
+- [x] **3.2.3** Verify history.db llm_provider = "Ollama"
 - [ ] **3.2.4** Test all 6 modes work locally (no internet required)
 - [ ] **3.2.5** Disconnect internet → Dictate → Still works (fully offline)
 - [ ] **3.2.6** Reconnect internet
@@ -712,9 +738,9 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 ## 7.1: TTS Provider Setup
 
-- [ ] **7.1.1** Settings → AI Engine → Text to Speech → Verify provider selection (Off / Kokoro / Deepgram / OpenAI / Gemini / Inworld)
-- [ ] **7.1.2** Select **Kokoro** (local) → Verify model download UI if model not present
-- [ ] **7.1.3** Kokoro model download completes → Status shows "Ready"
+- [x] **7.1.1** Settings → AI Engine → Text to Speech → Verify provider selection (Off / Kokoro / Deepgram / OpenAI / Gemini / Inworld)
+- [x] **7.1.2** Select **Kokoro** (local) → Verify model download UI if model not present
+- [x] **7.1.3** Kokoro model download completes → Status shows "Ready"
 - [ ] **7.1.4** Select **Deepgram** (cloud) → Requires API key
 - [ ] **7.1.5** Select **OpenAI** (cloud) → Requires API key
 - [ ] **7.1.6** Select **Gemini** (cloud) → Requires API key
@@ -755,8 +781,8 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 ## 7.6: TTS Settings Persistence
 
-- [ ] **7.6.1** Configure TTS provider + voice settings + notification prefs → Save
-- [ ] **7.6.2** Restart app → TTS settings persist
+- [x] **7.6.1** Configure TTS provider + voice settings + notification prefs → Save
+- [x] **7.6.2** Restart app → TTS settings persist
 - [ ] **7.6.3** Verify tts_played_ms logged in history.db for TTS dictations
 
 ## 7.7: Journey 7 Complete
@@ -818,7 +844,7 @@ Remove-Item "$env:APPDATA\DiktaMe\settings.json" -Force -ErrorAction SilentlyCon
 
 ## CT.6: ReadSelection (Ctrl+Alt+Q)
 
-- [ ] **CT.6.1** Select text in any app → Press Ctrl+Alt+Q → Text read aloud
+- [x] **CT.6.1** Select text in any app → Press Ctrl+Alt+Q → Text read aloud
 - [ ] **CT.6.2** No TTS configured → Error notification
 - [ ] **CT.6.3** Empty selection → No-op or error
 
