@@ -246,7 +246,7 @@
     <value>Additional Key</value>
   </data>
   <data name="Settings_General_AdditionalKey_Description.Text" xml:space="preserve">
-    <value>Enable the additional key press after injection (key is selected from Control Panel)</value>
+    <value>Press an extra key (Enter, Tab, or Space) after each dictation. Useful for auto-submitting chat inputs or advancing fields.</value>
   </data>
   <data name="Settings_General_TrailingSpace_Label.Text" xml:space="preserve">
     <value>Trailing Space</value>

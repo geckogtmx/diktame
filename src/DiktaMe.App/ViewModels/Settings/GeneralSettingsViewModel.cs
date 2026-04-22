@@ -50,6 +50,9 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     private bool _autoStart;
 
     [ObservableProperty]
+    private int _selectedAdditionalKeyIndex;
+
+    [ObservableProperty]
     private bool _showRestartWarning;
 
     // ── Control Panel fields (absorbed from ControlPanelConfigViewModel) ─
@@ -181,6 +184,18 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     ];
     public string[] LanguageCodes { get; } = ["en", "es"];
 
+    /// <summary>
+    /// Post-injection key appended after every dictation (None/Enter/Tab/Space).
+    /// Used by TextInjector at <see cref="LoadingViewModel"/>:1458 via <see cref="GeneralSettings.AdditionalKey"/>.
+    /// </summary>
+    public string[] AdditionalKeyLabels => [
+        _loc.GetString("Settings_General_AdditionalKey_None"),
+        _loc.GetString("Settings_General_AdditionalKey_Enter"),
+        _loc.GetString("Settings_General_AdditionalKey_Tab"),
+        _loc.GetString("Settings_General_AdditionalKey_Space"),
+    ];
+    public string[] AdditionalKeyValues { get; } = ["", "Enter", "Tab", "Space"];
+
     public string[] AutoHideDelayLabels => [
         _loc.GetString("Settings_AutoHide_Delay_10s"),
         _loc.GetString("Settings_AutoHide_Delay_30s"),
@@ -242,6 +257,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
         SelectedUiLanguageIndex = Array.IndexOf(UiLanguageCodes, g.UiLanguage) is var ui and >= 0 ? ui : 0;
         SelectedLanguageIndex = Array.IndexOf(LanguageCodes, g.Language) is var i and >= 0 ? i : 0;
         AutoStart = g.AutoStart;
+        SelectedAdditionalKeyIndex = Array.IndexOf(AdditionalKeyValues, g.AdditionalKey) is var ak and >= 0 ? ak : 0;
         SelectedThemeIndex = Array.IndexOf(ThemeNames, g.ThemeName) is var ti and >= 0 ? ti : 0;
         ShowRestartWarning = false;
 
@@ -281,6 +297,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
 
     partial void OnSelectedLanguageIndexChanged(int value) => Save();
     partial void OnAutoStartChanged(bool value) => Save();
+    partial void OnSelectedAdditionalKeyIndexChanged(int value) => Save();
     partial void OnShowModesRowChanged(bool value) => Save();
     partial void OnShowActionsRowChanged(bool value) => Save();
     partial void OnShowSessionStatsChanged(bool value) => Save();
@@ -333,6 +350,8 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
                 Language = SelectedLanguageIndex >= 0 && SelectedLanguageIndex < LanguageCodes.Length
                     ? LanguageCodes[SelectedLanguageIndex] : "en",
                 AutoStart = AutoStart,
+                AdditionalKey = SelectedAdditionalKeyIndex >= 0 && SelectedAdditionalKeyIndex < AdditionalKeyValues.Length
+                    ? AdditionalKeyValues[SelectedAdditionalKeyIndex] : string.Empty,
             },
             ControlPanel = _settings.Current.ControlPanel with
             {

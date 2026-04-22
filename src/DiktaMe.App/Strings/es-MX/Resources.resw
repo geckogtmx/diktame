@@ -104,7 +104,7 @@
   <data name="Settings_General_SoundFeedback_Label.Text" xml:space="preserve"><value>Retroalimentaci&#243;n de Sonido</value></data>
   <data name="Settings_General_SoundFeedback_Description.Text" xml:space="preserve"><value>Reproducir sonidos al iniciar/detener grabaci&#243;n y notificaciones</value></data>
   <data name="Settings_General_AdditionalKey_Label.Text" xml:space="preserve"><value>Tecla Adicional</value></data>
-  <data name="Settings_General_AdditionalKey_Description.Text" xml:space="preserve"><value>Habilitar la tecla adicional despu&#233;s de inyecci&#243;n (la tecla se selecciona desde el Panel de Control)</value></data>
+  <data name="Settings_General_AdditionalKey_Description.Text" xml:space="preserve"><value>Presiona una tecla extra (Enter, Tab o Espacio) despu&#233;s de cada dictado. &#218;til para enviar autom&#225;ticamente en chats o avanzar campos.</value></data>
   <data name="Settings_General_TrailingSpace_Label.Text" xml:space="preserve"><value>Espacio Final</value></data>
   <data name="Settings_General_TrailingSpace_Description.Text" xml:space="preserve"><value>Agregar un espacio despu&#233;s del texto inyectado</value></data>
   <data name="Settings_General_RestartInfoBar.Title" xml:space="preserve"><value>Reinicio Requerido</value></data>
