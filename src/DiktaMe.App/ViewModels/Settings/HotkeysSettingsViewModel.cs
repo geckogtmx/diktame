@@ -1,6 +1,7 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DiktaMe.App.Services;
 using DiktaMe.Core.Config;
 using Serilog;
 
@@ -8,6 +9,8 @@ namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class HotkeysSettingsViewModel : ObservableObject
 {
     private readonly SettingsManager _settings;
+    private readonly NotificationService _notifications;
+    private readonly LocalizationService _loc;
     private bool _isLoading;
 
     [ObservableProperty]
@@ -40,9 +43,11 @@ public sealed partial class HotkeysSettingsViewModel : ObservableObject
     [ObservableProperty]
     private string? _recordingTarget;
 
-    public HotkeysSettingsViewModel(SettingsManager settings)
+    public HotkeysSettingsViewModel(SettingsManager settings, NotificationService notifications, LocalizationService loc)
     {
         _settings = settings;
+        _notifications = notifications;
+        _loc = loc;
         LoadFromSettings();
     }
 
@@ -137,8 +142,25 @@ public sealed partial class HotkeysSettingsViewModel : ObservableObject
         RecordingTarget = target;
     }
 
-    public void SetHotkeyValue(string target, string value)
+    public bool SetHotkeyValue(string target, string value)
     {
+        // Duplicate-combo pre-check (BUG-020 follow-up). Win32 RegisterHotKey
+        // silently fails the second registration of a shared combo — the first-
+        // registered ID wins and any later ID is broken until the user notices.
+        // Reject proactively with a toast so the stored value stays consistent
+        // with what the hotkey manager can actually register.
+        string? conflictTarget = FindConflict(target, value);
+        if (conflictTarget is not null)
+        {
+            Log.Warning("HotkeysSettingsViewModel: rejected duplicate combo '{Value}' for {Target} (conflicts with {Existing})",
+                value, target, conflictTarget);
+            _notifications.ShowToast(
+                _loc.GetString("Loading_HotkeyConflict_Title"),
+                _loc.GetFormatted("Loading_HotkeyConflict_Message", conflictTarget, value),
+                NotificationType.Error);
+            return false;
+        }
+
         _isLoading = true;
         switch (target)
         {
@@ -172,5 +194,39 @@ public sealed partial class HotkeysSettingsViewModel : ObservableObject
         }
         _isLoading = false;
         Save();
+        return true;
+    }
+
+    /// <summary>
+    /// Returns the name of the hotkey already bound to <paramref name="value"/>,
+    /// excluding <paramref name="target"/> itself. Null if no conflict.
+    /// </summary>
+    private string? FindConflict(string target, string value)
+    {
+        (string name, string current)[] all =
+        [
+            ("Dictate", Dictate),
+            ("Refine", Refine),
+            ("Ask", Ask),
+            ("Translate", Translate),
+            ("Oops", Oops),
+            ("Note", Note),
+            ("Chat", Chat),
+            ("ReadSelection", ReadSelection),
+            ("Vision", Vision),
+        ];
+
+        foreach (var (name, current) in all)
+        {
+            if (string.Equals(name, target, StringComparison.Ordinal))
+            {
+                continue;
+            }
+            if (string.Equals(current, value, StringComparison.OrdinalIgnoreCase))
+            {
+                return name;
+            }
+        }
+        return null;
     }
 }
