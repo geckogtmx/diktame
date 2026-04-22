@@ -101,7 +101,12 @@ public sealed class HistoryManager : IDisposable
 
             if (level >= PrivacyLevel.Balanced)
             {
-                // Apply PII scrubbing at Balanced level
+                // Logging Intensity (Ghost/Stats/Balanced/Full) and PII Scrubber are
+                // orthogonal controls: Intensity decides WHAT rows+fields get logged,
+                // the scrubber decides whether stored text is redacted. "Full + Scrubber
+                // ON" is a legitimate combination (full telemetry, redacted text) —
+                // both Balanced and Full apply the scrubber when enabled (BUG-024).
+                // Ghost/Stats suppress text entirely and never reach this branch.
                 text = result.Text;
                 rawTranscript = result.RawTranscript;
 
@@ -112,13 +117,6 @@ public sealed class HistoryManager : IDisposable
                         ? PIIScrubber.Scrub(rawTranscript)
                         : null;
                 }
-            }
-
-            if (level == PrivacyLevel.Full)
-            {
-                // Full level: store verbatim (no scrubbing)
-                text = result.Text;
-                rawTranscript = result.RawTranscript;
             }
 
             using var cmd = _connection.CreateCommand();

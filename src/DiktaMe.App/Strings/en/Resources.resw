@@ -889,7 +889,7 @@
     <value>PII Scrubber</value>
   </data>
   <data name="Settings_Privacy_PiiScrubber_Description.Text" xml:space="preserve">
-    <value>Automatically redact emails, phone numbers, and other personal data</value>
+    <value>Redacts emails, phone numbers, and other personal data from stored history text. Works at Balanced and Full logging levels; at Stats or Ghost, text isn't stored at all.</value>
   </data>
   <data name="Settings_Privacy_HistoryRetention_Label.Text" xml:space="preserve">
     <value>History Retention</value>

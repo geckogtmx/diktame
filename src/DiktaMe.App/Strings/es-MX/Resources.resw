@@ -338,7 +338,7 @@
   <data name="Settings_Privacy_Slider_Ghost.Text" xml:space="preserve"><value>Fantasma</value></data>
   <data name="Settings_Privacy_Slider_Full.Text" xml:space="preserve"><value>Completo</value></data>
   <data name="Settings_Privacy_PiiScrubber_Label.Text" xml:space="preserve"><value>Filtro de PII</value></data>
-  <data name="Settings_Privacy_PiiScrubber_Description.Text" xml:space="preserve"><value>Redactar autom&#225;ticamente correos, tel&#233;fonos y otros datos personales</value></data>
+  <data name="Settings_Privacy_PiiScrubber_Description.Text" xml:space="preserve"><value>Redacta correos, tel&#233;fonos y otros datos personales del historial almacenado. Funciona en los niveles Equilibrado y Completo; en Estad&#237;sticas o Fantasma, el texto no se almacena en absoluto.</value></data>
   <data name="Settings_Privacy_HistoryRetention_Label.Text" xml:space="preserve"><value>Retenci&#243;n de Historial</value></data>
   <data name="Settings_Privacy_HistoryRetention_Description.Text" xml:space="preserve"><value>Eliminar autom&#225;ticamente historial con m&#225;s de estos d&#237;as</value></data>
   <data name="Settings_Privacy_DataManagement_Label.Text" xml:space="preserve"><value>Gesti&#243;n de Datos</value></data>
