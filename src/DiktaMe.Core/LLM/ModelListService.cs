@@ -38,6 +38,7 @@ public sealed class ModelListService : IDisposable
             QueryAnthropicModelsAsync(cancellationToken),
             QueryGeminiModelsAsync(cancellationToken),
             QueryOpenRouterModelsAsync(cancellationToken),
+            QueryRequestyModelsAsync(cancellationToken),
             QueryOllamaModelsAsync(cancellationToken),
         };
 
@@ -306,6 +307,76 @@ public sealed class ModelListService : IDisposable
         catch (Exception ex)
         {
             Log.Warning(ex, "ModelListService: Failed to query OpenRouter models");
+            return [];
+        }
+    }
+
+    // ── Requesty: GET /v1/models ────────────────────────────────────────────
+    // Requesty is an OpenAI-compatible LLM gateway at router.requesty.ai. Its
+    // /v1/models endpoint returns the OpenAI-style { data: [...] } envelope
+    // with provider/model-style IDs (e.g. "openai/gpt-4o-mini", "anthropic/
+    // claude-3.5-sonnet"). Note: those IDs visually collide with OpenRouter's
+    // naming scheme, so ResolveProviderFromModelId cannot yet distinguish a
+    // user's Requesty selection from an OpenRouter one — BUG-031 follow-up
+    // tracks the namespacing fix needed for clean routing.
+
+    private async Task<List<ModelInfo>> QueryRequestyModelsAsync(CancellationToken ct)
+    {
+        string? apiKey = _secureStorage.RetrieveKey("requesty");
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return [];
+        }
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, "https://router.requesty.ai/v1/models");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+            using var response = await _http.SendAsync(request, ct).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            string json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+            using var doc = JsonDocument.Parse(json);
+
+            var models = new List<ModelInfo>();
+            if (doc.RootElement.TryGetProperty("data", out var data))
+            {
+                foreach (var model in data.EnumerateArray())
+                {
+                    string id = model.GetProperty("id").GetString() ?? "";
+                    if (string.IsNullOrWhiteSpace(id))
+                    {
+                        continue;
+                    }
+
+                    // DisplayName falls back to ID when the response omits a human label
+                    // (Requesty's /v1/models currently does not expose one).
+                    string displayName = model.TryGetProperty("name", out var n)
+                        ? n.GetString() ?? id
+                        : id;
+
+                    int? contextLength = model.TryGetProperty("context_length", out var cl) && cl.TryGetInt32(out int ctx)
+                        ? ctx
+                        : null;
+
+                    models.Add(new ModelInfo
+                    {
+                        ModelId = id,
+                        DisplayName = displayName,
+                        Provider = "Requesty",
+                        IsAvailable = true,
+                        ContextWindow = contextLength,
+                    });
+                }
+            }
+
+            Log.Debug("ModelListService: Requesty returned {Count} models", models.Count);
+            return models;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "ModelListService: Failed to query Requesty models");
             return [];
         }
     }
