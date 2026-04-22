@@ -178,11 +178,9 @@ public partial class App : Application
         // internally; it does not need a WinUI visual tree parent.
         _trayIcon = new TrayIconView();
 
-        // Reconcile Auto-Start state at launch: if the user enabled AutoStart but
-        // the task scheduler registration is missing (first launch after the
-        // schtasks fix, fresh install with imported settings.json, manual task
-        // deletion), re-register silently. Does nothing when AutoStart=false.
-        ReconcileAutoStart();
+        // Auto-Start reconciliation moved to LoadingViewModel.InitializeAsync
+        // because SettingsManager.Current is defaults until LoadAsync runs.
+        // Calling it here always saw AutoStart=false and no-oped silently.
 
         // Show loading screen and run async initialization
         var loading = new Views.LoadingWindow();
@@ -193,27 +191,6 @@ public partial class App : Application
         loading.StartLoading();
     }
 
-    private void ReconcileAutoStart()
-    {
-        try
-        {
-            var settings = Services.GetRequiredService<DiktaMe.Core.Config.SettingsManager>();
-            if (!settings.Current.General.AutoStart)
-            {
-                return;
-            }
-
-            var mgr = Services.GetRequiredService<DiktaMe.Core.SystemManagement.AutoStartManager>();
-            if (!mgr.IsRegistered())
-            {
-                mgr.Register();
-            }
-        }
-        catch (Exception ex)
-        {
-            Serilog.Log.Warning(ex, "App: AutoStart reconciliation failed (non-fatal)");
-        }
-    }
 
     /// <summary>
     /// Extracts a <c>diktame://</c> URI from command-line arguments, if present.

@@ -146,6 +146,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             StatusText = _loc.GetString("Loading_Settings");
             Progress = 0;
             await _settings.LoadAsync();
+            ReconcileAutoStart(); // BUG-018 — must run AFTER LoadAsync
             Progress = 25;
 
             // Step 2: Initialize databases
@@ -432,6 +433,40 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             success = _hotkeyManager.Register(HotkeyId.Vision, hotkeys.Vision);
             Log.Debug("Register Vision ({Hotkey}): {Success}", hotkeys.Vision, success);
+        }
+    }
+
+    /// <summary>
+    /// If settings say Auto-Start is enabled but the Task Scheduler entry is missing
+    /// (first launch after the BUG-018 root-path fix, settings.json imported from
+    /// another machine, task manually deleted), silently re-register. Non-fatal on
+    /// failure — the toggle can be retried from Settings.
+    /// </summary>
+    private static void ReconcileAutoStart()
+    {
+        try
+        {
+            var settings = App.Current.Services.GetRequiredService<SettingsManager>();
+            if (!settings.Current.General.AutoStart)
+            {
+                return;
+            }
+
+            var mgr = App.Current.Services.GetRequiredService<AutoStartManager>();
+            if (mgr.IsRegistered())
+            {
+                Log.Debug("LoadingViewModel: Auto-Start task already registered — reconciliation no-op");
+                return;
+            }
+
+            if (mgr.Register())
+            {
+                Log.Information("LoadingViewModel: Auto-Start task re-registered (settings said enabled, task was missing)");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "LoadingViewModel: Auto-Start reconciliation failed (non-fatal)");
         }
     }
 
