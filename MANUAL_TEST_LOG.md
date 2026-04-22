@@ -47,7 +47,7 @@ Authoritative status — supersedes the per-row Status column below (which shows
 | BUG-014 | FIXED             | earlier    | LLM=OFF pill honoured                                                                                       |
 | BUG-016 | FIXED             | earlier    | Kokoro variant persisted by wizard                                                                          |
 | BUG-017 | FIXED             | 5be12a5    | AdditionalKey ComboBox in Settings > General (user-verified: dropdown + persisted across restart)           |
-| BUG-018 | FIXED             | 37e595b    | AutoStartManager via schtasks + launch-time reconciliation (uncommitted fix for root-folder placement)      |
+| BUG-018 | FIXED             | 37e595b + 19c7eb7 + bac54a2 | AutoStartManager via schtasks (root-folder path) + launch reconciliation AFTER settings load. Verify-AutoStart.ps1 verifies on next launch for persisted AutoStart=true. |
 | BUG-022 | FIXED             | 3e09c13    | Quick Chat Esc → CloseQuickChat                                                                             |
 | BUG-024 | FIXED             | 23eeb47    | PII Scrubber honoured at Full — verified via history.db id 43 ([REDACTED]) vs 45 (verbatim). Gap surfaced 2026-04-21: PhonePattern is US 10-digit-only — 8-digit local numbers + international formats are not redacted. Decision deferred. |
 | BUG-028 | FIXED             | bcbc32d    | Cloud LLM defaults filter (479/483 off) + per-provider All On/Off                                           |
