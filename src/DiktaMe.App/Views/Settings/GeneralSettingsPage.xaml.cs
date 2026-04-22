@@ -40,6 +40,7 @@ public sealed partial class GeneralSettingsPage : Page
     private void RecordNote_Click(object sender, RoutedEventArgs e) => StartRecording(NoteBox, "Note");
     private void RecordChat_Click(object sender, RoutedEventArgs e) => StartRecording(ChatBox, "Chat");
     private void RecordReadSelection_Click(object sender, RoutedEventArgs e) => StartRecording(ReadSelectionBox, "ReadSelection");
+    private void RecordVision_Click(object sender, RoutedEventArgs e) => StartRecording(VisionBox, "Vision");
 
     private void StartRecording(TextBox textBox, string target)
     {

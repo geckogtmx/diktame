@@ -139,6 +139,8 @@
   <data name="Settings_Hotkeys_Chat_Description.Text" xml:space="preserve"><value>Abrir ventana de Chat R&#225;pido</value></data>
   <data name="Settings_Hotkeys_ReadSelection_Label.Text" xml:space="preserve"><value>Leer Selecci&#243;n</value></data>
   <data name="Settings_Hotkeys_ReadSelection_Description.Text" xml:space="preserve"><value>Leer en voz alta el texto seleccionado con TTS</value></data>
+  <data name="Settings_Hotkeys_Vision_Label.Text" xml:space="preserve"><value>Visi&#243;n</value></data>
+  <data name="Settings_Hotkeys_Vision_Description.Text" xml:space="preserve"><value>Capturar una regi&#243;n de la pantalla y consultar un modelo de visi&#243;n</value></data>
   <data name="Settings_Hotkeys_Placeholder.PlaceholderText" xml:space="preserve"><value>Presione Grabar para configurar atajo</value></data>
   <data name="Settings_Hotkeys_InfoBar.Message" xml:space="preserve"><value>Presione Grabar, luego presione la combinaci&#243;n de teclas deseada. Los cambios se guardan autom&#225;ticamente. Se requiere reinicio para que los nuevos atajos surtan efecto.</value></data>
 

@@ -601,6 +601,25 @@
                                 <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetReadSelectionCommand}" MinWidth="70"/>
                             </Grid>
                         </StackPanel>
+
+                        <!-- Vision -->
+                        <StackPanel Spacing="4">
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Vision_Label" FontWeight="SemiBold" Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock l:Uids.Uid="Settings_Hotkeys_Vision_Description" FontSize="12" Foreground="{StaticResource AppTextDimBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="VisionBox" Grid.Column="0"
+                                         Text="{x:Bind ViewModel.Hotkeys.Vision, Mode=TwoWay}"
+                                         IsReadOnly="True" PlaceholderText="Click Record to set hotkey"
+                                         BorderThickness="2" BorderBrush="{ThemeResource TextControlBorderBrush}"/>
+                                <Button Grid.Column="1" Content="Record" Click="RecordVision_Click" MinWidth="80"/>
+                                <Button Grid.Column="2" Content="Reset" Command="{x:Bind ViewModel.Hotkeys.ResetVisionCommand}" MinWidth="70"/>
+                            </Grid>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 

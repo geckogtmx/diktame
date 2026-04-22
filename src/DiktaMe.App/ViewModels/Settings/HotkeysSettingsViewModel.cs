@@ -35,6 +35,9 @@ public sealed partial class HotkeysSettingsViewModel : ObservableObject
     private string _readSelection = "Ctrl+Alt+Q";
 
     [ObservableProperty]
+    private string _vision = "Ctrl+Alt+S";
+
+    [ObservableProperty]
     private string? _recordingTarget;
 
     public HotkeysSettingsViewModel(SettingsManager settings)
@@ -56,6 +59,7 @@ public sealed partial class HotkeysSettingsViewModel : ObservableObject
         Note = h.Note;
         Chat = h.Chat;
         ReadSelection = h.ReadSelection;
+        Vision = h.Vision;
 
         _isLoading = false;
     }
@@ -68,6 +72,7 @@ public sealed partial class HotkeysSettingsViewModel : ObservableObject
     partial void OnNoteChanged(string value) => Save();
     partial void OnChatChanged(string value) => Save();
     partial void OnReadSelectionChanged(string value) => Save();
+    partial void OnVisionChanged(string value) => Save();
 
     private void Save()
     {
@@ -88,6 +93,7 @@ public sealed partial class HotkeysSettingsViewModel : ObservableObject
                 Note = Note,
                 Chat = Chat,
                 ReadSelection = ReadSelection,
+                Vision = Vision,
             }
         };
         _ = _settings.UpdateAsync(updated).ContinueWith(t =>
@@ -123,6 +129,9 @@ public sealed partial class HotkeysSettingsViewModel : ObservableObject
     [RelayCommand]
     private void ResetReadSelection() => ReadSelection = "Ctrl+Alt+Q";
 
+    [RelayCommand]
+    private void ResetVision() => Vision = "Ctrl+Alt+S";
+
     public void SetRecordingTarget(string? target)
     {
         RecordingTarget = target;
@@ -156,6 +165,9 @@ public sealed partial class HotkeysSettingsViewModel : ObservableObject
                 break;
             case "ReadSelection":
                 ReadSelection = value;
+                break;
+            case "Vision":
+                Vision = value;
                 break;
         }
         _isLoading = false;

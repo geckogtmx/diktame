@@ -343,6 +343,12 @@
   <data name="Settings_Hotkeys_ReadSelection_Description.Text" xml:space="preserve">
     <value>Read selected text aloud using TTS</value>
   </data>
+  <data name="Settings_Hotkeys_Vision_Label.Text" xml:space="preserve">
+    <value>Vision</value>
+  </data>
+  <data name="Settings_Hotkeys_Vision_Description.Text" xml:space="preserve">
+    <value>Capture a screen region and query a vision model</value>
+  </data>
   <data name="Settings_Hotkeys_Placeholder.PlaceholderText" xml:space="preserve">
     <value>Click Record to set hotkey</value>
   </data>
