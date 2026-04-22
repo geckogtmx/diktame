@@ -10,16 +10,18 @@ namespace DiktaMe.Core.SystemManagement;
 /// zero trim warnings, behaviour identical to what Verify-AutoStart.ps1
 /// observes via Get-ScheduledTask.
 ///
-/// Task layout (matches test-helpers/Verify-AutoStart.ps1):
-///   - Task name: "dIKta.me"
-///   - Task folder: "\dIKta.me\"  (full path: "dIKta.me\dIKta.me")
+/// Task layout (matches test-helpers/Verify-AutoStart.ps1's
+/// Get-ScheduledTask -TaskName "dIKta.me" lookup, which finds the task
+/// by name across any folder):
+///   - Task name: "dIKta.me" at the ROOT folder "\" — nested folders
+///     require admin on first creation, which would break the UX for
+///     standard users. Root placement creates fine at LIMITED privilege.
 ///   - Trigger: ONLOGON for the current user
 ///   - Action: Environment.ProcessPath (the exe that registered the task)
 /// </summary>
 public sealed class AutoStartManager
 {
     private const string TaskName = "dIKta.me";
-    private const string TaskPath = @"dIKta.me\dIKta.me";
 
     /// <summary>
     /// Checks whether the auto-start task is currently registered.
@@ -28,7 +30,7 @@ public sealed class AutoStartManager
     {
         try
         {
-            var (exitCode, _) = RunSchtasks($"/Query /TN \"{TaskPath}\"");
+            var (exitCode, _) = RunSchtasks($"/Query /TN \"{TaskName}\"");
             return exitCode == 0;
         }
         catch (Exception ex)
@@ -54,7 +56,7 @@ public sealed class AutoStartManager
         // /F forces replace if the task already exists (idempotent toggle).
         // /RL LIMITED keeps the task at the user's standard privilege level —
         // the app doesn't need elevation and HIGHEST would trigger UAC prompts.
-        string args = $"/Create /TN \"{TaskPath}\" /TR \"\\\"{exePath}\\\"\" /SC ONLOGON /RL LIMITED /F";
+        string args = $"/Create /TN \"{TaskName}\" /TR \"\\\"{exePath}\\\"\" /SC ONLOGON /RL LIMITED /F";
         var (exitCode, output) = RunSchtasks(args);
         if (exitCode == 0)
         {
@@ -77,7 +79,7 @@ public sealed class AutoStartManager
             return true;
         }
 
-        var (exitCode, output) = RunSchtasks($"/Delete /TN \"{TaskPath}\" /F");
+        var (exitCode, output) = RunSchtasks($"/Delete /TN \"{TaskName}\" /F");
         if (exitCode == 0)
         {
             Log.Information("AutoStartManager: unregistered auto-start task");
