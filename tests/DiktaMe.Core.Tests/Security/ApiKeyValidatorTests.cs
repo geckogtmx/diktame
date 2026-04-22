@@ -32,6 +32,9 @@ public sealed class ApiKeyValidatorTests
 
     [Theory, Trait("Category", "Unit")]
     [InlineData("AIzaSyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456", true)]  // 39 chars — Google AI key
+    [InlineData("AIzaShort", true)]                                  // AIza prefix accepted even if short
+    [InlineData("legacyFormat30CharsLongEnough!", true)]             // len >= 30 and non-digit
+    [InlineData("123456789012345678901234567890", false)]            // all-digit garbage 30 chars
     [InlineData("short", false)]   // too short
     [InlineData("", false)]
     [InlineData(null, false)]
@@ -41,7 +44,8 @@ public sealed class ApiKeyValidatorTests
     // ── Deepgram ──────────────────────────────────────────────────────────────
 
     [Theory, Trait("Category", "Unit")]
-    [InlineData("abcdefghijklmnopqrstuvwxyz0123456789", true)]  // 36 chars
+    [InlineData("abcdefghijklmnopqrstuvwxyz0123456789", true)]  // 36 chars mixed
+    [InlineData("123456789012345678901234567890", false)]       // 30 all-digit chars → reject
     [InlineData("tooshort", false)]
     [InlineData("", false)]
     [InlineData(null, false)]

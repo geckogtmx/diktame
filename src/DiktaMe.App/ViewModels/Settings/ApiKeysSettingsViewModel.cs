@@ -9,6 +9,7 @@ namespace DiktaMe.App.ViewModels.Settings;
 public sealed partial class ApiKeysSettingsViewModel : ObservableObject
 {
     private readonly SecureStorage _storage;
+    private readonly ApiKeyTester _tester;
     private readonly LocalizationService _loc;
 
     // ── OpenAI ──────────────────────────────────────────────────────────────
@@ -16,46 +17,54 @@ public sealed partial class ApiKeysSettingsViewModel : ObservableObject
     [ObservableProperty] private string _openAiKey = "";
     [ObservableProperty] private string _openAiStatus = "";
     [ObservableProperty] private bool _openAiHasKey;
+    [ObservableProperty] private bool _openAiTesting;
 
     // ── Anthropic ───────────────────────────────────────────────────────────
 
     [ObservableProperty] private string _anthropicKey = "";
     [ObservableProperty] private string _anthropicStatus = "";
     [ObservableProperty] private bool _anthropicHasKey;
+    [ObservableProperty] private bool _anthropicTesting;
 
     // ── Gemini ──────────────────────────────────────────────────────────────
 
     [ObservableProperty] private string _geminiKey = "";
     [ObservableProperty] private string _geminiStatus = "";
     [ObservableProperty] private bool _geminiHasKey;
+    [ObservableProperty] private bool _geminiTesting;
 
     // ── Deepgram ────────────────────────────────────────────────────────────
 
     [ObservableProperty] private string _deepgramKey = "";
     [ObservableProperty] private string _deepgramStatus = "";
     [ObservableProperty] private bool _deepgramHasKey;
+    [ObservableProperty] private bool _deepgramTesting;
 
     // ── Inworld ───────────────────────────────────────────────────────────
 
     [ObservableProperty] private string _inworldKey = "";
     [ObservableProperty] private string _inworldStatus = "";
     [ObservableProperty] private bool _inworldHasKey;
+    [ObservableProperty] private bool _inworldTesting;
 
     // ── OpenRouter ──────────────────────────────────────────────────────────
 
     [ObservableProperty] private string _openRouterKey = "";
     [ObservableProperty] private string _openRouterStatus = "";
     [ObservableProperty] private bool _openRouterHasKey;
+    [ObservableProperty] private bool _openRouterTesting;
 
     // ── Requesty ────────────────────────────────────────────────────────────
 
     [ObservableProperty] private string _requestyKey = "";
     [ObservableProperty] private string _requestyStatus = "";
     [ObservableProperty] private bool _requestyHasKey;
+    [ObservableProperty] private bool _requestyTesting;
 
-    public ApiKeysSettingsViewModel(SecureStorage storage, LocalizationService loc)
+    public ApiKeysSettingsViewModel(SecureStorage storage, ApiKeyTester tester, LocalizationService loc)
     {
         _storage = storage;
+        _tester = tester;
         _loc = loc;
         RefreshKeyStatus();
     }
@@ -82,6 +91,56 @@ public sealed partial class ApiKeysSettingsViewModel : ObservableObject
 
     [RelayCommand] private void SaveRequestyKey() => SaveKey("requesty", RequestyKey, ApiKeyValidator.IsValidGeneric, v => { RequestyStatus = v; RequestyHasKey = string.Equals(v, _loc.GetString("Settings_ApiKeys_Status_Saved"), StringComparison.Ordinal); });
     [RelayCommand] private void DeleteRequestyKey() => DeleteKey("requesty", v => { RequestyStatus = v; RequestyHasKey = false; RequestyKey = ""; });
+
+    // ── Test Connection commands ────────────────────────────────────────────
+
+    [RelayCommand]
+    private Task TestOpenAiKeyAsync() => RunTestAsync("openai", OpenAiKey,
+        v => OpenAiTesting = v, s => OpenAiStatus = s);
+
+    [RelayCommand]
+    private Task TestAnthropicKeyAsync() => RunTestAsync("anthropic", AnthropicKey,
+        v => AnthropicTesting = v, s => AnthropicStatus = s);
+
+    [RelayCommand]
+    private Task TestGeminiKeyAsync() => RunTestAsync("gemini", GeminiKey,
+        v => GeminiTesting = v, s => GeminiStatus = s);
+
+    [RelayCommand]
+    private Task TestDeepgramKeyAsync() => RunTestAsync("deepgram", DeepgramKey,
+        v => DeepgramTesting = v, s => DeepgramStatus = s);
+
+    [RelayCommand]
+    private Task TestInworldKeyAsync() => RunTestAsync("inworld", InworldKey,
+        v => InworldTesting = v, s => InworldStatus = s);
+
+    [RelayCommand]
+    private Task TestOpenRouterKeyAsync() => RunTestAsync("openrouter", OpenRouterKey,
+        v => OpenRouterTesting = v, s => OpenRouterStatus = s);
+
+    [RelayCommand]
+    private Task TestRequestyKeyAsync() => RunTestAsync("requesty", RequestyKey,
+        v => RequestyTesting = v, s => RequestyStatus = s);
+
+    private async Task RunTestAsync(string provider, string typedKey, Action<bool> setTesting, Action<string> setStatus)
+    {
+        setTesting(true);
+        setStatus(_loc.GetString("Settings_ApiKeys_Status_Testing"));
+        try
+        {
+            var result = await _tester.TestAsync(provider, typedKey).ConfigureAwait(true);
+            setStatus(result.Message);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Test Connection failed for {Provider}", provider);
+            setStatus(_loc.GetString("Settings_ApiKeys_Status_TestUnexpected"));
+        }
+        finally
+        {
+            setTesting(false);
+        }
+    }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 

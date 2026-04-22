@@ -28,6 +28,9 @@
   <data name="Common_Save" xml:space="preserve">
     <value>Save</value>
   </data>
+  <data name="Common_Test" xml:space="preserve">
+    <value>Test connection</value>
+  </data>
   <data name="Common_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
@@ -953,6 +956,12 @@
   </data>
   <data name="Settings_ApiKeys_Status_DeleteFailed" xml:space="preserve">
     <value>Delete failed</value>
+  </data>
+  <data name="Settings_ApiKeys_Status_Testing" xml:space="preserve">
+    <value>Testing…</value>
+  </data>
+  <data name="Settings_ApiKeys_Status_TestUnexpected" xml:space="preserve">
+    <value>Test failed (unexpected error)</value>
   </data>
 
   <!-- ══════════════════════════════════════════════════════════════════════

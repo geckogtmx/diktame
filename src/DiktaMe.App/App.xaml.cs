@@ -618,6 +618,7 @@ public partial class App : Application
 
         // ── Config & Security (E.1 / E.3 / J.2) ─────────────────────────────
         services.AddSingleton<SecureStorage>();
+        services.AddSingleton<ApiKeyTester>();
         services.AddSingleton<LicenseManager>();
         services.AddSingleton<SettingsManager>();
         services.AddSingleton<ProfileManager>(); // DEPRECATED: Use DictationModeManager instead

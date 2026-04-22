@@ -18,15 +18,23 @@ public static class ApiKeyValidator
         && key.StartsWith("sk-ant-", StringComparison.Ordinal)
         && key.Length >= 20;
 
-    /// <summary>Google Gemini API keys (AIza…) are at least 30 characters.</summary>
+    /// <summary>
+    /// Google Gemini API keys start with "AIza" (standard issuance) or are at
+    /// least 30 non-all-digit characters (legacy/alternate flavors).
+    /// </summary>
     public static bool IsValidGemini(string? key)
         => !string.IsNullOrWhiteSpace(key)
-        && key.Length >= 30;
+        && (key.StartsWith("AIza", StringComparison.Ordinal)
+            || (key.Length >= 30 && !key.All(char.IsDigit)));
 
-    /// <summary>Deepgram API keys are at least 30 characters.</summary>
+    /// <summary>
+    /// Deepgram API keys are at least 30 characters and contain non-digit
+    /// characters (valid keys are hex with letters; all-digit is always garbage).
+    /// </summary>
     public static bool IsValidDeepgram(string? key)
         => !string.IsNullOrWhiteSpace(key)
-        && key.Length >= 30;
+        && key.Length >= 30
+        && !key.All(char.IsDigit);
 
     /// <summary>
     /// Returns true for any non-whitespace key (used for OpenAI-compatible

@@ -86,15 +86,22 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <PasswordBox Password="{x:Bind ViewModel.ApiKeys.OpenAiKey, Mode=TwoWay}"
                                              PlaceholderText="sk-..." VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.SaveOpenAiKeyCommand}"
+                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.TestOpenAiKeyCommand}"
+                                        IsEnabled="{x:Bind ViewModel.ApiKeys.OpenAiTesting, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.TooltipTest, Mode=OneWay}" Width="36" Height="36" Padding="0"
+                                        Background="Transparent" BorderBrush="Transparent">
+                                    <FontIcon Glyph="&#xE839;" FontSize="14"/>
+                                </Button>
+                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.SaveOpenAiKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipSave, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE73E;" FontSize="14"/>
                                 </Button>
-                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.DeleteOpenAiKeyCommand}"
+                                <Button Grid.Column="3" Command="{x:Bind ViewModel.ApiKeys.DeleteOpenAiKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipDelete, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"/>
@@ -127,15 +134,22 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <PasswordBox Password="{x:Bind ViewModel.ApiKeys.AnthropicKey, Mode=TwoWay}"
                                              PlaceholderText="sk-ant-..." VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.SaveAnthropicKeyCommand}"
+                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.TestAnthropicKeyCommand}"
+                                        IsEnabled="{x:Bind ViewModel.ApiKeys.AnthropicTesting, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.TooltipTest, Mode=OneWay}" Width="36" Height="36" Padding="0"
+                                        Background="Transparent" BorderBrush="Transparent">
+                                    <FontIcon Glyph="&#xE839;" FontSize="14"/>
+                                </Button>
+                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.SaveAnthropicKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipSave, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE73E;" FontSize="14"/>
                                 </Button>
-                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.DeleteAnthropicKeyCommand}"
+                                <Button Grid.Column="3" Command="{x:Bind ViewModel.ApiKeys.DeleteAnthropicKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipDelete, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"/>
@@ -168,15 +182,22 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <PasswordBox Password="{x:Bind ViewModel.ApiKeys.GeminiKey, Mode=TwoWay}"
                                              PlaceholderText="AIza..." VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.SaveGeminiKeyCommand}"
+                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.TestGeminiKeyCommand}"
+                                        IsEnabled="{x:Bind ViewModel.ApiKeys.GeminiTesting, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.TooltipTest, Mode=OneWay}" Width="36" Height="36" Padding="0"
+                                        Background="Transparent" BorderBrush="Transparent">
+                                    <FontIcon Glyph="&#xE839;" FontSize="14"/>
+                                </Button>
+                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.SaveGeminiKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipSave, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE73E;" FontSize="14"/>
                                 </Button>
-                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.DeleteGeminiKeyCommand}"
+                                <Button Grid.Column="3" Command="{x:Bind ViewModel.ApiKeys.DeleteGeminiKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipDelete, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"/>
@@ -209,16 +230,23 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <PasswordBox l:Uids.Uid="Settings_ApiKeys_DeepgramPlaceholder"
                                              Password="{x:Bind ViewModel.ApiKeys.DeepgramKey, Mode=TwoWay}"
                                              VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.SaveDeepgramKeyCommand}"
+                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.TestDeepgramKeyCommand}"
+                                        IsEnabled="{x:Bind ViewModel.ApiKeys.DeepgramTesting, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.TooltipTest, Mode=OneWay}" Width="36" Height="36" Padding="0"
+                                        Background="Transparent" BorderBrush="Transparent">
+                                    <FontIcon Glyph="&#xE839;" FontSize="14"/>
+                                </Button>
+                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.SaveDeepgramKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipSave, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE73E;" FontSize="14"/>
                                 </Button>
-                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.DeleteDeepgramKeyCommand}"
+                                <Button Grid.Column="3" Command="{x:Bind ViewModel.ApiKeys.DeleteDeepgramKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipDelete, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"/>
@@ -251,15 +279,22 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <PasswordBox Password="{x:Bind ViewModel.ApiKeys.InworldKey, Mode=TwoWay}"
                                              PlaceholderText="Inworld API key" VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.SaveInworldKeyCommand}"
+                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.TestInworldKeyCommand}"
+                                        IsEnabled="{x:Bind ViewModel.ApiKeys.InworldTesting, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.TooltipTest, Mode=OneWay}" Width="36" Height="36" Padding="0"
+                                        Background="Transparent" BorderBrush="Transparent">
+                                    <FontIcon Glyph="&#xE839;" FontSize="14"/>
+                                </Button>
+                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.SaveInworldKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipSave, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE73E;" FontSize="14"/>
                                 </Button>
-                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.DeleteInworldKeyCommand}"
+                                <Button Grid.Column="3" Command="{x:Bind ViewModel.ApiKeys.DeleteInworldKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipDelete, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"/>
@@ -292,15 +327,22 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <PasswordBox Password="{x:Bind ViewModel.ApiKeys.OpenRouterKey, Mode=TwoWay}"
                                              PlaceholderText="sk-or-..." VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.SaveOpenRouterKeyCommand}"
+                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.TestOpenRouterKeyCommand}"
+                                        IsEnabled="{x:Bind ViewModel.ApiKeys.OpenRouterTesting, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.TooltipTest, Mode=OneWay}" Width="36" Height="36" Padding="0"
+                                        Background="Transparent" BorderBrush="Transparent">
+                                    <FontIcon Glyph="&#xE839;" FontSize="14"/>
+                                </Button>
+                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.SaveOpenRouterKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipSave, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE73E;" FontSize="14"/>
                                 </Button>
-                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.DeleteOpenRouterKeyCommand}"
+                                <Button Grid.Column="3" Command="{x:Bind ViewModel.ApiKeys.DeleteOpenRouterKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipDelete, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"/>
@@ -333,15 +375,22 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <PasswordBox Password="{x:Bind ViewModel.ApiKeys.RequestyKey, Mode=TwoWay}"
                                              PlaceholderText="Requesty API key" VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.SaveRequestyKeyCommand}"
+                                <Button Grid.Column="1" Command="{x:Bind ViewModel.ApiKeys.TestRequestyKeyCommand}"
+                                        IsEnabled="{x:Bind ViewModel.ApiKeys.RequestyTesting, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
+                                        ToolTipService.ToolTip="{x:Bind ViewModel.TooltipTest, Mode=OneWay}" Width="36" Height="36" Padding="0"
+                                        Background="Transparent" BorderBrush="Transparent">
+                                    <FontIcon Glyph="&#xE839;" FontSize="14"/>
+                                </Button>
+                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.SaveRequestyKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipSave, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE73E;" FontSize="14"/>
                                 </Button>
-                                <Button Grid.Column="2" Command="{x:Bind ViewModel.ApiKeys.DeleteRequestyKeyCommand}"
+                                <Button Grid.Column="3" Command="{x:Bind ViewModel.ApiKeys.DeleteRequestyKeyCommand}"
                                         ToolTipService.ToolTip="{x:Bind ViewModel.TooltipDelete, Mode=OneWay}" Width="36" Height="36" Padding="0"
                                         Background="Transparent" BorderBrush="Transparent">
                                     <FontIcon Glyph="&#xE74D;" FontSize="14"/>

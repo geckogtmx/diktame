@@ -147,6 +147,7 @@ public sealed partial class AIEngineSettingsViewModel : ObservableObject
     // ── Tooltip strings ────────────────────────────────────────────────────
     public string TooltipSave => _loc.GetString("Common_Save");
     public string TooltipDelete => _loc.GetString("Common_Delete");
+    public string TooltipTest => _loc.GetString("Common_Test");
 
     public AIEngineSettingsViewModel(
         ApiKeysSettingsViewModel apiKeys,
