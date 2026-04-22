@@ -149,7 +149,7 @@ public sealed class ApiKeyTester : IDisposable
                 catch (JsonException) { /* fall through — 200 OK alone is success */ }
             }
 
-            string message = count > 0
+            string message = count > 1
                 ? string.Create(CultureInfo.InvariantCulture, $"Connected — {count} items · {ms} ms")
                 : string.Create(CultureInfo.InvariantCulture, $"Connected · {ms} ms");
 

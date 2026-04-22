@@ -41,7 +41,7 @@ public sealed class ApiKeyTesterTests : IDisposable
 
         result.Ok.Should().BeTrue();
         result.Message.Should().StartWith("Connected");
-        if (expectedCount > 0)
+        if (expectedCount > 1)
         {
             result.Message.Should().Contain($"{expectedCount} items");
         }
