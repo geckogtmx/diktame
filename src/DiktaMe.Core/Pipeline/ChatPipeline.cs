@@ -124,7 +124,6 @@ public sealed class ChatPipeline
 
             // ── LLM chat response ─────────────────────────────────────────
             SetState(PipelineState.Processing);
-            ApplyProviderSettings(options);
 
             var effectivePrompt = options.SystemPrompt;
             if (_eventBus is not null)
@@ -226,7 +225,6 @@ public sealed class ChatPipeline
 
             // ── LLM conversation response ────────────────────────────────
             SetState(PipelineState.Processing);
-            ApplyProviderSettings(options);
 
             var convEffectivePrompt = options.SystemPrompt;
             if (_eventBus is not null)
@@ -347,18 +345,6 @@ public sealed class ChatPipeline
 
         selected.Reverse(); // Restore chronological order
         return selected;
-    }
-
-    /// <summary>
-    /// Applies per-request chat settings to the LLM provider.
-    /// Currently sets Gemini web search grounding when enabled.
-    /// </summary>
-    private void ApplyProviderSettings(ChatOptions options)
-    {
-        if (_llm is GeminiProvider gemini)
-        {
-            gemini.WebSearchEnabled = options.WebSearchEnabled;
-        }
     }
 
     private void SetState(PipelineState state) => StateChanged?.Invoke(this, state);

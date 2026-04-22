@@ -273,7 +273,9 @@ public sealed class LLMRouter : ILLMProvider
     {
         if (provider is GeminiProvider gemini && _settings is not null)
         {
-            gemini.WebSearchEnabled = _settings.Current.Chat.WebSearchEnabled;
+            bool enabled = _settings.Current.Chat.WebSearchEnabled;
+            gemini.WebSearchEnabled = enabled;
+            Log.Debug("LLMRouter: applied Gemini WebSearchEnabled={Enabled}", enabled);
         }
     }
 

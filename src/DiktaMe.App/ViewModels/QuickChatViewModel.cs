@@ -39,10 +39,26 @@ public sealed partial class QuickChatViewModel : ObservableObject
 
     [ObservableProperty] private string _conversationTitle = "New Chat";
     [ObservableProperty] private string _systemPrompt = DefaultSystemPrompt;
+    [NotifyPropertyChangedFor(nameof(IsWebSearchCapable))]
     [ObservableProperty] private string? _selectedModelId;
     [ObservableProperty] private bool _isSystemPromptVisible;
     [ObservableProperty] private string _tokenCountText = "";
     [ObservableProperty] private bool _webSearchEnabled;
+
+    /// <summary>
+    /// True when the currently selected model supports web search grounding.
+    /// Today that's Gemini only — Anthropic and OpenAI have no wiring for the
+    /// globe toggle. Drives visibility of the web-search toggle in Quick Chat.
+    /// </summary>
+    public bool IsWebSearchCapable => IsWebSearchCapableModel(SelectedModelId);
+
+    /// <summary>
+    /// Returns true for model IDs routed to a provider that has web-search
+    /// grounding wired end-to-end. Currently only Gemini.
+    /// </summary>
+    internal static bool IsWebSearchCapableModel(string? modelId)
+        => !string.IsNullOrWhiteSpace(modelId)
+        && modelId.StartsWith("gemini-", StringComparison.OrdinalIgnoreCase);
 
     // ── Image attachment (Vision → Chat flow) ──
     [ObservableProperty]

@@ -119,6 +119,7 @@
 
             <ToggleButton Grid.Column="4"
                           IsChecked="{x:Bind ViewModel.WebSearchEnabled, Mode=TwoWay}"
+                          Visibility="{x:Bind ViewModel.IsWebSearchCapable, Mode=OneWay}"
                           Width="32" Height="32" Padding="0">
                 <ToolTipService.ToolTip>
                     <ToolTip l:Uids.Uid="QuickChat_Tooltip_WebSearch" />

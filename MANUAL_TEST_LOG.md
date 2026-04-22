@@ -55,13 +55,13 @@ Authoritative status — supersedes the per-row Status column below (which shows
 | BUG-031 | FIXED (partial)   | 4f81dce    | Requesty model discovery wired. Routing collision with OpenRouter namespace deferred.                       |
 | BUG-032 | FIXED             | 3e09c13    | Chat NRE regression — CP pill limited to dictate slots + Migration 10 heal                                  |
 | BUG-033 | FIXED             | 3e09c13    | Quick Chat picker filters by DisabledModelIds                                                               |
+| BUG-023 | FIXED             | 99a2b95 + 81d8b9b | Test Connection button on all 7 provider cards (OpenAI/Anthropic/Gemini/Deepgram/Inworld/OpenRouter/Requesty). Real authenticated whoami probe, 10s timeout, inline result. Validator tightened: Deepgram/Gemini now reject all-digit keys. Follow-up dropped "1 items" grammar for single-item responses. User-verified all 7 providers green end-to-end. 1246 tests. |
 | BUG-019 | Open              | —          | Vision hotkey row missing from Keyboard Shortcuts settings list                                             |
 | BUG-020 | Open              | —          | Hotkey Record fires the combo being captured                                                                |
 | BUG-021 | Open (cosmetic)   | —          | Quick Chat no in-window mic button                                                                          |
-| BUG-023 | Open              | —          | Settings > API Keys no Test Connection; loose key validation                                                |
 | BUG-025 | Open (decision)   | —          | Tray icon no visual state change                                                                            |
 | BUG-027 | Open              | —          | No default cloud LLM provider picker in AI Engine                                                           |
-| BUG-034 | Open              | —          | Web search toggle no-op for Haiku + likely broken on per-model Gemini                                       |
+| BUG-034 | FIXED (pending user verify) | — | Web search toggle. 2026-04-22 research revised root cause: `LLMRouter.ApplyProviderSettings` IS called on resolved providers (line 294/358/426), so the Gemini path should already work. Removed confusing dead code in `ChatPipeline.ApplyProviderSettings` that checked `_llm is GeminiProvider` (always false since BUG-030 made `_llm` an `LLMRouter`). Added Debug log in `LLMRouter.ApplyProviderSettings` for observability. Globe toggle now hidden for non-Gemini models via new `QuickChatViewModel.IsWebSearchCapable` (binds Visibility). User verifies via log line + Gemini chat with "can you see www.dikta.me". Image-gen (Nano Banana) documented as future feature in Deferred section. |
 
 ---
 
@@ -137,19 +137,41 @@ Authoritative status — supersedes the per-row Status column below (which shows
 - Re-verify BUG-009 through BUG-012 from archived log against current code — separate pass.
 - BUG-008 (license slot burn on same PC after data wipe) — reproducible? Track if it recurs.
 
-### Curiosity: image-generation models in Quick Chat (Nano Banana Pro, etc.)
+### Future feature (NOT a bug): image-generation models in Quick Chat (Nano Banana Pro, etc.)
 
-User tested image-gen models (e.g. `gemini-3-pro-image-preview` aka "Nano Banana Pro") from the Quick Chat picker. Observed: request takes image-generation-latency-length (~16s per log at 17:51:01) but **nothing gets pasted into the chat window**. `ChatPipeline` logs `LLM returned empty conversation answer`. Suspected: Gemini returns multimodal output (text parts + inline_data image parts) but `GeminiProvider.ProcessConversationAsync` only extracts the text portion — image bytes are discarded. For Nano Banana Pro specifically, "text output" is often empty/minimal since the useful payload is the image.
+**Status:** Deferred to end of sprint — new feature, not a regression. Tackle only if time permits after all open bugs are closed.
 
-What would be needed to support this (non-trivial, specs-worthy):
-1. Extend `LlmResult` (or a new `ChatResult`) to carry optional output image bytes + MIME type.
-2. `GeminiProvider` parses inline_data parts from the response and populates them.
-3. Chat message UI renders inline images in the assistant bubble (new WinUI control + conversation-history persistence of image bytes in `ConversationManager`).
-4. Copy/export logic updates to handle image messages.
-5. Token accounting: image-gen requests cost differently from text — separate tracking in `MetricsCollector`.
-6. Model picker flag: surface "image-generation capable" on models so users know what to expect.
+User tested image-gen models (e.g. `gemini-3-pro-image-preview` aka "Nano Banana Pro") from the Quick Chat picker. Observed: request takes image-generation-latency-length (~16s per log at 17:51:01) but **nothing gets pasted into the chat window**. `ChatPipeline` logs `LLM returned empty conversation answer`. Root cause confirmed 2026-04-22: Gemini returns multimodal output (text parts + `inline_data` parts carrying base64 image) but `GeminiProvider.ParseResponse` at line ~395 extracts only `candidates[0].content.parts[0].text` and discards everything else. For Nano Banana Pro, "text output" is often empty/minimal since the useful payload is the image.
 
-Scope: full feature, likely a dedicated spec. Document only for now — BUG-030/032/033 + upcoming BUG-017/018/020/023/031 are higher-priority.
+#### Research findings (2026-04-22)
+
+File-by-file impact, precise line counts:
+
+| File | Current LOC | Change | Effort |
+| ---- | ----------- | ------ | ------ |
+| `src/DiktaMe.Core/LLM/ILLMProvider.cs` (`LlmResult` record, lines 66–95) | 172 | Add `byte[]? ImageData`, `string? ImageMimeType` | Small (<20) |
+| `src/DiktaMe.Core/LLM/GeminiProvider.cs` (`ParseResponse`, lines 380–419) | 458 | Loop over parts, extract first `inline_data` | Medium (50–100) |
+| `src/DiktaMe.Core/Pipeline/PipelineResult.cs` (lines 7–94) | 105 | Add matching image fields | Small (<10) |
+| `src/DiktaMe.Core/Pipeline/ChatPipeline.cs` (lines 273–288) | 398 | Thread image → `PipelineResult` | Small (<30) |
+| `src/DiktaMe.App/ViewModels/ChatMessageViewModel.cs` (lines 34–42) | 42 | `ImageData` + `ImageMimeType` props + visibility | Small (20–30) |
+| `src/DiktaMe.App/ViewModels/QuickChatViewModel.cs` (line 287–289) | 614 | Pass image into `ChatMessageViewModel` ctor | Medium (50–80) |
+| `src/DiktaMe.App/Views/QuickChatWindow.xaml` (assistant bubble at 170–221) | 344 | Conditional `<Image/>` control + binding | Small (30–50) |
+| `src/DiktaMe.Core/Data/ConversationManager.cs` (schema at 448–456) | 477 | SQLite migration: `image_data BLOB`, `image_mime_type TEXT` + read/write | Medium (60–100) |
+
+**Total: 8 files, ~200–320 net LOC, 1 SQLite migration.** Classification: Medium spec.
+
+#### Open design questions
+
+1. **Text + image combo:** When Gemini returns both, keep separate fields in `LlmResult` or roll into a single rich-message structure? Current schema leans toward separate.
+2. **Persistence footprint:** SQLite BLOB (images live with conversation — big DB, single source of truth) vs. link-to-file-cache under `%APPDATA%\DiktaMe\chat-images\` (small DB, cleanup logic needed). Lean: BLOB for simplicity until DB size becomes a real problem.
+3. **UI:** Image-only bubble or merged text+image bubble? Max display dimensions (Nano Banana returns up to 1024×1024)?
+4. **Error handling:** If image extraction fails mid-parse, fall back to text-only or show error bubble?
+5. **Token/cost tracking:** Image-gen requests are billed differently from text. `MetricsCollector` needs a separate image-gen category.
+6. **Model picker hint:** Surface "image-generation capable" flag on models so users know what to expect. Gemini 3.x `-image` variants, eventually OpenAI `gpt-image-1`, etc.
+7. **Copy/export:** Right-click copy on an image bubble → clipboard image (not text). Needed or defer?
+8. **Mixed-provider chat history:** If a prior assistant turn has an image, and user switches to Anthropic mid-conversation, Anthropic's input needs the image described or stripped — need to decide policy.
+
+Spec-worthy. Do NOT start coding without answering all 8 questions.
 
 ---
 
