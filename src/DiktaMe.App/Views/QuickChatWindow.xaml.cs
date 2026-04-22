@@ -113,7 +113,11 @@ public sealed partial class QuickChatWindow : Window
         }
         else if (e.Key == VirtualKey.Escape)
         {
-            this.Close();
+            // Delegate to App so the tracked _quickChatWindow reference is
+            // cleared alongside the hide. Calling this.Close() here leaves a
+            // zombie Window with a null AppWindow that crashes the next
+            // Ctrl+Alt+C toggle or tray-menu Activate call (BUG-022).
+            App.Current.CloseQuickChat();
             e.Handled = true;
         }
         else if (e.Key == VirtualKey.Up && string.IsNullOrEmpty(ViewModel.InputText))

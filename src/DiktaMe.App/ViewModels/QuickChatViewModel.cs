@@ -133,10 +133,21 @@ public sealed partial class QuickChatViewModel : ObservableObject
         try
         {
             var models = await _modelListService.GetAvailableModelsAsync();
+
+            // Filter out cloud models the user has disabled in Settings > AI Engine >
+            // Language Model > Cloud (BUG-028/033). Ollama (Local) models are always
+            // shown — the disabled-list only covers cloud providers.
+            var disabledCloudIds = new HashSet<string>(
+                _settings.Current.CloudLlm.DisabledModelIds, StringComparer.Ordinal);
+            var filtered = models
+                .Where(m => string.Equals(m.Provider, "Ollama (Local)", StringComparison.OrdinalIgnoreCase)
+                            || !disabledCloudIds.Contains(m.ModelId))
+                .ToList();
+
             _dispatcher.TryEnqueue(() =>
             {
                 AvailableModels.Clear();
-                foreach (var model in models)
+                foreach (var model in filtered)
                 {
                     AvailableModels.Add(model);
                 }

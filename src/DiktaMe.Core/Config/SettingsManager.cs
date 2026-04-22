@@ -361,6 +361,32 @@ public sealed class SettingsManager
             Log.Information("SettingsManager: migrated 'refine_instruction' prompt to include {{instruction}} placeholder");
         }
 
+        // Migration 10: Heal UseLlm=false on non-dictate profile slots. The old CP pill
+        // incorrectly cascaded "Off" to all 6 modes, leaving Chat/Ask/Refine/Translate/Note
+        // with UseLlm=false even after the pill went back to Cloud/Local. That state causes
+        // PipelineFactory.GetProviders to return null LLM for non-dictate pipelines, NREing
+        // at first use. The pill now only writes dictate slots; fix the stale state here.
+        var modesToHeal = new[] { "refine", "ask", "translate", "note", "chat" };
+        bool anyHealed = false;
+        var healedProfiles = new Dictionary<string, ModeSettings>(migrated.ModeProfiles, StringComparer.Ordinal);
+        foreach (var mode in modesToHeal)
+        {
+            for (int p = 0; p < 2; p++)
+            {
+                string key = $"{mode}_{p}";
+                if (healedProfiles.TryGetValue(key, out var ms) && !ms.UseLlm)
+                {
+                    healedProfiles[key] = ms with { UseLlm = true };
+                    anyHealed = true;
+                }
+            }
+        }
+        if (anyHealed)
+        {
+            migrated = migrated with { ModeProfiles = healedProfiles };
+            Log.Information("SettingsManager: healed UseLlm=false on non-dictate profile slots (Migration 10)");
+        }
+
         // Migration 8: Auto-complete wizard when a settings file already exists on disk.
         // If MigrateIfNeeded is called, the file was loaded from disk — the user has been
         // using the app. WizardCompleted=false in an existing file means the flag wasn't

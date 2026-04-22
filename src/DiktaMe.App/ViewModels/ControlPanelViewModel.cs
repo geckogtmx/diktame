@@ -931,21 +931,21 @@ public sealed partial class ControlPanelViewModel : ObservableObject
         {
             bool rawMode = value == LlmMode.Off;
 
-            // The pill is a Cloud/Local/Off switch — it flips ActiveProfileName (which
-            // selects CloudProfile vs LocalProfile in DictationModeManager) and toggles
-            // UseLlm. It must NOT overwrite ModeProfiles[...].LlmProvider — doing so
-            // clobbers the user's per-mode provider selection (BUG-030). The LLM provider
-            // is now derived from DictationProfile.ModelName via LLMRouter, not stored here.
+            // The pill is a Cloud/Local/Off switch that governs DICTATION only.
+            // "Off" means raw transcripts (skip the LLM cleanup step) — it does NOT
+            // disable Chat/Ask/Refine/Translate/Note, which have their own model
+            // pickers and are inherently LLM-driven. Writing UseLlm=false to every
+            // mode's profile slot breaks those pipelines with a null-LLM NRE.
+            //
+            // We also never write LlmProvider — the provider is derived from
+            // DictationProfile.ModelName via LLMRouter (BUG-030). The pill only
+            // flips ActiveProfileName (Cloud vs Local) and UseLlm on dictate slots.
             var profiles = new Dictionary<string, ModeSettings>(_settings.Current.ModeProfiles);
-            string[] modes = ["dictate", "refine", "ask", "translate", "note", "chat"];
-            foreach (var mode in modes)
+            for (int p = 0; p < 2; p++)
             {
-                for (int p = 0; p < 2; p++)
-                {
-                    string key = $"{mode}_{p}";
-                    var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
-                    profiles[key] = existing with { UseLlm = !rawMode };
-                }
+                string key = $"dictate_{p}";
+                var existing = profiles.TryGetValue(key, out var ms) ? ms : new ModeSettings();
+                profiles[key] = existing with { UseLlm = !rawMode };
             }
 
             // Off preserves the prior ActiveProfileName — toggling LLM off shouldn't
