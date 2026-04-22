@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiktaMe.App.Services;
 using DiktaMe.Core.Config;
+using DiktaMe.Core.SystemManagement;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Serilog;
@@ -15,6 +16,7 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     private readonly SettingsManager _settings;
     private readonly LocalizationService _loc;
     private readonly ThemeService _themeService;
+    private readonly AutoStartManager _autoStartManager;
     private bool _isLoading;
 
     public HotkeysSettingsViewModel Hotkeys { get; }
@@ -156,11 +158,12 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
 
     public string[] ThemeNames => ThemeService.AvailableThemes;
 
-    public GeneralSettingsViewModel(SettingsManager settings, LocalizationService loc, ThemeService themeService, HotkeysSettingsViewModel hotkeys)
+    public GeneralSettingsViewModel(SettingsManager settings, LocalizationService loc, ThemeService themeService, HotkeysSettingsViewModel hotkeys, AutoStartManager autoStart)
     {
         _settings = settings;
         _loc = loc;
         _themeService = themeService;
+        _autoStartManager = autoStart;
         Hotkeys = hotkeys;
 
         LoadSubItems();
@@ -296,7 +299,24 @@ public sealed partial class GeneralSettingsViewModel : ObservableObject
     }
 
     partial void OnSelectedLanguageIndexChanged(int value) => Save();
-    partial void OnAutoStartChanged(bool value) => Save();
+    partial void OnAutoStartChanged(bool value)
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        // Apply the OS-level registration BEFORE saving so a failed registration
+        // doesn't leave persisted state claiming auto-start is on (BUG-018).
+        // ApplyAsync logs its own failures; we still persist the toggle so the UI
+        // reflects the user's intent and a subsequent retry is possible.
+        if (!_autoStartManager.ApplyAsync(value))
+        {
+            Log.Warning("GeneralSettingsViewModel: AutoStartManager.ApplyAsync({Value}) returned false — task registration may be out of sync", value);
+        }
+
+        Save();
+    }
     partial void OnSelectedAdditionalKeyIndexChanged(int value) => Save();
     partial void OnShowModesRowChanged(bool value) => Save();
     partial void OnShowActionsRowChanged(bool value) => Save();

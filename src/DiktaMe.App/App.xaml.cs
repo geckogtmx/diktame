@@ -659,6 +659,7 @@ public partial class App : Application
             new OllamaManager(baseUrl: sp.GetRequiredService<SettingsManager>().Current.OllamaBaseUrl));
         services.AddSingleton<OllamaSearchService>();
         services.AddSingleton<HardwareInfoService>();
+        services.AddSingleton<AutoStartManager>();
 
         ConfigurePlugins(services);
 
