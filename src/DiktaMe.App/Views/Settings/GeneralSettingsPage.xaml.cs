@@ -1,5 +1,6 @@
 
 using DiktaMe.App.ViewModels.Settings;
+using DiktaMe.Core.Input;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -17,6 +18,7 @@ namespace DiktaMe.App.Views.Settings;
 public sealed partial class GeneralSettingsPage : Page
 {
     public GeneralSettingsViewModel ViewModel { get; }
+    private readonly HotkeyManager _hotkeyManager;
     private TextBox? _recordingTextBox;
     private string? _recordingTarget;
     private SolidColorBrush? _normalBorderBrush;
@@ -25,6 +27,7 @@ public sealed partial class GeneralSettingsPage : Page
     public GeneralSettingsPage()
     {
         ViewModel = App.Current.Services.GetRequiredService<GeneralSettingsViewModel>();
+        _hotkeyManager = App.Current.Services.GetRequiredService<HotkeyManager>();
         this.InitializeComponent();
 
         _recordingBorderBrush = new SolidColorBrush(Colors.Orange);
@@ -45,6 +48,13 @@ public sealed partial class GeneralSettingsPage : Page
     private void StartRecording(TextBox textBox, string target)
     {
         StopRecording();
+
+        // Suspend all global hotkeys so Win32 doesn't consume the keypress before
+        // the TextBox sees it. Previously, pressing e.g. Ctrl+Alt+Q while recording
+        // a new hotkey fired the ReadSelection pipeline instead of capturing the
+        // combo (BUG-020). ResumeAll is called from StopRecording on both
+        // accept (SetHotkeyValue) and cancel (LostFocus) paths.
+        _hotkeyManager.SuspendAll();
 
         _recordingTextBox = textBox;
         _recordingTarget = target;
@@ -84,6 +94,13 @@ public sealed partial class GeneralSettingsPage : Page
         _recordingTextBox = null;
         _recordingTarget = null;
         ViewModel.Hotkeys.SetRecordingTarget(null);
+
+        // Restore all global hotkeys suspended in StartRecording. If a new combo
+        // was captured, SetHotkeyValue has already persisted it and the settings-
+        // change handler will re-register with the new value immediately after —
+        // calling ResumeAll here restores the prior state safely (the later
+        // re-registration is idempotent via Register's unregister-first step).
+        _hotkeyManager.ResumeAll();
     }
 
     private void TextBox_KeyDown(object sender, KeyRoutedEventArgs e)

@@ -34,6 +34,8 @@ public sealed class HotkeyManager : IDisposable
     private IntPtr _hwnd = IntPtr.Zero;
     private readonly ManualResetEventSlim _hwndReady = new(false);
     private readonly ConcurrentDictionary<HotkeyId, HotkeyRegistration> _registrations = new();
+    private readonly ConcurrentDictionary<HotkeyId, string> _suspendedRegistrations = new();
+    private volatile bool _isSuspended;
     private readonly ConcurrentDictionary<HotkeyId, long> _lastPressTimestamps = new();
     private readonly System.Collections.Concurrent.BlockingCollection<Action> _actionQueue = new();
     private volatile bool _running;
@@ -175,6 +177,57 @@ public sealed class HotkeyManager : IDisposable
         {
             Unregister(id);
         }
+    }
+
+    /// <summary>
+    /// Snapshots the current registrations, unregisters all, and remembers them for
+    /// <see cref="ResumeAll"/>. Used by the Settings > Keyboard Shortcuts Record UI:
+    /// Win32 RegisterHotKey consumes the keypress before any in-app focus target
+    /// sees it, so a user trying to rebind a hotkey to an already-bound combo fires
+    /// the existing pipeline instead of capturing the combo (BUG-020). Suspending
+    /// all hotkeys during Record lets the TextBox see the keys, then ResumeAll
+    /// restores them on Accept/Cancel.
+    /// </summary>
+    public void SuspendAll()
+    {
+        if (_isSuspended)
+        {
+            return;
+        }
+
+        _suspendedRegistrations.Clear();
+        foreach (var kvp in _registrations)
+        {
+            _suspendedRegistrations[kvp.Key] = kvp.Value.HotkeyString;
+        }
+
+        UnregisterAll();
+        _isSuspended = true;
+        Log.Debug("HotkeyManager: suspended {Count} hotkeys", _suspendedRegistrations.Count);
+    }
+
+    /// <summary>
+    /// Re-registers the hotkeys captured by the most recent <see cref="SuspendAll"/>.
+    /// No-op if not currently suspended.
+    /// </summary>
+    public void ResumeAll()
+    {
+        if (!_isSuspended)
+        {
+            return;
+        }
+
+        _isSuspended = false;
+        int resumed = 0;
+        foreach (var kvp in _suspendedRegistrations)
+        {
+            if (Register(kvp.Key, kvp.Value))
+            {
+                resumed++;
+            }
+        }
+        _suspendedRegistrations.Clear();
+        Log.Debug("HotkeyManager: resumed {Count} hotkeys", resumed);
     }
 
     /// <summary>
