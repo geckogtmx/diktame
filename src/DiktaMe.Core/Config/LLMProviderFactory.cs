@@ -88,7 +88,12 @@ public sealed class LLMProviderFactory : ILLMProviderFactory
 
             "requesty" => OpenAICompatibleProvider.ForRequesty(
                 key ?? throw new InvalidOperationException("Requesty API key not configured."),
-                model: effectiveModel),
+                // Strip the "requesty:" namespace prefix added by
+                // ModelListService.QueryRequestyModelsAsync — the Requesty API
+                // itself expects the bare "provider/model" form.
+                model: effectiveModel.StartsWith("requesty:", StringComparison.Ordinal)
+                    ? effectiveModel["requesty:".Length..]
+                    : effectiveModel),
 
             "ollama" => CreateOllamaProvider(effectiveModel, keepAlive),
 

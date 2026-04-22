@@ -66,6 +66,26 @@ public sealed class LLMProviderFactoryTests : IDisposable
         provider.Should().BeOfType<GeminiProvider>();
     }
 
+    [Fact]
+    public void CreateProvider_Requesty_StripsNamespacePrefixFromModel()
+    {
+        // BUG-031 follow-up: ModelListService prefixes Requesty IDs with
+        // "requesty:" to distinguish them from OpenRouter. The factory must
+        // strip that prefix before handing the model name to the HTTP layer.
+        var factory = new LLMProviderFactory(_secureStorage, _settings);
+
+        var provider = factory.CreateProvider(
+            "requesty",
+            apiKey: "test-key",
+            model: "requesty:openai/gpt-4o-mini");
+
+        provider.Should().BeOfType<OpenAICompatibleProvider>();
+        // ProviderName format is "{model} ({serviceName})" — the bare model
+        // should appear without the "requesty:" prefix.
+        provider.ProviderName.Should().Contain("openai/gpt-4o-mini");
+        provider.ProviderName.Should().NotContain("requesty:");
+    }
+
     [Theory]
     [InlineData("anthropic")]
     [InlineData("claude")]

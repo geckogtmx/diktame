@@ -147,6 +147,7 @@ public sealed partial class LoadingViewModel : ObservableObject
             Progress = 0;
             await _settings.LoadAsync();
             ReconcileAutoStart(); // BUG-018 — must run AFTER LoadAsync
+            _ = MaybeShowRequestyMigrationToastAsync(); // BUG-031 follow-up — one-shot
             Progress = 25;
 
             // Step 2: Initialize databases
@@ -468,6 +469,81 @@ public sealed partial class LoadingViewModel : ObservableObject
         {
             Log.Warning(ex, "LoadingViewModel: Auto-Start reconciliation failed (non-fatal)");
         }
+    }
+
+    /// <summary>
+    /// BUG-031 follow-up: one-shot migration toast. If the user has a Requesty
+    /// API key saved but any persisted model ID is still in the pre-namespace
+    /// "provider/model" form (no "requesty:" prefix), ask them to re-select
+    /// their model in Settings. Flips a persisted flag so it only fires once.
+    /// Failures are non-fatal — logged and swallowed.
+    /// </summary>
+    private async Task MaybeShowRequestyMigrationToastAsync()
+    {
+        try
+        {
+            if (_settings.Current.General.RequestyMigrationNoticeShown)
+            {
+                return;
+            }
+
+            var secureStorage = App.Current.Services.GetRequiredService<SecureStorage>();
+            string? requestyKey = secureStorage.RetrieveKey("requesty");
+            if (string.IsNullOrWhiteSpace(requestyKey))
+            {
+                // No Requesty key — nothing to migrate. Mark notice shown so we
+                // don't check forever on startups where the user never had it.
+                await PersistRequestyMigrationShownAsync().ConfigureAwait(false);
+                return;
+            }
+
+            // Collect every persisted model ID we know about.
+            var s = _settings.Current;
+            var ids = new List<string?>();
+            foreach (var kv in s.ModeProfiles)
+            {
+                ids.Add(kv.Value.LlmModel);
+            }
+            foreach (var m in s.DictationModes)
+            {
+                ids.Add(m.CloudProfile?.ModelName);
+            }
+            foreach (var p in s.UtilityPipelines)
+            {
+                ids.Add(p.CloudProfile?.ModelName);
+            }
+            ids.Add(s.Chat.DefaultModelId);
+            ids.Add(s.Vision.CloudVisionModelId);
+
+            bool hasSuspect = ids.Any(id =>
+                !string.IsNullOrWhiteSpace(id)
+                && id!.Contains('/', StringComparison.Ordinal)
+                && !id.StartsWith("requesty:", StringComparison.Ordinal));
+
+            if (hasSuspect)
+            {
+                _notifications.ShowToast(
+                    "Requesty update",
+                    "Please re-select your Requesty model in Settings > AI Engine > Language Model.",
+                    NotificationType.Info);
+                Log.Information("LoadingViewModel: Requesty namespace migration toast shown");
+            }
+
+            await PersistRequestyMigrationShownAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "LoadingViewModel: Requesty migration toast check failed (non-fatal)");
+        }
+    }
+
+    private async Task PersistRequestyMigrationShownAsync()
+    {
+        var updated = _settings.Current with
+        {
+            General = _settings.Current.General with { RequestyMigrationNoticeShown = true },
+        };
+        await _settings.UpdateAsync(updated).ConfigureAwait(false);
     }
 
     private void OnHotkeyPressed(object? sender, HotkeyPressedEventArgs e)

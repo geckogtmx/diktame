@@ -130,6 +130,15 @@ public sealed record GeneralSettings
 
     /// <summary>App color theme: "Midnight" (cool dark), "Ember" (warm dark), or "Frost" (light).</summary>
     public string ThemeName { get; init; } = "Midnight";
+
+    /// <summary>
+    /// One-shot flag for the Requesty namespace migration (BUG-031 follow-up).
+    /// When false on startup, LoadingViewModel checks whether any persisted
+    /// model ID looks like a pre-namespace Requesty selection and, if so,
+    /// shows a one-time toast asking the user to re-select. Then this flag
+    /// is set to true so the check never fires again.
+    /// </summary>
+    public bool RequestyMigrationNoticeShown { get; init; } = false;
 }
 
 /// <summary>

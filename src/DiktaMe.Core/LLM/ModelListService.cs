@@ -360,9 +360,17 @@ public sealed class ModelListService : IDisposable
                         ? ctx
                         : null;
 
+                    // Namespace the ID with a "requesty:" prefix so
+                    // ResolveProviderFromModelId can distinguish it from
+                    // OpenRouter's identical "provider/model" scheme.
+                    // LLMProviderFactory strips the prefix before the HTTP call.
+                    string namespacedId = id.StartsWith("requesty:", StringComparison.Ordinal)
+                        ? id
+                        : $"requesty:{id}";
+
                     models.Add(new ModelInfo
                     {
-                        ModelId = id,
+                        ModelId = namespacedId,
                         DisplayName = displayName,
                         Provider = "Requesty",
                         IsAvailable = true,
@@ -438,6 +446,13 @@ public sealed class ModelListService : IDisposable
 
         // Normalize to lowercase for prefix matching
         string normalized = modelId.ToLowerInvariant();
+
+        // Requesty (namespaced) — MUST come before the "provider/model" slash
+        // branch below, since Requesty IDs share that visual scheme.
+        if (normalized.StartsWith("requesty:", StringComparison.Ordinal))
+        {
+            return "requesty";
+        }
 
         // OpenAI models
         if (normalized.StartsWith("gpt-", StringComparison.Ordinal) ||

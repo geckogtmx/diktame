@@ -88,6 +88,25 @@ public sealed class ModelListServiceTests
         Assert.Equal("gemini", ModelListService.ResolveProviderFromModelId("GEMINI-2.5-FLASH"));
     }
 
+    [Theory]
+    [InlineData("requesty:openai/gpt-4o-mini", "requesty")]
+    [InlineData("requesty:anthropic/claude-3.5-sonnet", "requesty")]
+    [InlineData("requesty:custom/weird-model", "requesty")]
+    public void Resolve_RequestyPrefix_RoutesToRequesty(string modelId, string expected)
+    {
+        Assert.Equal(expected, ModelListService.ResolveProviderFromModelId(modelId));
+    }
+
+    [Fact]
+    public void Resolve_BareProviderSlashModel_StillRoutesToOpenRouter()
+    {
+        // Regression guard: pre-namespace Requesty IDs (no prefix) stay on the
+        // OpenRouter path, matching the collision behavior we document in the
+        // migration notice.
+        Assert.Equal("openrouter", ModelListService.ResolveProviderFromModelId("openai/gpt-4o-mini"));
+        Assert.Equal("openrouter", ModelListService.ResolveProviderFromModelId("anthropic/claude-3.5-sonnet"));
+    }
+
     // ── IsChatModel filtering (tested indirectly via OpenAI query) ──────────
 
     [Fact]

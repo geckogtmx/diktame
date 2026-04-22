@@ -12,10 +12,10 @@
 
 - [x] Ollama uninstalled — verify `%LOCALAPPDATA%\Programs\Ollama\ollama.exe` absent
 - [x] `%APPDATA%\DiktaMe\models\` deleted (Whisper `.bin` files)
-- [ ] `%APPDATA%\DiktaMe\models\tts\` deleted (Kokoro ONNX)
-- [ ] `%APPDATA%\DiktaMe\settings.json` deleted
-- [ ] Power License active (valid key, slots available)
-- [ ] App rebuilt fresh: `dotnet build src/DiktaMe.App/DiktaMe.App.csproj -c Release "-p:Platform=x64"`
+- [x] `%APPDATA%\DiktaMe\models\tts\` deleted (Kokoro ONNX)
+- [x] `%APPDATA%\DiktaMe\settings.json` deleted
+- [x] Power License active (valid key, slots available)
+- [x] App rebuilt fresh: `dotnet build src/DiktaMe.App/DiktaMe.App.csproj -c Release "-p:Platform=x64"`
 
 Cleanup commands:
 ```powershell
@@ -53,7 +53,7 @@ Authoritative status. The per-row Status column in the "Bugs Found" table below 
 | BUG-024 | FIXED             | 23eeb47    | PII Scrubber honoured at Full — verified via history.db id 43 ([REDACTED]) vs 45 (verbatim). Gap surfaced 2026-04-21: PhonePattern is US 10-digit-only — 8-digit local numbers + international formats are not redacted. Decision deferred. |
 | BUG-028 | FIXED             | bcbc32d    | Cloud LLM defaults filter (479/483 off) + per-provider All On/Off                                           |
 | BUG-030 | FIXED             | 1b24894 + eae8644 | LLM routing end-to-end, verified across Anthropic/OpenAI/OpenRouter                                  |
-| BUG-031 | FIXED (partial)   | 4f81dce    | Requesty model discovery wired. Routing collision with OpenRouter namespace deferred.                       |
+| BUG-031 | FIXED             | 4f81dce + (next) | Requesty model discovery + namespace prefix (`requesty:provider/model`) so ResolveProviderFromModelId can distinguish from OpenRouter. Factory strips prefix before HTTP. One-time migration toast if persisted bare `provider/model` IDs are detected with a Requesty key saved. Verified 2026-04-22 end-to-end: `vertex/gemini-2.5-pro (Requesty)` + `coding/gemini-2.5-flash@us-south1 (Requesty)` both routed correctly to router.requesty.ai (HTTP 402 "Insufficient balance" response confirms Requesty auth accepted the key — not silently sent to OpenRouter as before). User to top up Requesty wallet to re-test a paid call; no further code work needed on this bug. |
 | BUG-032 | FIXED             | 3e09c13    | Chat NRE regression — CP pill limited to dictate slots + Migration 10 heal                                  |
 | BUG-033 | FIXED             | 3e09c13    | Quick Chat picker filters by DisabledModelIds                                                               |
 | BUG-023 | FIXED             | 99a2b95 + 81d8b9b | Test Connection button on all 7 provider cards (OpenAI/Anthropic/Gemini/Deepgram/Inworld/OpenRouter/Requesty). Real authenticated whoami probe, 10s timeout, inline result. Validator tightened: Deepgram/Gemini now reject all-digit keys. Follow-up dropped "1 items" grammar for single-item responses. User-verified all 7 providers green end-to-end. 1246 tests. |
@@ -62,6 +62,7 @@ Authoritative status. The per-row Status column in the "Bugs Found" table below 
 | BUG-021 | WONTFIX           | —          | Quick Chat no in-window mic button. Closed 2026-04-22: this is a dictation app — global Dictate hotkey already injects into the focused Quick Chat text box. An in-window mic button would be purely cosmetic. Not a bug. |
 | BUG-025 | WONTFIX           | —          | Tray icon no visual state change. Closed 2026-04-22 as a hallucinated bug — the tray icon is not required to change visually; tooltip-only is the intended behavior. Not a bug. |
 | BUG-027 | Open              | —          | No default cloud LLM provider picker in AI Engine                                                           |
+| BUG-035 | Open (low-repro)  | —          | Control Panel invisible on launch but dictation functional. Observed once 2026-04-23 after rebuild with BUG-031 follow-up changes. Hotkey dictation worked end-to-end (verified in log), but the CP window had no visible affordance on screen. Workaround: Settings > Control Panel > Bar Position > Top Left → CP appeared. Closed and relaunched → CP stayed visible where user positioned it. Could not reproduce after that one occurrence. Suspected: saved position off-screen or Z-order/Visibility property drift during init. Needs logging of CP window rect on show + diff against display bounds. |
 | BUG-034 | FIXED (pending user verify) | — | Web search toggle. 2026-04-22 research revised root cause: `LLMRouter.ApplyProviderSettings` IS called on resolved providers (line 294/358/426), so the Gemini path should already work. Removed confusing dead code in `ChatPipeline.ApplyProviderSettings` that checked `_llm is GeminiProvider` (always false since BUG-030 made `_llm` an `LLMRouter`). Added Debug log in `LLMRouter.ApplyProviderSettings` for observability. Globe toggle now hidden for non-Gemini models via new `QuickChatViewModel.IsWebSearchCapable` (binds Visibility). User verifies via log line + Gemini chat with "can you see www.dikta.me". Image-gen (Nano Banana) documented as future feature in Deferred section. |
 
 ---
