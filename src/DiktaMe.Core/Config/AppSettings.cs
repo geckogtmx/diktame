@@ -460,6 +460,25 @@ public sealed record CloudLlmSettings
     /// re-applying the filter on every model list refresh once the user has curated.
     /// </summary>
     public bool DefaultsApplied { get; init; } = false;
+
+    /// <summary>
+    /// User-preferred default cloud LLM provider type (e.g. "gemini", "openai",
+    /// "anthropic", "openrouter", "requesty"). Used by the wizard on fresh installs
+    /// and offered as the "reset all modes to this provider's default model"
+    /// propagation target when changed in Settings > AI Engine > Language Model.
+    /// </summary>
+    public string DefaultCloudLlmProvider { get; init; } = "gemini";
+
+    /// <summary>
+    /// User-picked default cloud LLM model ID paired with <see cref="DefaultCloudLlmProvider"/>.
+    /// Always a concrete model ID from the live provider /v1/models listing — never
+    /// a hardcoded canonical. Empty string means "no default picked yet" (fresh install
+    /// before the user has visited Settings > AI Engine > Language Model or completed
+    /// the wizard with a valid API key). Propagation via the Settings confirmation dialog
+    /// or wizard Finish writes this verbatim to every DictationModes[].CloudProfile.ModelName
+    /// and UtilityPipelines[].CloudProfile.ModelName.
+    /// </summary>
+    public string DefaultCloudLlmModelId { get; init; } = "";
 }
 
 /// <summary>

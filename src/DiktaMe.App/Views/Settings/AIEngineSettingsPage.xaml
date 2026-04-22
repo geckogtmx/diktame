@@ -585,13 +585,48 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Default Cloud Provider + Model (BUG-027) -->
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Default cloud provider and model"
+                                       FontSize="14" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AppTextBrush}"/>
+                            <TextBlock Text="Pick the provider first, then a specific model from its enabled list. The model is used as the default for new pipelines; picking a new one offers to reset existing pipelines to match. To add more options to the Model list, enable them in the provider list below."
+                                       FontSize="12" Foreground="{StaticResource AppTextDimBrush}"
+                                       TextWrapping="Wrap"/>
+
+                            <!-- Provider -->
+                            <TextBlock Text="Provider" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"
+                                       Margin="0,4,0,0"/>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.CloudLlm.AvailableProviderDisplayNames}"
+                                      SelectedIndex="{x:Bind ViewModel.CloudLlm.DefaultProviderIndex, Mode=TwoWay}"
+                                      MinWidth="220"
+                                      HorizontalAlignment="Left"/>
+
+                            <!-- Model (populated from enabled models of the selected provider) -->
+                            <TextBlock Text="Model" FontSize="12"
+                                       Foreground="{StaticResource AppTextDimBrush}"
+                                       Margin="0,4,0,0"/>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.CloudLlm.DefaultModelDisplayNames}"
+                                      SelectedIndex="{x:Bind ViewModel.CloudLlm.DefaultModelIndex, Mode=TwoWay}"
+                                      IsEnabled="{x:Bind ViewModel.CloudLlm.DefaultModelDropdownDisabled, Mode=OneWay, Converter={StaticResource LocalBoolNeg}}"
+                                      MinWidth="320"
+                                      HorizontalAlignment="Left"/>
+                            <TextBlock Text="{x:Bind ViewModel.CloudLlm.DefaultModelHint, Mode=OneWay}"
+                                       FontSize="11" Foreground="{StaticResource AppTextDimBrush}"
+                                       TextWrapping="Wrap"
+                                       Visibility="{x:Bind ViewModel.CloudLlm.DefaultModelDropdownDisabled, Mode=OneWay, Converter={StaticResource LocalBoolToVis}}"/>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Provider-grouped model list -->
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.CloudLlm.ProviderGroups}">
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:ProviderModelGroup">
                                 <Expander HorizontalAlignment="Stretch"
                                           HorizontalContentAlignment="Stretch"
-                                          IsExpanded="True"
+                                          IsExpanded="False"
                                           Margin="0,0,0,4">
                                     <Expander.Header>
                                         <Grid ColumnSpacing="12">

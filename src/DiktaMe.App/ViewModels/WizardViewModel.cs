@@ -70,6 +70,14 @@ public sealed partial class WizardViewModel : ObservableObject
         _accountService = accountService;
         _loc = loc;
         _nextButtonText = _loc.GetString("Wizard_Next");
+
+        // BUG-027: respect the user's saved default cloud LLM provider.
+        // Falls back to "gemini" (the field's default) when unset or invalid.
+        string savedDefault = _settings.Current.CloudLlm.DefaultCloudLlmProvider;
+        if (!string.IsNullOrWhiteSpace(savedDefault))
+        {
+            _cloudLlmProvider = savedDefault;
+        }
     }
 
     [RelayCommand]

@@ -26,6 +26,34 @@ public sealed partial class AIEngineSettingsPage : Page
 
         // Auto-check Ollama health on page load to populate model list
         this.Loaded += (s, e) => _ = ViewModel.Ollama.CheckHealthCommand.ExecuteAsync(null);
+
+        // BUG-027: when the user changes the default cloud LLM provider, the
+        // ViewModel persists the new default immediately and then raises this
+        // event so we can offer the "reset all modes" propagation dialog.
+        ViewModel.CloudLlm.DefaultProviderChangeRequested += OnDefaultProviderChangeRequested;
+    }
+
+    private async void OnDefaultProviderChangeRequested(
+        object? sender, DefaultProviderChangeRequestedEventArgs e)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = "Reset all mode model selections?",
+            Content = $"Rewrite all Dictate, Refine, Ask, Translate, Note, and Chat "
+                    + $"model selections to {e.ProviderDisplayName} / {e.ModelDisplayName}?\n\n"
+                    + $"Choose No to keep your per-mode picks unchanged. The default "
+                    + $"provider and model have already been saved either way.",
+            PrimaryButtonText = "Yes, reset",
+            CloseButtonText = "No, keep my picks",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot,
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result == ContentDialogResult.Primary)
+        {
+            await ViewModel.CloudLlm.PropagateDefaultModelToAllModesAsync(e.ModelId);
+        }
     }
 
     private async Task ShowModelInfoDialogAsync()
