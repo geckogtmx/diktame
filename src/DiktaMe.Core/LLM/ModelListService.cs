@@ -56,11 +56,40 @@ public sealed class ModelListService : IDisposable
         return allModels;
     }
 
+    /// <summary>
+    /// Fetches the live model list for a single provider. Primarily used by
+    /// the wizard, which lets the user test a newly-typed API key and pick
+    /// a specific model BEFORE committing the key to <see cref="SecureStorage"/>.
+    /// Pass <paramref name="overrideKey"/> to use a not-yet-persisted key;
+    /// otherwise the stored key is used exactly as <see cref="GetAvailableModelsAsync"/>.
+    /// </summary>
+    /// <param name="providerType">Lowercase type id — "openai", "anthropic", "gemini", "openrouter", "requesty".</param>
+    /// <param name="overrideKey">Optional not-yet-persisted key; takes precedence over SecureStorage.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Cloud models for the provider. Empty list on failure (failures are logged, never thrown).</returns>
+    public Task<List<ModelInfo>> GetModelsForProviderAsync(
+        string providerType,
+        string? overrideKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        return providerType.ToLowerInvariant() switch
+        {
+            "openai" => QueryOpenAIModelsAsync(cancellationToken, overrideKey),
+            "anthropic" => QueryAnthropicModelsAsync(cancellationToken, overrideKey),
+            "gemini" => QueryGeminiModelsAsync(cancellationToken, overrideKey),
+            "openrouter" => QueryOpenRouterModelsAsync(cancellationToken, overrideKey),
+            "requesty" => QueryRequestyModelsAsync(cancellationToken, overrideKey),
+            _ => Task.FromResult<List<ModelInfo>>([]),
+        };
+    }
+
     // ── OpenAI: GET /v1/models ──────────────────────────────────────────────
 
-    private async Task<List<ModelInfo>> QueryOpenAIModelsAsync(CancellationToken ct)
+    private async Task<List<ModelInfo>> QueryOpenAIModelsAsync(CancellationToken ct, string? overrideKey = null)
     {
-        string? apiKey = _secureStorage.RetrieveKey("openai");
+        string? apiKey = !string.IsNullOrWhiteSpace(overrideKey)
+            ? overrideKey
+            : _secureStorage.RetrieveKey("openai");
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             return [];
@@ -112,9 +141,11 @@ public sealed class ModelListService : IDisposable
 
     // ── Anthropic: GET /v1/models ───────────────────────────────────────────
 
-    private async Task<List<ModelInfo>> QueryAnthropicModelsAsync(CancellationToken ct)
+    private async Task<List<ModelInfo>> QueryAnthropicModelsAsync(CancellationToken ct, string? overrideKey = null)
     {
-        string? apiKey = _secureStorage.RetrieveKey("anthropic");
+        string? apiKey = !string.IsNullOrWhiteSpace(overrideKey)
+            ? overrideKey
+            : _secureStorage.RetrieveKey("anthropic");
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             return [];
@@ -164,9 +195,11 @@ public sealed class ModelListService : IDisposable
 
     // ── Google Gemini: GET /v1beta/models ────────────────────────────────────
 
-    private async Task<List<ModelInfo>> QueryGeminiModelsAsync(CancellationToken ct)
+    private async Task<List<ModelInfo>> QueryGeminiModelsAsync(CancellationToken ct, string? overrideKey = null)
     {
-        string? apiKey = _secureStorage.RetrieveKey("gemini");
+        string? apiKey = !string.IsNullOrWhiteSpace(overrideKey)
+            ? overrideKey
+            : _secureStorage.RetrieveKey("gemini");
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             return [];
@@ -246,9 +279,11 @@ public sealed class ModelListService : IDisposable
 
     // ── OpenRouter: GET /api/v1/models ──────────────────────────────────────
 
-    private async Task<List<ModelInfo>> QueryOpenRouterModelsAsync(CancellationToken ct)
+    private async Task<List<ModelInfo>> QueryOpenRouterModelsAsync(CancellationToken ct, string? overrideKey = null)
     {
-        string? apiKey = _secureStorage.RetrieveKey("openrouter");
+        string? apiKey = !string.IsNullOrWhiteSpace(overrideKey)
+            ? overrideKey
+            : _secureStorage.RetrieveKey("openrouter");
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             return [];
@@ -320,9 +355,11 @@ public sealed class ModelListService : IDisposable
     // user's Requesty selection from an OpenRouter one — BUG-031 follow-up
     // tracks the namespacing fix needed for clean routing.
 
-    private async Task<List<ModelInfo>> QueryRequestyModelsAsync(CancellationToken ct)
+    private async Task<List<ModelInfo>> QueryRequestyModelsAsync(CancellationToken ct, string? overrideKey = null)
     {
-        string? apiKey = _secureStorage.RetrieveKey("requesty");
+        string? apiKey = !string.IsNullOrWhiteSpace(overrideKey)
+            ? overrideKey
+            : _secureStorage.RetrieveKey("requesty");
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             return [];

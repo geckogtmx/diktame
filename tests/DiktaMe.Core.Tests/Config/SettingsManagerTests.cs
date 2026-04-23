@@ -29,6 +29,39 @@ public sealed class SettingsManagerTests : IDisposable
     // ── Unit tests (no I/O) ───────────────────────────────────────────────────
 
     [Fact, Trait("Category", "Unit")]
+    public void AppSettings_CloudLlm_DefaultsAndRoundTrip()
+    {
+        // Default values for BUG-027's picker + new SeenModelIds field.
+        var fresh = new AppSettings().CloudLlm;
+        Assert.Equal("gemini", fresh.DefaultCloudLlmProvider);
+        Assert.Equal("", fresh.DefaultCloudLlmModelId);
+        Assert.Empty(fresh.DisabledModelIds);
+        Assert.Empty(fresh.SeenModelIds);
+        Assert.False(fresh.DefaultsApplied);
+
+        // JSON round-trip preserves both new fields + legacy ones.
+        var original = new AppSettings
+        {
+            CloudLlm = new CloudLlmSettings
+            {
+                DefaultCloudLlmProvider = "anthropic",
+                DefaultCloudLlmModelId = "claude-opus-4-20250514",
+                DisabledModelIds = ["old-model-1"],
+                SeenModelIds = ["old-model-1", "claude-opus-4-20250514"],
+                DefaultsApplied = true,
+            },
+        };
+        string json = JsonSerializer.Serialize(original);
+        var restored = JsonSerializer.Deserialize<AppSettings>(json);
+        Assert.NotNull(restored);
+        Assert.Equal("anthropic", restored!.CloudLlm.DefaultCloudLlmProvider);
+        Assert.Equal("claude-opus-4-20250514", restored.CloudLlm.DefaultCloudLlmModelId);
+        Assert.Contains("claude-opus-4-20250514", restored.CloudLlm.SeenModelIds);
+        Assert.Contains("old-model-1", restored.CloudLlm.DisabledModelIds);
+        Assert.True(restored.CloudLlm.DefaultsApplied);
+    }
+
+    [Fact, Trait("Category", "Unit")]
     public void AppSettings_DefaultValues_AreCorrect()
     {
         var s = new AppSettings();

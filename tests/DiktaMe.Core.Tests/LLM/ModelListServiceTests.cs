@@ -1,4 +1,10 @@
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using DiktaMe.Core.Config;
 using DiktaMe.Core.LLM;
+using DiktaMe.Core.Security;
+using FluentAssertions;
 using Moq;
 
 namespace DiktaMe.Core.Tests.LLM;
@@ -321,5 +327,118 @@ public sealed class LLMProviderExtensionsTests
         var result = await provider.Object.ProcessWithModelAsync("text", "prompt", modelName: "  ");
 
         Assert.Equal("regular output", result.Text);
+    }
+
+    // ── GetModelsForProviderAsync (BUG-027 wizard path) ────────────────────
+
+    [Fact, Trait("Category", "Unit")]
+    public async Task GetModelsForProviderAsync_WithOverrideKey_UsesOverride()
+    {
+        // Arrange: mock HttpClient that captures the Authorization header.
+        string? seenAuth = null;
+        var handler = new FuncHandler((req, _) =>
+        {
+            seenAuth = req.Headers.Authorization?.Parameter;
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{\"data\":[{\"id\":\"gpt-4o-mini\"}]}", Encoding.UTF8, "application/json"),
+            };
+        });
+        using var http = new HttpClient(handler);
+        var tempStorage = MakeTempStorage(out string tempDir);
+        tempStorage.StoreKey("openai", "stored-key-should-not-be-used");
+        var settings = new SettingsManager(Path.Combine(tempDir, "settings.json"));
+        using var svc = new ModelListService(tempStorage, settings, http);
+
+        // Act: pass override. Override should win over the stored key.
+        var models = await svc.GetModelsForProviderAsync("openai", overrideKey: "override-key");
+
+        // Assert
+        seenAuth.Should().Be("override-key");
+        models.Should().ContainSingle(m => m.ModelId == "gpt-4o-mini" && m.Provider == "OpenAI");
+
+        try { Directory.Delete(tempDir, true); } catch { /* best-effort */ }
+    }
+
+    [Fact, Trait("Category", "Unit")]
+    public async Task GetModelsForProviderAsync_WithoutOverride_FallsBackToStoredKey()
+    {
+        string? seenAuth = null;
+        var handler = new FuncHandler((req, _) =>
+        {
+            seenAuth = req.Headers.Authorization?.Parameter;
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{\"data\":[{\"id\":\"gpt-4o\"}]}", Encoding.UTF8, "application/json"),
+            };
+        });
+        using var http = new HttpClient(handler);
+        var tempStorage = MakeTempStorage(out string tempDir);
+        tempStorage.StoreKey("openai", "stored-key-from-securestorage");
+        var settings = new SettingsManager(Path.Combine(tempDir, "settings.json"));
+        using var svc = new ModelListService(tempStorage, settings, http);
+
+        var models = await svc.GetModelsForProviderAsync("openai", overrideKey: null);
+
+        seenAuth.Should().Be("stored-key-from-securestorage");
+        models.Should().ContainSingle();
+
+        try { Directory.Delete(tempDir, true); } catch { /* best-effort */ }
+    }
+
+    [Fact, Trait("Category", "Unit")]
+    public async Task GetModelsForProviderAsync_UnknownProvider_ReturnsEmpty()
+    {
+        using var http = new HttpClient(new FuncHandler((_, _) =>
+            new HttpResponseMessage(HttpStatusCode.OK)));
+        var tempStorage = MakeTempStorage(out string tempDir);
+        var settings = new SettingsManager(Path.Combine(tempDir, "settings.json"));
+        using var svc = new ModelListService(tempStorage, settings, http);
+
+        var models = await svc.GetModelsForProviderAsync("not-a-real-provider");
+
+        models.Should().BeEmpty();
+
+        try { Directory.Delete(tempDir, true); } catch { /* best-effort */ }
+    }
+
+    [Fact, Trait("Category", "Unit")]
+    public async Task GetModelsForProviderAsync_Requesty_ReturnsPrefixedIds()
+    {
+        // Regression guard: BUG-031 namespace prefix must also apply on the
+        // wizard override path (not just the full catalog fetch).
+        var handler = new FuncHandler((_, _) =>
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{\"data\":[{\"id\":\"openai/gpt-4o-mini\"}]}", Encoding.UTF8, "application/json"),
+            });
+        using var http = new HttpClient(handler);
+        var tempStorage = MakeTempStorage(out string tempDir);
+        var settings = new SettingsManager(Path.Combine(tempDir, "settings.json"));
+        using var svc = new ModelListService(tempStorage, settings, http);
+
+        var models = await svc.GetModelsForProviderAsync("requesty", overrideKey: "k");
+
+        models.Should().ContainSingle(m => m.ModelId == "requesty:openai/gpt-4o-mini");
+
+        try { Directory.Delete(tempDir, true); } catch { /* best-effort */ }
+    }
+
+    // ── Test helpers ───────────────────────────────────────────────────────
+
+    private static SecureStorage MakeTempStorage(out string tempDir)
+    {
+        tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempDir);
+        return new SecureStorage(Path.Combine(tempDir, "keys.dat"));
+    }
+
+    private sealed class FuncHandler : HttpMessageHandler
+    {
+        private readonly Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> _fn;
+        public FuncHandler(Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> fn) => _fn = fn;
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+            => Task.FromResult(_fn(request, ct));
     }
 }

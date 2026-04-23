@@ -449,15 +449,30 @@ public sealed record ChatSettings
 public sealed record CloudLlmSettings
 {
     /// <summary>
-    /// Model IDs that the user has disabled. Blacklist approach — new models are auto-enabled.
+    /// Model IDs the user has explicitly disabled. Authoritative toggle state —
+    /// a model appearing here is hidden from the Language Model dropdowns
+    /// everywhere in the app. Enabled models are those in <see cref="SeenModelIds"/>
+    /// but NOT in <see cref="DisabledModelIds"/>.
     /// </summary>
     public List<string> DisabledModelIds { get; init; } = [];
 
     /// <summary>
-    /// True once the "all off except canonical per provider" default filter has been
-    /// applied to DisabledModelIds. Ensures a fresh install starts with only one
-    /// curated model per provider enabled (keeps dropdowns usable), and prevents
-    /// re-applying the filter on every model list refresh once the user has curated.
+    /// Every model ID the app has ever surfaced to the user in the catalog.
+    /// Tracks the "already decided" set so newly-appearing models (either after
+    /// a provider adds a new model, or the user adds an API key for a new
+    /// provider) can be auto-disabled on arrival without trampling toggles on
+    /// models the user has already curated. Empty on fresh install and on the
+    /// first load after upgrading from pre-SeenModelIds builds.
+    /// </summary>
+    public List<string> SeenModelIds { get; init; } = [];
+
+    /// <summary>
+    /// Legacy one-shot flag from the pre-SeenModelIds era. Still read by the
+    /// new LoadModelsAsync migration logic: true means "existing install, don't
+    /// retroactively disable models on the first post-upgrade load — just seed
+    /// SeenModelIds with everything currently live and preserve user toggles."
+    /// After that one migration load, the flag is inert; we keep it for
+    /// backward-compatible JSON round-tripping.
     /// </summary>
     public bool DefaultsApplied { get; init; } = false;
 

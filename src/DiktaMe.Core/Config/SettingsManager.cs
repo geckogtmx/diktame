@@ -215,6 +215,22 @@ public sealed class SettingsManager
             Account = s.Account ?? new(),
         };
 
+        // Protect CloudLlm list properties from JSON missing-key / null.
+        // Existing installs from before the SeenModelIds field was added land
+        // with a null `SeenModelIds` because System.Text.Json doesn't apply the
+        // `= []` init default when the JSON key is absent. Same pattern applies
+        // to DisabledModelIds on any legacy install that lacks that key.
+        // Normalizing here means every downstream consumer can treat the lists
+        // as always non-null.
+        s = s with
+        {
+            CloudLlm = s.CloudLlm with
+            {
+                DisabledModelIds = s.CloudLlm.DisabledModelIds ?? [],
+                SeenModelIds = s.CloudLlm.SeenModelIds ?? [],
+            },
+        };
+
         // Protect individual hotkey strings from JSON null override.
         // JSON "ReadSelection":null overwrites the = "Ctrl+Alt+Q" init default with null,
         // causing HotkeyParser.TryParse(null) → "Hotkey Conflict" toast at startup.

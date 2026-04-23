@@ -638,6 +638,8 @@
                                                 <TextBlock Text="{Binding ProviderName}" FontWeight="SemiBold" FontSize="14"/>
                                                 <TextBlock FontSize="12" Opacity="0.6" VerticalAlignment="Center">
                                                     <Run Text="("/>
+                                                    <Run Text="{Binding EnabledModelCount, Mode=OneWay}"/>
+                                                    <Run Text="/"/>
                                                     <Run Text="{Binding ModelCount}"/>
                                                     <Run Text=" models)"/>
                                                 </TextBlock>

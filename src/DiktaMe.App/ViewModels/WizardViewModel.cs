@@ -39,6 +39,16 @@ public sealed partial class WizardViewModel : ObservableObject
     [ObservableProperty] private string _cloudLlmProvider = "gemini";     // gemini, openai, anthropic, openrouter, requesty
     [ObservableProperty] private string _cloudTtsProvider = "deepgram";   // deepgram, openai, gemini, inworld
 
+    // Specific cloud LLM model chosen by the user after testing their API key
+    // in the wizard — populated via ModelListService.GetModelsForProviderAsync.
+    // Empty string means the user skipped the model pick (e.g. no API key
+    // provided, or Test failed). On Finish, an empty value means we do NOT
+    // rewrite DictationModes/UtilityPipelines CloudProfile.ModelName — they
+    // keep whatever DictationModeDefaults seeded. Populated → we persist it
+    // as the new default AND propagate to every pipeline.
+    [ObservableProperty] private string _cloudLlmModelId = "";
+    [ObservableProperty] private string _cloudLlmModelDisplayName = "";
+
     // API Keys (keyed by provider name)
     [ObservableProperty] private string _deepgramApiKey = "";
     [ObservableProperty] private string _geminiApiKey = "";
@@ -290,31 +300,13 @@ public sealed partial class WizardViewModel : ObservableObject
 
             updated = updated with { ModeProfiles = profiles };
 
-            // Sync DictationModes[].CloudProfile.ModelName and UtilityPipelines[].CloudProfile.ModelName
-            // to match the user's cloud LLM choice. Without this, every preset keeps the
-            // "gemini-2.5-flash" default baked in by DictationModeDefaults, and LLMRouter
-            // routes all cloud requests to Gemini regardless of the chosen provider (BUG-030).
-            if (!string.Equals(LlmChoice, "local", StringComparison.Ordinal))
-            {
-                string cloudDefaultModel = DefaultModelForProvider(CloudLlmProvider);
-                updated = updated with
-                {
-                    DictationModes =
-                    [
-                        .. updated.DictationModes.Select(m => m with
-                        {
-                            CloudProfile = m.CloudProfile with { ModelName = cloudDefaultModel },
-                        }),
-                    ],
-                    UtilityPipelines =
-                    [
-                        .. updated.UtilityPipelines.Select(p => p with
-                        {
-                            CloudProfile = p.CloudProfile with { ModelName = cloudDefaultModel },
-                        }),
-                    ],
-                };
-            }
+            // Propagate the user's picked provider + specific model to every
+            // DictationModes[].CloudProfile.ModelName and UtilityPipelines[].
+            // CloudProfile.ModelName. Only fires when the user actually picked
+            // a model from the live list (CloudLlmModelId non-empty) — skipped
+            // pickers leave DictationModeDefaults seeds intact. The model ID is
+            // written verbatim; zero hardcoded canonical model IDs on this path.
+            updated = ApplyCloudLlmChoice(updated);
 
             await _settings.UpdateAsync(updated);
 
@@ -354,18 +346,71 @@ public sealed partial class WizardViewModel : ObservableObject
         || string.Equals(TtsChoice, "cloud", StringComparison.Ordinal);
 
     /// <summary>
-    /// Canonical default cloud LLM model for each provider, used when the wizard sets up
-    /// initial dictation presets and utility pipelines. Keeps model IDs aligned with
-    /// <see cref="LLMProviderFactory"/>.ResolveModel defaults.
+    /// Applies the user's cloud LLM provider + model pick to settings on wizard Finish:
+    /// persists the default, propagates the model to every DictationModes/UtilityPipelines
+    /// CloudProfile.ModelName, and auto-enables the pick in the CloudLlm catalog
+    /// (SeenModelIds + DisabledModelIds). Skipped entirely for local-LLM wizard paths
+    /// and for cloud paths where the user didn't pick a specific model.
     /// </summary>
-    private static string DefaultModelForProvider(string provider) => provider switch
+    private AppSettings ApplyCloudLlmChoice(AppSettings updated)
     {
-        "anthropic" => "claude-haiku-4-5-20251001",
-        "openai" => "gpt-4o-mini",
-        "openrouter" => "openai/gpt-4o-mini",
-        "requesty" => "openai/gpt-4o-mini",
-        _ => "gemini-2.5-flash", // gemini + unknown fallback
-    };
+        if (string.Equals(LlmChoice, "local", StringComparison.Ordinal))
+        {
+            return updated;
+        }
+
+        if (string.IsNullOrWhiteSpace(CloudLlmModelId))
+        {
+            // Cloud path but no model pick: save only the provider so Settings
+            // opens on the right tab; leave pipelines + catalog untouched.
+            Log.Information(
+                "Wizard: default LLM provider saved as {Provider}, model pick skipped",
+                CloudLlmProvider);
+            return updated with
+            {
+                CloudLlm = updated.CloudLlm with { DefaultCloudLlmProvider = CloudLlmProvider },
+            };
+        }
+
+        // Defensive: JSON may hand back null for these lists on installs
+        // that pre-date the SeenModelIds field.
+        var seen = new HashSet<string>(updated.CloudLlm.SeenModelIds ?? [], StringComparer.Ordinal)
+        {
+            CloudLlmModelId,
+        };
+        var disabled = (updated.CloudLlm.DisabledModelIds ?? [])
+            .Where(id => !string.Equals(id, CloudLlmModelId, StringComparison.Ordinal))
+            .ToList();
+
+        Log.Information(
+            "Wizard: default LLM set to {Provider} / {Model} — propagated to pipelines + auto-enabled in catalog",
+            CloudLlmProvider, CloudLlmModelId);
+
+        return updated with
+        {
+            CloudLlm = updated.CloudLlm with
+            {
+                DefaultCloudLlmProvider = CloudLlmProvider,
+                DefaultCloudLlmModelId = CloudLlmModelId,
+                SeenModelIds = [.. seen],
+                DisabledModelIds = disabled,
+            },
+            DictationModes =
+            [
+                .. updated.DictationModes.Select(m => m with
+                {
+                    CloudProfile = m.CloudProfile with { ModelName = CloudLlmModelId },
+                }),
+            ],
+            UtilityPipelines =
+            [
+                .. updated.UtilityPipelines.Select(p => p with
+                {
+                    CloudProfile = p.CloudProfile with { ModelName = CloudLlmModelId },
+                }),
+            ],
+        };
+    }
 
     /// <summary>Navigate to the activation detour page. Called by "I Have a Key!" button.</summary>
     public void NavigateToActivation()

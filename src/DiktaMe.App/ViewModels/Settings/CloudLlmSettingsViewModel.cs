@@ -412,26 +412,17 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
                 .Where(m => !string.Equals(m.Provider, "Ollama (Local)", StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            // First-run default filter: keep one canonical model per provider enabled,
-            // disable everything else. Prevents fresh installs from drowning the user
-            // in 400+ models in the dropdowns (BUG-028).
-            if (!_settings.Current.CloudLlm.DefaultsApplied && cloudModels.Count > 0)
-            {
-                var disabledDefaults = ComputeDefaultDisabledSet(cloudModels);
-                var updated = _settings.Current with
-                {
-                    CloudLlm = _settings.Current.CloudLlm with
-                    {
-                        DisabledModelIds = disabledDefaults,
-                        DefaultsApplied = true,
-                    },
-                };
-                await _settings.UpdateAsync(updated).ConfigureAwait(false);
-                Log.Information("CloudLlmSettings: applied first-run defaults — disabled {N} of {T} models",
-                    disabledDefaults.Count, cloudModels.Count);
-            }
+            // BUG-027 refactor: track every model ID we've ever shown the user
+            // in SeenModelIds. New arrivals (ids not in SeenModelIds) are
+            // auto-disabled on arrival so dropdowns stay small — except on
+            // the first post-upgrade load for existing installs (detected via
+            // the legacy DefaultsApplied=true + empty SeenModelIds), where we
+            // only seed SeenModelIds and preserve the user's existing toggles.
+            await ReconcileSeenAndDisabledAsync(cloudModels).ConfigureAwait(false);
 
-            var disabledIds = new HashSet<string>(_settings.Current.CloudLlm.DisabledModelIds, StringComparer.Ordinal);
+            var disabledIds = new HashSet<string>(
+                _settings.Current.CloudLlm.DisabledModelIds ?? [],
+                StringComparer.Ordinal);
 
             // Group by provider
             var groups = cloudModels
@@ -495,26 +486,61 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
     /// Falls back to the alphabetically-first model if the canonical isn't in the list
     /// (provider may have deprecated/renamed it).
     /// </summary>
-    private static List<string> ComputeDefaultDisabledSet(IReadOnlyList<ModelInfo> cloudModels)
+    private async Task ReconcileSeenAndDisabledAsync(IReadOnlyList<ModelInfo> cloudModels)
     {
-        var enabledPerProvider = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var group in cloudModels.GroupBy(m => m.Provider, StringComparer.Ordinal))
+        if (cloudModels.Count == 0)
         {
-            string? chosen = null;
-            if (CanonicalByProvider.TryGetValue(group.Key, out var canonical))
-            {
-                chosen = group.FirstOrDefault(m =>
-                    string.Equals(m.ModelId, canonical, StringComparison.Ordinal))?.ModelId;
-            }
-
-            chosen ??= group.OrderBy(m => m.DisplayName, StringComparer.Ordinal).First().ModelId;
-            enabledPerProvider.Add(chosen);
+            return;
         }
 
-        return cloudModels
-            .Where(m => !enabledPerProvider.Contains(m.ModelId))
-            .Select(m => m.ModelId)
-            .ToList();
+        var cloud = _settings.Current.CloudLlm;
+
+        // Defensive: System.Text.Json can hand back null for list properties
+        // when the JSON key is absent (documented in CLAUDE.md). SanitizeNulls
+        // handles sub-object nulls but not nested list nulls.
+        var seen = new HashSet<string>(cloud.SeenModelIds ?? [], StringComparer.Ordinal);
+        var disabled = new HashSet<string>(cloud.DisabledModelIds ?? [], StringComparer.Ordinal);
+
+        // Migration detection: legacy installs had DefaultsApplied=true plus a
+        // pre-curated DisabledModelIds. On their first load after upgrade,
+        // SeenModelIds is empty — we seed it from the current live set WITHOUT
+        // disabling anything new. Subsequent loads take the normal path.
+        bool migrationRun = seen.Count == 0 && (cloud.DefaultsApplied || disabled.Count > 0);
+
+        bool changed = false;
+        foreach (var model in cloudModels)
+        {
+            if (seen.Add(model.ModelId))
+            {
+                changed = true;
+                if (!migrationRun && disabled.Add(model.ModelId))
+                {
+                    // Fresh install or new arrival post-migration → disabled
+                    // by default. User curates from the catalog or picks one
+                    // in the wizard (which also removes from disabled + adds
+                    // to seen — see WizardViewModel Finish flow).
+                }
+            }
+        }
+
+        if (!changed)
+        {
+            return;
+        }
+
+        var updated = _settings.Current with
+        {
+            CloudLlm = cloud with
+            {
+                SeenModelIds = [.. seen],
+                DisabledModelIds = [.. disabled],
+            },
+        };
+        await _settings.UpdateAsync(updated).ConfigureAwait(false);
+
+        Log.Information(
+            "CloudLlmSettings: reconciled models — seen={Seen}, disabled={Disabled}, migration={Migration}",
+            seen.Count, disabled.Count, migrationRun);
     }
 
     // ── Usage loading ────────────────────────────────────────────────────
@@ -551,7 +577,7 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
 
     private void OnModelToggled(ModelToggleItem item)
     {
-        var current = _settings.Current.CloudLlm.DisabledModelIds;
+        var current = _settings.Current.CloudLlm.DisabledModelIds ?? [];
         var updated = new List<string>(current);
 
         if (item.IsEnabled)
@@ -584,7 +610,7 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
     private void OnProviderAllToggled(ProviderModelGroup group, bool newValue)
     {
         // Cascade to all children, then persist in a single save.
-        var current = _settings.Current.CloudLlm.DisabledModelIds;
+        var current = _settings.Current.CloudLlm.DisabledModelIds ?? [];
         var updated = new HashSet<string>(current, StringComparer.Ordinal);
 
         foreach (var model in group.Models)
@@ -601,6 +627,9 @@ public sealed partial class CloudLlmSettingsViewModel : ObservableObject
         }
 
         PersistDisabledIds([.. updated]);
+
+        // Refresh the count badge in the expander header ("X/N models").
+        group.RefreshIsAnyEnabled();
     }
 
     private void PersistDisabledIds(List<string> disabledIds)
@@ -648,6 +677,13 @@ public sealed partial class ProviderModelGroup : ObservableObject
     public int ModelCount => Models.Count;
 
     /// <summary>
+    /// Count of currently-enabled models in the group. Used by the catalog
+    /// expander header for the "X/N models" display.
+    /// </summary>
+    [ObservableProperty]
+    private int _enabledModelCount;
+
+    /// <summary>
     /// Master toggle. True = at least one model in this group is enabled.
     /// Flipping OFF disables all; flipping ON enables all.
     /// </summary>
@@ -655,13 +691,14 @@ public sealed partial class ProviderModelGroup : ObservableObject
     private bool _isAnyEnabled;
 
     /// <summary>
-    /// Recomputes <see cref="IsAnyEnabled"/> from the current child state without
-    /// triggering the user-initiated cascade.
+    /// Recomputes <see cref="IsAnyEnabled"/> and <see cref="EnabledModelCount"/>
+    /// from the current child state without triggering the user-initiated cascade.
     /// </summary>
     public void RefreshIsAnyEnabled()
     {
         _muteMasterChanged = true;
-        IsAnyEnabled = Models.Any(m => m.IsEnabled);
+        EnabledModelCount = Models.Count(m => m.IsEnabled);
+        IsAnyEnabled = EnabledModelCount > 0;
         _muteMasterChanged = false;
     }
 

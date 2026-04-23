@@ -2,6 +2,8 @@
 using DiktaMe.App.Services;
 using DiktaMe.App.ViewModels;
 using DiktaMe.Core.Config;
+using DiktaMe.Core.LLM;
+using DiktaMe.Core.Security;
 using DiktaMe.Core.SystemManagement;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
@@ -27,6 +29,10 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
 
     private bool _isByok;
     private bool _skipWarningShown;
+
+    // Parallel list of real model IDs for ModelCombo's displayed names.
+    // Index-matched: ModelCombo.SelectedIndex → _modelIds[i].
+    private readonly List<string> _modelIds = [];
 
     public void SetViewModel(WizardViewModel viewModel)
     {
@@ -81,6 +87,7 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
         {
             _viewModel.LlmChoice = "local";
             ApiKeyPanel.Visibility = Visibility.Collapsed;
+            HideModelPicker();
             _ = ShowOllamaStatusAsync();
         }
         else
@@ -110,6 +117,12 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
         KeyStatus.Visibility = Visibility.Collapsed;
         SkipWarning.IsOpen = false;
         _skipWarningShown = false;
+
+        // Provider changed — previous model list + picked model no longer
+        // applies. User must Test again to repopulate.
+        HideModelPicker();
+        _viewModel.CloudLlmModelId = "";
+        _viewModel.CloudLlmModelDisplayName = "";
     }
 
     private void LlmKeyBox_PasswordChanged(object sender, RoutedEventArgs e)
@@ -136,6 +149,12 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
         KeyStatus.Visibility = Visibility.Collapsed;
         SkipWarning.IsOpen = false;
         _skipWarningShown = false;
+
+        // Typed key changed — any previously-loaded model list is stale
+        // (was for a different key). Hide until the user re-tests.
+        HideModelPicker();
+        _viewModel.CloudLlmModelId = "";
+        _viewModel.CloudLlmModelDisplayName = "";
     }
 
     private async void TestKeyButton_Click(object sender, RoutedEventArgs e)
@@ -151,13 +170,26 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
         KeyStatus.Visibility = Visibility.Visible;
         KeyProgress.IsActive = true;
         KeyStatusText.Text = _loc.GetString("Wizard_ApiKeys_Testing");
+        HideModelPicker();
 
         try
         {
-            bool success = await TestLlmKeyAsync(provider, apiKey);
-            KeyStatusText.Text = _loc.GetString(success ? "Wizard_ApiKeys_Valid" : "Wizard_ApiKeys_Invalid");
+            // Reuse the shared ApiKeyTester (same whoami probes as Settings >
+            // API Keys Test Connection, BUG-023). No persistence — the key
+            // stays in memory via the overrideKey path.
+            var tester = App.Current.Services.GetRequiredService<ApiKeyTester>();
+            var result = await tester.TestAsync(provider, apiKey);
+
+            KeyStatusText.Text = _loc.GetString(result.Ok ? "Wizard_ApiKeys_Valid" : "Wizard_ApiKeys_Invalid");
             KeyStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                success ? Microsoft.UI.Colors.LimeGreen : Microsoft.UI.Colors.Tomato);
+                result.Ok ? Microsoft.UI.Colors.LimeGreen : Microsoft.UI.Colors.Tomato);
+
+            if (result.Ok)
+            {
+                // Fetch the live model list with the in-memory key (never
+                // persisted until the wizard's Finish step).
+                await LoadModelsForProviderAsync(provider, apiKey);
+            }
         }
         catch (Exception ex)
         {
@@ -172,50 +204,88 @@ public sealed partial class WizardLlmPage : Page, IWizardStepPage
         }
     }
 
-    private static async Task<bool> TestLlmKeyAsync(string provider, string apiKey)
+    /// <summary>
+    /// Fetches the live model list for the given provider using an
+    /// in-memory <paramref name="overrideKey"/> (typed but not yet persisted).
+    /// Populates <see cref="ModelCombo"/> and selects the model previously
+    /// chosen on the wizard VM, if it still appears in the list.
+    /// </summary>
+    private async Task LoadModelsForProviderAsync(string providerType, string overrideKey)
     {
-        using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-
-        switch (provider)
+        if (_viewModel is null)
         {
-            case "gemini":
-                using (var req = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get,
-                    "https://generativelanguage.googleapis.com/v1beta/models"))
-                {
-                    req.Headers.Add("x-goog-api-key", apiKey);
-                    var resp = await client.SendAsync(req);
-                    return resp.IsSuccessStatusCode;
-                }
-
-            case "openai":
-                client.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-                return (await client.GetAsync("https://api.openai.com/v1/models")).IsSuccessStatusCode;
-
-            case "anthropic":
-                // Anthropic doesn't have a simple list endpoint — use a minimal messages call
-                using (var req = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get,
-                    "https://api.anthropic.com/v1/models"))
-                {
-                    req.Headers.Add("x-api-key", apiKey);
-                    req.Headers.Add("anthropic-version", "2023-06-01");
-                    var resp = await client.SendAsync(req);
-                    return resp.IsSuccessStatusCode;
-                }
-
-            case "openrouter":
-                client.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-                return (await client.GetAsync("https://openrouter.ai/api/v1/models")).IsSuccessStatusCode;
-
-            case "requesty":
-                client.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-                return (await client.GetAsync("https://router.requesty.ai/v1/models")).IsSuccessStatusCode;
-
-            default:
-                return false;
+            return;
         }
+
+        var modelListService = App.Current.Services.GetRequiredService<ModelListService>();
+        List<ModelInfo> models;
+        try
+        {
+            models = await modelListService.GetModelsForProviderAsync(providerType, overrideKey);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Wizard: failed to load models for {Provider}", providerType);
+            models = [];
+        }
+
+        _dispatcher.TryEnqueue(() =>
+        {
+            ModelCombo.ItemsSource = null;
+            _modelIds.Clear();
+
+            if (models.Count == 0)
+            {
+                HideModelPicker();
+                return;
+            }
+
+            var displayNames = new List<string>(models.Count);
+            foreach (var m in models)
+            {
+                displayNames.Add(m.DisplayName);
+                _modelIds.Add(m.ModelId);
+            }
+
+            ModelCombo.ItemsSource = displayNames;
+
+            // Pre-select the previously-picked model if it's still in the list
+            // — but only the PREVIOUS pick from the wizard VM; never auto-pick
+            // a default on first-time load (user wants explicit choice).
+            int preIdx = !string.IsNullOrWhiteSpace(_viewModel.CloudLlmModelId)
+                ? _modelIds.FindIndex(id =>
+                    string.Equals(id, _viewModel.CloudLlmModelId, StringComparison.Ordinal))
+                : -1;
+            ModelCombo.SelectedIndex = preIdx;
+
+            ModelPickerPanel.Visibility = Visibility.Visible;
+        });
+    }
+
+    private void HideModelPicker()
+    {
+        ModelPickerPanel.Visibility = Visibility.Collapsed;
+        ModelCombo.ItemsSource = null;
+        _modelIds.Clear();
+    }
+
+    private void ModelCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        int idx = ModelCombo.SelectedIndex;
+        if (idx < 0 || idx >= _modelIds.Count)
+        {
+            _viewModel.CloudLlmModelId = "";
+            _viewModel.CloudLlmModelDisplayName = "";
+            return;
+        }
+
+        _viewModel.CloudLlmModelId = _modelIds[idx];
+        _viewModel.CloudLlmModelDisplayName = ModelCombo.Items[idx]?.ToString() ?? "";
     }
 
     private void UpdateKeySourceLink(string provider)
