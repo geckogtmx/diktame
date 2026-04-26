@@ -10,6 +10,83 @@
 
 ---
 
+## ⚡ Quick Orient (Read First Each Session)
+
+This section is the cold-start anchor. If you (Eduardo, future-you, or a fresh Claude session) are picking this up after time away, **read this section first, then jump to the relevant section below — don't read the whole 1800+ line doc front-to-back.**
+
+### What this document is
+
+The strategic + execution playbook for the dIKta.me V2 model pivot. **Strategy is canonical here.** Tactical execution lives in companion docs (`MANUAL_TEST_PLAN.md` for testing, source code under `src/` for the app, `website/` for the site).
+
+### What's been decided (don't re-litigate)
+
+- ✅ Free forever + MIT + source-available, no PRs accepted
+- ✅ $20+ pay-what-you-want Insider supporter license (lifetime, one-time, via LemonSqueezy)
+- ✅ Wallet stays as $1 onramp, fully orthogonal to Insider
+- ✅ Plugins ship via Insider channel months 2-4 (no marketplace, no per-plugin gate)
+- ✅ Microsoft Store + GitHub Releases parallel, with Path A/B/C contingency ($0 / $140/yr / $320/yr)
+- ✅ IV (Individual Validation) cert is the ceiling — solo individual, EV is unavailable
+- ✅ 10-15 Founding Insiders + 100 lifetime-for-public-review advocacy slots
+- ✅ 3-5 mobile-first themed landing pages (Writers / Gamers / Accessibility / Devs / Multilingual)
+- ✅ 1-2 week pre-launch window, Day 30/60/90/180 KPI checkpoints
+- ✅ Exit strategy: sell at Day 180+ if KPIs miss; otherwise hold or scale
+
+If a new conversation tries to re-debate any of these, point them to **Appendix D — Decision Log** and proceed.
+
+### Critical-path order (do in this order, never out of sequence)
+
+1. **Key rotation** (P0 BLOCKER) — `website/.env.local` has live secrets. Rotate before any public-repo move. See §11.
+2. **Code change** — open the 4 license gates (4 files, single-digit-line changes). See §8.
+3. **Test plan re-key** — apply Appendix C diff to `MANUAL_TEST_PLAN.md`. See §13.
+4. **Manual test run** — Journeys 1, 3, 6 are critical-path; user estimate 1-2 focused days. See §13.
+5. **Repo lockdown** — banner, ISSUE_TEMPLATE, PR_TEMPLATE for "no contributions accepted" posture. See §11.
+6. **Website + docs work** — pricing rewrite, roadmap restructure, blog post, /community, 3-5 landings, commercial wording sweep. See §9.
+7. **GitHub Release v2.1.0** — tag and ship. See §12.
+8. **Discord setup, Founding Insider gifting, first devlog stream**. See §14.
+9. **Microsoft Store submission** — only if Path B/C activated and Day 60 traction triggers fire. See §7.
+
+Steps 1-3 must run sequentially. Steps 4-9 can parallelize once code is open.
+
+### Where you'll find each thing
+
+| Question | Section |
+|----------|---------|
+| Why are we doing this? | §1, §2, Appendix D |
+| What's the strategy? | §1-§7 |
+| What code do I change? | §8 + Appendix A |
+| What does the website become? | §9 + Appendix B |
+| What docs need writing? | §10 |
+| What about secrets? | §11 |
+| What's the next concrete action? | **§12 (Pre-Launch Checklist)** |
+| Is the test plan a launch gate? | §13 + Appendix C |
+| What does Day 0 look like? | §14 |
+| What success/failure looks like | §15, §18 |
+| What old marketing stuff can I reuse? | §0 (Heritage Assets) |
+| What can go wrong? | §17 |
+| Did we pivot fairly? | Appendix D |
+
+### Companion docs to read in a new session
+
+- `MANUAL_TEST_PLAN.md` — what to test before submission. Re-key per Appendix C of this doc.
+- `MANUAL_TEST_LOG.md` — current bug roster + journey progress. Zero P0/P1 open as of 2026-04-23 EOD.
+- `CLAUDE.md` (repo root) — coding conventions, build commands, gotchas.
+- `plans/mkt/BRAND_BOOK.md` — canonical voice + visual identity (NOT pivoted, still authoritative).
+- `MEMORY.md` (in user's `~/.claude/` — auto-loaded) — project memory; references this blueprint.
+
+### Where to log progress
+
+**Appendix E — Session Progress Log** (at the bottom of this doc). Append a one-paragraph entry per session: date, what was done, what's next. This makes multi-session resumption trivial.
+
+### Common pitfalls when resuming
+
+- ❌ Don't re-debate the model pivot. It's locked. Appendix D has the four-turn debate if needed.
+- ❌ Don't trust pricing or dates in `plans/mkt/*` heritage docs without checking the stale-banner at the top of each. They reference the OLD model.
+- ❌ Don't push to `origin/main` unless explicitly asked — the user runs trunk-based but commits land via approval.
+- ❌ Don't propose EV cert for code signing — solo individual, EV is not available; **IV is the ceiling**.
+- ❌ Don't conflate Wallet with Insider in copy — they're orthogonal products.
+
+---
+
 ## Table of Contents
 
 0. [Heritage Assets — What Pre-Pivot Marketing Materials Are Reusable](#0-heritage-assets--what-pre-pivot-marketing-materials-are-reusable)
@@ -35,6 +112,7 @@
 20. [Appendix B — Website Component Inventory](#appendix-b--website-component-inventory)
 21. [Appendix C — Manual Test Plan Re-Keying Diff](#appendix-c--manual-test-plan-re-keying-diff)
 22. [Appendix D — Decision Log](#appendix-d--decision-log)
+23. [Appendix E — Session Progress Log](#appendix-e--session-progress-log)
 
 ---
 
@@ -1824,9 +1902,38 @@ All answers depend on data we don't have yet. Don't pre-commit. Re-read this sec
 
 ---
 
+## Appendix E — Session Progress Log
+
+Append one entry per working session. Keep entries short (3-5 lines). Most recent at top. Use this as the durable hand-off mechanism between sessions — Quick Orient (top of doc) reads from here implicitly.
+
+**Format**:
+```
+### YYYY-MM-DD — [Session focus]
+- What was done: [brief]
+- Blockers / decisions: [brief]
+- Next up: [what the next session should pick up]
+- Commits: [hashes if any]
+```
+
+---
+
+### 2026-04-26 — Blueprint creation + heritage fold-in
+- What was done: Authored `DIKTAX_3-6_BLUEPRINT.md` (1832 lines) capturing the model pivot strategy, code adjustments, website rewrite plan, distribution paths, KPIs, and exit criteria. Audited 7 heritage marketing docs in `plans/mkt/`, added stale-banner headers (gitignored — local-only). Folded actionable content (Windows-native gap, PH algorithm research, multi-launch playbook, channel matrix, daily content engine, BRAND_BOOK.md voice authority, COMPETITOR_PAGES.md comparison content) into the blueprint with cross-references.
+- Blockers / decisions: None at this stage. Pricing locked at $20+ PWYW. IV cert clarified as the ceiling for solo individual. Wallet revenue contingency documented.
+- Next up: **Day 1 critical path** — rotate secrets in `website/.env.local`, then apply 4-file code change to open license gates (§8), then re-key `MANUAL_TEST_PLAN.md` per Appendix C, then run Journeys 1, 3, 6.
+- Commits: `3619237` — `docs(strategy): add 3-6 month launch blueprint [DIKTAX-001]`
+
+---
+
+(Add new session entries above this line.)
+
+---
+
 **End of blueprint.**
 
-*Last updated: 2026-04-26 (initial creation + heritage assets fold-in)*
+*Last updated: 2026-04-26 (initial creation + heritage assets fold-in + multi-session resumption infrastructure)*
 *Next checkpoint: Day 30 post-launch (target ~2026-05-30 if launch hits ~2026-04-30)*
 
 *Heritage docs in `plans/mkt/` were audited and stale-banner-marked on the same date. Refer to them for full content; defer to this blueprint for canonical strategy.*
+
+*To resume work in a new session: read the **⚡ Quick Orient** section at the top, then check **Appendix E** for the most recent progress log entry, then jump to the relevant numbered section. Don't read this doc front-to-back.*
